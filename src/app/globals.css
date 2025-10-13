@@ -1,0 +1,9 @@
+@import "tailwindcss";
+@import "@breadcoop/ui/theme";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+/* Additional custom styles can go here */
