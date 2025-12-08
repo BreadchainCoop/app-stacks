@@ -1,0 +1,11 @@
+[profile.default]
+src = "script"                     # your deploy scripts live here
+libs = ["lib", "contracts/stacks/lib"]
+
+remappings = [
+    "forge-std/=stacks/lib/forge-std/src/",
+    "@openzeppelin/=stacks/lib/openzeppelin-contracts/contracts/",
+    "@openzeppelin-upgradeable/=stacks/lib/openzeppelin-contracts-upgradeable/contracts/",
+    "interfaces/=stacks/src/interfaces/",
+    "contracts/=stacks/src/contracts/"
+]

@@ -1,0 +1,3 @@
+[submodule "contracts/stacks"]
+	path = contracts/stacks
+	url = git@github.com:BreadchainCoop/saving-circles.git
