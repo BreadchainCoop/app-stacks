@@ -6,7 +6,16 @@ Compile the contracts
 
 ```bash
 cd contracts
-forge script script/Deploy.s.sol:Deploy --broadcast --rpc-url http://localhost:8545 --private-key 0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6 --legacy
+
+export RPC_URL=http://localhost:8545
+export PRIVATE_KEY=<your_local_dev_private_key>
+export ADMIN_ADDRESS=<admin_address_for_saving_circles>
+
+forge script script/Deploy.s.sol:Deploy \
+  --rpc-url $RPC_URL \
+  --broadcast \
+  --private-key $PRIVATE_KEY \
+  --legacy
 ```
 
 First, run the development server:

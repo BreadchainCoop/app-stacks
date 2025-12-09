@@ -1,0 +1,23 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+fs_permissions = [{ access = "read-write", path = "./" }]
+
+remappings = [
+  "forge-std/=lib/forge-std/src/",
+  "saving-circles/=lib/saving-circles/",
+
+  # OpenZeppelin (non-upgradeable) – segment-specific to match submodule imports
+  "@openzeppelin/token/=lib/openzeppelin-contracts/contracts/token/",
+  "@openzeppelin/utils/=lib/openzeppelin-contracts/contracts/utils/",
+  "@openzeppelin/proxy/=lib/openzeppelin-contracts/contracts/proxy/",
+  "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+
+  # OpenZeppelin (upgradeable)
+  "@openzeppelin-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
+
+  # Saving Circles source inside the submodule
+  "contracts/=lib/saving-circles/src/contracts/",
+  "interfaces/=lib/saving-circles/src/interfaces/",
+]
