@@ -1,9 +1,90 @@
 @import "tailwindcss";
+@source "./../../node_modules/@breadcoop";
 @import "@breadcoop/ui/theme";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+	--background: #ffffff;
+	--foreground: #171717;
 }
 
-/* Additional custom styles can go here */
+@layer base {
+	.page-layout {
+		@apply px-4 mx-auto max-w-299 md:px-6 lg:px-8;
+	}
+}
+
+@layer components {
+  .lifted-button-container {
+    @apply [&>*]:w-full w-full;
+  }
+
+  .lifted-button-container button {
+    @apply w-full;
+  }
+
+	.card-shadow {
+		@apply shadow-[0px_4px_12px_0px_#1B201A26];
+	}
+
+	.card-shadow-bg {
+		@apply bg-paper-0 shadow-[0px_4px_12px_0px_#1B201A26];
+	}
+
+	.card-shadow-border {
+		@apply border border-paper-1 shadow-[0px_4px_12px_0px_#1B201A26];
+	}
+}
+
+@utility scrollbar-hidden {
+	&::-webkit-scrollbar {
+		display: none;
+	}
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes fadeOut {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+}
+
+body {
+  @apply bg-paper-main;
+}
+
+.DialogOverlay[data-state="open"],
+.DialogContent[data-state="open"] {
+	animation: fadeIn 300ms ease-out;
+}
+
+.DialogOverlay[data-state="closed"],
+.DialogContent[data-state="closed"] {
+	animation: fadeOut 300ms ease-in;
+}
+
+.AccordionChevron {
+	transition: transform 300ms;
+}
+
+.AccordionTrigger[data-state="open"] > .AccordionChevron {
+	transform: rotate(180deg);
+}
+
+.tooltip-content {
+	z-index: 9999;
+	@apply bg-paper-main px-3 py-2;
+
+	/* width: var(--radix-tooltip-trigger-width); */
+	/* max-height: var(--radix-tooltip-content-available-height); */
+}

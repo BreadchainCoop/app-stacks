@@ -6,31 +6,78 @@ import {
   RainbowKitProvider,
   connectorsForWallets,
 } from "@rainbow-me/rainbowkit";
-import { injectedWallet } from "@rainbow-me/rainbowkit/wallets";
+import {
+	coinbaseWallet,
+	frameWallet,
+	injectedWallet,
+	metaMaskWallet,
+	rabbyWallet,
+	safeWallet,
+	// walletConnectWallet,
+} from "@rainbow-me/rainbowkit/wallets";
 import { WagmiProvider, createConfig, http } from "wagmi";
-import { gnosis } from "wagmi/chains";
+import { foundry, gnosis } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { defineChain } from "viem";
+
+// https://github.com/rainbow-me/rainbowkit/issues/2476#issuecomment-3117608183
+export function getWallets() {
+	const wallets = [
+		injectedWallet,
+		frameWallet,
+		rabbyWallet,
+		coinbaseWallet,
+		safeWallet,
+	];
+
+	if (typeof indexedDB !== "undefined") {
+		// @ts-expect-error Correct
+		wallets.unshift(metaMaskWallet);
+		// wallets.unshift(metaMaskWallet, walletConnectWallet);
+	}
+
+	return wallets;
+}
 
 const connectors = connectorsForWallets(
-  [
-    {
-      groupName: "Suggested",
-      wallets: [injectedWallet],
-    },
-  ],
-  {
-    appName: "Stacks",
-    projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "",
-  }
+	[
+		{
+			groupName: "Suggested",
+			wallets: getWallets(),
+		},
+	],
+	{
+		appName: "Stacks",
+		projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "",
+	}
 );
 
+const foundryChain = defineChain({
+	...foundry,
+	id: 31337,
+	// contracts: {
+	// 	multicall3: {
+	// 		address: "0xcA11bde05977b3631167028862bE2a173976CA11",
+	// 		blockCreated: 21_022_491,
+	// 	},
+	// },
+});
+
 const config = createConfig({
-  connectors,
-  chains: [gnosis],
-  transports: {
-    [gnosis.id]: http(),
-  },
-  ssr: true,
+	connectors,
+	// @ts-expect-error Correct
+	chains: (() => {
+		const _chains = [gnosis];
+		// @ts-expect-error Correct
+		if (process.env.NODE_ENV === "development") _chains.push(foundryChain);
+
+		return _chains;
+	})(),
+	transports: {
+		[gnosis.id]: http(),
+		[foundryChain.id]: http(),
+	},
+	ssr: true,
 });
 
 const queryClient = new QueryClient();
