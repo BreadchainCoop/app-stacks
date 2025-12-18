@@ -11,12 +11,18 @@ import {SavingCircles} from "saving-circles/src/contracts/SavingCircles.sol";
 import {DelegatedSavingCircles} from "saving-circles/src/contracts/DelegatedSavingCircles.sol";
 import {SavingCirclesViewer} from "saving-circles/src/contracts/SavingCirclesViewer.sol";
 
+import {MockBread} from "./MockBread.sol";
+
 contract Deploy is Script {
     function run() external {
         // Admin that will own SavingCircles + ProxyAdmin
         address admin = vm.envAddress("ADMIN_ADDRESS");
 
+        uint256 initialBreadSupply = 1_000_000e18;
+
         vm.startBroadcast();
+
+        MockBread bread = new MockBread(admin, admin, initialBreadSupply);
 
         // 1. Implementation + ProxyAdmin
         SavingCircles implementation = new SavingCircles();
@@ -42,7 +48,14 @@ contract Deploy is Script {
         SavingCirclesViewer viewer =
             new SavingCirclesViewer(address(savingCircles));
 
+        savingCircles.setTokenAllowed(address(bread), true);
+
+        require(savingCircles.owner() == admin, "SavingCircles owner != admin");
+        require(savingCircles.allowedTokens(address(bread)) == true, "BREAD not allowed");
+        require(address(delegatedSavingCircles.SAVING_CIRCLES()) == address(savingCircles), "Bad delegated SAVING_CIRCLES");
+
         // Logs
+        console2.log("MockBread (BREAD):", address(bread));
         console2.log("SavingCircles implementation:", address(implementation));
         console2.log("SavingCircles proxy:", address(savingCircles));
         console2.log("ProxyAdmin:", address(proxyAdmin));
@@ -53,6 +66,7 @@ contract Deploy is Script {
 
         // Persist to JSON under ./out
         string memory key = "deployment";
+        vm.serializeAddress(key, "breadToken", address(bread));
         vm.serializeAddress(key, "savingCirclesProxy", address(savingCircles));
         vm.serializeAddress(
             key,
