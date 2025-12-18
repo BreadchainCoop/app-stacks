@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Web3Provider } from "./providers/Web3Provider";
-import { Footer } from "@breadcoop/ui";
 import ModalPresenter from "@/components/modal/presenter";
-import { ModalProvider } from "@/components/modal/context";
+import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/Navbar/Navbar";
+import Providers from "@/components/providers";
 
 export const metadata: Metadata = {
 	title: "Stacks - Bread Cooperative",
@@ -81,17 +80,12 @@ export default function RootLayout({
 			</head>
 			<body className="font-roboto text-text-standard antialiased">
 				<div className="overflow-x-hidden">
-					<Web3Provider>
-						<ModalProvider>
-							<ModalPresenter />
-							<Navbar />
-							<main className="page-layout py-8">{children}</main>
-							<Footer
-								mode="transparent"
-								className="page-layout"
-							/>
-						</ModalProvider>
-					</Web3Provider>
+					<Providers>
+						<ModalPresenter />
+						<Navbar />
+						<main className="page-layout py-8">{children}</main>
+						<Footer />
+					</Providers>
 				</div>
 			</body>
 		</html>
