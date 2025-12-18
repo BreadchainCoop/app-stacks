@@ -77,7 +77,7 @@ const OnboardingTutorials = ({ nextStage }: { nextStage: () => void }) => {
 
 	return (
 		<section>
-			<div className="card-shadow-border card-shadow-bg flex flex-col text-center p-6">
+			<div className="card-shadow-border card-shadow-bg flex flex-col text-center p-6 max-w-155 mx-auto">
 				<div className="mb-3 flex items-center justify-between">
 					{current > 0 && (
 						<OutlinedButton
@@ -104,9 +104,15 @@ const OnboardingTutorials = ({ nextStage }: { nextStage: () => void }) => {
 						/>
 					}
 				</figure>
-				<Heading3 className="mb-6">{tutorial.title}</Heading3>
-				<Body className="mb-3">{tutorial.body}</Body>
-				<Body className="text-surface-grey">{tutorial.para}</Body>
+				<Heading3 className="mb-6 text-2xl leading-[100%]">
+					{tutorial.title}
+				</Heading3>
+				<Body className="mb-3 text-surface-grey-2">
+					{tutorial.body}
+				</Body>
+				<Body className="text-surface-grey text-sm">
+					{tutorial.para}
+				</Body>
 				<div className="flex items-center justify-center gap-2 my-6">
 					{indicators.map((id) => (
 						<div
