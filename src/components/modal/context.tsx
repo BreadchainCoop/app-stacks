@@ -1,14 +1,31 @@
 "use client";
 
-import {
-	ReactElement,
-	type ReactNode,
-	createContext,
-	useContext,
-	useState,
-} from "react";
+import { type ReactNode, createContext, useContext, useState } from "react";
 
 export type TModalStatus = "loading" | "success" | "error";
+
+export type StackInitModalState = {
+	type: "STACK_CREATION_INIT";
+	name: string;
+	status: "awaiting" | "approved" | "successful";
+};
+
+export type StackInitSuccessModalState = {
+	type: "STACK_CREATION_SUCCESS";
+	// TODO: Create a circle interface and inherit from it
+	circle: {
+		name: string;
+		id: string;
+		duration: string;
+		deposit: number;
+		total: number;
+		members: number;
+	};
+};
+
+export type StackInitFailedModalState = {
+	type: "STACK_CREATION_FAILED";
+};
 
 export type DepositInitModalState = {
 	type: "DEPOSIT_INIT";
@@ -45,6 +62,9 @@ export type ModalState =
 	| DepositResultModalState
 	| ClaimInitModalState
 	| ClaimResultModalState
+	| StackInitModalState
+	| StackInitSuccessModalState
+	| StackInitFailedModalState
 	| null;
 
 export type ModalContext = {

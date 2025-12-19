@@ -6,8 +6,8 @@ import {
 	AccordionContent,
 	AccordionItem,
 } from "@/components/accordion";
+import PendingInviteLink from "@/components/pending-invite-link";
 import { Body, Chip } from "@breadcoop/ui";
-import { CopyIcon } from "@phosphor-icons/react";
 
 function DepositRow({ label, body }: { label: string; body: string }) {
 	return (
@@ -15,23 +15,6 @@ function DepositRow({ label, body }: { label: string; body: string }) {
 			<Body>{label}</Body>
 			<Body bold>{body}</Body>
 		</div>
-	);
-}
-
-function PendingInvite() {
-	return (
-		<Body className="text-sm *:border *:border-surface-grey *:py-3 flex items-center justify-start bg-green-600">
-			<span className="border-r-0! bg-paper-0 px-2 shrink-0">
-				Invite link
-			</span>
-			<span className="bg-paper-1 px-4 flex-2 truncate">
-				https://stacks.bread.coop/stacks-dt564
-			</span>
-			<button className="border-x-0! border-transparent! px-3 flex items-center justify-center gap-2.5 text-paper-main bg-primary-blue shrink-0">
-				<CopyIcon size={16} />
-				<span>Copy</span>
-			</button>
-		</Body>
 	);
 }
 
@@ -95,7 +78,7 @@ const MembersInfo = () => {
 						</div>
 					</AccordionHeader>
 					<AccordionContent>
-						<PendingInvite />
+						<PendingInviteLink link="https://stacks.bread.coop/stacks-dt564" />
 					</AccordionContent>
 				</AccordionItem>
 			</Accordion>

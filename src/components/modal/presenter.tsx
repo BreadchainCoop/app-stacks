@@ -6,10 +6,11 @@ import { forwardRef, Ref, useEffect, useState } from "react";
 import DepositInitModal from "./modals/deposit-init";
 import DepositResult from "./modals/deposit-result";
 import ClaimModal from "./modals/claim";
+import StackInitModal from "./modals/stack-init";
+import { StackSuccessResultModal } from "./modals/stack-result";
 
 const ModalPresenter = () => {
 	const { modalState, setModal } = useModal();
-	console.log("__ MODAL STATE __", modalState);
 
 	return (
 		<Dialog.Root open={!!modalState} onOpenChange={() => setModal(null)}>
@@ -20,6 +21,14 @@ const ModalPresenter = () => {
 							<ModalOverlay />
 						</Dialog.Overlay>
 						<Dialog.Content forceMount>
+							{modalState.type === "STACK_CREATION_INIT" && (
+								<StackInitModal modalState={modalState} />
+							)}
+							{modalState.type === "STACK_CREATION_SUCCESS" && (
+								<StackSuccessResultModal
+									modalState={modalState}
+								/>
+							)}
 							{modalState.type === "DEPOSIT_INIT" && (
 								<DepositInitModal modalState={modalState} />
 							)}

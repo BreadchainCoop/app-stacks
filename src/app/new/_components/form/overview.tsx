@@ -8,17 +8,25 @@ import {
 	LayoutIcon,
 	SparkleIcon,
 } from "@phosphor-icons/react";
-import React, { MouseEventHandler, ReactNode } from "react";
+import { ReactNode } from "react";
 import { useFormContext } from "react-hook-form";
 import { StackFormSchemaData } from "./schema";
 import { useAccount, useWriteContract } from "wagmi";
-import { savingCirclesABI } from "../../../../../lib/abi";
-import { STACKS_CONTRACT_ADDRESS } from "../../../../../lib/constants";
-import { ethAddress, parseUnits } from "viem";
+import { savingCirclesAbi } from "../../../../../lib/abi";
+import {
+	BREAD_TOKEN_ADDRESS,
+	STACKS_CONTRACT_ADDRESS,
+} from "../../../../../lib/constants";
+import { parseEventLogs } from "viem";
 import { useRouter } from "next/navigation";
+import { SECONDS_PER_DAY } from "@/utils/solidity";
+import { useModal } from "@/components/modal/context";
+import { sleep } from "@/utils/sleep";
+import { waitForTransactionReceipt } from "@wagmi/core";
+import { wagmiConfig } from "@/components/providers/web3";
 
 const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
-	const router = useRouter();
+	const modal = useModal();
 	const form = useFormContext<StackFormSchemaData>();
 	const depositInterval = form.watch("depositInterval");
 	const members = form.watch("members");
@@ -31,32 +39,93 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
 
 	const createStack = async (data: StackFormSchemaData) => {
 		try {
-			const result = await writeContract.writeContractAsync({
-				abi: savingCirclesABI,
-				functionName: "create",
+			modal.setModal({
+				type: "STACK_CREATION_INIT",
+				name: data.name,
+				status: "awaiting",
+			});
+
+			const hash = await writeContract.writeContractAsync({
 				address: STACKS_CONTRACT_ADDRESS,
+				abi: savingCirclesAbi,
+				functionName: "create",
 				args: [
 					{
 						owner: address!,
-						members: [],
 						currentIndex: BigInt(0),
-						depositAmount: parseUnits(
-							data.depositAmount.toString(),
-							// tokenDecimals
-							18
-						),
-						token: ethAddress,
-						// depositInterval: BigInt(data.depositInterval),
-						depositInterval: BigInt(1),
-						circleStart: BigInt(Math.floor(Date.now() / 1000)),
-						maxDeposits: BigInt(data.members),
+						depositAmount: BigInt(data.depositAmount),
+						token: BREAD_TOKEN_ADDRESS,
+						depositInterval:
+							SECONDS_PER_DAY *
+							BigInt(data.depositInterval === "weekly" ? 7 : 30),
+						effectiveCircleStartTime: BigInt(0),
+						circleEnd: BigInt(0),
 					},
 				],
 			});
 
-			router.push("/");
+			modal.setModal({
+				type: "STACK_CREATION_INIT",
+				name: data.name,
+				status: "approved",
+			});
+
+			// 3. Wait for the transaction to be mined
+			const receipt = await waitForTransactionReceipt(wagmiConfig, {
+				hash,
+				confirmations: 1,
+			});
+
+			// if (receipt.status !== "success") {
+			// 	throw new Error("Transaction reverted");
+			// }
+
+			const logs = parseEventLogs({
+				abi: savingCirclesAbi,
+				logs: receipt.logs,
+				eventName: "CircleCreated",
+			});
+
+			// It should be just 1 tx, but still filter
+			const circleCreatedEvent = logs.find(
+				(log) => (log as any).eventName === "CircleCreated"
+			);
+
+			// if (!circleCreatedEvent) {
+			// 	throw new Error("CircleCreated event not found in receipt");
+			// }
+
+			const newCircleId = (circleCreatedEvent as any).args.id as bigint;
+
+			modal.setModal({
+				type: "STACK_CREATION_INIT",
+				name: data.name,
+				status: "successful",
+			});
+
+			const circle = {
+				name: data.name,
+				id: newCircleId.toString(),
+				duration: `${data.members} ${data.depositInterval.slice(
+					0,
+					-2
+				)}${data.members === 1 ? "" : "s"}`.trim(),
+				deposit: data.depositAmount,
+				total: data.members * data.depositAmount,
+				members: data.members,
+			};
+
+			await sleep(500);
+
+			modal.setModal({
+				type: "STACK_CREATION_SUCCESS",
+				circle,
+			});
+
+			form.reset();
 		} catch (error) {
 			console.log("__ ERROR __", error);
+			// TODO: Set modal error
 		}
 	};
 

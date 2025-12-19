@@ -63,7 +63,7 @@ const foundryChain = defineChain({
 	// },
 });
 
-const config = createConfig({
+export const wagmiConfig = createConfig({
 	connectors,
 	// @ts-expect-error Correct
 	chains: (() => {
@@ -83,11 +83,11 @@ const config = createConfig({
 const queryClient = new QueryClient();
 
 export function Web3Provider({ children }: { children: React.ReactNode }) {
-  return (
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider>{children}</RainbowKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
-  );
+	return (
+		<WagmiProvider config={wagmiConfig}>
+			<QueryClientProvider client={queryClient}>
+				<RainbowKitProvider>{children}</RainbowKitProvider>
+			</QueryClientProvider>
+		</WagmiProvider>
+	);
 }

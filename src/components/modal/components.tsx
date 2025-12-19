@@ -80,9 +80,11 @@ function CloseIcon() {
 export const ModalStatus = ({
 	status,
 	msg,
+	showLoadingMsg = true,
 }: {
 	status: "loading" | "success" | "error";
 	msg?: string;
+	showLoadingMsg?: boolean;
 }) => {
 	return (
 		<div className="flex items-center justify-center flex-col gap-2">
@@ -110,9 +112,11 @@ export const ModalStatus = ({
 			) : (
 				<>
 					<CircularProgressIcon />
-					<Body bold className="text-primary-blue">
-						Loading...
-					</Body>
+					{showLoadingMsg && (
+						<Body bold className="text-primary-blue">
+							Loading...
+						</Body>
+					)}
 				</>
 			)}
 			{msg && (
