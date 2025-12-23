@@ -1,32 +1,31 @@
-import { Body, Heading3, Chip, LiftedButton } from "@breadcoop/ui";
+import {
+	Body,
+	Heading3,
+	Chip,
+	// LiftedButton
+} from "@breadcoop/ui";
 import { UsersIcon } from "./icons/users";
 import { CoinIcon, CoinsIcon } from "./icons/coin";
 import { CalendarIcon } from "./icons/calendar";
 import LocalLiftedButton from "./lifted-button";
 import Link from "next/link";
-import { HandWithdrawIcon, QuestionIcon } from "@phosphor-icons/react/ssr";
-import { useModal } from "./modal/context";
-import ClaimButton from "./claim-button";
+import {
+	// HandWithdrawIcon,
+	QuestionIcon,
+} from "@phosphor-icons/react/ssr";
+// import { useModal } from "./modal/context";
+// import ClaimButton from "./claim-button";
+import { ICircle } from "@/interfaces/circle";
 
 type StackStatus = "member" | "payment_due" | "claim" | "retired";
 
-export interface StackItem {
-	id: string;
-	title: string;
-	status: StackStatus;
-	progress: number;
-	amount: number;
-	members: number;
-	breadPerWeek: number;
-	claimAmount?: number;
-	depositAmount?: number;
-}
+const Stack = ({ stack, status }: { stack: ICircle; status?: StackStatus }) => {
+	// const { setModal } = useModal();
+	const depositAmount = Number(stack.depositAmount);
 
-const Stack = ({ stack }: { stack: StackItem }) => {
-	const { setModal } = useModal();
 	const items = [
 		{
-			label: `${stack.members} Members`,
+			label: `${stack.totalMember} Members`,
 			icon: <UsersIcon />,
 			className: "",
 		},
@@ -36,34 +35,41 @@ const Stack = ({ stack }: { stack: StackItem }) => {
 			className: "hidden md:flex",
 		},
 		{
-			label: `50 BREAD a week`,
+			label: `${depositAmount} BREAD a week`,
 			icon: <CoinsIcon />,
 			className: "",
 		},
 		{
-			label: `Goal: 10,000 BREAD`,
+			label: `Goal: ${depositAmount * stack.totalMember} BREAD`,
 			icon: <CalendarIcon />,
 			className: "hidden md:flex",
 		},
 	];
 
 	return (
-		<li
-			className="border border-paper-1 p-6 flex flex-col gap-6 bg-paper-0 shadow-[0px_4px_12px_0px_#1B201A26] xl:max-w-94"
-		>
+		<li className="border border-paper-1 p-6 flex flex-col gap-6 bg-paper-0 shadow-[0px_4px_12px_0px_#1B201A26] xl:max-w-94">
 			<div className="flex flex-col gap-2">
-				<Heading3 className="m-0 text-2xl font-bold">{stack.title}</Heading3>
+				<Heading3 className="m-0 text-2xl font-bold">
+					{/* {stack.title} */}
+					Circle name
+				</Heading3>
 				<div className="flex items-center justify-between">
-					<Body bold className="text-surface-grey">ID: {stack.id}</Body>
-					<Chip
-						className={`font-bold border-current ${
-							stack.status === "member"
-								? "text-system-green"
-								: "text-system-warning"
-						}`}
-					>
-						{stack.status === "member" ? "Member" : "Payment due"}
-					</Chip>
+					<Body bold className="text-surface-grey">
+						ID: {stack.id}
+					</Body>
+					{status && (
+						<Chip
+							// TODO: Update
+							// className="font-bold border-current text-system-green"
+							className={`font-bold border-current ${
+								status === "member"
+									? "text-system-green"
+									: "text-system-warning"
+							}`}
+						>
+							{status === "member" ? "Member" : "Payment due"}
+						</Chip>
+					)}
 				</div>
 			</div>
 			<div className="flex items-center justify-between gap-6">
@@ -83,7 +89,7 @@ const Stack = ({ stack }: { stack: StackItem }) => {
 						/>
 					</div>
 				</div>
-				<div className="flex-1 flex flex-col xl:hidden">
+				<div className="w-full max-w-max flex flex-col xl:hidden">
 					<p className="text-h2 m-0 text-2xl leading-6 text-surface-grey-2">
 						$20,000
 					</p>
@@ -118,7 +124,7 @@ const Stack = ({ stack }: { stack: StackItem }) => {
 				})}
 			</ul>
 			<div className="flex flex-col gap-3 mt-auto">
-				{stack.status === "claim" ? (
+				{/* {stack.status === "claim" ? (
 					<ClaimButton amount={stack.amount} />
 				) : stack.status === "payment_due" ? (
 					<LocalLiftedButton
@@ -145,8 +151,11 @@ const Stack = ({ stack }: { stack: StackItem }) => {
 					>
 						Retired
 					</LiftedButton>
-				) : null}
-				<Link className="lifted-button-container" href={`/stacks/45`}>
+				) : null} */}
+				<Link
+					className="lifted-button-container"
+					href={`/stacks/${stack.id.toString()}`}
+				>
 					<LocalLiftedButton className="font-bold" preset="secondary">
 						View Details
 					</LocalLiftedButton>

@@ -2,13 +2,14 @@
 
 import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react/ssr";
 import { useEffect, useState } from "react";
-import Stack, { StackItem } from "./stack";
+import Stack from "./stack";
+import { ICircle } from "@/interfaces/circle";
 
 interface CardCarouselProps {
-	items: StackItem[];
+	circles: ICircle[];
 }
 
-export default function CardCarousel({ items }: CardCarouselProps) {
+export default function CardCarousel({ circles }: CardCarouselProps) {
 	const [currentPage, setCurrentPage] = useState(1);
 	const [cardsPerPage, setCardsPerPage] = useState(1);
 	const [isAnimating, setIsAnimating] = useState(false);
@@ -17,7 +18,7 @@ export default function CardCarousel({ items }: CardCarouselProps) {
 	const getCardsPerPage = () => {
 		if (typeof window === "undefined") return 1;
 		// if (window.innerWidth >= 1280) return 3; // xl
-		if (window.innerWidth >= 1280) return items.length; // xl
+		if (window.innerWidth >= 1280) return circles.length; // xl
 		if (window.innerWidth >= 1024) return 2; // lg
 		return 1;
 	};
@@ -28,7 +29,7 @@ export default function CardCarousel({ items }: CardCarouselProps) {
 			setCardsPerPage(newCardsPerPage);
 
 			// Reset to page 1 if current page is out of bounds
-			const newTotalPages = Math.ceil(items.length / newCardsPerPage);
+			const newTotalPages = Math.ceil(circles.length / newCardsPerPage);
 			if (currentPage > newTotalPages) {
 				setCurrentPage(1);
 			}
@@ -38,13 +39,13 @@ export default function CardCarousel({ items }: CardCarouselProps) {
 
 		window.addEventListener("resize", handleResize);
 		return () => window.removeEventListener("resize", handleResize);
-	}, [currentPage, items.length]);
+	}, [currentPage, circles.length]);
 
-	const totalPages = Math.ceil(items.length / cardsPerPage);
+	const totalPages = Math.ceil(circles.length / cardsPerPage);
 	const showNavigation = cardsPerPage < 3;
 
 	const startIndex = (currentPage - 1) * cardsPerPage;
-	const visibleCards = items.slice(startIndex, startIndex + cardsPerPage);
+	const visibleCards = circles.slice(startIndex, startIndex + cardsPerPage);
 
 	const goToNextPage = () => {
 		if (currentPage < totalPages && !isAnimating) {
