@@ -12,10 +12,10 @@ import { ReactNode } from "react";
 import { useFormContext } from "react-hook-form";
 import { StackFormSchemaData } from "./schema";
 import { useAccount, useWriteContract } from "wagmi";
-import { savingCirclesAbi } from "../../../../../lib/abi";
+import { savingCirclesAbi } from "../../../../../lib/abis/saving-circles";
 import {
 	BREAD_TOKEN_ADDRESS,
-	STACKS_CONTRACT_ADDRESS,
+	SAVING_CIRCLES_CONTRACT_ADDRESS,
 } from "../../../../../lib/constants";
 import { parseEventLogs } from "viem";
 import { useRouter } from "next/navigation";
@@ -46,7 +46,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
 			});
 
 			const hash = await writeContract.writeContractAsync({
-				address: STACKS_CONTRACT_ADDRESS,
+				address: SAVING_CIRCLES_CONTRACT_ADDRESS,
 				abi: savingCirclesAbi,
 				functionName: "create",
 				args: [

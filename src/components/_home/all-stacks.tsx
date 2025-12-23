@@ -1,34 +1,27 @@
 "use client";
 
 import { dummyStacks } from "@/utils/stacks";
-import { useAccount, useReadContract } from "wagmi";
-import { STACKS_CONTRACT_ADDRESS } from "../../../lib/constants";
-import { savingCirclesABI } from "../../../lib/abi";
 import CardCarousel from "../card-carousel";
+import { useAllCircles } from "@/hooks/use-all-circles";
+import { Body, Heading2 } from "@breadcoop/ui";
+import Loading from "@/app/loading";
+import { useAccount } from "wagmi";
 
 const HomeAllStacks = () => {
-	const { isConnected, address } = useAccount();
-	const _stacks = [...dummyStacks];
-	// console.log("__ HOME ALL STACKS __", _stacks);
-	// console.log({ address, STACKS_CONTRACT_ADDRESS });
-	// const { data, isFetching, error } = useReadContract({
-	// 	address: STACKS_CONTRACT_ADDRESS,
-	// 	abi: savingCirclesABI,
-	// 	functionName: "getMemberCircles",
-	// 	args: [address!],
-	// 	chainId: 31337,
-	// });
-
-	// console.log("__ DATA __", data);
-	// console.log("__ ISFETCHING __", isFetching);
-	// console.log("__ ERROR __", error);
+	const { isConnected } = useAccount();
+	const { data, isLoading } = useAllCircles();
 
 	return (
 		<section className="mt-6">
-			{/* @ts-ignore Right */}
-			{/* <StackCarousel items={_stacks} itemsPerPage={5} layout="vertical" /> */}
-			{/* @ts-ignore Right */}
-			<CardCarousel items={_stacks} />
+			{isConnected && (
+				<div className="flex flex-col gap-6 mb-6 md:mb-0">
+					<Heading2 className="m-0 p-0 text-2xl leading-6">
+						All Stacks
+					</Heading2>
+					<Body>Peek into all active Stack groups.</Body>
+				</div>
+			)}
+			{isLoading ? <Loading /> : <CardCarousel circles={data} />}
 		</section>
 	);
 };
