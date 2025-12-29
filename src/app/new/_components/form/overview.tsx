@@ -70,7 +70,6 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
 				status: "approved",
 			});
 
-			// 3. Wait for the transaction to be mined
 			const receipt = await waitForTransactionReceipt(wagmiConfig, {
 				hash,
 				confirmations: 1,

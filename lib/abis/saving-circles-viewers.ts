@@ -743,4 +743,9 @@ export const savingCirclesViewerAbi = [
 		],
 		"stateMutability": "view",
 	},
+	{
+		"type": "error",
+		"name": "NotActive",
+		"inputs": [],
+	},
 ] as const;
