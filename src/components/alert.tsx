@@ -11,6 +11,7 @@ interface AlertProps {
 	title: string;
 	description: string;
 	className?: string;
+	closeAble?: boolean;
 }
 
 const configs: Record<Varaint, { cont: string; body: string; Icon: Icon }> = {
@@ -26,7 +27,13 @@ const configs: Record<Varaint, { cont: string; body: string; Icon: Icon }> = {
 	},
 };
 
-const Alert = ({ title, description, variant, className }: AlertProps) => {
+const Alert = ({
+	title,
+	description,
+	variant,
+	className,
+	closeAble = true,
+}: AlertProps) => {
 	const [show, setShow] = useState(true);
 
 	if (!show) return null;
@@ -48,9 +55,11 @@ const Alert = ({ title, description, variant, className }: AlertProps) => {
 				</div>
 				<Body>{description}</Body>
 			</div>
-			<button onClick={() => setShow(false)} className={config.body}>
-				<XIcon size={16} />
-			</button>
+			{closeAble && (
+				<button onClick={() => setShow(false)} className={config.body}>
+					<XIcon size={16} />
+				</button>
+			)}
 		</div>
 	);
 };

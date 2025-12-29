@@ -5,9 +5,20 @@ import * as RaAccordion from "@radix-ui/react-accordion";
 import clsx from "clsx";
 import { ReactNode } from "react";
 
-export const Accordion = ({ children }: { children: ReactNode }) => {
+export const Accordion = ({
+	defaultValue,
+	children,
+}: {
+	children: ReactNode;
+	defaultValue?: string;
+}) => {
 	return (
-		<RaAccordion.Root type="single" className="" collapsible>
+		<RaAccordion.Root
+			type="single"
+			className=""
+			collapsible
+			defaultValue={defaultValue}
+		>
 			{children}
 		</RaAccordion.Root>
 	);
