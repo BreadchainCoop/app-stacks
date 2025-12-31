@@ -2,6 +2,14 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+Update submodules to the latest
+
+```bash
+git submodule sync --recursive
+git submodule update --init --recursive
+git submodule update --remote --merge
+```
+
 Compile the contracts
 
 ```bash
