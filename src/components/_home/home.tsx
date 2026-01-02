@@ -8,7 +8,7 @@ export const HomeContent = () => {
 	return (
 		<div>
 			<HomeHeader />
-			{/* <HomeLoggedInDetails /> */}
+			<HomeLoggedInDetails />
 			<HomeAllStacks />
 		</div>
 	);

@@ -5,7 +5,7 @@ import { StackInitModalState } from "../context";
 import { ModalContainer, ModalStatus } from "../components";
 import { Body, Heading3 } from "@breadcoop/ui";
 import { CheckCircleIcon, CircleIcon } from "@phosphor-icons/react/ssr";
-import { cn } from "../../../../lib/utils";
+import { cn } from "../../../lib/utils";
 
 const getIcon = (index: number, currentStep: number) => {
 	if (index < currentStep) {

@@ -80,7 +80,13 @@ export const wagmiConfig = createConfig({
 	ssr: true,
 });
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+	defaultOptions: {
+		queries: {
+			refetchOnWindowFocus: false,
+		}
+	}
+});
 
 export function Web3Provider({ children }: { children: React.ReactNode }) {
 	return (

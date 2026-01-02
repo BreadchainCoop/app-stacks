@@ -2,7 +2,7 @@
 
 import { generateMetadata } from "@/utils/metadata";
 import { useAccount, useReadContract, useWriteContract } from "wagmi";
-import { Address } from "viem";
+import { Address, formatEther } from "viem";
 import {
 	Accordion,
 	AccordionHeader,
@@ -10,8 +10,8 @@ import {
 	AccordionItem,
 } from "@/components/accordion";
 import { Body, Heading1, LoginButton } from "@breadcoop/ui";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../../../lib/constants";
-import { savingCirclesAbi } from "../../../../lib/abis/saving-circles";
+import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../../lib/constants";
+import { savingCirclesAbi } from "../../../lib/abis/saving-circles";
 import { CheckIcon, ConfettiIcon } from "@phosphor-icons/react";
 import Alert from "@/components/alert";
 import LocalLiftedButton from "@/components/lifted-button";
@@ -138,7 +138,7 @@ export default function Page() {
 										/>
 										<RowDetail
 											label="Est. Deposit amount"
-											body={`20 BREAD`}
+											body={`${formatEther(circleResult.data.depositAmount)} BREAD`}
 										/>
 										<RowDetail
 											label="Stack goal"

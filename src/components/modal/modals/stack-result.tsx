@@ -1,6 +1,10 @@
 import { ArrowRightIcon, SealCheckIcon } from "@phosphor-icons/react/ssr";
-import { ModalContainer } from "../components";
-import { StackInitSuccessModalState, useModal } from "../context";
+import { ModalContainer, ModalHeader, ModalStatus } from "../components";
+import {
+	StackInitFailedModalState,
+	StackInitSuccessModalState,
+	useModal,
+} from "../context";
 import { Body, Heading2, Heading3 } from "@breadcoop/ui";
 import PendingInviteLink from "@/components/pending-invite-link";
 import {
@@ -14,8 +18,8 @@ import LocalLiftedButton from "@/components/lifted-button";
 import { useEffect, useState } from "react";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { type Address, type TypedDataDomain } from "viem";
-import { savingCirclesAbi } from "../../../../lib/abis/saving-circles";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../../../lib/constants";
+import { savingCirclesAbi } from "../../../lib/abis/saving-circles";
+import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../../lib/constants";
 
 type InviteLink = {
 	nonce: bigint;
@@ -153,7 +157,11 @@ export const StackSuccessResultModal = ({
 
 			setSigningProgress("");
 			setInvites(signedInvites);
-		} catch (error) {}
+		} catch (error) {
+
+		} finally {
+			setIsGenerating(false);
+		}
 	};
 
 	useEffect(() => {
@@ -187,10 +195,11 @@ export const StackSuccessResultModal = ({
 
 					{isGenerating && (
 						<div className="p-4 bg-primary-blue/10 rounded-lg mb-2">
-							<Body className="text-primary-blue">
-								{signingProgress ||
-									"Generating invite links..."}
-							</Body>
+							{signingProgress && (
+								<Body className="text-primary-blue">
+									{signingProgress}
+								</Body>
+							)}
 						</div>
 					)}
 
@@ -296,3 +305,16 @@ function RowDetail({ label, body }: { label: string; body: string | number }) {
 		</div>
 	);
 }
+
+export const StackFailedResultModal = ({
+	modalState,
+}: {
+	modalState: StackInitFailedModalState;
+}) => {
+	return (
+		<ModalContainer status="error">
+			<ModalHeader title="Stack Creation Failed"></ModalHeader>
+			<ModalStatus status="error" msg="Unable to create stack" />
+		</ModalContainer>
+	);
+};

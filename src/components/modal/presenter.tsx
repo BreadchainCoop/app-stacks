@@ -7,7 +7,10 @@ import DepositInitModal from "./modals/deposit-init";
 import DepositResult from "./modals/deposit-result";
 import ClaimModal from "./modals/claim";
 import StackInitModal from "./modals/stack-init";
-import { StackSuccessResultModal } from "./modals/stack-result";
+import {
+	StackFailedResultModal,
+	StackSuccessResultModal,
+} from "./modals/stack-result";
 
 const ModalPresenter = () => {
 	const { modalState, setModal } = useModal();
@@ -26,6 +29,11 @@ const ModalPresenter = () => {
 							)}
 							{modalState.type === "STACK_CREATION_SUCCESS" && (
 								<StackSuccessResultModal
+									modalState={modalState}
+								/>
+							)}
+							{modalState.type === "STACK_CREATION_FAILED" && (
+								<StackFailedResultModal
 									modalState={modalState}
 								/>
 							)}

@@ -1,7 +1,7 @@
 import { useReadContracts } from "wagmi";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../lib/constants";
-import { savingCirclesAbi } from "../../lib/abis/saving-circles";
-import { ICircle } from "@/interfaces/circle";
+import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../lib/constants";
+import { savingCirclesAbi } from "../lib/abis/saving-circles";
+import { ICircleList } from "@/interfaces/circle";
 import { useTotalCircles } from "./use-total-circles";
 import { Address } from "viem";
 
@@ -39,7 +39,7 @@ export function useAllCircles(page: number = 0) {
 		},
 	});
 
-	const circles: ICircle[] = [];
+	const circles: ICircleList[] = [];
 
 	if (rawResults) {
 		for (let i = 0; i < circleIds.length; i++) {
