@@ -12,12 +12,12 @@ import { ReactNode } from "react";
 import { useFormContext } from "react-hook-form";
 import { StackFormSchemaData } from "./schema";
 import { useAccount, useWriteContract } from "wagmi";
-import { savingCirclesAbi } from "../../../../../lib/abis/saving-circles";
+import { savingCirclesAbi } from "../../../../lib/abis/saving-circles";
 import {
 	BREAD_TOKEN_ADDRESS,
 	SAVING_CIRCLES_CONTRACT_ADDRESS,
-} from "../../../../../lib/constants";
-import { parseEventLogs } from "viem";
+} from "../../../../lib/constants";
+import { parseEther, parseEventLogs } from "viem";
 import { useRouter } from "next/navigation";
 import { SECONDS_PER_DAY } from "@/utils/solidity";
 import { useModal } from "@/components/modal/context";
@@ -53,7 +53,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
 					{
 						owner: address!,
 						currentIndex: BigInt(0),
-						depositAmount: BigInt(data.depositAmount),
+						depositAmount: parseEther(String(data.depositAmount)),
 						token: BREAD_TOKEN_ADDRESS,
 						depositInterval:
 							SECONDS_PER_DAY *
@@ -124,7 +124,8 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
 			form.reset();
 		} catch (error) {
 			console.log("__ ERROR __", error);
-			// TODO: Set modal error
+
+			modal.setModal({ type: "STACK_CREATION_FAILED" })
 		}
 	};
 

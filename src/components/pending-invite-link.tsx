@@ -1,6 +1,6 @@
 import { Body } from "@breadcoop/ui";
 import { CopyIcon } from "@phosphor-icons/react/ssr";
-import { cn } from "../../lib/utils";
+import { cn } from "../lib/utils";
 import { ReactNode } from "react";
 import { copyToClipboard } from "@/utils/copy-to-clipboard";
 

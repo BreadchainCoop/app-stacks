@@ -1,6 +1,6 @@
 import { useReadContract } from "wagmi";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../lib/constants";
-import { savingCirclesAbi } from "../../lib/abis/saving-circles";
+import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../lib/constants";
+import { savingCirclesAbi } from "../lib/abis/saving-circles";
 
 export function useTotalCircles() {
 	const { data, isLoading } = useReadContract({

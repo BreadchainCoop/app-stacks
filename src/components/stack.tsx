@@ -14,14 +14,20 @@ import {
 	QuestionIcon,
 } from "@phosphor-icons/react/ssr";
 // import { useModal } from "./modal/context";
-// import ClaimButton from "./claim-button";
-import { ICircle } from "@/interfaces/circle";
+import ClaimButton from "./claim-button";
+import { ICircleList } from "@/interfaces/circle";
+import { formatEther } from "viem";
+import DepositButton from "./deposit-button";
+import { HandWithdrawIcon } from "@phosphor-icons/react";
 
-type StackStatus = "member" | "payment_due" | "claim" | "retired";
+const headerStatuses: Exclude<ICircleList["status"], undefined>[] = [
+	"member",
+	"payment_due",
+];
 
-const Stack = ({ stack, status }: { stack: ICircle; status?: StackStatus }) => {
+const Stack = ({ stack }: { stack: ICircleList }) => {
 	// const { setModal } = useModal();
-	const depositAmount = Number(stack.depositAmount);
+	const depositAmount = formatEther(stack.depositAmount);
 
 	const items = [
 		{
@@ -40,7 +46,7 @@ const Stack = ({ stack, status }: { stack: ICircle; status?: StackStatus }) => {
 			className: "",
 		},
 		{
-			label: `Goal: ${depositAmount * stack.totalMember} BREAD`,
+			label: `Goal: ${Number(depositAmount) * stack.totalMember} BREAD`,
 			icon: <CalendarIcon />,
 			className: "hidden md:flex",
 		},
@@ -57,17 +63,17 @@ const Stack = ({ stack, status }: { stack: ICircle; status?: StackStatus }) => {
 					<Body bold className="text-surface-grey">
 						ID: {stack.id}
 					</Body>
-					{status && (
+					{stack.status && headerStatuses.includes(stack.status) && (
 						<Chip
-							// TODO: Update
-							// className="font-bold border-current text-system-green"
 							className={`font-bold border-current ${
-								status === "member"
+								stack.status === "member"
 									? "text-system-green"
 									: "text-system-warning"
 							}`}
 						>
-							{status === "member" ? "Member" : "Payment due"}
+							{stack.status === "member"
+								? "Member"
+								: "Payment due"}
 						</Chip>
 					)}
 				</div>
@@ -91,7 +97,7 @@ const Stack = ({ stack, status }: { stack: ICircle; status?: StackStatus }) => {
 				</div>
 				<div className="w-full max-w-max flex flex-col xl:hidden">
 					<p className="text-h2 m-0 text-2xl leading-6 text-surface-grey-2">
-						$20,000
+						${formatEther(stack.totalPoolBalance || BigInt(0))}
 					</p>
 					<Body className="flex items-center justify-start gap-1 text-surface-grey">
 						<span className="text-[0.625rem]">
@@ -124,34 +130,51 @@ const Stack = ({ stack, status }: { stack: ICircle; status?: StackStatus }) => {
 				})}
 			</ul>
 			<div className="flex flex-col gap-3 mt-auto">
-				{/* {stack.status === "claim" ? (
-					<ClaimButton amount={stack.amount} />
+				{stack.status === "claimable" ? (
+					<ClaimButton
+						amount={
+							Number(formatEther(stack.depositAmount)) *
+							stack.totalMember
+						}
+						circleId={stack.id}
+					/>
 				) : stack.status === "payment_due" ? (
-					<LocalLiftedButton
-						className="font-bold"
+					<DepositButton
+						circleId={stack.id}
+						tokenAddress={stack.token}
 						width="full"
-						preset="primary"
 						leftIcon={<HandWithdrawIcon />}
-						onClick={() => {
-							setModal({
-								type: "DEPOSIT_INIT",
-								amount: stack.amount,
-							});
-						}}
-					>
-						Deposit {stack.amount} BREAD
-					</LocalLiftedButton>
-				) : stack.status === "retired" ? (
-					<LiftedButton
-						className="font-bold"
-						width="full"
-						preset={undefined}
-						leftIcon={<HandWithdrawIcon />}
-						disabled
-					>
-						Retired
-					</LiftedButton>
-				) : null} */}
+						amount={stack.depositAmount}
+					/>
+				) : null}
+				{/* {stack.status === "claim" ? (
+          <ClaimButton amount={stack.amount} />
+        ) : stack.status === "payment_due" ? (
+          <LocalLiftedButton
+            className="font-bold"
+            width="full"
+            preset="primary"
+            leftIcon={<HandWithdrawIcon />}
+            onClick={() => {
+              setModal({
+                type: "DEPOSIT_INIT",
+                amount: stack.amount,
+              });
+            }}
+          >
+            Deposit {stack.amount} BREAD
+          </LocalLiftedButton>
+        ) : stack.status === "retired" ? (
+          <LiftedButton
+            className="font-bold"
+            width="full"
+            preset={undefined}
+            leftIcon={<HandWithdrawIcon />}
+            disabled
+          >
+            Retired
+          </LiftedButton>
+        ) : null} */}
 				<Link
 					className="lifted-button-container"
 					href={`/stacks/${stack.id.toString()}`}

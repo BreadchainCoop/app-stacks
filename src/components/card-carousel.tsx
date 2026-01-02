@@ -3,10 +3,10 @@
 import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react/ssr";
 import { useEffect, useState } from "react";
 import Stack from "./stack";
-import { ICircle } from "@/interfaces/circle";
+import { ICircleList } from "@/interfaces/circle";
 
 interface CardCarouselProps {
-	circles: ICircle[];
+	circles: ICircleList[];
 }
 
 export default function CardCarousel({ circles }: CardCarouselProps) {
