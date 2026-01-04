@@ -1,14 +1,17 @@
-.PHONY: deploy anvil
+.PHONY: deploy anvil update-env update-contract-submodules warp time-increase mine timestamp time-reset
 
 # Default values
 RPC_URL ?= http://localhost:8545
 # first anvil's account
 PRIVATE_KEY ?= 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
-# second anvil's account
 ADMIN_ADDRESS ?= 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 
 anvil:
 	anvil --fork-url https://rpc.gnosischain.com --chain-id 31337 --block-time 5
+
+anvil-reset:
+	@cast rpc anvil_reset --rpc-url $(RPC_URL)
+	@echo "✓ Reset fork to fresh state (run 'make reset-nonces' if nonces are still off)"
 
 deploy:
 	cd contracts && \
@@ -20,3 +23,75 @@ deploy:
 		--broadcast \
 		--private-key $(PRIVATE_KEY) \
 		--legacy
+	$(MAKE) update-env
+
+update-env:
+	@echo "Updating .env.local with deployed contract addresses..."
+	@if [ ! -f contracts/out/SAVING_CIRCLES_DEPLOYMENT.json ]; then \
+		echo "Error: contracts/out/SAVING_CIRCLES_DEPLOYMENT.json not found"; \
+		exit 1; \
+	fi
+	@if [ ! -f .env.local ]; then \
+		echo "Error: .env.local not found"; \
+		exit 1; \
+	fi
+	$(eval BREAD_TOKEN := $(shell jq -r '.breadToken' contracts/out/SAVING_CIRCLES_DEPLOYMENT.json))
+	$(eval SAVING_CIRCLES_PROXY := $(shell jq -r '.savingCirclesProxy' contracts/out/SAVING_CIRCLES_DEPLOYMENT.json))
+	$(eval SAVING_CIRCLES_VIEWER := $(shell jq -r '.savingCirclesViewer' contracts/out/SAVING_CIRCLES_DEPLOYMENT.json))
+	@if [ -z "$(BREAD_TOKEN)" ] || [ "$(BREAD_TOKEN)" = "null" ]; then \
+		echo "Error: Could not parse breadToken from JSON file"; \
+		exit 1; \
+	fi
+	@if [ -z "$(SAVING_CIRCLES_PROXY)" ] || [ "$(SAVING_CIRCLES_PROXY)" = "null" ]; then \
+		echo "Error: Could not parse savingCirclesProxy from JSON file"; \
+		exit 1; \
+	fi
+	@if [ -z "$(SAVING_CIRCLES_VIEWER)" ] || [ "$(SAVING_CIRCLES_VIEWER)" = "null" ]; then \
+		echo "Error: Could not parse savingCirclesViewer from JSON file"; \
+		exit 1; \
+	fi
+	@sed -i.bak 's|^NEXT_PUBLIC_BREAD_TOKEN_ADDRESS=.*|NEXT_PUBLIC_BREAD_TOKEN_ADDRESS=$(BREAD_TOKEN)|' .env.local
+	@sed -i.bak 's|^NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS=.*|NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS=$(SAVING_CIRCLES_PROXY)|' .env.local
+	@sed -i.bak 's|^NEXT_PUBLIC_SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS=.*|NEXT_PUBLIC_SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS=$(SAVING_CIRCLES_VIEWER)|' .env.local
+	@rm -f .env.local.bak
+	@echo "✓ Updated .env.local successfully with contract addresses"
+
+update-contract-submodules:
+	git submodule sync --recursive && \
+	git submodule update --init --recursive && \
+	git submodule update --remote --merge
+
+# Time manipulation commands for Anvil
+mine:
+	@cast rpc evm_mine --rpc-url $(RPC_URL)
+	@echo "✓ Mined 1 block"
+
+timestamp:
+	@echo "Current block timestamp:"
+	@cast block latest --rpc-url $(RPC_URL) | grep timestamp
+
+warp:
+	@if [ -z "$(TIMESTAMP)" ]; then \
+		echo "Error: TIMESTAMP parameter required"; \
+		echo "Usage: make warp TIMESTAMP=1735689600"; \
+		exit 1; \
+	fi
+	@cast rpc evm_setNextBlockTimestamp $(TIMESTAMP) --rpc-url $(RPC_URL)
+	@cast rpc evm_mine --rpc-url $(RPC_URL)
+	@echo "✓ Warped to timestamp $(TIMESTAMP)"
+
+time-increase:
+	@if [ -z "$(SECONDS)" ]; then \
+		echo "Error: SECONDS parameter required"; \
+		echo "Usage: make time-increase SECONDS=86400"; \
+		exit 1; \
+	fi
+	@cast rpc evm_increaseTime $(SECONDS) --rpc-url $(RPC_URL)
+	@cast rpc evm_mine --rpc-url $(RPC_URL)
+	@echo "✓ Increased time by $(SECONDS) seconds"
+
+time-reset:
+	@echo "Resetting to current time..."
+	@cast rpc evm_setNextBlockTimestamp $$(date +%s) --rpc-url $(RPC_URL)
+	@cast rpc evm_mine --rpc-url $(RPC_URL)
+	@echo "✓ Reset to current timestamp: $$(date +%s)"
