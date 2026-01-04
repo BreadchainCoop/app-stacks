@@ -15,6 +15,7 @@ import { useMemo, useState } from "react";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { wagmiConfig } from "./providers/web3";
+import { getDefaultChainId } from "@/utils/chain";
 
 interface DepositButtonProps extends Omit<LiftedButtonProps, "children"> {
 	label?: string;
@@ -46,6 +47,7 @@ const DepositButton = ({
 		functionName: "allowance",
 		args: [userAddress!, SAVING_CIRCLES_CONTRACT_ADDRESS],
 		query: { enabled: !!userAddress },
+		chainId: getDefaultChainId(),
 	});
 
 	const needsApproval = useMemo(() => {

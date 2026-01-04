@@ -1,5 +1,6 @@
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
+import { getDefaultChainId } from "@/utils/chain";
 import { useReadContract } from "wagmi";
 
 export function useCircleMembers(circleId: bigint | undefined) {
@@ -11,6 +12,7 @@ export function useCircleMembers(circleId: bigint | undefined) {
 		query: {
 			enabled: circleId !== undefined,
 		},
+		chainId: getDefaultChainId(),
 	});
 }
 
@@ -26,6 +28,7 @@ export function useCircleMembersWithBalances(circleId: bigint | undefined) {
 		query: {
 			enabled: circleId !== undefined,
 		},
+		chainId: getDefaultChainId(),
 	});
 
 	return {

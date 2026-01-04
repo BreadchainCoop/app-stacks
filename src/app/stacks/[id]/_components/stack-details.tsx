@@ -3,6 +3,7 @@ import { useCircleMembers } from "@/hooks/use-circle-members";
 import { useGetCircleCreated } from "@/hooks/use-get-cricle-created";
 import { savingCirclesViewerAbi } from "@/lib/abis/saving-circles-viewers";
 import { SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS } from "@/lib/constants";
+import { getDefaultChainId } from "@/utils/chain";
 import { SECONDS_PER_DAY } from "@/utils/solidity";
 import { Body, Heading3, LoginButton, Logo } from "@breadcoop/ui";
 import { CalendarDotsIcon } from "@phosphor-icons/react/ssr";
@@ -16,6 +17,7 @@ function TotalAmountStacked({ circleId }: { circleId: string }) {
 		abi: savingCirclesViewerAbi,
 		functionName: "getUserCircleData",
 		args: [zeroAddress, BigInt(circleId)],
+		chainId: getDefaultChainId(),
 	});
 
 	let totalAmountSaved = "-";

@@ -3,6 +3,7 @@ import { useState, useMemo, useEffect } from "react";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../lib/constants";
 import { savingCirclesAbi } from "../lib/abis/saving-circles";
 import { useTotalCircles } from "./use-total-circles";
+import { getDefaultChainId } from "@/utils/chain";
 
 const CONTRACT_ADDRESS = SAVING_CIRCLES_CONTRACT_ADDRESS; // Your contract address
 
@@ -23,6 +24,7 @@ export function useCirclesPaginated(page: number, pageSize: number = 10) {
 			abi: savingCirclesAbi,
 			functionName: "getCircle",
 			args: [BigInt(startId + i)],
+			chainId: getDefaultChainId(),
 		}));
 	}, [startId, endId, total]);
 

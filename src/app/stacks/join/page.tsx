@@ -20,6 +20,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Loading from "@/app/loading";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { wagmiConfig } from "@/components/providers/web3";
+import { getDefaultChainId } from "@/utils/chain";
 
 export const metadata = generateMetadata({
 	title: "Join a Stack - Bread Cooperative",
@@ -45,6 +46,7 @@ export default function Page() {
 		address: SAVING_CIRCLES_CONTRACT_ADDRESS,
 		functionName: "getCircle",
 		args: [parsedId],
+		chainId: getDefaultChainId(),
 	});
 
 	let { data: isMember, error: isMemberError } = useReadContract({
@@ -53,6 +55,7 @@ export default function Page() {
 		functionName: "isMember",
 		args: [parsedId, address as Address],
 		query: { enabled: Boolean(address) },
+		chainId: getDefaultChainId(),
 	});
 
 	const redeemInvite = async () => {
@@ -138,7 +141,9 @@ export default function Page() {
 										/>
 										<RowDetail
 											label="Est. Deposit amount"
-											body={`${formatEther(circleResult.data.depositAmount)} BREAD`}
+											body={`${formatEther(
+												circleResult.data.depositAmount
+											)} BREAD`}
 										/>
 										<RowDetail
 											label="Stack goal"

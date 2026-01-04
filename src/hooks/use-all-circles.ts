@@ -4,6 +4,7 @@ import { savingCirclesAbi } from "../lib/abis/saving-circles";
 import { ICircleList } from "@/interfaces/circle";
 import { useTotalCircles } from "./use-total-circles";
 import { Address } from "viem";
+import { getDefaultChainId } from "@/utils/chain";
 
 const PAGE_SIZE = 20;
 
@@ -26,12 +27,14 @@ export function useAllCircles(page: number = 0) {
 				abi: savingCirclesAbi,
 				functionName: "circles",
 				args: [id],
+				chainId: getDefaultChainId(),
 			},
 			{
 				address: SAVING_CIRCLES_CONTRACT_ADDRESS,
 				abi: savingCirclesAbi,
 				functionName: "getCircleMembers",
 				args: [id],
+				chainId: getDefaultChainId(),
 			},
 		]),
 		query: {
