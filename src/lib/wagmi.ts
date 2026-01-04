@@ -1,11 +1,14 @@
-import { createConfig, http } from "wagmi"
-import { gnosis } from "wagmi/chains"
+import { defineChain } from "viem";
+import { createConfig, http } from "wagmi";
+import { foundry, gnosis } from "wagmi/chains";
 
-// This config is used for client-side actions like ENS resolution
-// It doesn't require a wallet connector
-export const wagmiConfig = createConfig({
-  chains: [gnosis],
-  transports: {
-    [gnosis.id]: http(),
-  },
-})
+export const foundryChain = defineChain({
+	...foundry,
+	id: 31337,
+	// contracts: {
+	// 	multicall3: {
+	// 		address: "0xcA11bde05977b3631167028862bE2a173976CA11",
+	// 		blockCreated: 21_022_491,
+	// 	},
+	// },
+});

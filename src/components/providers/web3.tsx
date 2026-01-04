@@ -19,6 +19,7 @@ import { WagmiProvider, createConfig, http } from "wagmi";
 import { foundry, gnosis } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { defineChain } from "viem";
+import { foundryChain } from "@/lib/wagmi";
 
 // https://github.com/rainbow-me/rainbowkit/issues/2476#issuecomment-3117608183
 export function getWallets() {
@@ -52,16 +53,7 @@ const connectors = connectorsForWallets(
 	}
 );
 
-const foundryChain = defineChain({
-	...foundry,
-	id: 31337,
-	// contracts: {
-	// 	multicall3: {
-	// 		address: "0xcA11bde05977b3631167028862bE2a173976CA11",
-	// 		blockCreated: 21_022_491,
-	// 	},
-	// },
-});
+
 
 export const wagmiConfig = createConfig({
 	connectors,

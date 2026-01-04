@@ -3,12 +3,9 @@
 import BackPage from "@/components/back-page";
 import React from "react";
 import StackHeader from "./header";
-import TotalStacked from "./total-stacked";
-import DepositStatus from "./deposit-status";
 import StackDetails from "./stack-details";
 import StackMembers from "./members";
 import StackInfo from "./info";
-import { useAccount, useReadContract } from "wagmi";
 import { CircularProgressIcon } from "@/components/icons/circular-progress";
 import { useCircleInfo } from "@/hooks/use-circle-info";
 import { Body } from "@breadcoop/ui";

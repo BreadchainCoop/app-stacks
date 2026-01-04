@@ -8,6 +8,9 @@ const envSchema = z.object({
 	NEXT_PUBLIC_BREAD_TOKEN_ADDRESS: z.string(),
 	NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK: z.string(),
 	NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: z.string(),
+	NEXT_PUBLIC_NODE_ENV: z
+		.enum(["development", "production", "local"])
+		.default("production"),
 });
 
 const parsedSchema = envSchema.safeParse({
@@ -21,6 +24,7 @@ const parsedSchema = envSchema.safeParse({
 		process.env.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK,
 	NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID:
 		process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
+	NEXT_PUBLIC_NODE_ENV: process.env.NEXT_PUBLIC_NODE_ENV,
 });
 
 if (!parsedSchema.success) {
