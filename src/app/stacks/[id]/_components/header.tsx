@@ -1,16 +1,15 @@
 import Alert from "@/components/alert";
-import { Chip, Heading2 } from "@breadcoop/ui";
+import { Heading2 } from "@breadcoop/ui";
+import StackMember from "./member";
 
-const StackHeader = () => {
+const StackHeader = ({ id }: { id: string }) => {
 	return (
 		<header className="mb-3.5 md:mb-6">
-			<div className="flex flex-col flex-wrap gap-4 mb-[1.3125rem] sm:flex-row sm:items-center sm:justify-between md:mb-[1.8125rem]">
+			<div className="flex flex-col flex-wrap gap-4 mb-5.25 sm:flex-row sm:items-center sm:justify-between md:mb-7.25">
 				<Heading2 className="text-primary-blue text-2xl md:text-5xl">
 					Summer trip 2026
 				</Heading2>
-				<Chip className="border-system-green text-system-green bg-paper-main max-w-max">
-					Member
-				</Chip>
+				<StackMember id={id} />
 			</div>
 			<Alert
 				variant="warning"

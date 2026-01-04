@@ -1,6 +1,8 @@
+import { formatAddress } from "@/utils/address";
 import { Body } from "@breadcoop/ui";
 import { ArrowUpRightIcon, CopyIcon } from "@phosphor-icons/react/ssr";
 import { ReactNode } from "react";
+import { Address } from "viem";
 
 const StackInfoRow = ({
 	label,
@@ -17,9 +19,9 @@ const StackInfoRow = ({
 	);
 };
 
-const StackInfo = () => {
+const StackInfo = ({ owner }: { owner: Address }) => {
 	return (
-		<div className="mt-[1.625rem]">
+		<div className="mt-6.5">
 			<StackInfoRow label="Contract:">
 				<a
 					href="http://"
@@ -33,7 +35,7 @@ const StackInfo = () => {
 			</StackInfoRow>
 			<StackInfoRow label="Created by:">
 				<button className="flex items-center justify-end gap-1">
-					0x1234...5678
+					{formatAddress(owner)}
 					<CopyIcon size={24} className="fill-blue-2" />
 				</button>
 			</StackInfoRow>

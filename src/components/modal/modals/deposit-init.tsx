@@ -48,7 +48,12 @@ const DepositInitModal = ({
 					</LiftedButton>
 				</div>
 				<div className="flex-2 w-full">
-					<DepositButton width="full" />
+					<DepositButton
+						width="full"
+						amount={modalState.amount}
+						tokenAddress={modalState.tokenAddress}
+						circleId={modalState.circleId}
+					/>
 				</div>
 			</div>
 		</ModalContainer>

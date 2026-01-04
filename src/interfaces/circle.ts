@@ -2,6 +2,8 @@ import { Address } from "viem";
 
 export type ICircleStatus =
 	| "member"
+	| "start"
+	| "deposited"
 	| "payment_due"
 	| "claimable"
 	| "expired"

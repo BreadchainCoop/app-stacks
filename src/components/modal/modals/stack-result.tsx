@@ -189,7 +189,7 @@ export const StackSuccessResultModal = ({
 						Member invite links
 					</Heading3>
 					<div className="flex items-center justify-between mb-2">
-						<Body>Pending: {modalState.circle.members}</Body>
+						<Body>Pending: {modalState.circle.members - 1}</Body>
 						<Body bold>Invite accepted: 0</Body>
 					</div>
 
