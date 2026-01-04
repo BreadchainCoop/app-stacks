@@ -1,12 +1,12 @@
 "use client";
 
 import { Body } from "@breadcoop/ui";
-import { Icon, ThumbsUpIcon, WarningIcon, XIcon } from "@phosphor-icons/react";
+import { CheckSquareOffsetIcon, Icon, ThumbsUpIcon, WarningIcon, XIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
-type Varaint = "success" | "warning";
+type Varaint = "success" | "warning" | "stop";
 
-interface AlertProps {
+export interface AlertProps {
 	variant: Varaint;
 	title: string;
 	description: string;
@@ -25,6 +25,11 @@ const configs: Record<Varaint, { cont: string; body: string; Icon: Icon }> = {
 		body: "text-system-warning",
 		Icon: WarningIcon,
 	},
+	stop: {
+		cont: "bg-[#EAE2D6] border-system-red",
+		body: "text-system-red",
+		Icon: CheckSquareOffsetIcon,
+	}
 };
 
 const Alert = ({

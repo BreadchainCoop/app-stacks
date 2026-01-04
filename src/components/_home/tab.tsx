@@ -53,7 +53,7 @@ const ProtectedTab = () => {
 	const currentTab = useSearchParams().get("tab") || "all";
 
 	return (
-		<nav className="border border-paper-2 bg-paper-0 p-2.5 max-w-max">
+		<nav className="border border-paper-2 bg-paper-0 p-2.5 max-w-max mb-6">
 			<ul className="flex items-center justify-start gap-4 overflow-x-auto scrollbar-hidden">
 				{[...tabs].map((tab) => {
 					return (

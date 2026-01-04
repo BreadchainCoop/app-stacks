@@ -1,36 +1,130 @@
-import Alert from "@/components/alert";
-import { Body, Heading3 } from "@breadcoop/ui";
+import Alert, { AlertProps } from "@/components/alert";
+import { Body, Heading3, LiftedButton, LoginButton } from "@breadcoop/ui";
 import { CalendarDotsIcon, CalendarStarIcon } from "@phosphor-icons/react/ssr";
-import DepositStatusButton from "./deposit-status-button";
+import { useCircleStatus } from "@/hooks/use-circle-status";
+import Loading from "@/app/loading";
+import { useCircleInfo } from "@/hooks/use-circle-info";
+import { useUserCircleData } from "@/hooks/use-user-circle-data";
+import { useAccount } from "wagmi";
+import { getuserCircleStatus } from "@/lib/get-user-circle-status";
+import { ICircleStatus } from "@/interfaces/circle";
+import StartCircleButton from "@/components/start-circle-button";
+import LocalLiftedButton from "@/components/lifted-button";
+import DepositButton from "@/components/deposit-button";
+import { formatEther } from "viem";
+import LastDeposit from "./last-deposit";
+import DaysLeft from "./days-left";
 
-const DepositStatus = () => {
+const DepositStatus = ({
+	id,
+	status,
+	circle,
+	userCircleData,
+}: {
+	id: string;
+	status: ReturnType<typeof useCircleStatus>;
+	circle: ReturnType<typeof useCircleInfo>["circle"];
+	userCircleData: ReturnType<typeof useUserCircleData>;
+}) => {
+	const { address } = useAccount();
+	const formattedStatus = userCircleData.circleData
+		? getuserCircleStatus(userCircleData.circleData, address, {
+				includeDeposited: true,
+				includeClaimable: false,
+		  })
+		: null;
+
 	return (
-		<section className="bg-paper-0 p-5 mb-4 *:mb-4 md:mb-0 md:order-1 md:flex-2 md:max-w-[39.9375rem]">
+		<section className="bg-paper-0 p-5 mb-4 *:mb-4 md:mb-0 md:order-1 md:flex-2 md:max-w-159.75">
 			<header className="flex items-center justify-between border-b border-paper-2 pb-4">
 				<Heading3 className="text-2xl">Deposit Status</Heading3>
-				<div className="flex items-center justify-center gap-1">
-					<Body className="text-xs text-surface-grey">
-						Last deposit:
-					</Body>
-					<div>
-						<CalendarDotsIcon size={16} className="fill-blue-2" />
-					</div>
-				</div>
+				<LastDeposit
+					id={id}
+					status={formattedStatus?.status || null}
+					isActive={status.isActive}
+				/>
 			</header>
-			<div>
-				<div className="flex items-center justify-start gap-0.5">
-					<CalendarStarIcon size={24} className="fill-blue-2" />
-					<Body>Days left untill next deposit</Body>
-				</div>
-				<p className="text-h2 text-2xl lg:-mb-6">- days</p>
-			</div>
-			<div className="w-full h-4 bg-paper-2" />
-			<Alert
-				variant="success"
-				title="Ready to start stacking"
-				description="All members have accepted their invite. You can now start the Stacks group"
+			<DaysLeft
+				depositWindowEnd={userCircleData.circleData?.depositWindowEnd}
+				isActive={status.isActive}
 			/>
-			<DepositStatusButton />
+			{status.isLoading || userCircleData.isLoading ? (
+				<div className="flex items-center justify-center">
+					<Loading />
+				</div>
+			) : (
+				<>
+					{!userCircleData.circleData?.isMember ? (
+						<Body>You are not a member of this circle.</Body>
+					) : (
+						<>
+							{formattedStatus && (
+								<>
+									<Alert
+										variant={formattedStatus.variant}
+										title={formattedStatus.title}
+										description={formattedStatus.desc}
+									/>
+									{formattedStatus.status === "start" ? (
+										<>
+											{address ===
+												userCircleData.circleData
+													.circleInfo.owner && (
+												<StartCircleButton
+													circleId={BigInt(id)}
+													amount={
+														userCircleData
+															.circleData
+															.circleInfo
+															.depositAmount
+													}
+													width="full"
+												/>
+											)}
+										</>
+									) : formattedStatus.status ===
+									  "deposited" ? (
+										<LocalLiftedButton
+											width="full"
+											className="text-paper-main lifted-button-disabled"
+										>
+											Deposited
+										</LocalLiftedButton>
+									) : formattedStatus.status ===
+									  "payment_due" ? (
+										<DepositButton
+											className="font-bold"
+											width="full"
+											label={`Deposit ${formatEther(
+												userCircleData.circleData
+													.circleInfo.depositAmount
+											)} BREAD`}
+											amount={
+												userCircleData.circleData
+													.circleInfo.depositAmount
+											}
+											tokenAddress={
+												userCircleData.circleData
+													.circleInfo.token
+											}
+											circleId={BigInt(id)}
+										/>
+									) : formattedStatus.status ===
+									  "completed" ? (
+										<LiftedButton
+											disabled
+											width="full"
+											className="font-bold text-paper-main"
+										>
+											Stacks Ended
+										</LiftedButton>
+									) : null}
+								</>
+							)}
+						</>
+					)}
+				</>
+			)}
 		</section>
 	);
 };

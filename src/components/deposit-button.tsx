@@ -3,7 +3,6 @@
 import { LiftedButton, LiftedButtonProps } from "@breadcoop/ui";
 import { useModal } from "./modal/context";
 import { localButtonClassNames } from "./lifted-button";
-import { sleep } from "@/utils/sleep";
 import {
 	useAccount,
 	useReadContract,
@@ -64,13 +63,6 @@ const DepositButton = ({
 
 	const { writeContractAsync: writeApprove } = useWriteContract();
 	const { writeContractAsync: writeDeposit } = useWriteContract();
-
-	// console.log("__ DEPOSIT BUTTON __", {
-	// 	allowance,
-	// 	tokenAddress,
-	// 	needsApproval,
-	// 	amount,
-	// });
 
 	const deposit = async () => {
 		modal.setModal({ type: "DEPOSIT_LOADING" });

@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, createContext, useContext, useState } from "react";
+import { Address } from "viem";
 
 export type TModalStatus = "loading" | "success" | "error";
 
@@ -29,12 +30,13 @@ export type StackInitFailedModalState = {
 
 export type DepositInitModalState = {
 	type: "DEPOSIT_INIT";
-	amount: number;
+	amount: bigint;
+	tokenAddress: Address;
+	circleId: bigint;
 };
 
 export type DepositLoadingModalState = {
 	type: "DEPOSIT_LOADING";
-	// amount: number;
 };
 
 export type DepositResultModalState = {
