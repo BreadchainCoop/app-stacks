@@ -29,7 +29,7 @@ const TotalStacked = ({
 		: BigInt(0);
 	let amount: string | number = "-";
 
-	let wholePart = "-";
+	let wholePart = " - ";
 	let fractionalPart = "";
 	let msg: ReactNode = "";
 
@@ -42,19 +42,9 @@ const TotalStacked = ({
 		if (circleNotStarted) {
 			msg = "You can claim now or  later.";
 		} else {
-			// amount = Number(formatEther(claimableAmount));
-			// wholePart = Math.floor(amount).toString();
-			// fractionalPart = amount.toFixed(2).split(".")[1];
-			// amount = amount.toFixed(2);
-
-			// msg = (
-			// 	<Body bold>
-			// 		<span>You already claimed your sum. </span>
-			// 		<span className="font-normal">
-			// 			Continue the depositing.
-			// 		</span>
-			// 	</Body>
-			// );
+			amount = Number(formatEther(claimableAmount));
+			wholePart = Math.floor(amount).toString();
+			fractionalPart = amount.toFixed(2).split(".")[1];
 			msg = "You can claim now or later.";
 		}
 	}
@@ -82,7 +72,7 @@ const TotalStacked = ({
 					) : (
 						<>
 							<div className="py-4 flex flex-col gap-4 items-center mb-4.25">
-								<p className="text-h2 text-surface-ink opacity-50">
+								<p className={`text-h2 text-surface-ink`}>
 									<span>${wholePart}</span>
 									{fractionalPart && (
 										<span className="text-[2.21rem] text-surface-grey-2">
@@ -92,7 +82,10 @@ const TotalStacked = ({
 								</p>
 								<div className="flex flex-col gap-2 items-center">
 									<Body className="text-surface-grey-2">
-										{amount} $BREAD
+										{typeof amount === "string"
+											? amount
+											: amount.toFixed(2)}{" "}
+										$BREAD
 									</Body>
 									<Body className="text-xs">{msg}</Body>
 								</div>
@@ -117,6 +110,8 @@ const TotalStacked = ({
 								<ClaimButton
 									circleId={BigInt(id)}
 									amount={amount}
+									label="Claim funds"
+									className="bg-system-green! text-paper-main!"
 								/>
 							) : (
 								<LastClaimStatus
