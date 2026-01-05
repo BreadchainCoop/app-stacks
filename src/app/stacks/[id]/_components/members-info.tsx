@@ -30,16 +30,18 @@ const MembersInfo = ({
 	owner,
 	info,
 	id,
+	totalBaseDeposit,
 }: {
 	owner: Address;
 	id: string;
 	info: ReturnType<typeof useCircleMembersWithBalances>;
+	totalBaseDeposit: number
 }) => {
 	return (
 		<div>
 			<Accordion>
 				{info.members.map((member, index) => {
-					const totalDeposits = formatEther(
+					const totalDeposits = +formatEther(
 						info.memberBalances?.balances[index] || BigInt(0)
 					);
 
@@ -68,7 +70,7 @@ const MembersInfo = ({
 							</AccordionHeader>
 							<AccordionContent>
 								<MemberInfoContent
-									totalDeposits={totalDeposits}
+									totalDeposits={String(totalDeposits + totalBaseDeposit)}
 									member={member}
 									circleId={id}
 									isOWner={
