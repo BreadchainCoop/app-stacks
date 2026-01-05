@@ -16,6 +16,8 @@ import { waitForTransactionReceipt } from "@wagmi/core";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { wagmiConfig } from "./providers/web3";
 import { getDefaultChainId } from "@/utils/chain";
+import { useQueryClient } from "@tanstack/react-query";
+import Loading from "@/app/loading";
 
 interface DepositButtonProps extends Omit<LiftedButtonProps, "children"> {
 	label?: string;
@@ -32,7 +34,8 @@ const DepositButton = ({
 	circleId,
 	...props
 }: DepositButtonProps) => {
-	// const [depositing, setDepositing] = useState(false);
+	const [depositing, setDepositing] = useState(false);
+	const queryClient = useQueryClient();
 	const { address: userAddress } = useAccount();
 	const modal = useModal();
 	const allClassName = `${className} ${
@@ -67,7 +70,10 @@ const DepositButton = ({
 	const { writeContractAsync: writeDeposit } = useWriteContract();
 
 	const deposit = async () => {
+		if (depositing) return;
+
 		modal.setModal({ type: "DEPOSIT_LOADING" });
+		setDepositing(true);
 
 		try {
 			if (needsApproval) {
@@ -95,14 +101,9 @@ const DepositButton = ({
 				args: [circleId, amount],
 			});
 
-			console.log({ depositHash });
+			await waitForTransactionReceipt(wagmiConfig, { hash: depositHash });
 
-			const depositReceipt = await waitForTransactionReceipt(
-				wagmiConfig,
-				{ hash: depositHash }
-			);
-
-			console.log({ depositReceipt });
+			queryClient.invalidateQueries({ queryKey: ["readContract"] });
 
 			modal.setModal({ type: "DEPOSIT_RESULT", result: "success" });
 		} catch (error) {
@@ -112,12 +113,20 @@ const DepositButton = ({
 				result: "error",
 				msg: "Transaction failed. You don't have enough BREAD.",
 			});
+		} finally {
+			setDepositing(false);
 		}
 	};
 
 	return (
 		<LiftedButton {...props} onClick={deposit} className={allClassName}>
-			{label}
+			{depositing ? (
+				<span className="flex items-center justify-center">
+					<Loading />
+				</span>
+			) : (
+				label
+			)}
 		</LiftedButton>
 	);
 };
