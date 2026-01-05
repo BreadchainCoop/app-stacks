@@ -6,8 +6,9 @@ import {
 	UsersIcon,
 } from "@phosphor-icons/react/ssr";
 import MembersInfo from "./members-info";
-import { Address } from "viem";
+import { Address, formatEther } from "viem";
 import { useCircleMembersWithBalances } from "@/hooks/use-circle-members";
+import { useCircleInfo } from "@/hooks/use-circle-info";
 
 const TopRowInfo = ({
 	LIcon,
@@ -27,10 +28,19 @@ const TopRowInfo = ({
 	);
 };
 
-const StackMembers = ({ owner, id }: { owner: Address; id: string }) => {
+const StackMembers = ({
+	circle,
+	id,
+}: {
+	id: string;
+	circle: Exclude<ReturnType<typeof useCircleInfo>["circle"], undefined>;
+}) => {
 	const info = useCircleMembersWithBalances(BigInt(id));
 
 	const totalMembers = info.isLoading ? "-" : info.members.length;
+
+	const totalBaseDeposit =
+		+formatEther(circle.depositAmount) * Number(circle.currentIndex);
 
 	return (
 		<section className="p-4 flex flex-col gap-4">
@@ -56,7 +66,12 @@ const StackMembers = ({ owner, id }: { owner: Address; id: string }) => {
 					value={totalMembers}
 				/>
 			</div>
-			<MembersInfo owner={owner} id={id} info={info} />
+			<MembersInfo
+				owner={circle.owner}
+				id={id}
+				info={info}
+				totalBaseDeposit={totalBaseDeposit}
+			/>
 		</section>
 	);
 };
