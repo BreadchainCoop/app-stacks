@@ -8,6 +8,11 @@ import {
 } from "@/components/accordion";
 import PendingInviteLink from "@/components/pending-invite-link";
 import { useCircleMembersWithBalances } from "@/hooks/use-circle-members";
+import { useGetCircleCreated } from "@/hooks/use-get-cricle-created";
+import { useGetLastDeposit } from "@/hooks/use-get-last-deposit";
+import { useInviteRedeemed } from "@/hooks/use-invite-redeemed";
+import { useUserCircleData } from "@/hooks/use-user-circle-data";
+import { formatRelativeTime, formatShortDate } from "@/utils/time";
 import { Body, Chip } from "@breadcoop/ui";
 import { Address, formatEther } from "viem";
 import { useEnsName } from "wagmi";
@@ -62,24 +67,15 @@ const MembersInfo = ({
 								</div>
 							</AccordionHeader>
 							<AccordionContent>
-								<div>
-									<DepositRow
-										label="Next deposit"
-										body="In 3 days"
-									/>
-									<DepositRow
-										label="Last deposit"
-										body="12 days ago"
-									/>
-									<DepositRow
-										label="Total deposits"
-										body={`${totalDeposits} BREAD`}
-									/>
-									<DepositRow
-										label="Joined"
-										body="13 oct, 2025"
-									/>
-								</div>
+								<MemberInfoContent
+									totalDeposits={totalDeposits}
+									member={member}
+									circleId={id}
+									isOWner={
+										member.toLowerCase() ===
+										owner.toLowerCase()
+									}
+								/>
 							</AccordionContent>
 						</AccordionItem>
 					);
@@ -99,73 +95,77 @@ const MembersInfo = ({
 			</Accordion>
 		</div>
 	);
-
-	// return (
-	// 	<div>
-	// 		<Accordion>
-	// 			<AccordionItem value="owner">
-	// 				<AccordionHeader>
-	// 					<div className="flex items-center justify-start gap-4">
-	// 						<Body bold>{owner.slice(0, 7)}...</Body>
-	// 						<Chip className="font-bold text-blue-1 bg-paper-main border-current text-xs">
-	// 							Group owner
-	// 						</Chip>
-	// 					</div>
-	// 				</AccordionHeader>
-	// 				<AccordionContent>
-	// 					<div>
-	// 						<DepositRow label="Next deposit" body="In 3 days" />
-	// 						<DepositRow
-	// 							label="Last deposit"
-	// 							body="12 days ago"
-	// 						/>
-	// 						<DepositRow
-	// 							label="Total deposits"
-	// 							body="4,400 BREAD"
-	// 						/>
-	// 						<DepositRow label="Joined" body="13 oct, 2025" />
-	// 					</div>
-	// 				</AccordionContent>
-	// 			</AccordionItem>
-
-	// 			<AccordionItem value="member">
-	// 				<AccordionHeader>
-	// 					<div className="flex items-center justify-start gap-x-4 gap-y-1 flex-wrap">
-	// 						<Body bold>Ron.breadcoop.eth</Body>
-	// 					</div>
-	// 				</AccordionHeader>
-	// 				<AccordionContent>
-	// 					<div>
-	// 						<DepositRow label="Next deposit" body="In 3 days" />
-	// 						<DepositRow
-	// 							label="Last deposit"
-	// 							body="12 days ago"
-	// 						/>
-	// 						<DepositRow
-	// 							label="Total deposits"
-	// 							body="4,400 BREAD"
-	// 						/>
-	// 						<DepositRow label="Joined" body="13 oct, 2025" />
-	// 					</div>
-	// 				</AccordionContent>
-	// 			</AccordionItem>
-
-	// 			<AccordionItem value="pending-invite-1">
-	// 				<AccordionHeader>
-	// 					<div className="flex items-center justify-start gap-x-4 gap-y-1 flex-wrap">
-	// 						<Body bold className="text-system-warning">
-	// 							Pending Invite
-	// 						</Body>
-	// 					</div>
-	// 				</AccordionHeader>
-	// 				<AccordionContent>
-	// 					<PendingInviteLink link="https://stacks.bread.coop/stacks-dt564" />
-	// 				</AccordionContent>
-	// 			</AccordionItem>
-	// 		</Accordion>
-	// 	</div>
-	// );
 };
+
+function MemberInfoContent({
+	totalDeposits,
+	member,
+	isOWner,
+	circleId,
+}: {
+	totalDeposits: string;
+	member: Address;
+	isOWner: boolean;
+	circleId: string;
+}) {
+	const { data: creationTimestamp } = useGetCircleCreated({
+		circleId,
+		enabled: isOWner,
+	});
+	const { data: redeemedTimestamp } = useInviteRedeemed({
+		circleId,
+		member,
+		enabled: !isOWner,
+	});
+	const circleData = useUserCircleData({
+		circleId: BigInt(circleId),
+		member,
+	});
+	const { lastDepositTime } = useGetLastDeposit({
+		circleId,
+		enabled: true,
+		member,
+	});
+	const joinedTimestamp = creationTimestamp || redeemedTimestamp;
+
+	let daysNextDeposit: number | undefined;
+	let daysLastDeposit: string | undefined;
+
+	if (circleData.circleData) {
+		daysNextDeposit =
+			circleData.circleData.circleInfo.effectiveCircleStartTime ===
+			BigInt(0)
+				? undefined
+				: Math.ceil(
+						(Number(circleData.circleData.depositWindowEnd) -
+							Date.now() / 1000) /
+							86_400
+				  );
+	}
+
+	return (
+		<div>
+			<DepositRow
+				label="Next deposit"
+				body={`${daysNextDeposit || "-"} days`}
+			/>
+			<DepositRow
+				label="Last deposit"
+				body={`${
+					lastDepositTime ? formatRelativeTime(lastDepositTime) : "-"
+				}`}
+			/>
+			<DepositRow
+				label="Total deposits"
+				body={`${totalDeposits} BREAD`}
+			/>
+			<DepositRow
+				label="Joined"
+				body={joinedTimestamp ? formatShortDate(joinedTimestamp) : "-"}
+			/>
+		</div>
+	);
+}
 
 function MemberEnsName({ address }: { address: Address }) {
 	const { data } = useEnsName({ address });

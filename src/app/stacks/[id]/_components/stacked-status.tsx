@@ -14,9 +14,7 @@ const StackedStatus = ({
 	circle: ReturnType<typeof useCircleInfo>["circle"];
 }) => {
 	const status = useCircleStatus(BigInt(id));
-	const userCircleData = useUserCircleData(BigInt(id));
-
-	console.log(" _ USER CIRCLE DATA _ ", userCircleData);
+	const userCircleData = useUserCircleData({circleId: BigInt(id)});
 
 	return (
 		<div className="md:flex md:justify-between md:gap-6">

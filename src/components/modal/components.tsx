@@ -30,7 +30,6 @@ export const ModalContainer = ({
 	className?: string;
 	status?: "error" | "success" | "loading";
 }) => {
-	console.log({ status });
 	return (
 		<div className="h-screen max-h-[100vh] fixed w-screen top-0 z-40 pointer-events-none flex items-center justify-center">
 			<div
