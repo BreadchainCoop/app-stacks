@@ -115,9 +115,9 @@ export const getuserCircleStatus = (
 		return {
 			status: "payment_due",
 			statusLabel: "Payment due",
-			variant: "warning",
-			title: "Ask for payment due title",
-			desc: "Ask for payment due description",
+			variant: "success",
+			title: "Proceed to deposit",
+			desc: "All members have accepted their invite. You can now deposit your sum.",
 		};
 	}
 
