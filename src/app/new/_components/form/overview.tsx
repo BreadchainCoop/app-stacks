@@ -174,7 +174,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
 				/>
 				<BreadRow
 					label="Total Stacked per member"
-					amount={total}
+					amount={total.toFixed(2)}
 					colored
 				/>
 			</div>

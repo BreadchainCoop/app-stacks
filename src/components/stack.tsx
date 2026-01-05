@@ -46,7 +46,7 @@ const Stack = ({ stack }: { stack: ICircleList }) => {
 			className: "",
 		},
 		{
-			label: `Goal: ${Number(depositAmount) * stack.totalMember} BREAD`,
+			label: `Goal: ${(Number(depositAmount) * stack.totalMember).toFixed(2)} BREAD`,
 			icon: <CalendarIcon />,
 			className: "hidden md:flex",
 		},
