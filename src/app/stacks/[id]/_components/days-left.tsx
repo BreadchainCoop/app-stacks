@@ -30,8 +30,6 @@ const DaysLeft = ({
 		}
 	}
 
-	console.log("___ DAYS LEFT ___", daysLeft, progressPercent);
-
 	return (
 		<>
 			<div>

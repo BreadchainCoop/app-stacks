@@ -1,29 +1,32 @@
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { clientEnv } from "@/lib/env";
 import { useQuery } from "@tanstack/react-query";
-import { parseAbiItem } from "viem";
+import { Address, parseAbiItem } from "viem";
 import { usePublicClient } from "wagmi";
 
-export const useGetCircleCreated = ({
+export const useInviteRedeemed = ({
 	circleId,
-	enabled = true,
+	member,
+	enabled,
 }: {
 	circleId: string;
+	member: Address;
 	enabled?: boolean;
 }) => {
 	const publicClient = usePublicClient();
 
 	return useQuery({
-		queryKey: ["circleCreated", circleId],
+		queryKey: ["inviteRedeemed", circleId, member],
+		enabled,
 		queryFn: async () => {
 			if (!publicClient) return null;
 
 			const logs = await publicClient.getLogs({
 				address: SAVING_CIRCLES_CONTRACT_ADDRESS,
 				event: parseAbiItem(
-					"event CircleCreated(uint256 indexed id, address indexed token, uint256 depositAmount, uint256 depositInterval)"
+					"event InviteRedeemed(uint256 indexed id, address indexed member)"
 				),
-				args: { id: BigInt(circleId) },
+				args: { id: BigInt(circleId), member },
 				fromBlock: BigInt(
 					clientEnv.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK
 				),
@@ -38,6 +41,5 @@ export const useGetCircleCreated = ({
 
 			return new Date(Number(block.timestamp) * 1000);
 		},
-		enabled: enabled && !!circleId,
 	});
 };

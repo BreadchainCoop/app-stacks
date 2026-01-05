@@ -1,19 +1,24 @@
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { clientEnv } from "@/lib/env";
 import { useQuery } from "@tanstack/react-query";
+import { Address } from "viem";
 import { usePublicClient } from "wagmi";
 
 export const useGetLastDeposit = ({
 	circleId,
 	enabled,
+	member,
 }: {
 	circleId: string;
 	enabled: boolean;
+	member?: Address
 }) => {
 	const publicClient = usePublicClient();
 
+	const queryKey = ["lastDeposit", circleId, member].filter(i => i !== undefined);
+
 	const { data: lastDepositTime, ...result } = useQuery({
-		queryKey: ["lastDeposit", circleId],
+		queryKey,
 		enabled: Boolean(publicClient) && enabled,
 		queryFn: async () => {
 			if (!publicClient) return null;
@@ -31,6 +36,7 @@ export const useGetLastDeposit = ({
 				},
 				args: {
 					_id: BigInt(circleId),
+					_member: member,
 				},
 				fromBlock: BigInt(
 					clientEnv.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK
