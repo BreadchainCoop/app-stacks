@@ -13,7 +13,6 @@ import StackedStatus from "./stacked-status";
 
 const PageContent = ({ id }: { id: string }) => {
 	const circleInfo = useCircleInfo(BigInt(id));
-	console.log(" _ CIRCLE INFO _ ", circleInfo);
 
 	return (
 		<>

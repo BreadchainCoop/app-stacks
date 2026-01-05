@@ -35,3 +35,15 @@ export function formatRelativeTime(date: Date | string | number): string {
 	const diffInYears = Math.floor(diffInDays / 365);
 	return diffInYears === 1 ? "1 year ago" : `${diffInYears} years ago`;
 }
+
+export const formatShortDate = (date: Date | string | number): string => {
+	date = typeof date === "object" ? date : new Date(date);
+
+	if (isNaN(date.getTime())) return "";
+
+	const day = date.getDate();
+	const month = date.toLocaleString("en", { month: "short" });
+	const year = date.getFullYear();
+
+	return `${day} ${month}, ${year}`;
+};

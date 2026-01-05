@@ -2,7 +2,7 @@ import { useUserCircleData } from "@/hooks/use-user-circle-data";
 import { Chip } from "@breadcoop/ui";
 
 const StackMember = ({ id }: { id: string }) => {
-	const { circleData } = useUserCircleData(BigInt(id));
+	const { circleData } = useUserCircleData({circleId: BigInt(id)});
 
 	if (!circleData || !circleData.isMember) return null;
 
