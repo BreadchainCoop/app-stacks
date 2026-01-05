@@ -8,14 +8,21 @@ import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { wagmiConfig } from "./providers/web3";
+import { cn } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
 
 const ClaimButton = ({
 	amount,
 	circleId,
+	label,
+	className
 }: {
 	amount: number;
 	circleId: bigint;
+	label?: string;
+	className?: string
 }) => {
+	const queryClient = useQueryClient();
 	const { setModal } = useModal();
 	const [claiming, setClaiming] = useState(false);
 	const writeContract = useWriteContract();
@@ -39,6 +46,8 @@ const ClaimButton = ({
 				hash,
 			});
 
+			queryClient.invalidateQueries({ queryKey: ['readContract'] });
+
 			setModal({ type: "CLAIM_RESULT", result: "success", amount });
 		} catch (error) {
 			console.log("__ ERROR __", error);
@@ -48,13 +57,13 @@ const ClaimButton = ({
 
 	return (
 		<LocalLiftedButton
-			className="font-bold"
+			className={cn("font-bold", className)}
 			width="full"
 			preset="stroke"
 			leftIcon={<HandWithdrawIcon />}
 			onClick={claim}
 		>
-			Claim {amount} BREAD
+			{label || `Claim ${amount} BREAD`}
 		</LocalLiftedButton>
 	);
 };
