@@ -29,7 +29,8 @@ export function useUserCircleData({
 		query: {
 			// enabled:
 			// 	isConnected && address !== undefined && circleId !== undefined,
-      enabled: user !== undefined
+      enabled: user !== undefined,
+			refetchOnWindowFocus: false,
 		},
 		chainId: getDefaultChainId(),
 	});

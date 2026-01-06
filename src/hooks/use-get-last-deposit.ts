@@ -1,6 +1,6 @@
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { clientEnv } from "@/lib/env";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Address } from "viem";
 import { usePublicClient } from "wagmi";
 
@@ -20,6 +20,8 @@ export const useGetLastDeposit = ({
 	const { data: lastDepositTime, ...result } = useQuery({
 		queryKey,
 		enabled: Boolean(publicClient) && enabled,
+		refetchOnWindowFocus: false,
+		placeholderData: keepPreviousData,
 		queryFn: async () => {
 			if (!publicClient) return null;
 
