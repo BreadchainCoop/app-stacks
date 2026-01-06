@@ -12,6 +12,7 @@ const StackHeader = ({ id }: { id: string }) => {
 				<StackMember id={id} />
 			</div>
 			<Alert
+				closeAble={false}
 				variant="warning"
 				title="IMPORTANT: Missing a deposit retires your Stacks group"
 				description="If any member misses a deposit the Stacks discontinues and
