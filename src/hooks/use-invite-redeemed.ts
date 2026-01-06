@@ -1,6 +1,6 @@
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { clientEnv } from "@/lib/env";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Address, parseAbiItem } from "viem";
 import { usePublicClient } from "wagmi";
 
@@ -18,6 +18,8 @@ export const useInviteRedeemed = ({
 	return useQuery({
 		queryKey: ["inviteRedeemed", circleId, member],
 		enabled,
+		placeholderData: keepPreviousData,
+		refetchOnWindowFocus: false,
 		queryFn: async () => {
 			if (!publicClient) return null;
 
