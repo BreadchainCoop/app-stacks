@@ -14,6 +14,8 @@ import StackedStatus from "./stacked-status";
 const PageContent = ({ id }: { id: string }) => {
 	const circleInfo = useCircleInfo(BigInt(id));
 
+	console.log("__ CIRCLE INFO __", circleInfo);
+
 	return (
 		<>
 			<BackPage
@@ -27,7 +29,7 @@ const PageContent = ({ id }: { id: string }) => {
 					<div className="*:mb-4 last:mb-0 md:mb-6 md:last:mb-0">
 						<StackedStatus id={id} circle={circleInfo.circle} />
 						<StackDetails id={id} circle={circleInfo.circle} />
-						<StackMembers id={id} owner={circleInfo.circle.owner} />
+						<StackMembers id={id} circle={circleInfo.circle} />
 						<StackInfo owner={circleInfo.circle.owner} />
 					</div>
 				</>
