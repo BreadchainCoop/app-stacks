@@ -19,6 +19,7 @@ import { ICircleList } from "@/interfaces/circle";
 import { formatEther } from "viem";
 import DepositButton from "./deposit-button";
 import { HandWithdrawIcon } from "@phosphor-icons/react";
+import { parseCircleIntervalToDate } from "@/utils/stacks";
 
 const headerStatuses: Exclude<ICircleList["status"], undefined>[] = [
 	"member",
@@ -28,6 +29,23 @@ const headerStatuses: Exclude<ICircleList["status"], undefined>[] = [
 const Stack = ({ stack }: { stack: ICircleList }) => {
 	// const { setModal } = useModal();
 	const depositAmount = formatEther(stack.depositAmount);
+	const totalGoal =
+		Number(depositAmount) * stack.totalMember * stack.totalMember;
+	const totalDeposited =
+		Number(stack.currentIndex) *
+			Number(depositAmount) *
+			Number(stack.totalMember) +
+		Number(formatEther(stack.totalPoolBalance || BigInt(0)));
+	const percentageDone = (totalDeposited / totalGoal) * 100;
+
+	// console.log({
+	// 	totalDeposited,
+	// 	totalGoal,
+	// 	id: stack.id,
+	// 	currentIndex: stack.currentIndex,
+	// 	poolBalance: Number(formatEther(stack.totalPoolBalance || BigInt(0)))
+	// });
+	// console.log("\n");
 
 	const items = [
 		{
@@ -41,12 +59,14 @@ const Stack = ({ stack }: { stack: ICircleList }) => {
 			className: "hidden md:flex",
 		},
 		{
-			label: `${depositAmount} BREAD a week`,
+			label: `${Number(depositAmount) * stack.totalMember} BREAD a ${
+				parseCircleIntervalToDate(stack.depositInterval).label
+			}`,
 			icon: <CoinsIcon />,
 			className: "",
 		},
 		{
-			label: `Goal: ${(Number(depositAmount) * stack.totalMember).toFixed(2)} BREAD`,
+			label: `Goal: ${totalGoal.toFixed(2)} BREAD`,
 			icon: <CalendarIcon />,
 			className: "hidden md:flex",
 		},
@@ -85,19 +105,19 @@ const Stack = ({ stack }: { stack: ICircleList }) => {
 							Stack progress
 						</Body>
 						<Body bold className="text-xs sm:text-base">
-							60%
+							{Math.round(percentageDone * 100) / 100}%
 						</Body>
 					</div>
 					<div className="w-full h-3.5 p-0.75 bg-paper-main">
 						<div
 							className="h-full bg-primary-blue"
-							style={{ width: "60%" }}
+							style={{ width: `${percentageDone}%` }}
 						/>
 					</div>
 				</div>
 				<div className="w-full max-w-max flex flex-col xl:hidden">
 					<p className="text-h2 m-0 text-2xl leading-6 text-surface-grey-2">
-						${formatEther(stack.totalPoolBalance || BigInt(0))}
+						${totalDeposited}
 					</p>
 					<Body className="flex items-center justify-start gap-1 text-surface-grey">
 						<span className="text-[0.625rem]">
@@ -117,7 +137,7 @@ const Stack = ({ stack }: { stack: ICircleList }) => {
 					return (
 						<li
 							key={item.label}
-							className={`flex gap-[0.3125rem] ${item.className}`}
+							className={`flex gap-1.25 ${item.className}`}
 						>
 							<span className="text-primary-blue">
 								{item.icon}
