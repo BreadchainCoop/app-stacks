@@ -1,6 +1,5 @@
 "use client";
 
-import { dummyStacks } from "@/utils/stacks";
 import CardCarousel from "../card-carousel";
 import { useAllCircles } from "@/hooks/use-all-circles";
 import { Body, Heading2 } from "@breadcoop/ui";

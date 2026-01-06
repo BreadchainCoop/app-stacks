@@ -188,8 +188,7 @@ const StackDetails = ({
 	const depositInterval = Number(circle.depositInterval / SECONDS_PER_DAY);
 	const intervalLabel = depositInterval % 30 === 0 ? "month" : "week";
 
-	const depositPerRound =
-		circle?.depositAmount * BigInt(members?.length || 0);
+	const depositPerRound = circle.depositAmount * BigInt(members?.length || 0);
 	const roundsLeft =
 		BigInt(members?.length || 0) - BigInt(circle?.currentIndex || 0);
 

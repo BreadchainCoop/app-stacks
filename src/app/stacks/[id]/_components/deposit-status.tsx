@@ -61,6 +61,7 @@ const DepositStatus = ({
 							{formattedStatus && (
 								<>
 									<Alert
+										closeAble={false}
 										variant={formattedStatus.variant}
 										title={formattedStatus.title}
 										description={formattedStatus.desc}
