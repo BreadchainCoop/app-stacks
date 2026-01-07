@@ -7,7 +7,7 @@ const StackMember = ({ id }: { id: string }) => {
 	if (!circleData || !circleData.isMember) return null;
 
 	return (
-		<Chip className="border-system-green text-system-green bg-paper-main max-w-max">
+		<Chip className="border-system-green text-system-green bg-paper-main max-w-max hover:border-current">
 			Member
 		</Chip>
 	);
