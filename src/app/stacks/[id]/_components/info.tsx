@@ -1,3 +1,4 @@
+import CopyButton from "@/components/copy-button";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { formatAddress } from "@/utils/address";
 import { Body } from "@breadcoop/ui";
@@ -35,10 +36,16 @@ const StackInfo = ({ owner }: { owner: Address }) => {
 				</a>
 			</StackInfoRow>
 			<StackInfoRow label="Created by:">
-				<button className="flex items-center justify-end gap-1">
+				<Body className="flex items-center justify-end gap-1">
 					{formatAddress(owner)}
-					<CopyIcon size={24} className="fill-blue-2" />
-				</button>
+					<CopyButton
+						textToCopy={owner}
+						varaint="icon"
+						className="flex items-center justify-end gap-1"
+					>
+						<CopyIcon size={24} className="fill-blue-2" />
+					</CopyButton>
+				</Body>
 			</StackInfoRow>
 		</div>
 	);
