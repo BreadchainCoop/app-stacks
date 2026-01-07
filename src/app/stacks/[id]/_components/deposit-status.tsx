@@ -88,12 +88,13 @@ const DepositStatus = ({
 										</>
 									) : formattedStatus.status ===
 									  "deposited" ? (
-										<LocalLiftedButton
+										<LiftedButton
 											width="full"
-											className="text-paper-main lifted-button-disabled"
+											className="text-paper-main"
+											disabled
 										>
 											Deposited
-										</LocalLiftedButton>
+										</LiftedButton>
 									) : formattedStatus.status ===
 									  "payment_due" ? (
 										<DepositButton
