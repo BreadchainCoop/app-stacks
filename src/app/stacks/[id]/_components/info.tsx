@@ -1,3 +1,4 @@
+import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { formatAddress } from "@/utils/address";
 import { Body } from "@breadcoop/ui";
 import { ArrowUpRightIcon, CopyIcon } from "@phosphor-icons/react/ssr";
@@ -24,12 +25,12 @@ const StackInfo = ({ owner }: { owner: Address }) => {
 		<div className="mt-6.5">
 			<StackInfoRow label="Contract:">
 				<a
-					href="http://"
+					href={`https://gnosisscan.io/address/${SAVING_CIRCLES_CONTRACT_ADDRESS}`}
 					target="_blank"
 					rel="noopener noreferrer"
 					className="flex items-center justify-end gap-1"
 				>
-					0x1234...5678
+					{formatAddress(SAVING_CIRCLES_CONTRACT_ADDRESS)}
 					<ArrowUpRightIcon size={24} className="fill-blue-2" />
 				</a>
 			</StackInfoRow>
