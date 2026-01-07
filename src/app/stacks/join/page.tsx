@@ -72,7 +72,7 @@ export default function Page() {
 
 			alert("Invitation Accepted!");
 			// TODO: Redirect to the stack page using its ID.
-			router.push("/");
+			router.push(`/stacks/${circleId}`);
 		} catch (error) {
 			console.log("__ ERROR REDEEM __", error);
 		} finally {
