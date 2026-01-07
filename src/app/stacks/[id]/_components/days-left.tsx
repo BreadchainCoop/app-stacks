@@ -5,25 +5,36 @@ import { CalendarStarIcon } from "@phosphor-icons/react";
 
 const DaysLeft = ({
 	depositWindowEnd,
+	effectiveCircleStartTime,
+	currentIndex,
+	depositInterval,
 	isActive,
 }: {
 	depositWindowEnd: bigint | undefined;
+	effectiveCircleStartTime: bigint | undefined;
+	currentIndex: bigint | undefined;
+	depositInterval: bigint | undefined;
 	isActive?: boolean;
 }) => {
 	let daysLeft = "-";
 	let progressPercent = 0;
 
-	if (depositWindowEnd && isActive) {
-		const now = Date.now();
-		const end = Number(depositWindowEnd) * 1000; // Convert to milliseconds
-		const totalDuration = end - now;
-		const timeLeft = end - now;
+	if (depositWindowEnd && isActive && effectiveCircleStartTime && depositInterval && currentIndex !== undefined) {
+		const now = Math.floor(Date.now() / 1000);
+		const currentRoundEnd = Number(depositWindowEnd);
+		
+		const currentRoundStart = Number(effectiveCircleStartTime) + (Number(depositInterval) * Number(currentIndex));
+		
+		const totalDuration = Number(depositInterval);
+		
+		const timeLeft = currentRoundEnd - now;
 
-		if (timeLeft > 0 && totalDuration > 0) {
-			let _daysLeft = Math.ceil(timeLeft / (1000 * 60 * 60 * 24));
+		if (timeLeft > 0) {
+			let _daysLeft = Math.ceil(timeLeft / (60 * 60 * 24));
 			daysLeft = `${_daysLeft} ${_daysLeft === 1 ? "day" : "days"}`;
-			progressPercent =
-				((totalDuration - timeLeft) / totalDuration) * 100;
+			
+			const timePassed = now - currentRoundStart;
+			progressPercent = Math.min(100, (timePassed / totalDuration) * 100);
 		} else {
 			daysLeft = "0 days";
 			progressPercent = 100;
@@ -35,7 +46,7 @@ const DaysLeft = ({
 			<div>
 				<div className="flex items-center justify-start gap-0.5">
 					<CalendarStarIcon size={24} className="fill-blue-2" />
-					<Body>Days left untill next deposit</Body>
+					<Body>Days left until next deposit</Body>
 				</div>
 				<p className="text-h2 text-2xl leading-6 mt-2">{daysLeft}</p>
 			</div>

@@ -46,6 +46,9 @@ const DepositStatus = ({
 			</header>
 			<DaysLeft
 				depositWindowEnd={userCircleData.circleData?.depositWindowEnd}
+				effectiveCircleStartTime={userCircleData.circleData?.circleInfo.effectiveCircleStartTime}
+				currentIndex={userCircleData.circleData?.circleInfo.currentIndex}
+				depositInterval={userCircleData.circleData?.circleInfo.depositInterval}
 				isActive={status.isActive}
 			/>
 			{status.isLoading || userCircleData.isLoading ? (
