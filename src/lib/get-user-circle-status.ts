@@ -87,9 +87,8 @@ export const getuserCircleStatus = (
 
 	const now = BigInt(Math.floor(Date.now() / 1000));
 	const isDepositWindowOpen = circle.depositWindowEnd > now;
-	const hasDepositedCurrentRound =
-		circle.userBalance >=
-		circle.circleInfo.depositAmount * (circle.completedRounds + BigInt(1));
+
+	const hasDepositedCurrentRound = circle.userBalance >= circle.circleInfo.depositAmount;
 
 	if (config?.includeDeposited && hasDepositedCurrentRound) {
 		return {
