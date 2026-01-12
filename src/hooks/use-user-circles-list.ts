@@ -1,7 +1,7 @@
 import { useReadContract } from "wagmi";
 import { SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS } from "@/lib/constants";
 import { savingCirclesViewerAbi } from "@/lib/abis/saving-circles-viewers";
-import { Address } from "viem";
+import { Address, formatEther } from "viem";
 import { ICircleList } from "@/interfaces/circle";
 import { useMemo } from "react";
 import { getDefaultChainId } from "@/utils/chain";
@@ -19,10 +19,12 @@ export function useUserCirclesList(address: Address) {
 	const circles = useMemo(() => {
 		if (!data) return [];
 
+		// @ts-expect-error Correct
 		const parsedCircle: ICircleList[] = data.circleData.map((c) => {
 			const totalRounds = c.totalRounds;
 
 			const status = getuserCircleStatus(c, address).status;
+			const canWithdraw = c.canWithdraw && c.isCurrentWithdrawer;
 
 			return {
 				...c.circleInfo,
@@ -30,6 +32,12 @@ export function useUserCirclesList(address: Address) {
 				id: c.circleId,
 				status,
 				totalPoolBalance: c.totalPoolBalance,
+				canWithdraw,
+				...(canWithdraw && {
+					withdrawAmount:
+						Number(formatEther(c.circleInfo.depositAmount)) *
+						Number(totalRounds),
+				}),
 			};
 		});
 
