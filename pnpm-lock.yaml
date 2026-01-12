@@ -114,7 +114,7 @@ packages:
     resolution: {integrity: sha512-A4Umpi8B9/pqR78D1Yoze4xHyQaujioVRqqO3d6xuDFw9VRtjg6tK3bPlwE0aW+nVH/ntllCpPa2PbI8Rnjcug==}
 
   '@breadcoop/ui@file:breadcoop-ui-1.0.24.tgz':
-    resolution: {integrity: sha512-4+OtthPACgEfdPYTFN73tdaynH1fLaQsny0Yo0iCgnJxzQO8iNGcxliAsWhQ3JceCgPp2Bj02Jc2k+p0OoHHIA==, tarball: file:breadcoop-ui-1.0.24.tgz}
+    resolution: {integrity: sha512-0JZdKZySJ6Ery8VtShGTEQFwFj1Jgl4xOEjxLOA1LmphVKaf8qs9/4QCnHGm/B3/RR3GbkI2/8t4A5x4oE1FzA==, tarball: file:breadcoop-ui-1.0.24.tgz}
     version: 1.0.24
     peerDependencies:
       '@rainbow-me/rainbowkit': ^2
