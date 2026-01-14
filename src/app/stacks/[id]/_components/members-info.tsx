@@ -11,6 +11,7 @@ import { useCircleMembersWithBalances } from "@/hooks/use-circle-members";
 import { useGetCircleCreated } from "@/hooks/use-get-cricle-created";
 import { useGetLastDeposit } from "@/hooks/use-get-last-deposit";
 import { useInviteRedeemed } from "@/hooks/use-invite-redeemed";
+import { usePreferredEnsName } from "@/hooks/use-preferred-ens-name";
 import { useUserCircleData } from "@/hooks/use-user-circle-data";
 import { formatRelativeTime, formatShortDate } from "@/utils/time";
 import { Body, Chip } from "@breadcoop/ui";
@@ -35,7 +36,7 @@ const MembersInfo = ({
 	owner: Address;
 	id: string;
 	info: ReturnType<typeof useCircleMembersWithBalances>;
-	totalBaseDeposit: number
+	totalBaseDeposit: number;
 }) => {
 	return (
 		<div>
@@ -70,7 +71,9 @@ const MembersInfo = ({
 							</AccordionHeader>
 							<AccordionContent>
 								<MemberInfoContent
-									totalDeposits={String(totalDeposits + totalBaseDeposit)}
+									totalDeposits={String(
+										totalDeposits + totalBaseDeposit
+									)}
 									member={member}
 									circleId={id}
 									isOWner={
@@ -170,9 +173,14 @@ function MemberInfoContent({
 }
 
 function MemberEnsName({ address }: { address: Address }) {
-	const { data } = useEnsName({ address });
+	// const { data } = useEnsName({ address });
+	const { ensName, isLoading } = usePreferredEnsName({ address });
 
-	return <>{data || address}</>;
+	return (
+		<span className="inline-flex items-center justify-start">
+			{isLoading ? "Loading..." : ensName || address}
+		</span>
+	);
 }
 
 export default MembersInfo;
