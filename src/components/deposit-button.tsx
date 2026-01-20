@@ -18,6 +18,7 @@ import { wagmiConfig } from "./providers/web3";
 import { getDefaultChainId } from "@/utils/chain";
 import { useQueryClient } from "@tanstack/react-query";
 import Loading from "@/app/loading";
+import { MAX_UINT256 } from "@/utils/solidity";
 
 interface DepositButtonProps extends Omit<LiftedButtonProps, "children"> {
 	label?: string;
@@ -62,7 +63,7 @@ const DepositButton = ({
 		address: tokenAddress,
 		abi: erc20Abi,
 		functionName: "approve",
-		args: [SAVING_CIRCLES_CONTRACT_ADDRESS, amount],
+		args: [SAVING_CIRCLES_CONTRACT_ADDRESS, MAX_UINT256],
 		query: { enabled: needsApproval && !!userAddress },
 	});
 
@@ -79,7 +80,6 @@ const DepositButton = ({
 			if (needsApproval) {
 				const approveHash = await writeApprove({
 					...approveConfig!.request,
-					// args: [SAVING_CIRCLES_CONTRACT_ADDRESS, BigInt(1)]
 				});
 
 				console.log({ approveHash });
@@ -88,7 +88,7 @@ const DepositButton = ({
 					wagmiConfig,
 					{
 						hash: approveHash,
-					}
+					},
 				);
 
 				console.log({ approveReceipt });
@@ -119,7 +119,13 @@ const DepositButton = ({
 	};
 
 	return (
-		<LiftedButton {...props} onClick={deposit} className={allClassName}>
+		<LiftedButton
+			{...props}
+			onClick={deposit}
+			className={allClassName}
+			leftIcon={depositing ? undefined : props.leftIcon}
+			rightIcon={depositing ? undefined : props.rightIcon}
+		>
 			{depositing ? (
 				<span className="flex items-center justify-center">
 					<Loading />
