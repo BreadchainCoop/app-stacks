@@ -13,8 +13,8 @@ const StackFormContainer = ({ nextStage }: { nextStage: () => void }) => {
 		resolver: zodResolver(stackSchema),
 		defaultValues: {
 			name: "",
-			members: 0,
-			depositAmount: 0,
+			members: undefined,
+			depositAmount: undefined,
 			depositInterval: "weekly",
 		},
 	});

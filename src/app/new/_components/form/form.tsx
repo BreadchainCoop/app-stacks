@@ -8,6 +8,7 @@ import { UsersThreeIcon } from "@phosphor-icons/react";
 import { MouseEventHandler, ReactNode } from "react";
 import { useFormContext } from "react-hook-form";
 import { StackFormSchemaData } from "./schema";
+import NumericInput from "@/components/numeric-input";
 
 const StackForm = ({ onContinue }: { onContinue: () => void }) => {
 	const form = useFormContext<StackFormSchemaData>();
@@ -57,15 +58,12 @@ const StackForm = ({ onContinue }: { onContinue: () => void }) => {
 							<span className="text-primary-blue absolute top-1/2 -translate-y-1/2 left-[0.796875rem]">
 								<UsersThreeIcon size={24} />
 							</span>
-							<Input
+							<NumericInput
 								{...form.register("members", {
 									valueAsNumber: true,
 								})}
 								id="members"
 								className="w-full pl-12 pr-22"
-								type="text"
-								inputMode="numeric"
-								pattern="[0-9]*"
 							/>
 							<Body
 								bold
@@ -93,14 +91,12 @@ const StackForm = ({ onContinue }: { onContinue: () => void }) => {
 							className="text-xs"
 						/>
 						<div className="relative">
-							<Input
+							<NumericInput
 								{...form.register("depositAmount", {
 									valueAsNumber: true,
 								})}
 								id="depositAmount"
 								className="w-full"
-								type="text"
-								inputMode="numeric"
 							/>
 							<div className="absolute top-1/2 -translate-y-1/2 right-3 p-1 bg-paper-main">
 								<Logo
