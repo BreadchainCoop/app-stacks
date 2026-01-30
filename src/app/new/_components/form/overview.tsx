@@ -87,7 +87,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
 
 			// It should be just 1 tx, but still filter
 			const circleCreatedEvent = logs.find(
-				(log) => (log as any).eventName === "CircleCreated"
+				(log) => (log as any).eventName === "CircleCreated",
 			);
 
 			// if (!circleCreatedEvent) {
@@ -107,7 +107,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
 				id: newCircleId.toString(),
 				duration: `${data.members} ${data.depositInterval.slice(
 					0,
-					-2
+					-2,
 				)}${data.members === 1 ? "" : "s"}`.trim(),
 				deposit: data.depositAmount,
 				total: data.members * data.depositAmount,
@@ -121,11 +121,20 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
 				circle,
 			});
 
+			let localCircles = JSON.parse(
+				localStorage.getItem("circles") || "{}",
+			);
+			localCircles = {
+				...localCircles,
+				[circle.id]: { name: circle.name },
+			};
+			localStorage.setItem("circles", JSON.stringify(localCircles));
+
 			form.reset();
 		} catch (error) {
 			console.log("__ ERROR __", error);
 
-			modal.setModal({ type: "STACK_CREATION_FAILED" })
+			modal.setModal({ type: "STACK_CREATION_FAILED" });
 		}
 	};
 

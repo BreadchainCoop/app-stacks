@@ -9,6 +9,11 @@ import MembersInfo from "./members-info";
 import { Address, formatEther } from "viem";
 import { useCircleMembersWithBalances } from "@/hooks/use-circle-members";
 import { useCircleInfo } from "@/hooks/use-circle-info";
+import { useReadContracts } from "wagmi";
+import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
+import { savingCirclesAbi } from "@/lib/abis/saving-circles";
+import { LocalStorageCircle } from "@/interfaces/circle";
+import { getDefaultChainId } from "@/utils/chain";
 
 const TopRowInfo = ({
 	LIcon,
@@ -28,11 +33,19 @@ const TopRowInfo = ({
 	);
 };
 
+const savingCircleContract = {
+	address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+	abi: savingCirclesAbi,
+	functionName: "usedNonces",
+} as const;
+
 const StackMembers = ({
 	circle,
 	id,
+	member,
 }: {
 	id: string;
+	member: Address;
 	circle: Exclude<ReturnType<typeof useCircleInfo>["circle"], undefined>;
 }) => {
 	const info = useCircleMembersWithBalances(BigInt(id));
@@ -42,6 +55,58 @@ const StackMembers = ({
 	const totalBaseDeposit =
 		+formatEther(circle.depositAmount) * Number(circle.currentIndex);
 
+	const isOwner = circle.owner === member;
+
+	const localCircle = (() => {
+		const localCircles = localStorage.getItem("circles");
+		if (!localCircles) return null;
+		try {
+			const parsed = JSON.parse(localCircles) as Record<string, LocalStorageCircle>;
+			return parsed[id] ?? null;
+		} catch {
+			return null;
+		}
+	})();
+
+	const inviteLinks = localCircle?.invite_links ?? [];
+
+	const nonceChecks = inviteLinks
+		.map((link) => {
+			try {
+				const url = new URL(link);
+				const nonceStr = url.searchParams.get("nonce");
+				if (!nonceStr) return null;
+				return BigInt(nonceStr);
+			} catch {
+				return null;
+			}
+		})
+		.filter((n): n is bigint => n !== null);
+
+	const contracts = nonceChecks.map((nonce) => ({
+		...savingCircleContract,
+		args: [BigInt(id), nonce],
+		chainId: getDefaultChainId(),
+	}));
+
+	const { data: nonceResults, isLoading: isCheckingNonces } = useReadContracts({
+		contracts,
+		query: {
+			enabled: isOwner && contracts.length > 0,
+		},
+	});
+
+	const pendingInviteLinks = inviteLinks.filter((_, index) => {
+		if (!nonceResults || nonceResults.length <= index) return false;
+		const result = nonceResults[index];
+		
+		if (result.status !== "success") return false;
+
+		return result.result === false;
+	});
+
+	const pendingCount = pendingInviteLinks.length;
+
 	return (
 		<section className="p-4 flex flex-col gap-4">
 			<header>
@@ -49,28 +114,29 @@ const StackMembers = ({
 					Members ({totalMembers})
 				</Heading3>
 			</header>
+
 			<div className="border-t border-paper-2 pt-4 md:flex md:items-center md:justify-between">
 				<TopRowInfo
 					LIcon={UsersIcon}
 					title="Total Members:"
 					value={totalMembers}
 				/>
-				<TopRowInfo
-					LIcon={EnvelopeOpenIcon}
-					title="Invited:"
-					value={totalMembers}
-				/>
-				<TopRowInfo
-					LIcon={HourglassIcon}
-					title="Pending"
-					value={totalMembers}
-				/>
+
+				{isOwner && (
+					<TopRowInfo
+						LIcon={HourglassIcon}
+						title="Pending invites:"
+						value={isCheckingNonces ? "…" : pendingCount}
+					/>
+				)}
 			</div>
+
 			<MembersInfo
 				owner={circle.owner}
 				id={id}
 				info={info}
 				totalBaseDeposit={totalBaseDeposit}
+				pendingInviteLinks={isOwner ? pendingInviteLinks : []}
 			/>
 		</section>
 	);

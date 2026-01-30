@@ -56,7 +56,16 @@ export type ClaimResultModalState = {
 	result: "success" | "error";
 	msg?: string;
 	amount?: number;
+	nextDeposit?: bigint
+	roundsLeft?: bigint
+	nextDepositAddress?: Address
+	circleId?: bigint
 };
+
+export type StackFailedModalState = {
+	type: "STACK_FAILED";
+	id: bigint
+}
 
 export type ModalState =
 	| DepositInitModalState
@@ -67,6 +76,7 @@ export type ModalState =
 	| StackInitModalState
 	| StackInitSuccessModalState
 	| StackInitFailedModalState
+	| StackFailedModalState
 	| null;
 
 export type ModalContext = {

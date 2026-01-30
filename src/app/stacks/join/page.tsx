@@ -28,6 +28,7 @@ export default function Page() {
 	const parsedId = BigInt(circleId);
 	const nonce = searchParams.get("nonce");
 	const signature = searchParams.get("signature");
+	const circleName = searchParams.get("name") || "-";
 
 	const [redeeming, setRedeeming] = useState(false);
 
@@ -70,8 +71,16 @@ export default function Page() {
 
 			await waitForTransactionReceipt(wagmiConfig, { hash });
 
+			let localCircles = JSON.parse(
+				localStorage.getItem("circles") || "{}",
+			);
+			localCircles = {
+				...localCircles,
+				[circleId]: { name: circleName },
+			};
+			localStorage.setItem("circles", JSON.stringify(localCircles));
+
 			alert("Invitation Accepted!");
-			// TODO: Redirect to the stack page using its ID.
 			router.push(`/stacks/${circleId}`);
 		} catch (error) {
 			console.log("__ ERROR REDEEM __", error);
@@ -122,7 +131,7 @@ export default function Page() {
 									<div className="">
 										<RowDetail
 											label="Group name"
-											body="Name"
+											body={circleName}
 										/>
 										<RowDetail
 											label="Stacks group ID"

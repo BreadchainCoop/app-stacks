@@ -5,7 +5,7 @@ import { Address, formatEther } from "viem";
 import { ICircleList } from "@/interfaces/circle";
 import { useMemo } from "react";
 import { getDefaultChainId } from "@/utils/chain";
-import { getuserCircleStatus } from "@/lib/get-user-circle-status";
+import { getUserCircleStatus } from "@/lib/get-user-circle-status";
 
 export function useUserCirclesList(address: Address) {
 	const { data, isLoading, error } = useReadContract({
@@ -23,7 +23,9 @@ export function useUserCirclesList(address: Address) {
 		const parsedCircle: ICircleList[] = data.circleData.map((c) => {
 			const totalRounds = c.totalRounds;
 
-			const status = getuserCircleStatus(c, address).status;
+			const status = getUserCircleStatus(c, address, {
+				includeClaimable: true,
+			}).status;
 			const canWithdraw = c.canWithdraw && c.isCurrentWithdrawer;
 
 			return {

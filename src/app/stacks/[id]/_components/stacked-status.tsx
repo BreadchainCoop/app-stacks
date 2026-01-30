@@ -1,17 +1,20 @@
 "use client";
 
 import { useCircleStatus } from "@/hooks/use-circle-status";
-import DepositStatus from "./deposit-status";
 import TotalStacked from "./total-stacked";
 import { useCircleInfo } from "@/hooks/use-circle-info";
 import { useUserCircleData } from "@/hooks/use-user-circle-data";
+import Overview from "./overview";
+import { Address } from "viem";
 
 const StackedStatus = ({
 	id,
 	circle,
+	member,
 }: {
 	id: string;
-	circle: ReturnType<typeof useCircleInfo>["circle"];
+	circle: Exclude<ReturnType<typeof useUserCircleData>["circleData"], undefined>;
+	member: Address
 }) => {
 	const status = useCircleStatus(BigInt(id));
 	const userCircleData = useUserCircleData({circleId: BigInt(id)});
@@ -23,12 +26,7 @@ const StackedStatus = ({
 				status={status}
 				userCircleData={userCircleData}
 			/>
-			<DepositStatus
-				id={id}
-				status={status}
-				circle={circle}
-				userCircleData={userCircleData}
-			/>
+			<Overview circle={circle} member={member} status={status} />
 		</div>
 	);
 };

@@ -1,8 +1,11 @@
 "use client";
 
-import { LiftedButton } from "@breadcoop/ui";
+import { Body, LiftedButton } from "@breadcoop/ui";
 import { ModalContainer, ModalHeader, ModalStatus } from "../components";
 import { ClaimInitModalState, ClaimResultModalState } from "../context";
+import Alert from "@/components/alert";
+import DepositButton from "@/components/deposit-button";
+import { formatEther } from "viem";
 
 const ClaimModal = ({
 	modalState,
@@ -38,6 +41,42 @@ const ClaimModal = ({
 					<LiftedButton width="full" preset="burn">
 						Try Again
 					</LiftedButton>
+				)}
+			{modalState.type === "CLAIM_RESULT" &&
+				Boolean(modalState.nextDeposit) && (
+					<>
+						<Alert
+							className="-mt-4"
+							closeAble={false}
+							title="IMPORTANT: Secure next deposit"
+							description={
+								<>
+									<Body>
+										<span className="font-bold">
+											{modalState.roundsLeft}{" "}
+										</span>
+										{modalState.roundsLeft === BigInt(1)
+											? "round"
+											: "rounds"}{" "}
+										remain.
+									</Body>
+									<Body>
+										To avoid stack failure, deposit for the
+										next round.
+									</Body>
+								</>
+							}
+							variant="warning"
+						/>
+						<DepositButton
+							className="font-bold"
+							width="full"
+							label={`Deposit ${formatEther(modalState.nextDeposit!)} BREAD`}
+							amount={modalState.nextDeposit!}
+							tokenAddress={modalState.nextDepositAddress!}
+							circleId={modalState.circleId!}
+						/>
+					</>
 				)}
 		</ModalContainer>
 	);

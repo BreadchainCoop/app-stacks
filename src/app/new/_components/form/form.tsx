@@ -97,6 +97,7 @@ const StackForm = ({ onContinue }: { onContinue: () => void }) => {
 								})}
 								id="depositAmount"
 								className="w-full"
+								allowDecimal
 							/>
 							<div className="absolute top-1/2 -translate-y-1/2 right-3 p-1 bg-paper-main">
 								<Logo

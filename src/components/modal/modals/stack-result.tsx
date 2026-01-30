@@ -5,7 +5,7 @@ import {
 	StackInitSuccessModalState,
 	useModal,
 } from "../context";
-import { Body, Heading2, Heading3 } from "@breadcoop/ui";
+import { Body, formatBalance, Heading2, Heading3 } from "@breadcoop/ui";
 import PendingInviteLink from "@/components/pending-invite-link";
 import {
 	Accordion,
@@ -60,13 +60,15 @@ function buildInviteUrl(
 	contractAddress: string,
 	circleId: string,
 	nonce: bigint,
-	signature: string
+	signature: string,
+	name: string
 ): string {
 	const url = new URL(baseUrl);
 	url.searchParams.set("contract", contractAddress);
 	url.searchParams.set("circleId", circleId);
 	url.searchParams.set("nonce", nonce.toString());
 	url.searchParams.set("signature", signature);
+	url.searchParams.set("name", name);
 	return url.toString();
 }
 
@@ -149,11 +151,24 @@ export const StackSuccessResultModal = ({
 					SAVING_CIRCLES_CONTRACT_ADDRESS,
 					modalState.circle.id,
 					nonce,
-					signature
+					signature,
+					modalState.circle.name,
 				);
 
 				signedInvites.push({ nonce, signature, url, used: false });
 			}
+
+			let localCircles = JSON.parse(
+				localStorage.getItem("circles") || "{}",
+			);
+			localCircles = {
+				...localCircles,
+				[modalState.circle.id]: {
+					...localCircles[modalState.circle.id],
+					invite_links: signedInvites.map(i => i.url),
+				},
+			};
+			localStorage.setItem("circles", JSON.stringify(localCircles));
 
 			setSigningProgress("");
 			setInvites(signedInvites);
@@ -267,11 +282,11 @@ export const StackSuccessResultModal = ({
 								/>
 								<RowDetail
 									label="Est. Deposit amount"
-									body={`${modalState.circle.deposit} BREAD`}
+									body={`${formatBalance(modalState.circle.deposit, 2)} BREAD`}
 								/>
 								<RowDetail
 									label="Stack goal"
-									body={`${modalState.circle.total} BREAD`}
+									body={`${formatBalance(modalState.circle.total, 2)} BREAD`}
 								/>
 							</div>
 						</AccordionContent>
@@ -279,7 +294,7 @@ export const StackSuccessResultModal = ({
 				</Accordion>
 			</div>
 			<Link
-				href={`/stacks/${modalState.circle.id}`}
+				href={`/stacks/${modalState.circle.id}?name=${modalState.circle.name}`}
 				className="lifted-button-container block"
 				onClick={() => modal.setModal(null)}
 			>

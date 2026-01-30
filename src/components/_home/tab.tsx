@@ -11,7 +11,7 @@ import {
 	WarningIcon,
 } from "@phosphor-icons/react";
 
-const tabs = [
+export const tabs = [
 	{ label: "All your Stacks", id: "all", icon: StackIcon },
 	{ label: "Funds to Claim", id: "claim", icon: HandWithdrawIcon },
 	{ label: "Payments due", id: "due", icon: WarningIcon },

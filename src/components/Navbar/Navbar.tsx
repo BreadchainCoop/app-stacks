@@ -8,7 +8,7 @@ export function Navbar() {
 	return (
 		<LibNavbar
 			app="stacks"
-			className="page-layout"
+			className="page-layout relative z-30"
 			widgetItems={
 				<>
 					<ClaimableWidget />

@@ -4,13 +4,54 @@ import Loading from "@/app/loading";
 import { useUserCirclesList } from "@/hooks/use-user-circles-list";
 import { Address } from "viem";
 import CardCarousel from "../card-carousel";
+import { useSearchParams } from "next/navigation";
+import { tabs } from "./tab";
+import { Body } from "@breadcoop/ui";
+
+type Tab = "due" | "claim" | "past" | "all";
 
 const HomeUserStacks = ({ address }: { address: Address }) => {
-	const { circles, isLoading, error } = useUserCirclesList(address);
+	let { circles, isLoading, error } = useUserCirclesList(address);
+	const tab = (useSearchParams().get("tab") || "all") as Tab;
 
-	return <div>
-		{isLoading ? <Loading /> : <CardCarousel circles={circles} />}
-	</div>
+	if (tabs.find((t) => t.id === tab)) {
+		circles = [...circles].filter((c) => {
+			if (tab === "due") return c.status === "payment_due";
+
+			if (tab === "claim") return c.status === "claimable";
+
+			if (tab === "past") {
+				if (!c.status) return false;
+
+				return [
+					"decommissioned",
+					"finished",
+					"failed",
+					"expired",
+				].includes(c.status);
+			}
+
+			return true;
+		});
+	}
+
+	console.log("_ CIRCLES __", circles);
+
+	return (
+		<div>
+			{isLoading ? (
+				<Loading />
+			) : (
+				<>
+					{circles.length === 0 ? (
+						<Body className="text-center">No stacks</Body>
+					) : (
+						<CardCarousel circles={circles} />
+					)}
+				</>
+			)}
+		</div>
+	);
 };
 
 export default HomeUserStacks;
