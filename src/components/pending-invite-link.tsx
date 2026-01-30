@@ -24,6 +24,7 @@ const PendingInviteLink = ({
 			</span>
 			<span className="bg-paper-1 px-4 flex-2 truncate">{link}</span>
 			<CopyButton
+				shorten
 				textToCopy={link}
 				checkedIconSize={16}
 				varaint="icon-text"

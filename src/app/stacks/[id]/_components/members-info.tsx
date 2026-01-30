@@ -16,7 +16,19 @@ import { useUserCircleData } from "@/hooks/use-user-circle-data";
 import { formatRelativeTime, formatShortDate } from "@/utils/time";
 import { Body, Chip } from "@breadcoop/ui";
 import { Address, formatEther } from "viem";
-import { useEnsName } from "wagmi";
+
+type PendingNonces = (
+	| {
+			error?: undefined;
+			result: boolean;
+			status: "success";
+	  }
+	| {
+			error: Error;
+			result?: undefined;
+			status: "failure";
+	  }
+)[];
 
 function DepositRow({ label, body }: { label: string; body: string }) {
 	return (
@@ -32,18 +44,20 @@ const MembersInfo = ({
 	info,
 	id,
 	totalBaseDeposit,
+	pendingInviteLinks,
 }: {
 	owner: Address;
 	id: string;
 	info: ReturnType<typeof useCircleMembersWithBalances>;
 	totalBaseDeposit: number;
+	pendingInviteLinks?: string[];
 }) => {
 	return (
 		<div>
 			<Accordion>
 				{info.members.map((member, index) => {
 					const totalDeposits = +formatEther(
-						info.memberBalances?.balances[index] || BigInt(0)
+						info.memberBalances?.balances[index] || BigInt(0),
 					);
 
 					return (
@@ -53,7 +67,6 @@ const MembersInfo = ({
 									{member === owner ? (
 										<>
 											<Body bold>
-												{/* {owner.slice(0, 7)}... */}
 												<MemberEnsName
 													address={owner}
 												/>
@@ -72,7 +85,7 @@ const MembersInfo = ({
 							<AccordionContent>
 								<MemberInfoContent
 									totalDeposits={String(
-										totalDeposits + totalBaseDeposit
+										totalDeposits + totalBaseDeposit,
 									)}
 									member={member}
 									circleId={id}
@@ -85,18 +98,20 @@ const MembersInfo = ({
 						</AccordionItem>
 					);
 				})}
-				<AccordionItem value="pending-invite-1">
-					<AccordionHeader>
-						<div className="flex items-center justify-start gap-x-4 gap-y-1 flex-wrap">
-							<Body bold className="text-system-warning">
-								Pending Invite
-							</Body>
-						</div>
-					</AccordionHeader>
-					<AccordionContent>
-						<PendingInviteLink link="https://stacks.bread.coop/stacks-dt564" />
-					</AccordionContent>
-				</AccordionItem>
+				{pendingInviteLinks?.map((link) => (
+					<AccordionItem value={link}>
+						<AccordionHeader>
+							<div className="flex items-center justify-start gap-x-4 gap-y-1 flex-wrap">
+								<Body bold className="text-system-warning">
+									Pending Invite
+								</Body>
+							</div>
+						</AccordionHeader>
+						<AccordionContent>
+							<PendingInviteLink link={link} />
+						</AccordionContent>
+					</AccordionItem>
+				))}
 			</Accordion>
 		</div>
 	);
@@ -134,7 +149,6 @@ function MemberInfoContent({
 	const joinedTimestamp = creationTimestamp || redeemedTimestamp;
 
 	let daysNextDeposit: number | undefined;
-	let daysLastDeposit: string | undefined;
 
 	if (circleData.circleData) {
 		daysNextDeposit =
@@ -144,15 +158,23 @@ function MemberInfoContent({
 				: Math.ceil(
 						(Number(circleData.circleData.depositWindowEnd) -
 							Date.now() / 1000) /
-							86_400
-				  );
+							86_400,
+					);
+	}
+
+	if (daysNextDeposit !== undefined) {
+		daysNextDeposit = Math.max(0, daysNextDeposit);
 	}
 
 	return (
 		<div>
 			<DepositRow
 				label="Next deposit"
-				body={`${daysNextDeposit || "-"} days`}
+				body={
+					daysNextDeposit
+						? `${daysNextDeposit} ${daysNextDeposit === 1 ? "day" : "days"}`
+						: "-"
+				}
 			/>
 			<DepositRow
 				label="Last deposit"
@@ -173,7 +195,6 @@ function MemberInfoContent({
 }
 
 function MemberEnsName({ address }: { address: Address }) {
-	// const { data } = useEnsName({ address });
 	const { ensName, isLoading } = usePreferredEnsName({ address });
 
 	return (

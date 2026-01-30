@@ -1,11 +1,21 @@
 import { useCircleInfo } from "@/hooks/use-circle-info";
-import { useCircleMembers } from "@/hooks/use-circle-members";
 import { useGetCircleCreated } from "@/hooks/use-get-cricle-created";
+import { useUserCircleData } from "@/hooks/use-user-circle-data";
 import { savingCirclesViewerAbi } from "@/lib/abis/saving-circles-viewers";
 import { SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS } from "@/lib/constants";
+import {
+	getUserCircleStatus,
+	IFormattedUserCircleStatusResult,
+} from "@/lib/get-user-circle-status";
 import { getDefaultChainId } from "@/utils/chain";
 import { SECONDS_PER_DAY } from "@/utils/solidity";
-import { Body, Heading3, LoginButton, Logo } from "@breadcoop/ui";
+import {
+	Body,
+	formatBalance,
+	FormattedDecimalNumber,
+	Heading3,
+	Logo,
+} from "@breadcoop/ui";
 import { CalendarDotsIcon } from "@phosphor-icons/react/ssr";
 import { ReactNode } from "react";
 import { formatEther, zeroAddress } from "viem";
@@ -27,7 +37,7 @@ function TotalAmountStacked({ circleId }: { circleId: string }) {
 			circleData.circleInfo.depositAmount *
 				BigInt(circleData.totalRounds) *
 				BigInt(circleData.completedRounds) +
-				circleData.totalPoolBalance
+				circleData.totalPoolBalance,
 		);
 	}
 
@@ -47,54 +57,66 @@ const StackDetailsTotal = ({
 	intervalLabel,
 	depositPerRound,
 	circleId,
+	totalRounds,
+	circleStatus,
+	poolBalance,
+	completedRounds,
 }: {
 	intervalLabel: "month" | "week";
 	depositPerRound: string;
 	circleId: string;
+	totalRounds: bigint;
+	circleStatus: IFormattedUserCircleStatusResult;
+	poolBalance: string;
+	completedRounds: bigint;
 }) => {
-	const { address } = useAccount();
-	const depositPerRoundWholePart = Math.floor(Number(depositPerRound));
-	const depositPerRoundFractionalPart = Math.floor(
-		(Number(depositPerRound) - depositPerRoundWholePart) * 100
-	)
-		.toString()
-		.padStart(2, "0");
-
+	// const totalAmountStackedByMembers = circleStatus.status === "finished" ? 0 : 0;
+	// console.log("__ STATUS __", circleStatus)
+	let totalAmountStackedByMembers = "0.00";
+	if (circleStatus.status === "finished") {
+		totalAmountStackedByMembers = String(
+			+depositPerRound * Number(totalRounds),
+		);
+	} else if (circleStatus.status !== "pending-start") {
+		totalAmountStackedByMembers = String(
+			+depositPerRound * Number(completedRounds) + Number(poolBalance),
+		);
+	}
 	return (
 		<div className="flex flex-col gap-6 mb-3 md:mb-0 md:flex-1 md:justify-end">
-			{address ? (
-				<>
-					<p className="flex items-baseline justify-start flex-nowrap">
-						<span className="text-h1 text-[5rem] leading-[-3%]">
-							{depositPerRoundWholePart}
-						</span>
-						<span className="text-h2 text-5xl leading-[-2%] text-surface-grey-2">
-							.{depositPerRoundFractionalPart}
-						</span>
-					</p>
-					<div className="flex flex-col items-end -mt-6">
-						<Logo
-							variant="square"
-							text="BREAD"
-							className="[&+span]:font-normal"
-							size={24}
-						/>
-						<Body className="text-surface-grey-2">
-							Total stacked per {intervalLabel}
-						</Body>
-					</div>
-					<div className="flex flex-wrap gap-4 flex-row items-center justify-between">
-						<Body className="shrink-0 text-surface-grey-2">
-							Total stacked by group
-						</Body>
-						<TotalAmountStacked circleId={circleId} />
-					</div>
-				</>
-			) : (
-				<div className="h-full flex items-center justify-center">
-					<LoginButton status="NOT_CONNECTED" app="stacks" />
+			<div className="flex items-center justify-start gap-x-4 flex-wrap">
+				<FormattedDecimalNumber
+					value={depositPerRound}
+					integralPartClassName="text-[80px]"
+					decimalPartClassName="text-[48px] text-surface-grey-2"
+				/>
+				<div>
+					<Logo
+						variant="square"
+						text="BREAD"
+						className="[&+span]:font-normal"
+						size={24}
+					/>
+					<Body className="text-surface-grey-2">
+						Total stacked per {intervalLabel}
+					</Body>
 				</div>
-			)}
+			</div>
+			<div className="flex flex-wrap gap-2 flex-row items-center justify-between">
+				<Body className="shrink-0 text-surface-grey-2">
+					Overall stacked by members
+				</Body>
+				<div className="shrink-0 flex items-center justify-start flex-wrap gap-2">
+					<Logo
+						variant="square"
+						// text={Number(totalAmountSaved || "0").toFixed(2)}
+						text={formatBalance(+totalAmountStackedByMembers, 2)}
+						size={24}
+					/>
+					<Body className="mt-[0.2rem]">BREAD</Body>
+				</div>
+				{/* <TotalAmountStacked circleId={circleId} /> */}
+			</div>
 		</div>
 	);
 };
@@ -118,17 +140,19 @@ const StackDetailsBreakdown = ({
 	circle,
 	intervalLabel,
 	depositInterval,
-	totalRounds,
+	// totalRounds,
 	roundsLeft,
+	status,
 }: {
 	circle: Exclude<ReturnType<typeof useCircleInfo>["circle"], undefined>;
 	intervalLabel: "month" | "week";
 	depositInterval: number;
-	totalRounds: number | string;
+	// totalRounds: number | string;
 	roundsLeft: number | string;
+	status: IFormattedUserCircleStatusResult
 }) => {
 	const capitalizedLabel = `${intervalLabel[0].toUpperCase()}${intervalLabel.slice(
-		1
+		1,
 	)}`;
 
 	return (
@@ -137,20 +161,13 @@ const StackDetailsBreakdown = ({
 				<>
 					<Logo
 						size={24}
-						text={formatEther(circle?.depositAmount)}
+						text={formatBalance(
+							+formatEther(circle.depositAmount),
+							2,
+						)}
 						variant="square"
 					/>
 					<Body className="mt-[0.3rem]">BREAD</Body>
-				</>
-			</StackDetailsBreakdownRow>
-			<StackDetailsBreakdownRow label="Total deposit rounds completed">
-				<>
-					<p className="text-h2 leading-6 tracking-[-2%] text-2xl">
-						{+circle.currentIndex.toString()}
-					</p>
-					<p className="text-h3 leading-[100%] text-2xl text-surface-grey">
-						out of {totalRounds}
-					</p>
 				</>
 			</StackDetailsBreakdownRow>
 			<StackDetailsBreakdownRow label="Members deposit every">
@@ -165,7 +182,8 @@ const StackDetailsBreakdown = ({
 			<StackDetailsBreakdownRow label="Time left">
 				<>
 					<p className="text-h2 leading-6 tracking-[-2%] text-2xl">
-						{roundsLeft}
+						{/* {roundsLeft} */}
+						{status.status === "finished" ? "0" : roundsLeft}
 					</p>
 					<p>{capitalizedLabel}s</p>
 				</>
@@ -176,21 +194,29 @@ const StackDetailsBreakdown = ({
 
 const StackDetails = ({
 	id,
-	circle,
+	circle: _circle,
 }: {
 	id: string;
-	circle: Exclude<ReturnType<typeof useCircleInfo>["circle"], undefined>;
+	// circle: Exclude<ReturnType<typeof useCircleInfo>["circle"], undefined>;
+	circle: Exclude<
+		ReturnType<typeof useUserCircleData>["circleData"],
+		undefined
+	>;
 }) => {
-	const { data: members } = useCircleMembers(BigInt(id));
+	// console.log("__ CIRCLE __", _circle);
+	const circle = _circle.circleInfo;
+	const members = _circle.totalRounds;
 	const { address } = useAccount();
 	const { data: creationTimestamp } = useGetCircleCreated({ circleId: id });
 
 	const depositInterval = Number(circle.depositInterval / SECONDS_PER_DAY);
 	const intervalLabel = depositInterval % 30 === 0 ? "month" : "week";
 
-	const depositPerRound = circle.depositAmount * BigInt(members?.length || 0);
+	const depositPerRound = circle.depositAmount * members;
+	const circleStatus = getUserCircleStatus(_circle, zeroAddress);
+	// console.log("__ circleStatus __", circleStatus);
 	const roundsLeft =
-		BigInt(members?.length || 0) - BigInt(circle?.currentIndex || 0);
+		circleStatus.status === "finished" ? 0 : members - circle.currentIndex;
 
 	return (
 		<section className="bg-paper-0 flex flex-col gap-6 p-4">
@@ -219,7 +245,7 @@ const StackDetails = ({
 									<>
 										<Body className="text-surface-ink text-xs">
 											{new Intl.DateTimeFormat(
-												"en-GB"
+												"en-GB",
 											).format(creationTimestamp)}
 										</Body>
 									</>
@@ -237,14 +263,18 @@ const StackDetails = ({
 				<StackDetailsTotal
 					intervalLabel={intervalLabel}
 					depositPerRound={formatEther(depositPerRound)}
+					poolBalance={formatEther(_circle.totalPoolBalance)}
+					completedRounds={_circle.completedRounds}
 					circleId={id}
+					circleStatus={circleStatus}
+					totalRounds={members}
 				/>
 				<StackDetailsBreakdown
 					circle={circle}
 					intervalLabel={intervalLabel}
 					depositInterval={depositInterval}
-					totalRounds={members?.length || "-"}
 					roundsLeft={roundsLeft.toString()}
+					status={circleStatus}
 				/>
 			</div>
 		</section>

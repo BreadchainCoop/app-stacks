@@ -1,4 +1,4 @@
-import {
+import React, {
 	forwardRef,
 	InputHTMLAttributes,
 	KeyboardEvent,
@@ -17,6 +17,7 @@ interface NumericInputProps extends Omit<
 	onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
 	onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void;
 	onPaste?: (e: ClipboardEvent<HTMLInputElement>) => void;
+	allowDecimal?: boolean;
 }
 
 const NumericInput = forwardRef<HTMLInputElement, NumericInputProps>(
@@ -26,6 +27,7 @@ const NumericInput = forwardRef<HTMLInputElement, NumericInputProps>(
 			onChange,
 			onKeyDown,
 			onPaste,
+			allowDecimal,
 			...props
 		},
 		ref,
@@ -57,8 +59,13 @@ const NumericInput = forwardRef<HTMLInputElement, NumericInputProps>(
 				return;
 			}
 
-			// Allow decimal point if not already present
+			// Allow decimal point if not already present (only if allowDecimal is true)
 			if (e.key === "." || e.key === ",") {
+				if (!allowDecimal) {
+					e.preventDefault();
+					return;
+				}
+
 				const target = e.target as HTMLInputElement;
 				const currentValue = target.value || "";
 				const selectionStart = target.selectionStart || 0;
@@ -93,40 +100,46 @@ const NumericInput = forwardRef<HTMLInputElement, NumericInputProps>(
 		const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
 			const pastedText = e.clipboardData.getData("text");
 
-			// Check if pasted text is valid (only digits and at most one decimal point)
+			// Check if pasted text is valid based on allowDecimal setting
+			const validPattern = allowDecimal ? /^[\d.]*$/ : /^\d*$/;
 			const isValid =
-				/^[\d.]*$/.test(pastedText) &&
-				pastedText.split(".").length <= 2;
+				validPattern.test(pastedText) &&
+				(allowDecimal ? pastedText.split(".").length <= 2 : true);
 
 			if (!isValid) {
 				e.preventDefault();
 				return;
 			}
 
-			// Check if pasting would create multiple decimal points
-			const target = e.target as HTMLInputElement;
-			const currentValue = target.value || "";
-			const selectionStart = target.selectionStart || 0;
-			const selectionEnd = target.selectionEnd || 0;
+			// Check if pasting would create multiple decimal points (only if decimal allowed)
+			if (allowDecimal) {
+				const target = e.target as HTMLInputElement;
+				const currentValue = target.value || "";
+				const selectionStart = target.selectionStart || 0;
+				const selectionEnd = target.selectionEnd || 0;
 
-			const beforeSelection = currentValue.substring(0, selectionStart);
-			const afterSelection = currentValue.substring(selectionEnd);
-			const newValue = beforeSelection + pastedText + afterSelection;
+				const beforeSelection = currentValue.substring(
+					0,
+					selectionStart,
+				);
+				const afterSelection = currentValue.substring(selectionEnd);
+				const newValue = beforeSelection + pastedText + afterSelection;
 
-			// Reject if result would have multiple decimal points
-			if (newValue.split(".").length > 2) {
-				e.preventDefault();
-				return;
+				// Reject if result would have multiple decimal points
+				if (newValue.split(".").length > 2) {
+					e.preventDefault();
+					return;
+				}
 			}
 
-			if (onPaste) onPaste(e);
+			onPaste?.(e);
 		};
 
 		return (
 			<Input
 				ref={ref}
 				type="text"
-				inputMode="decimal"
+				inputMode={allowDecimal ? "decimal" : "numeric"}
 				value={value}
 				onChange={onChange}
 				onKeyDown={handleKeyDown}

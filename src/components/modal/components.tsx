@@ -1,8 +1,12 @@
-import { Body, Heading2 } from "@breadcoop/ui";
+import { Body, Heading2, LiftedButton } from "@breadcoop/ui";
 import { useModal } from "./context";
 import { ReactNode } from "react";
 import clsx from "clsx";
-import { CheckCircleIcon, WarningCircleIcon } from "@phosphor-icons/react";
+import {
+	CheckCircleIcon,
+	Icon,
+	WarningCircleIcon,
+} from "@phosphor-icons/react";
 import { CircularProgressIcon } from "../icons/circular-progress";
 
 interface ModalHeaderProps {
@@ -38,9 +42,9 @@ export const ModalContainer = ({
 					status === "success"
 						? "border-system-green"
 						: status === "error"
-						? "border-system-red"
-						: "border-transparent",
-					className
+							? "border-system-red"
+							: "border-transparent",
+					className,
 				)}
 			>
 				{children}
@@ -78,10 +82,14 @@ function CloseIcon() {
 
 export const ModalStatus = ({
 	status,
+	statusMsg,
+	icon,
 	msg,
 	showLoadingMsg = true,
 }: {
 	status: "loading" | "success" | "error";
+	statusMsg?: string;
+	icon?: Icon;
 	msg?: string;
 	showLoadingMsg?: boolean;
 }) => {
@@ -91,7 +99,7 @@ export const ModalStatus = ({
 				<>
 					<WarningCircleIcon size={48} className="fill-system-red" />
 					<Body bold className="text-system-red">
-						Transaction failed
+						{statusMsg || "Transaction failed"}
 					</Body>
 					{/* <Body bold className="text-surface-grey">
 						{msg}
@@ -102,7 +110,7 @@ export const ModalStatus = ({
 					<CheckCircleIcon size={48} className="fill-system-green" />
 					<Body bold className="text-system-green">
 						{/* Transaction successful */}
-						Complete
+						{statusMsg || "Complete"}
 					</Body>
 					{/* <Body bold className="text-surface-grey">
 						{msg}
@@ -132,4 +140,19 @@ export const ModalStatus = ({
 	// 	return <CheckCircleIcon size={48} className="fill-system-green" />;
 
 	// return <CircularProgressIcon />;
+};
+
+export const ModalCloseBtn = () => {
+	const { setModal } = useModal();
+
+	return (
+		<LiftedButton
+			onClick={() => setModal(null)}
+			preset="burn"
+			width="full"
+			className="text-system-red font-bold"
+		>
+			Close
+		</LiftedButton>
+	);
 };

@@ -11,6 +11,7 @@ import {
 	StackFailedResultModal,
 	StackSuccessResultModal,
 } from "./modals/stack-result";
+import StackFailed from "./modals/stack-failed";
 
 const ModalPresenter = () => {
 	const { modalState, setModal } = useModal();
@@ -23,7 +24,7 @@ const ModalPresenter = () => {
 						<Dialog.Overlay forceMount asChild>
 							<ModalOverlay />
 						</Dialog.Overlay>
-						<Dialog.Content forceMount>
+						<Dialog.Content forceMount className="">
 							{modalState.type === "STACK_CREATION_INIT" && (
 								<StackInitModal modalState={modalState} />
 							)}
@@ -48,6 +49,9 @@ const ModalPresenter = () => {
 								modalState.type === "CLAIM_RESULT") && (
 								<ClaimModal modalState={modalState} />
 							)}
+							{modalState.type === "STACK_FAILED" && (
+								<StackFailed modalState={modalState} />
+							)}
 						</Dialog.Content>
 					</>
 				)}
@@ -66,7 +70,7 @@ const ModalOverlay = forwardRef((props, ref: Ref<HTMLDivElement>) => {
 	return (
 		<div ref={ref} {...props}>
 			<div
-				className={`z-40 fixed top-0 bg-[#F0F0F0] dark:bg-neutral-900 h-screen w-screen
+				className={`z-30 fixed top-0 bg-[#F0F0F0] dark:bg-neutral-900 h-screen w-screen
 					transition-opacity duration-200 
 					${isVisible ? "opacity-90 dark:opacity-70" : "opacity-0"}`}
 			/>

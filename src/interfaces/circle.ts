@@ -1,14 +1,16 @@
 import { Address } from "viem";
 
 export type ICircleStatus =
-	| "member"
-	| "start"
+	| "decommissioned"
+	| "pending-start"
+	| "finished"
+	| "failed"
+	| "expired"
+	| "claimable"
+	| "deposit-completed"
 	| "deposited"
 	| "payment_due"
-	| "claimable"
-	| "expired"
-	| "decommissioned"
-	| "completed";
+	| "in-progress";
 
 interface ICircleBaseList {
 	circleEnd: bigint;
@@ -20,22 +22,30 @@ interface ICircleBaseList {
 	totalMember: number;
 	owner: Address;
 	token: Address;
-	totalPoolBalance?: bigint
+	totalPoolBalance?: bigint;
 }
 
 type ICircleWithdraw = {
 	canWithdraw?: true;
 	withdrawAmount: number;
-}
+};
 
 type ICircleNoWithdraw = {
 	canWithdraw?: false;
 	withdrawAmount?: never;
+};
+
+export type ICircleList = ICircleBaseList &
+	(ICircleWithdraw | ICircleNoWithdraw) & {
+		status?: ICircleStatus;
+	};
+
+export interface LocalStorageCircle {
+	name: string;
+	invite_links: string[];
 }
 
-export type ICircleList = ICircleBaseList & (ICircleWithdraw | ICircleNoWithdraw) & {
-	status?: ICircleStatus;
-}
+export type LocalStorageCircles = Record<string, LocalStorageCircle>
 
 // export interface CircleFullInfo {
 // 	id: bigint;

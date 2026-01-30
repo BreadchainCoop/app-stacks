@@ -48,7 +48,7 @@ const LastDeposit = ({ id, status, isActive }: LastDepositProps) => {
 			<div className="inline-flex items-center justify-start">
 				<CalendarDotsIcon size={16} className="fill-blue-2 mr-1" />
 				<Body className="text-surface-ink">
-					{status === "completed"
+					{status === "finished"
 						? "Ended"
 						: lastestDepositTime
 						? formatRelativeTime(lastestDepositTime)

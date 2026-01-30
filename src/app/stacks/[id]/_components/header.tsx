@@ -1,16 +1,36 @@
-import Alert from "@/components/alert";
-import { Heading2 } from "@breadcoop/ui";
-import StackMember from "./member";
+"use client";
 
-const StackHeader = ({ id }: { id: string }) => {
+import Alert from "@/components/alert";
+import { Chip, Heading2 } from "@breadcoop/ui";
+import StackMember from "./member";
+import { LocalStorageCircles } from "@/interfaces/circle";
+import { useEffect, useState } from "react";
+import BackPage from "@/components/back-page";
+import { CopyStackLink } from "./copy-link";
+import BackMeta from "./back-meta";
+
+const StackHeader = ({
+	id,
+	isMember,
+}: {
+	id: string;
+	isMember: boolean | undefined;
+}) => {
+	const [localCircles, setLocalCircles] = useState<LocalStorageCircles>({});
+
+	useEffect(() => {
+		setLocalCircles(JSON.parse(localStorage.getItem("circles") || "{}"));
+	}, []);
+
 	return (
 		<header className="mb-3.5 md:mb-6">
 			<div className="flex flex-col flex-wrap gap-4 mb-5.25 sm:flex-row sm:items-center sm:justify-between md:mb-7.25">
 				<Heading2 className="text-primary-blue text-2xl md:text-5xl">
-					Summer trip 2026
+					{localCircles[id]?.name || `Stack ${id}`}
 				</Heading2>
-				<StackMember id={id} />
+				<StackMember id={id} isMember={isMember} />
 			</div>
+			<BackMeta className="hidden md:flex md:mt-2 md:mb-6" />
 			<Alert
 				closeAble={false}
 				variant="warning"

@@ -7,9 +7,11 @@ import { useAccount, useReadContract } from "wagmi";
 export function useUserCircleData({
 	circleId,
 	member,
+	enabled,
 }: {
 	circleId: bigint;
 	member?: Address;
+	enabled?: boolean
 }) {
 	const { address, isConnected } = useAccount();
 	const user = member || address;
@@ -29,11 +31,14 @@ export function useUserCircleData({
 		query: {
 			// enabled:
 			// 	isConnected && address !== undefined && circleId !== undefined,
-      enabled: user !== undefined,
+      // enabled: user !== undefined,
+      enabled: enabled !== undefined ? enabled : user !== undefined,
 			refetchOnWindowFocus: false,
 		},
 		chainId: getDefaultChainId(),
 	});
+
+	console.log("__ ERROR __", error);
 
 	return {
 		circleData,

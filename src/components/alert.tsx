@@ -2,14 +2,14 @@
 
 import { Body } from "@breadcoop/ui";
 import { CheckSquareOffsetIcon, Icon, ThumbsUpIcon, WarningIcon, XIcon } from "@phosphor-icons/react";
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 
 type Varaint = "success" | "warning" | "stop";
 
 export interface AlertProps {
 	variant: Varaint;
 	title: string;
-	description: string;
+	description: ReactNode;
 	className?: string;
 	closeAble?: boolean;
 }

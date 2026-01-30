@@ -10,22 +10,32 @@ import { waitForTransactionReceipt } from "@wagmi/core";
 import { wagmiConfig } from "./providers/web3";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
+import { Address } from "viem";
+import { formatBalance } from "@breadcoop/ui";
 
 const ClaimButton = ({
 	amount,
 	circleId,
 	label,
-	className
+	className,
+	nextDeposit,
+	roundsLeft,
+	nextDepositAddress,
 }: {
 	amount: number;
 	circleId: bigint;
 	label?: string;
-	className?: string
+	className?: string;
+	nextDeposit: bigint;
+	roundsLeft: bigint;
+	nextDepositAddress: Address
 }) => {
 	const queryClient = useQueryClient();
 	const { setModal } = useModal();
 	const [claiming, setClaiming] = useState(false);
 	const writeContract = useWriteContract();
+
+	console.log({nextDeposit, roundsLeft, nextDepositAddress})
 
 	const claim = async () => {
 		if (claiming) return;
@@ -46,9 +56,17 @@ const ClaimButton = ({
 				hash,
 			});
 
-			queryClient.invalidateQueries({ queryKey: ['readContract'] });
+			queryClient.invalidateQueries({ queryKey: ["readContract"] });
 
-			setModal({ type: "CLAIM_RESULT", result: "success", amount });
+			setModal({
+				type: "CLAIM_RESULT",
+				result: "success",
+				amount,
+				nextDeposit,
+				roundsLeft,
+				nextDepositAddress,
+				circleId,
+			});
 		} catch (error) {
 			console.log("__ ERROR __", error);
 			setModal({ type: "CLAIM_RESULT", result: "error", msg: "Unknown" });
@@ -63,7 +81,7 @@ const ClaimButton = ({
 			leftIcon={<HandWithdrawIcon />}
 			onClick={claim}
 		>
-			{label || `Claim ${amount} BREAD`}
+			{label || `Claim ${formatBalance(amount, 2)} BREAD`}
 		</LocalLiftedButton>
 	);
 };

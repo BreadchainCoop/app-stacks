@@ -36,3 +36,5 @@ next-env.d.ts
 out/
 cache/
 broadcast/
+# Local Netlify folder
+.netlify

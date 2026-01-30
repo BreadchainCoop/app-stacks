@@ -1,39 +1,79 @@
 "use client";
 
-import BackPage from "@/components/back-page";
-import React from "react";
+import React, { useEffect } from "react";
 import StackHeader from "./header";
 import StackDetails from "./stack-details";
 import StackMembers from "./members";
 import StackInfo from "./info";
 import { CircularProgressIcon } from "@/components/icons/circular-progress";
-import { useCircleInfo } from "@/hooks/use-circle-info";
 import { Body } from "@breadcoop/ui";
 import StackedStatus from "./stacked-status";
+import { useAccount } from "wagmi";
+import { useUserCircleData } from "@/hooks/use-user-circle-data";
+import { zeroAddress } from "viem";
+import { getUserCircleStatus } from "@/lib/get-user-circle-status";
+import { useModal } from "@/components/modal/context";
+import BackMeta from "./back-meta";
 
 const PageContent = ({ id }: { id: string }) => {
-	const circleInfo = useCircleInfo(BigInt(id));
+	const { setModal } = useModal();
+	const { address, status } = useAccount();
+	const member = address || zeroAddress;
+	const userCircleData = useUserCircleData({
+		circleId: BigInt(id),
+		member,
+		enabled: status !== "connecting",
+	});
 
-	console.log("__ CIRCLE INFO __", circleInfo);
+	useEffect(() => {
+		console.log("__ CONFIG __", address, member);
+		if (!userCircleData.circleData || !address || member === zeroAddress)
+			return;
+
+		const circleStatus = getUserCircleStatus(
+			userCircleData.circleData,
+			member,
+		);
+
+		if (
+			circleStatus.status === "failed" &&
+			!userCircleData.circleData.isDecommissioned
+		) {
+			setModal({ type: "STACK_FAILED", id: BigInt(id) });
+		}
+	}, [userCircleData.circleData, member]);
 
 	return (
 		<>
-			<BackPage
-				label="Cancel & Return home"
-				href="/"
-				className="md:hidden"
+			<BackMeta className="mb-4! -mt-3 md:hidden" />
+			<StackHeader
+				id={id}
+				isMember={userCircleData.circleData?.isMember}
 			/>
-			<StackHeader id={id} />
-			{circleInfo.circle ? (
+			{userCircleData.circleData ? (
 				<>
 					<div className="*:mb-4 last:mb-0 md:mb-6 md:last:mb-0">
-						<StackedStatus id={id} circle={circleInfo.circle} />
-						<StackDetails id={id} circle={circleInfo.circle} />
-						<StackMembers id={id} circle={circleInfo.circle} />
-						<StackInfo owner={circleInfo.circle.owner} />
+						<StackedStatus
+							id={id}
+							circle={userCircleData.circleData}
+							member={member}
+						/>
+						<StackDetails
+							id={id}
+							// circle={userCircleData.circleData.circleInfo}
+							circle={userCircleData.circleData}
+						/>
+						<StackMembers
+							id={id}
+							circle={userCircleData.circleData.circleInfo}
+							member={member}
+						/>
+						<StackInfo
+							owner={userCircleData.circleData.circleInfo.owner}
+						/>
 					</div>
 				</>
-			) : circleInfo.error ? (
+			) : userCircleData.error ? (
 				// TODO: Show correct error message
 				<Body className="text-system-red">
 					Unable to get circle data!
