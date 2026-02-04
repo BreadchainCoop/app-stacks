@@ -4,7 +4,11 @@ import Link from "next/link";
 import { Logo, Body } from "@breadcoop/ui";
 import { AccountMenu } from "../AccountMenu";
 
-export function Navbar() {
+interface NavbarProps {
+  static?: boolean;
+}
+
+export function Navbar({ static: isStatic = false }: NavbarProps) {
   return (
     <>
       <div className="m-2 w-[1280px] mx-auto flex items-center justify-between">

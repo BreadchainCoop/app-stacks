@@ -13,6 +13,7 @@ const config = createConfig({
   transports: {
     [gnosis.id]: http(),
   },
+  ssr: true,
 });
 
 const queryClient = new QueryClient();
