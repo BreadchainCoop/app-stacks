@@ -1,29 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import {
-  ArrowDownIcon,
-  ArrowUpRightIcon,
-  ArrowUpIcon,
-  ArrowRightIcon,
-  List,
-  X,
-} from "@phosphor-icons/react/ssr";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-
-import { useState, useEffect, useRef } from "react";
-import { LiftedButton, Logo, Body, Heading4, Heading3 } from "@breadcoop/ui";
-import { SOLIDARITY_TOOLS } from "@/constants/solidarityTools";
-import { LINKS } from "@/constants/links";
+import { Logo, Body } from "@breadcoop/ui";
 import { AccountMenu } from "../AccountMenu";
 
-interface NavbarProps {
-  static?: boolean;
-}
-
-export function Navbar({ static: isStatic = false }: NavbarProps) {
+export function Navbar() {
   return (
     <>
       <div className="m-2 w-[1280px] mx-auto flex items-center justify-between">

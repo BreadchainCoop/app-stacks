@@ -2,45 +2,55 @@
 
 import type React from "react";
 
-import {
-  RainbowKitProvider,
-  connectorsForWallets,
-} from "@rainbow-me/rainbowkit";
-import { injectedWallet } from "@rainbow-me/rainbowkit/wallets";
-import { WagmiProvider, createConfig, http } from "wagmi";
-import { gnosis } from "wagmi/chains";
+import { PrivyProvider } from "@privy-io/react-auth";
+import { WagmiProvider } from "@privy-io/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-const connectors = connectorsForWallets(
-  [
-    {
-      groupName: "Suggested",
-      wallets: [injectedWallet],
-    },
-  ],
-  {
-    appName: "Stacks",
-    projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "",
-  }
-);
+import { gnosis } from "viem/chains";
+import { http, createConfig, WagmiProvider as BaseWagmiProvider } from "wagmi";
 
 const config = createConfig({
-  connectors,
   chains: [gnosis],
   transports: {
     [gnosis.id]: http(),
   },
-  ssr: true,
 });
 
 const queryClient = new QueryClient();
 
+const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
+
 export function Web3Provider({ children }: { children: React.ReactNode }) {
+  if (!privyAppId) {
+    console.warn("NEXT_PUBLIC_PRIVY_APP_ID is not set");
+    return (
+      <BaseWagmiProvider config={config}>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      </BaseWagmiProvider>
+    );
+  }
+
   return (
-    <WagmiProvider config={config}>
+    <PrivyProvider
+      appId={privyAppId}
+      config={{
+        appearance: {
+          theme: "light",
+          accentColor: "#1C5BB9",
+        },
+        embeddedWallets: {
+          ethereum: {
+            createOnLogin: "users-without-wallets",
+          },
+        },
+        defaultChain: gnosis,
+        supportedChains: [gnosis],
+      }}
+    >
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider>{children}</RainbowKitProvider>
+        <WagmiProvider config={config}>{children}</WagmiProvider>
       </QueryClientProvider>
-    </WagmiProvider>
+    </PrivyProvider>
   );
 }

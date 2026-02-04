@@ -65,12 +65,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        <link
-          rel="stylesheet"
-          href="https://unpkg.com/@rainbow-me/rainbowkit@latest/styles.css"
-        />
-      </head>
+      <head></head>
       <body className="font-roboto bg-paper-main text-text-standard antialiased">
         <Web3Provider>{children}</Web3Provider>
       </body>

@@ -4,24 +4,16 @@ import { Navbar } from "@/components/Navbar/Navbar";
 import { Footer } from "@/components/Footer/Footer";
 import {
   LiftedButton,
-  Heading1,
-  Heading2,
   Heading3,
-  Heading4,
-  Heading5,
   Body,
-  Caption,
 } from "@breadcoop/ui";
-import { LINKS } from "@/constants/links";
 import { AccountMenu } from "@/components/AccountMenu";
-import { SignInIcon } from "@phosphor-icons/react/ssr";
-import Image from "next/image";
-import Link from "next/link";
-import { useAccount, useDisconnect } from "wagmi";
+import { usePrivy } from "@privy-io/react-auth";
 
 export default function Home() {
-  const { address, isConnected } = useAccount();
-  const { disconnectAsync } = useDisconnect();
+  const { ready, authenticated, user, logout } = usePrivy();
+  const address = user?.wallet?.address;
+
   return (
     <div className="min-h-screen flex flex-col bg-paper-main">
       <Navbar />
@@ -31,21 +23,15 @@ export default function Home() {
           <Heading3>Your Stacks dashboard</Heading3>
         </div>
         <div>
-          {isConnected && (
+          {ready && authenticated && (
             <div>
               <Body>Connected to {address}</Body>
               <div className="flex">
-                <LiftedButton
-                  onClick={() => {
-                    disconnectAsync();
-                  }}
-                >
-                  Disconnect
-                </LiftedButton>
+                <LiftedButton onClick={logout}>Disconnect</LiftedButton>
               </div>
             </div>
           )}
-          {!isConnected && (
+          {ready && !authenticated && (
             <div>
               <Body>
                 You are not signed in. Please sign in to view your account
