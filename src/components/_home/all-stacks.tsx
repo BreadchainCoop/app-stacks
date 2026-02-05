@@ -20,7 +20,9 @@ const HomeAllStacks = () => {
 					<Body>Peek into all active Stack groups.</Body>
 				</div>
 			)}
-			{isLoading ? <Loading /> : <CardCarousel circles={data} />}
+			<div className="mt-6">
+				{isLoading ? <Loading /> : <CardCarousel circles={data} />}
+			</div>
 		</section>
 	);
 };
