@@ -1,6 +1,7 @@
 import { savingCirclesViewerAbi } from "@/lib/abis/saving-circles-viewers";
 import { SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS } from "@/lib/constants";
 import { getDefaultChainId } from "@/utils/chain";
+import { useConnectedUser } from "@breadcoop/ui";
 import { Address } from "viem";
 import { useAccount, useReadContract } from "wagmi";
 
@@ -13,7 +14,9 @@ export function useUserCircleData({
 	member?: Address;
 	enabled?: boolean
 }) {
-	const { address, isConnected } = useAccount();
+	const { user: connectedUser } = useConnectedUser();
+	const isConnected = connectedUser.status === "CONNECTED" || connectedUser.status === "UNSUPPORTED_CHAIN";
+	const address = isConnected ? connectedUser.address : undefined;
 	const user = member || address;
 
 	const {

@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import React, { Suspense } from "react";
-import { useAccount } from "wagmi";
 import {
 	HandWithdrawIcon,
 	StackIcon,
 	StackOverflowLogoIcon,
 	WarningIcon,
 } from "@phosphor-icons/react";
+import { useConnectedUser } from "@breadcoop/ui";
 
 export const tabs = [
 	{ label: "All your Stacks", id: "all", icon: StackIcon },
@@ -19,9 +19,9 @@ export const tabs = [
 ];
 
 const HomeTab = () => {
-	const { isConnected } = useAccount();
+	const { user } = useConnectedUser();
 
-	if (!isConnected) return null;
+	if (!(user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN")) return null;
 
 	return (
 		// <Suspense fallback={<TabSkeleton />}>

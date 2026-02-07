@@ -1,14 +1,14 @@
 "use client";
 
-import { useAccount, useReadContract, useWriteContract } from "wagmi";
-import { Address, formatEther } from "viem";
+import { useReadContract, useWriteContract } from "wagmi";
+import { formatEther } from "viem";
 import {
 	Accordion,
 	AccordionHeader,
 	AccordionContent,
 	AccordionItem,
 } from "@/components/accordion";
-import { Body, Heading1, LoginButton } from "@breadcoop/ui";
+import { Body, Heading1, LoginButton, useConnectedUser } from "@breadcoop/ui";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../../lib/constants";
 import { savingCirclesAbi } from "../../../lib/abis/saving-circles";
 import { CheckIcon, ConfettiIcon } from "@phosphor-icons/react";
@@ -21,9 +21,12 @@ import { waitForTransactionReceipt } from "@wagmi/core";
 import { wagmiConfig } from "@/components/providers/web3";
 import { getDefaultChainId } from "@/utils/chain";
 
+const DEFAULT_CHAIN = getDefaultChainId();
+
 export default function Page() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
+	const { user } = useConnectedUser();
 	const circleId = searchParams.get("circleId")!;
 	const parsedId = BigInt(circleId);
 	const nonce = searchParams.get("nonce");
@@ -31,8 +34,6 @@ export default function Page() {
 	const circleName = searchParams.get("name") || "-";
 
 	const [redeeming, setRedeeming] = useState(false);
-
-	const { address, isConnected } = useAccount();
 	const { writeContractAsync } = useWriteContract();
 
 	const circleResult = useReadContract({
@@ -47,28 +48,34 @@ export default function Page() {
 		abi: savingCirclesAbi,
 		address: SAVING_CIRCLES_CONTRACT_ADDRESS,
 		functionName: "isMember",
-		args: [parsedId, address as Address],
-		query: { enabled: Boolean(address) },
+		args: [
+			parsedId,
+			// @ts-expect-error hook only triggers when address is available
+			user.address as `0x${string}`,
+		],
+		query: {
+			enabled:
+				user.status === "CONNECTED" ||
+				user.status === "UNSUPPORTED_CHAIN",
+		},
 		chainId: getDefaultChainId(),
 	});
 
 	const redeemInvite = async () => {
-		if (!address || !isConnected) return alert("Connect your wallet");
+		if (user.status !== "CONNECTED" || !nonce || !signature) return;
 
-		if (!nonce || !signature) {
-			alert("Invalid Data");
-			return console.log("__ INVALID DATA __", { nonce, signature });
-		}
+		setRedeeming(true);
 
 		try {
-			setRedeeming(true);
 			const hash = await writeContractAsync({
 				address: SAVING_CIRCLES_CONTRACT_ADDRESS,
 				abi: savingCirclesAbi,
 				functionName: "redeemInvite",
-				args: [parsedId, BigInt(nonce), signature as Address],
+				args: [parsedId, BigInt(nonce), signature as `0x${string}`],
+				chainId: DEFAULT_CHAIN,
 			});
 
+			console.log("Transaction hash:", hash);
 			await waitForTransactionReceipt(wagmiConfig, { hash });
 
 			let localCircles = JSON.parse(
@@ -82,19 +89,17 @@ export default function Page() {
 
 			alert("Invitation Accepted!");
 			router.push(`/stacks/${circleId}`);
-		} catch (error) {
-			console.log("__ ERROR REDEEM __", error);
+		} catch (error: any) {
+			alert(`Failed to redeem invite`);
 		} finally {
 			setRedeeming(false);
 		}
 	};
 
 	useEffect(() => {
-		// document.body.classList.add("bg-paper-0!");
 		document.querySelector("main")?.classList.remove("page-layout");
 
 		return () => {
-			// document.body.classList.remove("bg-paper-0!");
 			document.querySelector("main")?.classList.add("page-layout");
 		};
 	}, []);
@@ -115,8 +120,8 @@ export default function Page() {
 				<>
 					<div className="border-t border-blue-0 pt-6">
 						<Body className="text-center mb-6">
-							You have been invited to join “Summer trip 2026”
-							Stacks saving journey.
+							You have been invited to join "{circleName}" Stacks
+							saving journey.
 						</Body>
 
 						<Accordion defaultValue="details">
@@ -144,7 +149,7 @@ export default function Page() {
 										<RowDetail
 											label="Est. Deposit amount"
 											body={`${formatEther(
-												circleResult.data.depositAmount
+												circleResult.data.depositAmount,
 											)} BREAD`}
 										/>
 										<RowDetail
@@ -161,17 +166,17 @@ export default function Page() {
 						closeAble={false}
 						variant="warning"
 						title="IMPORTANT: This invite can only be accepted once!"
-						description="Each Invite is unique and can only be accepted once."
+						description="Each invite is unique and can only be accepted once."
 					/>
 
-					{address && isConnected ? (
+					{user.status === "CONNECTED" ? (
 						<>
 							{typeof isMember === "boolean" ? (
 								<>
 									{isMember ? (
 										<Body className="text-system-green text-center">
-											You are a member of this circle
-											already!
+											You are already a member of this
+											circle!
 										</Body>
 									) : (
 										<LocalLiftedButton
@@ -183,6 +188,7 @@ export default function Page() {
 												)
 											}
 											className="bg-system-green"
+											disabled={redeeming}
 										>
 											{redeeming ? (
 												<Loading />
@@ -203,16 +209,18 @@ export default function Page() {
 							)}
 						</>
 					) : (
-						<LoginButton app="stacks" status="NOT_CONNECTED" />
+						<LoginButton app="stacks" status={user.status} />
 					)}
 
-					<Body className="">
+					<Body>
 						Note: You can also access your member invite links
 						through your Stacks details page.
 					</Body>
 				</>
 			) : circleResult.error ? (
-				<Body className="text-system-red">Unable to get circle</Body>
+				<Body className="text-system-red text-center">
+					Unable to load circle details. Please try again.
+				</Body>
 			) : (
 				<div className="flex items-center justify-center">
 					<Loading />

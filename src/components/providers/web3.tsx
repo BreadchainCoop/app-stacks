@@ -3,8 +3,8 @@
 import type React from "react";
 
 import {
-  RainbowKitProvider,
-  connectorsForWallets,
+	RainbowKitProvider,
+	connectorsForWallets,
 } from "@rainbow-me/rainbowkit";
 import {
 	coinbaseWallet,
@@ -15,11 +15,11 @@ import {
 	safeWallet,
 	// walletConnectWallet,
 } from "@rainbow-me/rainbowkit/wallets";
-import { WagmiProvider, createConfig, http } from "wagmi";
+import { http } from "wagmi";
 import { foundry, gnosis } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { defineChain } from "viem";
 import { foundryChain } from "@/lib/wagmi";
+import { WagmiProvider, createConfig } from "@privy-io/wagmi";
 
 // https://github.com/rainbow-me/rainbowkit/issues/2476#issuecomment-3117608183
 export function getWallets() {
@@ -80,12 +80,22 @@ const queryClient = new QueryClient({
 	}
 });
 
+// export function Web3Provider({ children }: { children: React.ReactNode }) {
+// 	return (
+// 		<WagmiProvider config={wagmiConfig}>
+// 			<QueryClientProvider client={queryClient}>
+// 				<RainbowKitProvider>{children}</RainbowKitProvider>
+// 			</QueryClientProvider>
+// 		</WagmiProvider>
+// 	);
+// }
+
 export function Web3Provider({ children }: { children: React.ReactNode }) {
 	return (
-		<WagmiProvider config={wagmiConfig}>
-			<QueryClientProvider client={queryClient}>
+		<QueryClientProvider client={queryClient}>
+			<WagmiProvider config={wagmiConfig}>
 				<RainbowKitProvider>{children}</RainbowKitProvider>
-			</QueryClientProvider>
-		</WagmiProvider>
+			</WagmiProvider>
+		</QueryClientProvider>
 	);
 }

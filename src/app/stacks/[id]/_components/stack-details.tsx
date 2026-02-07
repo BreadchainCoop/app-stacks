@@ -15,6 +15,7 @@ import {
 	FormattedDecimalNumber,
 	Heading3,
 	Logo,
+	useConnectedUser,
 } from "@breadcoop/ui";
 import { CalendarDotsIcon } from "@phosphor-icons/react/ssr";
 import { ReactNode } from "react";
@@ -206,7 +207,8 @@ const StackDetails = ({
 	// console.log("__ CIRCLE __", _circle);
 	const circle = _circle.circleInfo;
 	const members = _circle.totalRounds;
-	const { address } = useAccount();
+	const {user} = useConnectedUser();
+	const address = (user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN") ? user.address : undefined;
 	const { data: creationTimestamp } = useGetCircleCreated({ circleId: id });
 
 	const depositInterval = Number(circle.depositInterval / SECONDS_PER_DAY);
