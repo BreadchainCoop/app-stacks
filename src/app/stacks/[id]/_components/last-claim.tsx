@@ -1,7 +1,6 @@
 import { useGetLastClaimed } from "@/hooks/use-get-last-claimed";
-import { Body } from "@breadcoop/ui";
+import { Body, useConnectedUser } from "@breadcoop/ui";
 import { CalendarDotsIcon } from "@phosphor-icons/react";
-import { useAccount } from "wagmi";
 
 const LastClaim = ({
 	id,
@@ -10,7 +9,9 @@ const LastClaim = ({
 	id: string;
 	effectiveCircleStartTime: bigint | undefined;
 }) => {
-	const address = useAccount().address;
+	const {user} = useConnectedUser();
+	const address = (user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN") ? user.address : undefined;
+
 	const { data } = useGetLastClaimed({
 		circleId: id,
 		enabled:

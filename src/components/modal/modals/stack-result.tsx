@@ -1,3 +1,5 @@
+"use client";
+
 import { ArrowRightIcon, SealCheckIcon } from "@phosphor-icons/react/ssr";
 import { ModalContainer, ModalHeader, ModalStatus } from "../components";
 import {
@@ -16,10 +18,11 @@ import {
 import Link from "next/link";
 import LocalLiftedButton from "@/components/lifted-button";
 import { useEffect, useState } from "react";
-import { useAccount, usePublicClient, useWalletClient } from "wagmi";
-import { type Address, type TypedDataDomain } from "viem";
+import { usePublicClient } from "wagmi";
 import { savingCirclesAbi } from "../../../lib/abis/saving-circles";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../../lib/constants";
+import { useSignTypedData } from "@privy-io/react-auth";
+import { getDefaultChainId } from "@/utils/chain";
 
 type InviteLink = {
 	nonce: bigint;
@@ -28,47 +31,24 @@ type InviteLink = {
 	used: boolean;
 };
 
-export const INVITE_DOMAIN_NAME = "StacksInvite";
-export const INVITE_DOMAIN_VERSION = "1";
-
-function buildInviteTypedData(
-	circleId: bigint,
-	nonce: bigint,
-	chainId: number,
-	contractAddress: Address
-) {
-	return {
-		domain: {
-			name: INVITE_DOMAIN_NAME,
-			version: INVITE_DOMAIN_VERSION,
-			chainId,
-			verifyingContract: contractAddress,
-		} as TypedDataDomain,
-		types: {
-			Invite: [
-				{ name: "id", type: "uint256" },
-				{ name: "nonce", type: "uint256" },
-			],
-		},
-		primaryType: "Invite" as const,
-		message: { id: circleId, nonce },
-	};
-}
+const INVITE_DOMAIN_NAME = "StacksInvite";
+const INVITE_DOMAIN_VERSION = "1";
+const DEFAULT_CHAIN = getDefaultChainId();
 
 function buildInviteUrl(
 	baseUrl: string,
-	contractAddress: string,
 	circleId: string,
 	nonce: bigint,
 	signature: string,
-	name: string
+	name: string,
 ): string {
 	const url = new URL(baseUrl);
-	url.searchParams.set("contract", contractAddress);
+	url.searchParams.set("contract", SAVING_CIRCLES_CONTRACT_ADDRESS);
 	url.searchParams.set("circleId", circleId);
 	url.searchParams.set("nonce", nonce.toString());
 	url.searchParams.set("signature", signature);
 	url.searchParams.set("name", name);
+
 	return url.toString();
 }
 
@@ -77,9 +57,8 @@ export const StackSuccessResultModal = ({
 }: {
 	modalState: StackInitSuccessModalState;
 }) => {
-	const { address, chain } = useAccount();
 	const publicClient = usePublicClient();
-	const { data: walletClient } = useWalletClient();
+	const { signTypedData } = useSignTypedData();
 	const modal = useModal();
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -87,10 +66,11 @@ export const StackSuccessResultModal = ({
 	const [invites, setInvites] = useState<InviteLink[]>([]);
 
 	const generateInvites = async () => {
-		if (!address || !publicClient || !chain || !walletClient) return;
+		if (!publicClient) return;
 
 		setIsGenerating(true);
 		setError(null);
+		setSigningProgress("Preparing invites...");
 
 		try {
 			const circleId = BigInt(modalState.circle.id);
@@ -99,7 +79,6 @@ export const StackSuccessResultModal = ({
 			// Generate unique nonces
 			const invitePayloads: {
 				nonce: bigint;
-				typedData: ReturnType<typeof buildInviteTypedData>;
 			}[] = [];
 			let candidate = BigInt(Date.now());
 
@@ -112,43 +91,73 @@ export const StackSuccessResultModal = ({
 				});
 
 				if (!alreadyUsed) {
-					const typedData = buildInviteTypedData(
-						circleId,
-						candidate,
-						chain.id,
-						SAVING_CIRCLES_CONTRACT_ADDRESS
-					);
-					invitePayloads.push({ nonce: candidate, typedData });
+					invitePayloads.push({ nonce: candidate });
 				}
 				candidate += BigInt(1);
 			}
 
-			// Sign each invite
 			const signedInvites: InviteLink[] = [];
-			// const baseUrl =
-			// 	typeof window !== "undefined"
-			// 		? `${window.location.origin}/stacks/join`
-			// 		: "https://stacks.bread.coop/stacks/join";
-
 			const baseUrl = `${window.location.origin}/stacks/join`;
 
 			for (let i = 0; i < invitePayloads.length; i++) {
 				setSigningProgress(
-					`Signing invite ${i + 1} of ${invitePayloads.length}...`
+					`Creating invite ${i + 1} of ${invitePayloads.length}...`,
 				);
-				const { nonce, typedData } = invitePayloads[i];
+				const { nonce } = invitePayloads[i];
 
-				const signature = await walletClient.signTypedData({
-					account: address,
-					domain: typedData.domain,
-					types: typedData.types,
-					primaryType: typedData.primaryType,
-					message: typedData.message,
+				// CRITICAL: Privy cannot serialize BigInt
+				// We need to convert BigInt → string OR BigInt → number
+				// For uint256, we can safely use strings for display or numbers if values fit
+				
+				// Check if values are safe to convert to number (< Number.MAX_SAFE_INTEGER)
+				const circleIdNum = circleId < BigInt(Number.MAX_SAFE_INTEGER) 
+					? Number(circleId) 
+					: circleId.toString();
+				const nonceNum = nonce < BigInt(Number.MAX_SAFE_INTEGER)
+					? Number(nonce)
+					: nonce.toString();
+
+				const typedData = {
+					domain: {
+						name: INVITE_DOMAIN_NAME,
+						version: INVITE_DOMAIN_VERSION,
+						chainId: DEFAULT_CHAIN,
+						verifyingContract: SAVING_CIRCLES_CONTRACT_ADDRESS,
+					},
+					types: {
+						Invite: [
+							{ name: "id", type: "uint256" },
+							{ name: "nonce", type: "uint256" },
+						],
+					},
+					primaryType: "Invite" as const,
+					message: {
+						// Use numbers - Privy can serialize these
+						id: circleIdNum,
+						nonce: nonceNum,
+					},
+				};
+
+				console.log("Signing typed data with Privy:", {
+					circleId: circleIdNum,
+					nonce: nonceNum,
+					chainId: DEFAULT_CHAIN,
+					types: typeof circleIdNum,
 				});
+
+				const { signature } = await signTypedData(
+					typedData,
+					{
+						uiOptions: {
+							showWalletUIs: false, // Silent signing!
+						},
+					},
+				);
+
+				console.log("Generated signature:", signature);
 
 				const url = buildInviteUrl(
 					baseUrl,
-					SAVING_CIRCLES_CONTRACT_ADDRESS,
 					modalState.circle.id,
 					nonce,
 					signature,
@@ -165,15 +174,16 @@ export const StackSuccessResultModal = ({
 				...localCircles,
 				[modalState.circle.id]: {
 					...localCircles[modalState.circle.id],
-					invite_links: signedInvites.map(i => i.url),
+					invite_links: signedInvites.map((i) => i.url),
 				},
 			};
 			localStorage.setItem("circles", JSON.stringify(localCircles));
 
 			setSigningProgress("");
 			setInvites(signedInvites);
-		} catch (error) {
-
+		} catch (err: any) {
+			console.error("Invite generation failed:", err);
+			setError(err?.message || "Failed to generate invite links");
 		} finally {
 			setIsGenerating(false);
 		}
@@ -183,22 +193,24 @@ export const StackSuccessResultModal = ({
 		if (invites.length === 0 && !isGenerating && !error) {
 			generateInvites();
 		}
-	}, [generateInvites, invites.length, isGenerating, error]);
+	}, [invites.length, isGenerating, error]);
 
 	return (
 		<ModalContainer className="max-w-142!">
 			<div className="flex flex-col gap-3 items-center justify-center">
 				<SealCheckIcon size={80} className="fill-system-green" />
 				<Heading2 className="text-2xl leading-6">
-					“{modalState.circle.name}”
+					"{modalState.circle.name}"
 				</Heading2>
 				<Body className="text-surface-ink">Stacks group created!</Body>
 			</div>
+
 			<div className="*:mb-4 *:last:mb-0 border-t border-primary-blue pt-6">
 				<Body>
 					Your Stacks has 1 member (you). Invite others with a link.
 					To deposit, it needs 2 or more members.
 				</Body>
+
 				<section>
 					<Heading3 className="mb-2 text-2xl leading-[100%]">
 						Member invite links
@@ -240,19 +252,22 @@ export const StackSuccessResultModal = ({
 										link={invite.url}
 										label={`0${i + 1}`}
 									/>
-							  ))
+								))
 							: !isGenerating && !error
-							? Array.from(
-									{ length: modalState.circle.members },
-									(_, i) => i + 1
-							  ).map((m) => (
-									<PendingInviteLink
-										key={m}
-										link=""
-										label={`0${m}`}
-									/>
-							  ))
-							: null}
+								? Array.from(
+										{
+											length:
+												modalState.circle.members - 1,
+										},
+										(_, i) => i + 1,
+									).map((m) => (
+										<PendingInviteLink
+											key={m}
+											link=""
+											label={`0${m}`}
+										/>
+									))
+								: null}
 					</div>
 
 					<Body className="text-system-warning mt-4">
@@ -262,7 +277,7 @@ export const StackSuccessResultModal = ({
 						</span>
 					</Body>
 				</section>
-				{/* Stack details */}
+
 				<Accordion>
 					<AccordionItem value="detail">
 						<AccordionHeader>Stacks details</AccordionHeader>

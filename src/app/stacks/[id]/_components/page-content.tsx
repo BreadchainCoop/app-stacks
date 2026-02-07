@@ -6,9 +6,8 @@ import StackDetails from "./stack-details";
 import StackMembers from "./members";
 import StackInfo from "./info";
 import { CircularProgressIcon } from "@/components/icons/circular-progress";
-import { Body } from "@breadcoop/ui";
+import { Body, useConnectedUser } from "@breadcoop/ui";
 import StackedStatus from "./stacked-status";
-import { useAccount } from "wagmi";
 import { useUserCircleData } from "@/hooks/use-user-circle-data";
 import { zeroAddress } from "viem";
 import { getUserCircleStatus } from "@/lib/get-user-circle-status";
@@ -17,12 +16,13 @@ import BackMeta from "./back-meta";
 
 const PageContent = ({ id }: { id: string }) => {
 	const { setModal } = useModal();
-	const { address, status } = useAccount();
+	const {user} = useConnectedUser();
+	const address = (user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN") ? user.address : undefined;
 	const member = address || zeroAddress;
 	const userCircleData = useUserCircleData({
 		circleId: BigInt(id),
 		member,
-		enabled: status !== "connecting",
+		enabled: Boolean(member)
 	});
 
 	useEffect(() => {
