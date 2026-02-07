@@ -37,6 +37,7 @@ deploy:
 	export RPC_URL=$(RPC_URL) && \
 	export PRIVATE_KEY=$(PRIVATE_KEY) && \
 	export ADMIN_ADDRESS=$(ADMIN_ADDRESS) && \
+	forge install && \
 	forge script script/Deploy.s.sol:Deploy \
 		--rpc-url $(RPC_URL) \
 		--broadcast \

@@ -1,13 +1,13 @@
 "use client";
 
-import { Body, Heading2 } from "@breadcoop/ui";
-import { useAccount } from "wagmi";
+import { Body, Heading2, useConnectedUser } from "@breadcoop/ui";
 import LocalLiftedButton from "../lifted-button";
 import Link from "next/link";
 import { PlusIcon } from "@phosphor-icons/react";
 
 const HomeHeader = () => {
-	const { isConnected } = useAccount();
+	const {user} = useConnectedUser();
+	const isConnected = (user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN");
 
 	return (
 		<header className="mb-6 md:flex md:items-center md:justify-between">

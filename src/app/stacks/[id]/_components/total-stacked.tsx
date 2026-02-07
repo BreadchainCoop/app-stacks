@@ -5,6 +5,7 @@ import {
 	Heading3,
 	LiftedButton,
 	LoginButton,
+	useConnectedUser,
 } from "@breadcoop/ui";
 import { CalendarDotsIcon } from "@phosphor-icons/react/ssr";
 import { useCircleStatus } from "@/hooks/use-circle-status";
@@ -28,7 +29,11 @@ const TotalStacked = ({
 	status: ReturnType<typeof useCircleStatus>;
 	userCircleData: ReturnType<typeof useUserCircleData>;
 }) => {
-	const { address } = useAccount();
+	const { user } = useConnectedUser();
+	const address =
+		user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
+			? user.address
+			: undefined;
 
 	const claimableAmount = userCircleData.circleData?.canWithdraw
 		? userCircleData.circleData?.circleInfo.depositAmount *
@@ -64,7 +69,7 @@ const TotalStacked = ({
 			</Heading3>
 			{!address ? (
 				<div className="h-full w-full flex items-center justify-center">
-					<LoginButton app="stacks" status="NOT_CONNECTED" />
+					<LoginButton app="stacks" status={user.status} />
 				</div>
 			) : (
 				<>
@@ -140,8 +145,8 @@ const TotalStacked = ({
 										(userCircleData.circleData
 											?.totalRounds || BigInt(0)) -
 										(userCircleData.circleData
-											?.completedRounds ||
-											BigInt(0)) - BigInt(1)
+											?.completedRounds || BigInt(0)) -
+										BigInt(1)
 									}
 								/>
 							) : (

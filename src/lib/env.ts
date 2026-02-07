@@ -11,6 +11,10 @@ const envSchema = z.object({
 	NEXT_PUBLIC_NODE_ENV: z
 		.enum(["development", "production", "local"])
 		.default("production"),
+	NEXT_PUBLIC_PRIVY_APP_ID: z.string(),
+	NEXT_PUBLIC_PRIVY_APP_SECRET: z.string(),
+	NEXT_PUBLIC_PRIVY_CLIENT_ID: z.string(),
+	NEXT_PUBLIC_ALCHEMY_API_KEY_ETHEREUM_MAINNET: z.string(),
 });
 
 const parsedSchema = envSchema.safeParse({
@@ -25,6 +29,10 @@ const parsedSchema = envSchema.safeParse({
 	NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID:
 		process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
 	NEXT_PUBLIC_NODE_ENV: process.env.NEXT_PUBLIC_NODE_ENV,
+	NEXT_PUBLIC_PRIVY_APP_ID: process.env.NEXT_PUBLIC_PRIVY_APP_ID,
+	NEXT_PUBLIC_PRIVY_APP_SECRET: process.env.NEXT_PUBLIC_PRIVY_APP_SECRET,
+	NEXT_PUBLIC_PRIVY_CLIENT_ID: process.env.NEXT_PUBLIC_PRIVY_CLIENT_ID,
+	NEXT_PUBLIC_ALCHEMY_API_KEY_ETHEREUM_MAINNET: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY_ETHEREUM_MAINNET,
 });
 
 if (!parsedSchema.success) {

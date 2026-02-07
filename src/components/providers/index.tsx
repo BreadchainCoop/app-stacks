@@ -7,6 +7,9 @@ import { ModalProvider } from "../modal/context";
 import { BreadUIKitProvider, ConnectedUserProvider } from "@breadcoop/ui";
 import { clientEnv } from "@/lib/env";
 import { Address, erc20Abi } from "viem";
+import { PrivyClientConfig, PrivyProvider } from "@privy-io/react-auth";
+import { gnosis } from "viem/chains";
+import { foundryChain } from "@/lib/wagmi";
 
 const tokenConfig: ComponentProps<typeof BreadUIKitProvider>["tokenConfig"] = {
 	BREAD: {
@@ -15,22 +18,44 @@ const tokenConfig: ComponentProps<typeof BreadUIKitProvider>["tokenConfig"] = {
 	},
 };
 
+// TODO: Provide our RPC_URL
+// const gnosisOverride = addRpcUrlOverrideToChain(gnosis, "")
+
+const _chain = clientEnv.NEXT_PUBLIC_NODE_ENV === "production" ? gnosis : foundryChain;
+
+const privyConfig: PrivyClientConfig = {
+	defaultChain: _chain,
+	supportedChains: [_chain],
+	embeddedWallets: {
+		ethereum: {
+			createOnLogin: "all-users",
+		},
+	},
+};
+
 const Providers = ({ children }: { children: ReactNode }) => {
+	const isProd = clientEnv.NEXT_PUBLIC_NODE_ENV === "production";
+
 	return (
 		<ToolsProviders>
-			<Web3Provider>
-				<BreadUIKitProvider
-					app="stacks"
-					isProd={clientEnv.NEXT_PUBLIC_NODE_ENV === "production"}
-					tokenConfig={tokenConfig}
-				>
-					<ConnectedUserProvider
-						isProd={clientEnv.NEXT_PUBLIC_NODE_ENV === "production"}
+			<PrivyProvider
+				appId={clientEnv.NEXT_PUBLIC_PRIVY_APP_ID}
+				clientId={clientEnv.NEXT_PUBLIC_PRIVY_CLIENT_ID}
+				config={privyConfig}
+			>
+				<Web3Provider>
+					<BreadUIKitProvider
+						app="stacks"
+						isProd={isProd}
+						tokenConfig={tokenConfig}
+						authProvider="privy"
 					>
-						<ModalProvider>{children}</ModalProvider>
-					</ConnectedUserProvider>
-				</BreadUIKitProvider>
-			</Web3Provider>
+						<ConnectedUserProvider isProd={isProd}>
+							<ModalProvider>{children}</ModalProvider>
+						</ConnectedUserProvider>
+					</BreadUIKitProvider>
+				</Web3Provider>
+			</PrivyProvider>
 		</ToolsProviders>
 	);
 };

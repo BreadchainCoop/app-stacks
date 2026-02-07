@@ -1,6 +1,5 @@
 import { defineChain } from "viem";
-import { createConfig, http } from "wagmi";
-import { foundry, gnosis } from "wagmi/chains";
+import { foundry } from "wagmi/chains";
 
 export const foundryChain = defineChain({
 	...foundry,

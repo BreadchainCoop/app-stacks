@@ -1,6 +1,6 @@
 "use client";
 
-import { LiftedButton, LiftedButtonProps } from "@breadcoop/ui";
+import { LiftedButton, LiftedButtonProps, useConnectedUser } from "@breadcoop/ui";
 import { useModal } from "./modal/context";
 import { localButtonClassNames } from "./lifted-button";
 import {
@@ -37,7 +37,8 @@ const DepositButton = ({
 }: DepositButtonProps) => {
 	const [depositing, setDepositing] = useState(false);
 	const queryClient = useQueryClient();
-	const { address: userAddress } = useAccount();
+	const { user } = useConnectedUser();
+	const userAddress = user.status === "CONNECTED" ? user.address : undefined;
 	const modal = useModal();
 	const allClassName = `${className} ${
 		!props.preset || props.preset === "primary"
@@ -118,6 +119,7 @@ const DepositButton = ({
 		}
 	};
 
+	// TODO: Since privy is being used, show wrong chain button if user is on unsupported chain
 	return (
 		<LiftedButton
 			{...props}

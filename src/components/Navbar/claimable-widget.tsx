@@ -1,14 +1,18 @@
 "use client";
 
 import { useUserCirclesList } from "@/hooks/use-user-circles-list";
-import { FormattedDecimalNumber, NavAccountWidgetItem } from "@breadcoop/ui";
+import { FormattedDecimalNumber, NavAccountWidgetItem, useConnectedUser } from "@breadcoop/ui";
 import { HandArrowDownIcon } from "@phosphor-icons/react";
 import { zeroAddress } from "viem";
 import { useAccount } from "wagmi";
 
 const ClaimableWidget = () => {
-	const { address } = useAccount();
-	const { circles } = useUserCirclesList(address ?? zeroAddress);
+	const { user } = useConnectedUser();
+	const { circles } = useUserCirclesList(
+		user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
+			? user.address
+			: zeroAddress,
+	);
 
 	let withdrawableAmount = 0;
 	circles.forEach((circle) => {

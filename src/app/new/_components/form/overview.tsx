@@ -1,5 +1,11 @@
 import LocalLiftedButton from "@/components/lifted-button";
-import { Body, Heading3, Logo } from "@breadcoop/ui";
+import {
+	Body,
+	Heading3,
+	LoginButton,
+	Logo,
+	useConnectedUser,
+} from "@breadcoop/ui";
 import {
 	ArrowLeftIcon,
 	ArrowsClockwiseIcon,
@@ -11,19 +17,19 @@ import {
 import { ReactNode } from "react";
 import { useFormContext } from "react-hook-form";
 import { StackFormSchemaData } from "./schema";
-import { useAccount, useWriteContract } from "wagmi";
+import { useWriteContract } from "wagmi";
 import { savingCirclesAbi } from "../../../../lib/abis/saving-circles";
 import {
 	BREAD_TOKEN_ADDRESS,
 	SAVING_CIRCLES_CONTRACT_ADDRESS,
 } from "../../../../lib/constants";
 import { parseEther, parseEventLogs } from "viem";
-import { useRouter } from "next/navigation";
 import { SECONDS_PER_DAY } from "@/utils/solidity";
 import { useModal } from "@/components/modal/context";
 import { sleep } from "@/utils/sleep";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { wagmiConfig } from "@/components/providers/web3";
+import { clientEnv } from "@/lib/env";
 
 const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
 	const modal = useModal();
@@ -33,12 +39,14 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
 	const frequency = members ? `${members}x` : "-";
 	const freqDeposit = form.watch("depositAmount") || 0;
 	const total = (members || 0) * (freqDeposit || 0);
-	const { address } = useAccount();
-
+	const { user } = useConnectedUser();
 	const writeContract = useWriteContract();
 
 	const createStack = async (data: StackFormSchemaData) => {
 		try {
+			// This is just for typescript check. user is available at this point
+			if (user.status !== "CONNECTED") return;
+
 			modal.setModal({
 				type: "STACK_CREATION_INIT",
 				name: data.name,
@@ -51,7 +59,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
 				functionName: "create",
 				args: [
 					{
-						owner: address!,
+						owner: user.address,
 						currentIndex: BigInt(0),
 						depositAmount: parseEther(String(data.depositAmount)),
 						token: BREAD_TOKEN_ADDRESS,
@@ -75,24 +83,15 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
 				confirmations: 1,
 			});
 
-			// if (receipt.status !== "success") {
-			// 	throw new Error("Transaction reverted");
-			// }
-
 			const logs = parseEventLogs({
 				abi: savingCirclesAbi,
 				logs: receipt.logs,
 				eventName: "CircleCreated",
 			});
 
-			// It should be just 1 tx, but still filter
 			const circleCreatedEvent = logs.find(
 				(log) => (log as any).eventName === "CircleCreated",
 			);
-
-			// if (!circleCreatedEvent) {
-			// 	throw new Error("CircleCreated event not found in receipt");
-			// }
 
 			const newCircleId = (circleCreatedEvent as any).args.id as bigint;
 
@@ -126,7 +125,10 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
 			);
 			localCircles = {
 				...localCircles,
-				[circle.id]: { name: circle.name },
+				[circle.id]: {
+					name: circle.name,
+					owner: user.address, // Store the owner for reference
+				},
 			};
 			localStorage.setItem("circles", JSON.stringify(localCircles));
 
@@ -198,14 +200,22 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
 				</Body>
 			</div>
 			<div className="flex flex-col gap-4">
-				<LocalLiftedButton
-					width="full"
-					leftIcon={<SparkleIcon size={24} />}
-					onClick={form.handleSubmit(createStack)}
-					type="submit"
-				>
-					Create Stack
-				</LocalLiftedButton>
+				{user.status === "CONNECTED" ? (
+					<LocalLiftedButton
+						width="full"
+						leftIcon={<SparkleIcon size={24} />}
+						onClick={form.handleSubmit(createStack)}
+						type="submit"
+					>
+						Create Stack
+					</LocalLiftedButton>
+				) : (
+					<LoginButton
+						app="stacks"
+						status={user.status}
+						isProd={clientEnv.NEXT_PUBLIC_NODE_ENV === "production"}
+					/>
+				)}
 				<LocalLiftedButton
 					className="lg:hidden"
 					preset="secondary"
