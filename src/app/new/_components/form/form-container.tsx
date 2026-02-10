@@ -7,15 +7,18 @@ import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import stackSchema, { StackFormSchemaData } from "./schema";
 import { Heading2 } from "@breadcoop/ui";
+import { useSearchParams } from "next/navigation";
 
 const StackFormContainer = ({ nextStage }: { nextStage: () => void }) => {
+	const params = useSearchParams();
+	const interval = params.get("interval");
 	const form = useForm<StackFormSchemaData>({
 		resolver: zodResolver(stackSchema),
 		defaultValues: {
 			name: "",
-			members: undefined,
-			depositAmount: undefined,
-			depositInterval: "weekly",
+			members: params.get("members") ? Number(params.get("members")) : undefined,
+			depositAmount: params.get("amount") ? Number(params.get("amount")) : undefined,
+			depositInterval: interval === "weekly" || interval === "monthly" ? interval : "weekly",
 		},
 	});
 	const [showOverview, setShowOverview] = useState(false);
