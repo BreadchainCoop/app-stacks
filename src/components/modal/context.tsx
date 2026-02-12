@@ -6,109 +6,109 @@ import { Address } from "viem";
 export type TModalStatus = "loading" | "success" | "error";
 
 export type StackInitModalState = {
-	type: "STACK_CREATION_INIT";
-	name: string;
-	status: "awaiting" | "approved" | "successful";
+  type: "STACK_CREATION_INIT";
+  name: string;
+  status: "awaiting" | "approved" | "successful";
 };
 
 export type StackInitSuccessModalState = {
-	type: "STACK_CREATION_SUCCESS";
-	// TODO: Create a circle interface and inherit from it
-	circle: {
-		name: string;
-		id: string;
-		duration: string;
-		deposit: number;
-		total: number;
-		members: number;
-	};
+  type: "STACK_CREATION_SUCCESS";
+  // TODO: Create a circle interface and inherit from it
+  circle: {
+    name: string;
+    id: string;
+    duration: string;
+    deposit: number;
+    total: number;
+    members: number;
+  };
 };
 
 export type StackInitFailedModalState = {
-	type: "STACK_CREATION_FAILED";
+  type: "STACK_CREATION_FAILED";
 };
 
 export type DepositInitModalState = {
-	type: "DEPOSIT_INIT";
-	amount: bigint;
-	tokenAddress: Address;
-	circleId: bigint;
+  type: "DEPOSIT_INIT";
+  amount: bigint;
+  tokenAddress: Address;
+  circleId: bigint;
 };
 
 export type DepositLoadingModalState = {
-	type: "DEPOSIT_LOADING";
+  type: "DEPOSIT_LOADING";
 };
 
 export type DepositResultModalState = {
-	type: "DEPOSIT_RESULT";
-	result: "success" | "error";
-	msg?: string;
-	amount?: number;
+  type: "DEPOSIT_RESULT";
+  result: "success" | "error";
+  msg?: string;
+  amount?: number;
 };
 
 export type ClaimInitModalState = {
-	type: "CLAIM_LOADING";
-	msg?: string;
+  type: "CLAIM_LOADING";
+  msg?: string;
 };
 
 export type ClaimResultModalState = {
-	type: "CLAIM_RESULT";
-	result: "success" | "error";
-	msg?: string;
-	amount?: number;
-	nextDeposit?: bigint
-	roundsLeft?: bigint
-	nextDepositAddress?: Address
-	circleId?: bigint
+  type: "CLAIM_RESULT";
+  result: "success" | "error";
+  msg?: string;
+  amount?: number;
+  nextDeposit?: bigint;
+  roundsLeft?: bigint;
+  nextDepositAddress?: Address;
+  circleId?: bigint;
 };
 
 export type StackFailedModalState = {
-	type: "STACK_FAILED";
-	id: bigint
-}
+  type: "STACK_FAILED";
+  id: bigint;
+};
 
 export type ModalState =
-	| DepositInitModalState
-	| DepositLoadingModalState
-	| DepositResultModalState
-	| ClaimInitModalState
-	| ClaimResultModalState
-	| StackInitModalState
-	| StackInitSuccessModalState
-	| StackInitFailedModalState
-	| StackFailedModalState
-	| null;
+  | DepositInitModalState
+  | DepositLoadingModalState
+  | DepositResultModalState
+  | ClaimInitModalState
+  | ClaimResultModalState
+  | StackInitModalState
+  | StackInitSuccessModalState
+  | StackInitFailedModalState
+  | StackFailedModalState
+  | null;
 
 export type ModalContext = {
-	modalState: ModalState;
-	setModal: (modalState: ModalState) => void;
+  modalState: ModalState;
+  setModal: (modalState: ModalState) => void;
 };
 
 const ModalContext = createContext<ModalContext>({
-	modalState: null,
-	setModal() {},
+  modalState: null,
+  setModal() {},
 });
 
 function ModalProvider({ children }: { children: ReactNode }) {
-	const [modalState, setModalState] = useState<ModalState>(null);
+  const [modalState, setModalState] = useState<ModalState>(null);
 
-	function setModal(modalState: ModalState) {
-		setModalState(modalState);
-	}
+  function setModal(modalState: ModalState) {
+    setModalState(modalState);
+  }
 
-	return (
-		<ModalContext.Provider value={{ modalState, setModal }}>
-			{children}
-		</ModalContext.Provider>
-	);
+  return (
+    <ModalContext.Provider value={{ modalState, setModal }}>
+      {children}
+    </ModalContext.Provider>
+  );
 }
 
 const useModal = () => {
-	const context = useContext(ModalContext);
-	if (context === undefined) {
-		throw new Error("useModal must be used within a ModalProvider");
-	}
-	return context;
+  const context = useContext(ModalContext);
+  if (context === undefined) {
+    throw new Error("useModal must be used within a ModalProvider");
+  }
+  return context;
 };
 
 export { ModalProvider, useModal };

@@ -3,8 +3,8 @@ import { serverEnv } from "@/lib/envs/server";
 
 interface SpooMePayload {
   long_url: string;
-  block_bots: true,
-  private_stats: false
+  block_bots: true;
+  private_stats: false;
 }
 
 interface ShortenRequestBody {
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     const payload: SpooMePayload = {
       long_url,
       block_bots: true,
-      private_stats: false
+      private_stats: false,
     };
 
     const response = await fetch("https://spoo.me/api/v1/shorten", {
@@ -87,8 +87,7 @@ export async function POST(request: NextRequest) {
       let errorData: unknown = {};
       try {
         errorData = await response.json();
-      } catch {
-      }
+      } catch {}
 
       console.error("spoo.me API error:", {
         status: response.status,

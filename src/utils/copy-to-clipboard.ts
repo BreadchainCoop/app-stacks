@@ -1,5 +1,5 @@
-export const copyToClipboard = async (text: string, message = "copied") => {
-	try {
-		await navigator.clipboard.writeText(text);
-	} catch {}
+export const copyToClipboard = async (text: string) => {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {}
 };

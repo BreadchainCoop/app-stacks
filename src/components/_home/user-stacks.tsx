@@ -11,47 +11,46 @@ import { Body } from "@breadcoop/ui";
 type Tab = "due" | "claim" | "past" | "all";
 
 const HomeUserStacks = ({ address }: { address: Address }) => {
-	let { circles, isLoading, error } = useUserCirclesList(address);
-	const tab = (useSearchParams().get("tab") || "all") as Tab;
+  const userCirclesList = useUserCirclesList(address);
+  const { isLoading } = userCirclesList;
+  let { circles } = userCirclesList;
+  const tab = (useSearchParams().get("tab") || "all") as Tab;
 
-	if (tabs.find((t) => t.id === tab)) {
-		circles = [...circles].filter((c) => {
-			if (tab === "due") return c.status === "payment_due";
+  if (tabs.find((t) => t.id === tab)) {
+    circles = [...circles].filter((c) => {
+      if (tab === "due") return c.status === "payment_due";
 
-			if (tab === "claim") return c.status === "claimable";
+      if (tab === "claim") return c.status === "claimable";
 
-			if (tab === "past") {
-				if (!c.status) return false;
+      if (tab === "past") {
+        if (!c.status) return false;
 
-				return [
-					"decommissioned",
-					"finished",
-					"failed",
-					"expired",
-				].includes(c.status);
-			}
+        return ["decommissioned", "finished", "failed", "expired"].includes(
+          c.status
+        );
+      }
 
-			return true;
-		});
-	}
+      return true;
+    });
+  }
 
-	console.log("_ CIRCLES __", circles);
+  console.log("_ CIRCLES __", circles);
 
-	return (
-		<div>
-			{isLoading ? (
-				<Loading />
-			) : (
-				<>
-					{circles.length === 0 ? (
-						<Body className="text-center">No stacks</Body>
-					) : (
-						<CardCarousel circles={circles} />
-					)}
-				</>
-			)}
-		</div>
-	);
+  return (
+    <div>
+      {isLoading ? (
+        <Loading />
+      ) : (
+        <>
+          {circles.length === 0 ? (
+            <Body className="text-center">No stacks</Body>
+          ) : (
+            <CardCarousel circles={circles} />
+          )}
+        </>
+      )}
+    </div>
+  );
 };
 
 export default HomeUserStacks;

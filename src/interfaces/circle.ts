@@ -1,51 +1,59 @@
+import { useUserCircleData } from "@/hooks/use-user-circle-data";
 import { Address } from "viem";
 
 export type ICircleStatus =
-	| "decommissioned"
-	| "pending-start"
-	| "finished"
-	| "failed"
-	| "expired"
-	| "claimable"
-	| "deposit-completed"
-	| "deposited"
-	| "payment_due"
-	| "in-progress";
+  | "decommissioned"
+  | "pending-start"
+  | "finished"
+  | "failed"
+  | "expired"
+  | "claimable"
+  | "deposit-completed"
+  | "deposited"
+  | "payment_due"
+  | "in-progress";
 
 interface ICircleBaseList {
-	circleEnd: bigint;
-	currentIndex: bigint;
-	depositAmount: bigint;
-	depositInterval: bigint;
-	effectiveCircleStartTime: bigint;
-	id: bigint;
-	totalMember: number;
-	owner: Address;
-	token: Address;
-	totalPoolBalance?: bigint;
+  circleEnd: bigint;
+  currentIndex: bigint;
+  depositAmount: bigint;
+  depositInterval: bigint;
+  effectiveCircleStartTime: bigint;
+  id: bigint;
+  totalMember: number;
+  owner: Address;
+  token: Address;
+  totalPoolBalance?: bigint;
 }
 
 type ICircleWithdraw = {
-	canWithdraw?: true;
-	withdrawAmount: number;
+  canWithdraw?: true;
+  withdrawAmount: number;
 };
 
 type ICircleNoWithdraw = {
-	canWithdraw?: false;
-	withdrawAmount?: never;
+  canWithdraw?: false;
+  withdrawAmount?: never;
 };
 
 export type ICircleList = ICircleBaseList &
-	(ICircleWithdraw | ICircleNoWithdraw) & {
-		status?: ICircleStatus;
-	};
+  (ICircleWithdraw | ICircleNoWithdraw) & {
+    status?: ICircleStatus;
+  };
 
 export interface LocalStorageCircle {
-	name: string;
-	invite_links: string[];
+  name: string;
+  invite_links: string[];
 }
 
-export type LocalStorageCircles = Record<string, LocalStorageCircle>
+export type LocalStorageCircles = Record<string, LocalStorageCircle>;
+
+type CircleInfo = Exclude<
+  ReturnType<typeof useUserCircleData>["circleData"],
+  undefined
+>;
+
+export type MemberCircleInfo = Pick<CircleInfo, "circleInfo">["circleInfo"];
 
 // export interface CircleFullInfo {
 // 	id: bigint;

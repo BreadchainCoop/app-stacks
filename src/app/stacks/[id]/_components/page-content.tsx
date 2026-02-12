@@ -15,76 +15,65 @@ import { useModal } from "@/components/modal/context";
 import BackMeta from "./back-meta";
 
 const PageContent = ({ id }: { id: string }) => {
-	const { setModal } = useModal();
-	const {user} = useConnectedUser();
-	const address = (user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN") ? user.address : undefined;
-	const member = address || zeroAddress;
-	const userCircleData = useUserCircleData({
-		circleId: BigInt(id),
-		member,
-		enabled: Boolean(member)
-	});
+  const { setModal } = useModal();
+  const { user } = useConnectedUser();
+  const address =
+    user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
+      ? user.address
+      : undefined;
+  const member = address || zeroAddress;
+  const userCircleData = useUserCircleData({
+    circleId: BigInt(id),
+    member,
+    enabled: Boolean(member),
+  });
 
-	useEffect(() => {
-		console.log("__ CONFIG __", address, member);
-		if (!userCircleData.circleData || !address || member === zeroAddress)
-			return;
+  useEffect(() => {
+    console.log("__ CONFIG __", address, member);
+    if (!userCircleData.circleData || !address || member === zeroAddress)
+      return;
 
-		const circleStatus = getUserCircleStatus(
-			userCircleData.circleData,
-			member,
-		);
+    const circleStatus = getUserCircleStatus(userCircleData.circleData, member);
 
-		if (
-			circleStatus.status === "failed" &&
-			!userCircleData.circleData.isDecommissioned
-		) {
-			setModal({ type: "STACK_FAILED", id: BigInt(id) });
-		}
-	}, [userCircleData.circleData, member]);
+    if (
+      circleStatus.status === "failed" &&
+      !userCircleData.circleData.isDecommissioned
+    ) {
+      setModal({ type: "STACK_FAILED", id: BigInt(id) });
+    }
+  }, [userCircleData.circleData, member]);
 
-	return (
-		<>
-			<BackMeta className="mb-4! -mt-3 md:hidden" />
-			<StackHeader
-				id={id}
-				isMember={userCircleData.circleData?.isMember}
-			/>
-			{userCircleData.circleData ? (
-				<>
-					<div className="*:mb-4 last:mb-0 md:mb-6 md:last:mb-0">
-						<StackedStatus
-							id={id}
-							circle={userCircleData.circleData}
-							member={member}
-						/>
-						<StackDetails
-							id={id}
-							// circle={userCircleData.circleData.circleInfo}
-							circle={userCircleData.circleData}
-						/>
-						<StackMembers
-							id={id}
-							circle={userCircleData.circleData.circleInfo}
-							member={member}
-						/>
-						<StackInfo
-							owner={userCircleData.circleData.circleInfo.owner}
-						/>
-					</div>
-				</>
-			) : userCircleData.error ? (
-				// TODO: Show correct error message
-				<Body className="text-system-red">
-					Unable to get circle data!
-				</Body>
-			) : (
-				<div className="flex items-center justify-center">
-					<CircularProgressIcon />
-				</div>
-			)}
-		</>
-	);
+  return (
+    <>
+      <BackMeta className="mb-4! -mt-3 md:hidden" />
+      <StackHeader id={id} isMember={userCircleData.circleData?.isMember} />
+      {userCircleData.circleData ? (
+        <>
+          <div className="*:mb-4 last:mb-0 md:mb-6 md:last:mb-0">
+            <StackedStatus
+              id={id}
+              circle={userCircleData.circleData}
+              member={member}
+            />
+            <StackDetails id={id} circle={userCircleData.circleData} />
+            <StackMembers
+              id={id}
+              circle={userCircleData.circleData.circleInfo}
+              member={member}
+            />
+            <StackInfo owner={userCircleData.circleData.circleInfo.owner} />
+          </div>
+        </>
+      ) : userCircleData.error ? (
+        // TODO: Show correct error message
+        <Body className="text-system-red">Unable to get circle data!</Body>
+      ) : (
+        <div className="flex items-center justify-center">
+          <CircularProgressIcon />
+        </div>
+      )}
+    </>
+  );
 };
 
 export default PageContent;

@@ -13,57 +13,57 @@ import { useQueryClient } from "@tanstack/react-query";
 import Loading from "@/app/loading";
 
 interface StartCircleButtonProps extends Omit<LiftedButtonProps, "children"> {
-	amount: bigint;
-	circleId: bigint;
+  amount: bigint;
+  circleId: bigint;
 }
 
 const StartCircleButton = ({
-	amount,
-	circleId,
-	...props
+  amount,
+  circleId,
+  ...props
 }: StartCircleButtonProps) => {
-	const queryClient = useQueryClient();
-	const contract = useWriteContract();
-	const [starting, setStarting] = useState(false);
+  const queryClient = useQueryClient();
+  const contract = useWriteContract();
+  const [starting, setStarting] = useState(false);
 
-	const start = async () => {
-		if (starting) return;
+  const start = async () => {
+    if (starting) return;
 
-		setStarting(true);
+    setStarting(true);
 
-		try {
-			const hash = await contract.writeContractAsync({
-				address: SAVING_CIRCLES_CONTRACT_ADDRESS,
-				abi: savingCirclesAbi,
-				functionName: "start",
-				args: [BigInt(circleId)],
-			});
+    try {
+      const hash = await contract.writeContractAsync({
+        address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+        abi: savingCirclesAbi,
+        functionName: "start",
+        args: [BigInt(circleId)],
+      });
 
-			await waitForTransactionReceipt(wagmiConfig, { hash });
+      await waitForTransactionReceipt(wagmiConfig, { hash });
 
-			queryClient.invalidateQueries({ queryKey: ["readContract"] });
-		} catch (error) {
-			console.log("___ START CIRCLE ERROR ___", error);
-		} finally {
-			setStarting(false);
-		}
-	};
+      queryClient.invalidateQueries({ queryKey: ["readContract"] });
+    } catch (error) {
+      console.log("___ START CIRCLE ERROR ___", error);
+    } finally {
+      setStarting(false);
+    }
+  };
 
-	return (
-		<LocalLiftedButton
-			{...props}
-			onClick={start}
-			className={`${props.className || ""} font-semibold`}
-		>
-			{starting ? (
-				<span className="flex items-center justify-center">
-					<Loading />
-				</span>
-			) : (
-				<>Start Stacks - {formatEther(amount)} BREAD</>
-			)}
-		</LocalLiftedButton>
-	);
+  return (
+    <LocalLiftedButton
+      {...props}
+      onClick={start}
+      className={`${props.className || ""} font-semibold`}
+    >
+      {starting ? (
+        <span className="flex items-center justify-center">
+          <Loading />
+        </span>
+      ) : (
+        <>Start Stacks - {formatEther(amount)} BREAD</>
+      )}
+    </LocalLiftedButton>
+  );
 };
 
 export default StartCircleButton;

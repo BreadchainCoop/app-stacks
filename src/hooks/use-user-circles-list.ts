@@ -8,43 +8,43 @@ import { getDefaultChainId } from "@/utils/chain";
 import { getUserCircleStatus } from "@/lib/get-user-circle-status";
 
 export function useUserCirclesList(address: Address) {
-	const { data, isLoading, error } = useReadContract({
-		address: SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS,
-		abi: savingCirclesViewerAbi,
-		functionName: "getComprehensiveUserData",
-		args: address ? [address] : undefined,
-		chainId: getDefaultChainId(),
-	});
+  const { data, isLoading, error } = useReadContract({
+    address: SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS,
+    abi: savingCirclesViewerAbi,
+    functionName: "getComprehensiveUserData",
+    args: address ? [address] : undefined,
+    chainId: getDefaultChainId(),
+  });
 
-	const circles = useMemo(() => {
-		if (!data) return [];
+  const circles = useMemo(() => {
+    if (!data) return [];
 
-		// @ts-expect-error Correct
-		const parsedCircle: ICircleList[] = data.circleData.map((c) => {
-			const totalRounds = c.totalRounds;
+    // @ts-expect-error Correct
+    const parsedCircle: ICircleList[] = data.circleData.map((c) => {
+      const totalRounds = c.totalRounds;
 
-			const status = getUserCircleStatus(c, address, {
-				includeClaimable: true,
-			}).status;
-			const canWithdraw = c.canWithdraw && c.isCurrentWithdrawer;
+      const status = getUserCircleStatus(c, address, {
+        includeClaimable: true,
+      }).status;
+      const canWithdraw = c.canWithdraw && c.isCurrentWithdrawer;
 
-			return {
-				...c.circleInfo,
-				totalMember: Number(totalRounds),
-				id: c.circleId,
-				status,
-				totalPoolBalance: c.totalPoolBalance,
-				canWithdraw,
-				...(canWithdraw && {
-					withdrawAmount:
-						Number(formatEther(c.circleInfo.depositAmount)) *
-						Number(totalRounds),
-				}),
-			};
-		});
+      return {
+        ...c.circleInfo,
+        totalMember: Number(totalRounds),
+        id: c.circleId,
+        status,
+        totalPoolBalance: c.totalPoolBalance,
+        canWithdraw,
+        ...(canWithdraw && {
+          withdrawAmount:
+            Number(formatEther(c.circleInfo.depositAmount)) *
+            Number(totalRounds),
+        }),
+      };
+    });
 
-		return parsedCircle;
-	}, [data]);
+    return parsedCircle;
+  }, [data]);
 
-	return { circles, isLoading, error };
+  return { circles, isLoading, error };
 }

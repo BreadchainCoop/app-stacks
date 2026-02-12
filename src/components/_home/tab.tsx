@@ -4,31 +4,32 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import React, { Suspense } from "react";
 import {
-	HandWithdrawIcon,
-	StackIcon,
-	StackOverflowLogoIcon,
-	WarningIcon,
+  HandWithdrawIcon,
+  StackIcon,
+  StackOverflowLogoIcon,
+  WarningIcon,
 } from "@phosphor-icons/react";
 import { useConnectedUser } from "@breadcoop/ui";
 
 export const tabs = [
-	{ label: "All your Stacks", id: "all", icon: StackIcon },
-	{ label: "Funds to Claim", id: "claim", icon: HandWithdrawIcon },
-	{ label: "Payments due", id: "due", icon: WarningIcon },
-	{ label: "Past Stacks", id: "past", icon: StackOverflowLogoIcon },
+  { label: "All your Stacks", id: "all", icon: StackIcon },
+  { label: "Funds to Claim", id: "claim", icon: HandWithdrawIcon },
+  { label: "Payments due", id: "due", icon: WarningIcon },
+  { label: "Past Stacks", id: "past", icon: StackOverflowLogoIcon },
 ];
 
 const HomeTab = () => {
-	const { user } = useConnectedUser();
+  const { user } = useConnectedUser();
 
-	if (!(user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN")) return null;
+  if (!(user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"))
+    return null;
 
-	return (
-		// <Suspense fallback={<TabSkeleton />}>
-		<Suspense fallback={null}>
-			<ProtectedTab />
-		</Suspense>
-	);
+  return (
+    // <Suspense fallback={<TabSkeleton />}>
+    <Suspense fallback={null}>
+      <ProtectedTab />
+    </Suspense>
+  );
 };
 
 // // Loading skeleton component
@@ -50,39 +51,37 @@ const HomeTab = () => {
 // };
 
 const ProtectedTab = () => {
-	const currentTab = useSearchParams().get("tab") || "all";
+  const currentTab = useSearchParams().get("tab") || "all";
 
-	return (
-		<nav className="border border-paper-2 bg-paper-0 p-2.5 max-w-max mb-6">
-			<ul className="flex items-center justify-start gap-4 overflow-x-auto scrollbar-hidden">
-				{[...tabs].map((tab) => {
-					return (
-						<li key={tab.id} className="shrink-0">
-							<Link
-								href={`/?tab=${tab.id}`}
-								className={`font-bold flex items-center justify-center gap-2.5 py-1 px-4 border transition-colors ${
-									currentTab === tab.id
-										? "text-surface-ink border-primary-blue"
-										: "text-surface-grey border-transparent"
-								}`}
-							>
-								<span
-									className={`${
-										currentTab === tab.id
-											? "text-primary-blue"
-											: ""
-									}`}
-								>
-									<span>{<tab.icon size={20} />}</span>
-								</span>
-								{tab.label}
-							</Link>
-						</li>
-					);
-				})}
-			</ul>
-		</nav>
-	);
+  return (
+    <nav className="border border-paper-2 bg-paper-0 p-2.5 max-w-max mb-6">
+      <ul className="flex items-center justify-start gap-4 overflow-x-auto scrollbar-hidden">
+        {[...tabs].map((tab) => {
+          return (
+            <li key={tab.id} className="shrink-0">
+              <Link
+                href={`/?tab=${tab.id}`}
+                className={`font-bold flex items-center justify-center gap-2.5 py-1 px-4 border transition-colors ${
+                  currentTab === tab.id
+                    ? "text-surface-ink border-primary-blue"
+                    : "text-surface-grey border-transparent"
+                }`}
+              >
+                <span
+                  className={`${
+                    currentTab === tab.id ? "text-primary-blue" : ""
+                  }`}
+                >
+                  <span>{<tab.icon size={20} />}</span>
+                </span>
+                {tab.label}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
 };
 
 export default HomeTab;

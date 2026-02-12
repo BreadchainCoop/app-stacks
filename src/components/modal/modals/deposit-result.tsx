@@ -1,53 +1,48 @@
 import {
-	DepositLoadingModalState,
-	DepositResultModalState,
-	TModalStatus,
+  DepositLoadingModalState,
+  DepositResultModalState,
+  TModalStatus,
 } from "../context";
 import { ModalContainer, ModalHeader, ModalStatus } from "../components";
-import { CheckCircleIcon, WarningCircleIcon } from "@phosphor-icons/react";
-import { Body } from "@breadcoop/ui";
-import DepositButton from "@/components/deposit-button";
 
 const DepositResult = ({
-	modalState,
+  modalState,
 }: {
-	modalState: DepositResultModalState | DepositLoadingModalState;
+  modalState: DepositResultModalState | DepositLoadingModalState;
 }) => {
-	const status: TModalStatus =
-		modalState.type === "DEPOSIT_LOADING" ? "loading" : modalState.result;
+  const status: TModalStatus =
+    modalState.type === "DEPOSIT_LOADING" ? "loading" : modalState.result;
 
-	let title = "",
-		msg = "";
+  let title = "",
+    msg = "";
 
-	if (modalState.type === "DEPOSIT_LOADING") {
-		title = "Depositing";
-	} else {
-		title = `Deposit ${
-			modalState.result === "success" ? "successful" : "failed"
-		}`;
-		msg =
-			modalState.result === "success"
-				? "Successfully paid"
-				: "Something went wrong. Please try again!";
-	}
+  if (modalState.type === "DEPOSIT_LOADING") {
+    title = "Depositing";
+  } else {
+    title = `Deposit ${
+      modalState.result === "success" ? "successful" : "failed"
+    }`;
+    msg =
+      modalState.result === "success"
+        ? "Successfully paid"
+        : "Something went wrong. Please try again!";
+  }
 
-	return (
-		<ModalContainer
-			// status={modalState.result}
-			status={
-				modalState.type === "DEPOSIT_LOADING"
-					? "loading"
-					: modalState.result
-			}
-			// className={`border ${
-			// 	modalState.result === "success"
-			// 		? "border-system-green"
-			// 		: "border-system-red"
-			// }`}
-		>
-			<ModalHeader title={title} />
-			<ModalStatus status={status} msg={msg} />
-			{/* <div className="flex items-center justify-center flex-col gap-2">
+  return (
+    <ModalContainer
+      // status={modalState.result}
+      status={
+        modalState.type === "DEPOSIT_LOADING" ? "loading" : modalState.result
+      }
+      // className={`border ${
+      // 	modalState.result === "success"
+      // 		? "border-system-green"
+      // 		: "border-system-red"
+      // }`}
+    >
+      <ModalHeader title={title} />
+      <ModalStatus status={status} msg={msg} />
+      {/* <div className="flex items-center justify-center flex-col gap-2">
 				{modalState.result === "success" ? (
 					<>
 						<CheckCircleIcon
@@ -76,11 +71,11 @@ const DepositResult = ({
 					</>
 				)}
 			</div> */}
-			{/* {modalState.result === "error" && (
+      {/* {modalState.result === "error" && (
 				<DepositButton preset="burn" width="full" label="Try again" />
 			)} */}
-		</ModalContainer>
-	);
+    </ModalContainer>
+  );
 };
 
 export default DepositResult;

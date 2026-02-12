@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ReactNode } from "react";
 
 const ToolsProviders = ({ children }: { children: ReactNode }) => {
-	return <LinkProvider Link={Link}>{children}</LinkProvider>;
+  return <LinkProvider Link={Link}>{children}</LinkProvider>;
 };
 
 export default ToolsProviders;

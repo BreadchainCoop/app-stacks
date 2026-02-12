@@ -1,8 +1,7 @@
 "use client";
 
-import { LiftedButton, Body, Heading3, Caption, Heading4 } from "@breadcoop/ui";
+import { LiftedButton, Body, Caption, Heading4 } from "@breadcoop/ui";
 import { Coins } from "@phosphor-icons/react/ssr";
-import { useState } from "react";
 
 interface TutorialCardProps {
   onSkip?: () => void;

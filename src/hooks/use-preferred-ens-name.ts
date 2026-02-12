@@ -4,7 +4,10 @@ import { normalize } from "viem/ens";
 import { useQuery } from "@tanstack/react-query";
 import { formatAddress } from "@/utils/address";
 
-console.log("__ ALCHEMY KEY __", process.env.NEXT_PUBLIC_ALCHEMY_API_KEY_ETHEREUM_MAINNET);
+console.log(
+  "__ ALCHEMY KEY __",
+  process.env.NEXT_PUBLIC_ALCHEMY_API_KEY_ETHEREUM_MAINNET
+);
 
 const mainnetPublicClient = createPublicClient({
   chain: mainnet,

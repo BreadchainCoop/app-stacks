@@ -7,7 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "netlify:dev": "NODE_ENV=production netlify dev"
+    "lint:fix": "next lint --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "netlify:dev": "NODE_ENV=production netlify dev",
+    "find-deadcode": "ts-prune | grep -v '(used in module)'",
+    "prepare": "husky",
+    "lint-staged": "lint-staged"
   },
   "dependencies": {
     "@breadcoop/ui": "file:breadcoop-ui-1.0.24.tgz",
@@ -41,7 +47,15 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-unused-imports": "^4.4.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.7.2",
     "tailwindcss": "^4",
+    "ts-prune": "^0.10.3",
     "typescript": "^5"
   }
 }

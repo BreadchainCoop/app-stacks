@@ -5,11 +5,11 @@ import HomeHeader from "./header";
 // import HomeLoggedInDetails from "./logged-in-details";
 
 export const HomeContent = () => {
-	return (
-		<div>
-			<HomeHeader />
-			{/* <HomeLoggedInDetails /> */}
-			<HomeAllStacks />
-		</div>
-	);
+  return (
+    <div>
+      <HomeHeader />
+      {/* <HomeLoggedInDetails /> */}
+      <HomeAllStacks />
+    </div>
+  );
 };

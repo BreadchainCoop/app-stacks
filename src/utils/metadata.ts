@@ -20,7 +20,7 @@ const SITE_NAME = "Stacks - Bread Cooperative";
 const BASE_URL = "https://stacks.bread.coop";
 const DEFAULT_OG_IMAGE_VERSION = "v1";
 
-const defaultConfig: Omit<MetadataConfig, 'ogImageVersion'> = {
+const defaultConfig: Omit<MetadataConfig, "ogImageVersion"> = {
   title: "Stacks - Bread Cooperative",
   description: "Stack money faster with friends",
   url: "/",
@@ -33,8 +33,8 @@ export function generateMetadata(config: MetadataConfig = {}): Metadata {
   const mergedConfig = { ...defaultConfig, ...config };
   const imageVersion = config.ogImageVersion || DEFAULT_OG_IMAGE_VERSION;
 
-  const images = config.images 
-    ? config.images 
+  const images = config.images
+    ? config.images
     : [
         {
           url: `/opengraph-image.png?v=${imageVersion}`,
@@ -55,13 +55,14 @@ export function generateMetadata(config: MetadataConfig = {}): Metadata {
       siteName: SITE_NAME,
       images: images,
       locale: mergedConfig.locale,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       type: mergedConfig.type as any,
     },
     twitter: {
       card: "summary_large_image",
       title: mergedConfig.title,
       description: mergedConfig.description,
-      images: images?.map(img => img.url) || [],
+      images: images?.map((img) => img.url) || [],
     },
     icons: {
       icon: [

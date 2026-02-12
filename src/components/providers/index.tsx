@@ -12,52 +12,53 @@ import { gnosis } from "viem/chains";
 import { foundryChain } from "@/lib/wagmi";
 
 const tokenConfig: ComponentProps<typeof BreadUIKitProvider>["tokenConfig"] = {
-	BREAD: {
-		address: clientEnv.NEXT_PUBLIC_BREAD_TOKEN_ADDRESS as Address,
-		abi: erc20Abi,
-	},
+  BREAD: {
+    address: clientEnv.NEXT_PUBLIC_BREAD_TOKEN_ADDRESS as Address,
+    abi: erc20Abi,
+  },
 };
 
 // TODO: Provide our RPC_URL
 // const gnosisOverride = addRpcUrlOverrideToChain(gnosis, "")
 
-const _chain = clientEnv.NEXT_PUBLIC_NODE_ENV === "production" ? gnosis : foundryChain;
+const _chain =
+  clientEnv.NEXT_PUBLIC_NODE_ENV === "production" ? gnosis : foundryChain;
 
 const privyConfig: PrivyClientConfig = {
-	defaultChain: _chain,
-	supportedChains: [_chain],
-	embeddedWallets: {
-		ethereum: {
-			createOnLogin: "all-users",
-		},
-	},
+  defaultChain: _chain,
+  supportedChains: [_chain],
+  embeddedWallets: {
+    ethereum: {
+      createOnLogin: "all-users",
+    },
+  },
 };
 
 const Providers = ({ children }: { children: ReactNode }) => {
-	const isProd = clientEnv.NEXT_PUBLIC_NODE_ENV === "production";
+  const isProd = clientEnv.NEXT_PUBLIC_NODE_ENV === "production";
 
-	return (
-		<ToolsProviders>
-			<PrivyProvider
-				appId={clientEnv.NEXT_PUBLIC_PRIVY_APP_ID}
-				clientId={clientEnv.NEXT_PUBLIC_PRIVY_CLIENT_ID}
-				config={privyConfig}
-			>
-				<Web3Provider>
-					<BreadUIKitProvider
-						app="stacks"
-						isProd={isProd}
-						tokenConfig={tokenConfig}
-						authProvider="privy"
-					>
-						<ConnectedUserProvider isProd={isProd}>
-							<ModalProvider>{children}</ModalProvider>
-						</ConnectedUserProvider>
-					</BreadUIKitProvider>
-				</Web3Provider>
-			</PrivyProvider>
-		</ToolsProviders>
-	);
+  return (
+    <ToolsProviders>
+      <PrivyProvider
+        appId={clientEnv.NEXT_PUBLIC_PRIVY_APP_ID}
+        clientId={clientEnv.NEXT_PUBLIC_PRIVY_CLIENT_ID}
+        config={privyConfig}
+      >
+        <Web3Provider>
+          <BreadUIKitProvider
+            app="stacks"
+            isProd={isProd}
+            tokenConfig={tokenConfig}
+            authProvider="privy"
+          >
+            <ConnectedUserProvider isProd={isProd}>
+              <ModalProvider>{children}</ModalProvider>
+            </ConnectedUserProvider>
+          </BreadUIKitProvider>
+        </Web3Provider>
+      </PrivyProvider>
+    </ToolsProviders>
+  );
 };
 
 export default Providers;
