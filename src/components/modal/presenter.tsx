@@ -12,6 +12,7 @@ import {
   StackSuccessResultModal,
 } from "./modals/stack-result";
 import StackFailed from "./modals/stack-failed";
+import WithdrawBreadModal from "./modals/withdraw-bread";
 
 const ModalPresenter = () => {
   const { modalState, setModal } = useModal();
@@ -24,7 +25,11 @@ const ModalPresenter = () => {
             <Dialog.Overlay forceMount asChild>
               <ModalOverlay />
             </Dialog.Overlay>
-            <Dialog.Content forceMount className="">
+            <Dialog.Content
+              forceMount
+              className=""
+              onInteractOutside={(e) => e.preventDefault()}
+            >
               {modalState.type === "STACK_CREATION_INIT" && (
                 <StackInitModal modalState={modalState} />
               )}
@@ -48,6 +53,7 @@ const ModalPresenter = () => {
               {modalState.type === "STACK_FAILED" && (
                 <StackFailed modalState={modalState} />
               )}
+              {modalState.type === "WITHDRAW_BREAD" && <WithdrawBreadModal />}
             </Dialog.Content>
           </>
         )}
