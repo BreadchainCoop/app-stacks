@@ -67,6 +67,10 @@ export type StackFailedModalState = {
   id: bigint;
 };
 
+export type WithdrawBreadModalState = {
+  type: "WITHDRAW_BREAD";
+};
+
 export type ModalState =
   | DepositInitModalState
   | DepositLoadingModalState
@@ -77,6 +81,7 @@ export type ModalState =
   | StackInitSuccessModalState
   | StackInitFailedModalState
   | StackFailedModalState
+  | WithdrawBreadModalState
   | null;
 
 export type ModalContext = {
