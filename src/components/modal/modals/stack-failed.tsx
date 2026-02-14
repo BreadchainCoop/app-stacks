@@ -7,15 +7,16 @@ import {
 } from "../components";
 import { StackFailedModalState, useModal } from "../context";
 import LocalLiftedButton from "@/components/lifted-button";
-import { useWriteContract } from "wagmi";
 import { useState } from "react";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { useWaitForTxReceipt } from "@/hooks/use-wait-for-tx-receipt";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
+import { encodeFunctionData } from "viem";
 
 const StackFailed = ({ modalState }: { modalState: StackFailedModalState }) => {
-  const { writeContractAsync } = useWriteContract();
+  const { sendSponsoredTransaction } = useSponsoredTx();
   const { waitForTxReceipt } = useWaitForTxReceipt();
   const queryClient = useQueryClient();
   const { setModal } = useModal();
@@ -33,11 +34,14 @@ const StackFailed = ({ modalState }: { modalState: StackFailedModalState }) => {
     setIsDecommissioning(true);
 
     try {
-      const hash = await writeContractAsync({
-        address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+      const encodedData = encodeFunctionData({
         abi: savingCirclesAbi,
         functionName: "decommission",
         args: [modalState.id],
+      });
+      const { hash } = await sendSponsoredTransaction({
+        to: SAVING_CIRCLES_CONTRACT_ADDRESS,
+        data: encodedData,
       });
 
       await waitForTxReceipt(hash);

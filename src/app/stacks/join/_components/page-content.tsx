@@ -1,7 +1,7 @@
 "use client";
 
-import { useReadContract, useWriteContract } from "wagmi";
-import { formatEther } from "viem";
+import { useReadContract } from "wagmi";
+import { encodeFunctionData, formatEther } from "viem";
 import {
   Accordion,
   AccordionHeader,
@@ -20,8 +20,7 @@ import Loading from "@/app/loading";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { wagmiConfig } from "@/components/providers/web3";
 import { getDefaultChainId } from "@/utils/chain";
-
-const DEFAULT_CHAIN = getDefaultChainId();
+import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
 
 export default function PageContent() {
   const router = useRouter();
@@ -34,7 +33,7 @@ export default function PageContent() {
   const circleName = searchParams.get("name") || "-";
 
   const [redeeming, setRedeeming] = useState(false);
-  const { writeContractAsync } = useWriteContract();
+  const { sendSponsoredTransaction } = useSponsoredTx();
 
   const circleResult = useReadContract({
     abi: savingCirclesAbi,
@@ -66,15 +65,16 @@ export default function PageContent() {
     setRedeeming(true);
 
     try {
-      const hash = await writeContractAsync({
-        address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+      const encodedData = encodeFunctionData({
         abi: savingCirclesAbi,
         functionName: "redeemInvite",
         args: [parsedId, BigInt(nonce), signature as `0x${string}`],
-        chainId: DEFAULT_CHAIN,
+      });
+      const { hash } = await sendSponsoredTransaction({
+        to: SAVING_CIRCLES_CONTRACT_ADDRESS,
+        data: encodedData,
       });
 
-      console.log("Transaction hash:", hash);
       await waitForTransactionReceipt(wagmiConfig, { hash });
 
       let localCircles = JSON.parse(localStorage.getItem("circles") || "{}");

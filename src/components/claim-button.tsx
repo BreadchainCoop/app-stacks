@@ -2,15 +2,15 @@ import React, { useState } from "react";
 import LocalLiftedButton from "./lifted-button";
 import { HandWithdrawIcon } from "@phosphor-icons/react";
 import { useModal } from "./modal/context";
-import { useWriteContract } from "wagmi";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { wagmiConfig } from "./providers/web3";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import { Address } from "viem";
+import { Address, encodeFunctionData } from "viem";
 import { formatBalance } from "@breadcoop/ui";
+import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
 
 const ClaimButton = ({
   amount,
@@ -32,7 +32,7 @@ const ClaimButton = ({
   const queryClient = useQueryClient();
   const { setModal } = useModal();
   const [claiming, setClaiming] = useState(false);
-  const writeContract = useWriteContract();
+  const { sendSponsoredTransaction } = useSponsoredTx();
 
   console.log({ nextDeposit, roundsLeft, nextDepositAddress });
 
@@ -44,11 +44,14 @@ const ClaimButton = ({
     setModal({ type: "CLAIM_LOADING" });
 
     try {
-      const hash = await writeContract.writeContractAsync({
-        address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+      const encodedData = encodeFunctionData({
         abi: savingCirclesAbi,
         functionName: "withdraw",
         args: [circleId],
+      });
+      const { hash } = await sendSponsoredTransaction({
+        to: SAVING_CIRCLES_CONTRACT_ADDRESS,
+        data: encodedData,
       });
 
       await waitForTransactionReceipt(wagmiConfig, {
