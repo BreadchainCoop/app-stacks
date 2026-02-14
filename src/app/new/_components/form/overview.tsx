@@ -17,19 +17,19 @@ import {
 import { ReactNode } from "react";
 import { useFormContext } from "react-hook-form";
 import { StackFormSchemaData } from "./schema";
-import { useWriteContract } from "wagmi";
 import { savingCirclesAbi } from "../../../../lib/abis/saving-circles";
 import {
   BREAD_TOKEN_ADDRESS,
   SAVING_CIRCLES_CONTRACT_ADDRESS,
 } from "../../../../lib/constants";
-import { parseEther, parseEventLogs } from "viem";
+import { encodeFunctionData, parseEther, parseEventLogs } from "viem";
 import { SECONDS_PER_DAY } from "@/utils/solidity";
 import { useModal } from "@/components/modal/context";
 import { sleep } from "@/utils/sleep";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { wagmiConfig } from "@/components/providers/web3";
 import { clientEnv } from "@/lib/env";
+import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
 
 const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
   const modal = useModal();
@@ -40,7 +40,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
   const freqDeposit = form.watch("depositAmount") || 0;
   const total = (members || 0) * (freqDeposit || 0);
   const { user } = useConnectedUser();
-  const writeContract = useWriteContract();
+  const { sendSponsoredTransaction } = useSponsoredTx();
 
   const createStack = async (data: StackFormSchemaData) => {
     try {
@@ -53,8 +53,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
         status: "awaiting",
       });
 
-      const hash = await writeContract.writeContractAsync({
-        address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+      const encodedData = encodeFunctionData({
         abi: savingCirclesAbi,
         functionName: "create",
         args: [
@@ -72,11 +71,25 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
         ],
       });
 
+      const sponsoredTx = sendSponsoredTransaction(
+        {
+          to: SAVING_CIRCLES_CONTRACT_ADDRESS,
+          data: encodedData,
+        },
+        {
+          uiOptions: {
+            showWalletUIs: false,
+          },
+        }
+      );
+
       modal.setModal({
         type: "STACK_CREATION_INIT",
         name: data.name,
         status: "approved",
       });
+
+      const { hash } = await sponsoredTx;
 
       const receipt = await waitForTransactionReceipt(wagmiConfig, {
         hash,

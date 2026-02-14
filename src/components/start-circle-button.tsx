@@ -1,16 +1,16 @@
 "use client";
 
 import { LiftedButtonProps } from "@breadcoop/ui";
-import { formatEther } from "viem";
+import { encodeFunctionData, formatEther } from "viem";
 import LocalLiftedButton from "./lifted-button";
 import { useState } from "react";
-import { useWriteContract } from "wagmi";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { wagmiConfig } from "./providers/web3";
 import { useQueryClient } from "@tanstack/react-query";
 import Loading from "@/app/loading";
+import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
 
 interface StartCircleButtonProps extends Omit<LiftedButtonProps, "children"> {
   amount: bigint;
@@ -23,7 +23,7 @@ const StartCircleButton = ({
   ...props
 }: StartCircleButtonProps) => {
   const queryClient = useQueryClient();
-  const contract = useWriteContract();
+  const { sendSponsoredTransaction } = useSponsoredTx();
   const [starting, setStarting] = useState(false);
 
   const start = async () => {
@@ -32,11 +32,14 @@ const StartCircleButton = ({
     setStarting(true);
 
     try {
-      const hash = await contract.writeContractAsync({
-        address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+      const encodedData = encodeFunctionData({
         abi: savingCirclesAbi,
         functionName: "start",
-        args: [BigInt(circleId)],
+        args: [circleId],
+      });
+      const { hash } = await sendSponsoredTransaction({
+        to: SAVING_CIRCLES_CONTRACT_ADDRESS,
+        data: encodedData,
       });
 
       await waitForTransactionReceipt(wagmiConfig, { hash });
