@@ -2,6 +2,8 @@ import z from "zod";
 
 const envSchema = z.object({
   SPOO_TOKEN: z.string(),
+  UPSTASH_REDIS_REST_URL: z.string(),
+  UPSTASH_REDIS_REST_TOKEN: z.string(),
 });
 
 const parsedSchema = envSchema.safeParse(process.env);

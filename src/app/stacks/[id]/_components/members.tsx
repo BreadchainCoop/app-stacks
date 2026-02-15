@@ -9,6 +9,7 @@ import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { LocalStorageCircle, MemberCircleInfo } from "@/interfaces/circle";
 import { getDefaultChainId } from "@/utils/chain";
+import { useShortenedUrl } from "@/hooks/use-shortened-url";
 
 const TopRowInfo = ({
   LIcon,
@@ -52,6 +53,8 @@ const StackMembers = ({
     +formatEther(circle.depositAmount) * Number(circle.currentIndex);
 
   const isOwner = circle.owner === member;
+
+  console.log("__ IS OWNER __", isOwner);
 
   const localCircle = (() => {
     const localCircles = localStorage.getItem("circles");
@@ -106,6 +109,15 @@ const StackMembers = ({
 
   const pendingCount = pendingInviteLinks.length;
 
+  const { result: shortenedLinks, isShortening } =
+    useShortenedUrl(pendingInviteLinks);
+
+  console.log("__ SHORTENED LINKS __", {
+    shortenedLinks,
+    isShortening,
+    pendingInviteLinks,
+  });
+
   return (
     <section className="p-4 flex flex-col gap-4">
       <header>
@@ -135,7 +147,9 @@ const StackMembers = ({
         id={id}
         info={info}
         totalBaseDeposit={totalBaseDeposit}
-        pendingInviteLinks={isOwner ? pendingInviteLinks : []}
+        pendingInviteLinks={
+          isOwner ? (isShortening ? pendingInviteLinks : shortenedLinks) : []
+        }
       />
     </section>
   );

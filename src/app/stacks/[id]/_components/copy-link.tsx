@@ -1,21 +1,27 @@
 "use client";
 
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
-import { shortenUrl } from "@/utils/shorten";
+import { useShortenedUrl } from "@/hooks/use-shortened-url";
 import { LiftedButton } from "@breadcoop/ui";
 import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 
 export const CopyStackLink = () => {
-  const [textToCopy, setTextToCopy] = useState("");
+  const [currentUrl, setCurrentUrl] = useState("");
+  const { isShortening, result: shortenedUrl } = useShortenedUrl(currentUrl);
   const { copy, copied } = useCopyToClipboard({
-    textToCopy,
-    beforeCopy: shortenUrl,
+    textToCopy: shortenedUrl,
   });
 
   useEffect(() => {
-    setTextToCopy(window.location.href);
+    setCurrentUrl(window.location.href);
   }, []);
+
+  const onCopy = () => {
+    if (isShortening) return;
+
+    copy();
+  };
 
   return (
     <LiftedButton
@@ -28,9 +34,10 @@ export const CopyStackLink = () => {
           <CopyIcon className="fill-primary-blue" />
         )
       }
-      onClick={copy}
+      onClick={onCopy}
+      disabled={isShortening}
     >
-      {copied ? "Copied!" : "Copy stack link"}
+      {copied ? "Copied!" : isShortening ? "Loading..." : "Copy stack link"}
     </LiftedButton>
   );
 };
