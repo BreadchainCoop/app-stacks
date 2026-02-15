@@ -23,6 +23,7 @@ import { savingCirclesAbi } from "../../../lib/abis/saving-circles";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../../lib/constants";
 import { useSignTypedData } from "@privy-io/react-auth";
 import { getDefaultChainId } from "@/utils/chain";
+import { shortenUrl } from "@/utils/shorten";
 
 type InviteLink = {
   nonce: bigint;
@@ -105,11 +106,6 @@ export const StackSuccessResultModal = ({
         );
         const { nonce } = invitePayloads[i];
 
-        // CRITICAL: Privy cannot serialize BigInt
-        // We need to convert BigInt → string OR BigInt → number
-        // For uint256, we can safely use strings for display or numbers if values fit
-
-        // Check if values are safe to convert to number (< Number.MAX_SAFE_INTEGER)
         const circleIdNum =
           circleId < BigInt(Number.MAX_SAFE_INTEGER)
             ? Number(circleId)
@@ -134,26 +130,16 @@ export const StackSuccessResultModal = ({
           },
           primaryType: "Invite" as const,
           message: {
-            // Use numbers - Privy can serialize these
             id: circleIdNum,
             nonce: nonceNum,
           },
         };
 
-        console.log("Signing typed data with Privy:", {
-          circleId: circleIdNum,
-          nonce: nonceNum,
-          chainId: DEFAULT_CHAIN,
-          types: typeof circleIdNum,
-        });
-
         const { signature } = await signTypedData(typedData, {
           uiOptions: {
-            showWalletUIs: false, // Silent signing!
+            showWalletUIs: false,
           },
         });
-
-        console.log("Generated signature:", signature);
 
         const url = buildInviteUrl(
           baseUrl,
@@ -165,6 +151,19 @@ export const StackSuccessResultModal = ({
 
         signedInvites.push({ nonce, signature, url, used: false });
       }
+
+      setSigningProgress("Shortening invite links...");
+
+      const shorteningResults = await Promise.allSettled(
+        signedInvites.map((invite) => shortenUrl(invite.url, { check: false }))
+      );
+
+      signedInvites.forEach((invite, index) => {
+        const result = shorteningResults[index];
+        if (result.status === "fulfilled" && result.value !== invite.url) {
+          invite.url = result.value;
+        }
+      });
 
       let localCircles = JSON.parse(localStorage.getItem("circles") || "{}");
       localCircles = {
@@ -245,6 +244,7 @@ export const StackSuccessResultModal = ({
                     key={invite.nonce.toString()}
                     link={invite.url}
                     label={`0${i + 1}`}
+                    shorten={false}
                   />
                 ))
               : !isGenerating && !error

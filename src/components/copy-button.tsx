@@ -5,7 +5,7 @@ import {
   UseCopyToClipboardPayload,
 } from "@/hooks/use-copy-to-clipboard";
 import { cn } from "@/lib/utils";
-import { shortenUrl } from "@/utils/shorten";
+// import { shortenUrl } from "@/utils/shorten";
 import { CheckIcon } from "@phosphor-icons/react";
 import { ButtonHTMLAttributes, ReactNode } from "react";
 
@@ -14,21 +14,17 @@ interface CopyButtonProps
   children: ReactNode;
   varaint: "icon" | "text" | "icon-text";
   checkedIconSize?: number;
-  shorten?: boolean;
 }
 
 const CopyButton = ({
   varaint,
   children,
   textToCopy,
-  beforeCopy,
   checkedIconSize = 24,
-  shorten,
   ...buttonProps
 }: CopyButtonProps) => {
   const { copied, copy } = useCopyToClipboard({
     textToCopy,
-    beforeCopy: shorten ? shortenUrl : undefined,
   });
 
   return (

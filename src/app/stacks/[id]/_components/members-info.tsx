@@ -101,7 +101,7 @@ const MembersInfo = ({
               </div>
             </AccordionHeader>
             <AccordionContent>
-              <PendingInviteLink link={link} />
+              <PendingInviteLink link={link} shorten={false} />
             </AccordionContent>
           </AccordionItem>
         ))}
