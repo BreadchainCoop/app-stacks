@@ -39,20 +39,6 @@ Create a `.env.local` file in the root directory:
 cp .env.example .env.local
 ```
 
-Add the following variables to `.env.local`:
-
-```env
-# These will be auto-populated after contracts deployment
-NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS=
-NEXT_PUBLIC_SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS=
-NEXT_PUBLIC_BREAD_TOKEN_ADDRESS=
-
-# Local development RPC
-NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK=0
-NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=
-NEXT_PUBLIC_NODE_ENV=local
-```
-
 ### 4. Start Local Blockchain
 
 In a separate terminal, start Anvil (local Ethereum node):
@@ -137,21 +123,37 @@ make deploy
 
 ### Time Manipulation (for testing)
 
+Anvil derives its block timestamps from your **machine's system clock**. To simulate future dates and test time-dependent contract logic, you need to manually set your machine's date and time to a future value.
+
+**To move time forward:**
+
+1. Change your machine's system date/time to the desired future date.
+2. Mine a new block so Anvil picks up the new timestamp:
+
 ```bash
-# Mine a new block
 make mine
+```
 
-# Check current block timestamp
+3. Verify the new timestamp:
+
+```bash
 make timestamp
+```
 
-# Fast forward time by X seconds (e.g., 1 day = 86400 seconds)
-make time-increase SECONDS=86400
+> ⚠️ **Important:** Anvil only moves time forward. If you set your machine's clock back to the present (or any earlier time), Anvil will **not** reflect that change — it will continue using the last recorded timestamp. To work around this, always set your system clock to a time _further in the future_ than the last block's timestamp, never backwards.
 
-# Jump to a specific Unix timestamp
-make warp TIMESTAMP=1735689600
+**Typical workflow for time-based testing:**
 
-# Reset to current time
-make time-reset
+1. Set system clock → future date (e.g. 30 days ahead)
+2. `make mine` to produce a block at that timestamp
+3. Interact with contracts as needed
+4. To advance further, set system clock to an even later date and repeat
+
+**To return to normal development**, restart Anvil (`make anvil-reset`) after resetting your system clock — the reset will start a fresh chain anchored to the current block timestamp of the Gnosis fork.
+
+```bash
+make mine          # Mine a single block
+make timestamp     # Show current block timestamp
 ```
 
 ## Useful Make Commands
@@ -164,9 +166,6 @@ make time-reset
 | `make update-contract-submodules` | Update contract dependencies           |
 | `make mine`                       | Mine a single block                    |
 | `make timestamp`                  | Show current block timestamp           |
-| `make time-increase SECONDS=X`    | Fast forward time by X seconds         |
-| `make warp TIMESTAMP=X`           | Set next block to specific timestamp   |
-| `make time-reset`                 | Reset to current system time           |
 
 ## Custom Deployment
 
