@@ -79,6 +79,14 @@ update-env:
 	@echo "✓ Updated .env.local successfully with contract addresses and creation block $(CREATION_BLOCK)"
 
 update-contract-submodules:
+	@# Recover from broken saving-circles submodule state (e.g. HEAD -> refs/heads/.invalid)
+	@if [ -f .git/modules/contracts/lib/saving-circles/HEAD ] && \
+		grep -q "refs/heads/.invalid" .git/modules/contracts/lib/saving-circles/HEAD; then \
+		echo "Detected invalid saving-circles submodule HEAD; reinitializing..."; \
+		git submodule deinit -f contracts/lib/saving-circles; \
+		rm -rf .git/modules/contracts/lib/saving-circles; \
+		rm -rf contracts/lib/saving-circles; \
+	fi
 	git submodule sync --recursive && \
 	git submodule update --init --recursive && \
 	git submodule update --remote --merge && \
