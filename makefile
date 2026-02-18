@@ -1,4 +1,4 @@
-.PHONY: deploy anvil update-env update-contract-submodules warp time-increase mine timestamp time-reset
+.PHONY: deploy anvil update-env update-contract-submodules update-saving-circles-dev warp time-increase mine timestamp time-reset
 
 ANVIL_ACCOUNTS := 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 \
 	0x70997970C51812dc3A010C7d01b50e0d17dc79C8 \
@@ -81,7 +81,16 @@ update-env:
 update-contract-submodules:
 	git submodule sync --recursive && \
 	git submodule update --init --recursive && \
-	git submodule update --remote --merge
+	git submodule update --remote --merge && \
+	git -C contracts/lib/saving-circles fetch origin dev && \
+	git -C contracts/lib/saving-circles checkout dev && \
+	git -C contracts/lib/saving-circles pull --ff-only origin dev
+
+update-saving-circles-dev:
+	git submodule update --init contracts/lib/saving-circles && \
+	git -C contracts/lib/saving-circles fetch origin dev && \
+	git -C contracts/lib/saving-circles checkout dev && \
+	git -C contracts/lib/saving-circles pull --ff-only origin dev
 
 # Time manipulation commands for Anvil
 mine:
