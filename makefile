@@ -16,6 +16,7 @@ RPC_URL ?= http://localhost:8545
 # first anvil's account
 PRIVATE_KEY ?= 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 ADMIN_ADDRESS ?= 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+OZ_UPGRADEABLE_REENTRANCY_COMMIT ?= 5c4c29275d02e06265ce1cfcad5a420b58a5ca02
 
 anvil:
 	anvil --fork-url https://rpc.gnosischain.com --chain-id 31337 --block-time 5
@@ -79,17 +80,29 @@ update-env:
 	@echo "✓ Updated .env.local successfully with contract addresses and creation block $(CREATION_BLOCK)"
 
 update-contract-submodules:
-	@# Recover from broken saving-circles submodule state (e.g. HEAD -> refs/heads/.invalid)
-	@if [ -f .git/modules/contracts/lib/saving-circles/HEAD ] && \
-		grep -q "refs/heads/.invalid" .git/modules/contracts/lib/saving-circles/HEAD; then \
-		echo "Detected invalid saving-circles submodule HEAD; reinitializing..."; \
-		git submodule deinit -f contracts/lib/saving-circles; \
-		rm -rf .git/modules/contracts/lib/saving-circles; \
-		rm -rf contracts/lib/saving-circles; \
-	fi
 	git submodule sync --recursive && \
-	git submodule update --init --recursive && \
-	git submodule update --remote --merge && \
+	git submodule update --init --recursive
+	@# Recover any submodule with invalid HEAD or missing refs
+	@for submodule in $$(git config --file .gitmodules --get-regexp path | awk '{print $$2}'); do \
+		head_file=".git/modules/$$submodule/HEAD"; \
+		if [ -f "$$head_file" ] && grep -q "refs/heads/.invalid" "$$head_file"; then \
+			echo "Detected invalid $$submodule HEAD; reinitializing..."; \
+			git submodule deinit -f "$$submodule" || true; \
+			rm -rf ".git/modules/$$submodule"; \
+			rm -rf "$$submodule"; \
+			git submodule update --init "$$submodule"; \
+		elif ! git -C "$$submodule" rev-parse --verify HEAD >/dev/null 2>&1; then \
+			echo "Detected broken $$submodule checkout; reinitializing..."; \
+			git submodule deinit -f "$$submodule" || true; \
+			rm -rf ".git/modules/$$submodule"; \
+			rm -rf "$$submodule"; \
+			git submodule update --init "$$submodule"; \
+		fi; \
+	done
+	git -C contracts/lib/openzeppelin-contracts-upgradeable fetch origin master && \
+	git -C contracts/lib/openzeppelin-contracts-upgradeable checkout $(OZ_UPGRADEABLE_REENTRANCY_COMMIT)
+	@test -f contracts/lib/openzeppelin-contracts-upgradeable/contracts/utils/ReentrancyGuardUpgradeable.sol || \
+		( echo "Error: missing contracts/lib/openzeppelin-contracts-upgradeable/contracts/utils/ReentrancyGuardUpgradeable.sol after checkout $(OZ_UPGRADEABLE_REENTRANCY_COMMIT)"; exit 1 )
 	git -C contracts/lib/saving-circles fetch origin dev && \
 	git -C contracts/lib/saving-circles checkout dev && \
 	git -C contracts/lib/saving-circles pull --ff-only origin dev
