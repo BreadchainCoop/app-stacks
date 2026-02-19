@@ -1,3 +1,4 @@
+import { clientEnv } from "@/lib/env";
 import { getDefaultChainId } from "@/utils/chain";
 import { useSendTransaction } from "@privy-io/react-auth";
 
@@ -10,7 +11,7 @@ export const useSponsoredTx = () => {
   ) => {
     return sendTransaction(
       { ...input, chainId: getDefaultChainId() },
-      { ...options, sponsor: true }
+      { ...options, sponsor: clientEnv.NEXT_PUBLIC_NODE_ENV === "production" }
     );
   };
 

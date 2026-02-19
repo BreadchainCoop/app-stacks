@@ -134,3 +134,47 @@ time-reset:
 	@cast rpc evm_setNextBlockTimestamp $$(date +%s) --rpc-url $(RPC_URL)
 	@cast rpc evm_mine --rpc-url $(RPC_URL)
 	@echo "✓ Reset to current timestamp: $$(date +%s)"
+
+eth ?= __unset__
+bread ?= __unset__
+
+FUND_WALLET_ADDRESS := $(filter-out fund-wallet, $(MAKECMDGOALS))
+
+fund-wallet:
+	@if [ -z "$(FUND_WALLET_ADDRESS)" ]; then \
+		echo "Error: wallet address required"; \
+		echo "Usage: make fund-wallet 0xYourAddress [eth=100] [bread=100]"; \
+		exit 1; \
+	fi
+	@BREAD_TOKEN=$$(jq -r '.breadToken' contracts/out/SAVING_CIRCLES_DEPLOYMENT.json); \
+	FUND_ETH=0; FUND_BREAD=0; \
+	if [ "$(eth)" = "__unset__" ] && [ "$(bread)" = "__unset__" ]; then \
+		FUND_ETH=100; FUND_BREAD=100; \
+	elif [ "$(eth)" != "__unset__" ]; then \
+		FUND_ETH=$(eth); \
+	elif [ "$(bread)" != "__unset__" ]; then \
+		FUND_BREAD=$(bread); \
+	fi; \
+	if [ "$$FUND_ETH" != "0" ]; then \
+		ETH_WEI_HEX=$$(printf '0x%x' $$(cast to-wei $$FUND_ETH)); \
+		cast rpc anvil_setBalance $(FUND_WALLET_ADDRESS) $$ETH_WEI_HEX --rpc-url $(RPC_URL) > /dev/null; \
+		echo "✓ Set ETH balance to $$FUND_ETH ETH"; \
+	fi; \
+	if [ "$$FUND_BREAD" != "0" ]; then \
+		TOKEN_WEI=$$(cast to-wei $$FUND_BREAD); \
+		cast send $$BREAD_TOKEN \
+			"transfer(address,uint256)" \
+			$(FUND_WALLET_ADDRESS) $$TOKEN_WEI \
+			--rpc-url $(RPC_URL) \
+			--private-key $(PRIVATE_KEY) > /dev/null; \
+		echo "✓ Transferred $$FUND_BREAD BREAD to $(FUND_WALLET_ADDRESS)"; \
+	fi; \
+	echo ""; \
+	echo "Balances for $(FUND_WALLET_ADDRESS):"; \
+	ETH_BAL=$$(cast balance $(FUND_WALLET_ADDRESS) --rpc-url $(RPC_URL) --ether); \
+	BREAD_BAL=$$(cast call $$BREAD_TOKEN 'balanceOf(address)' $(FUND_WALLET_ADDRESS) --rpc-url $(RPC_URL) | cast --to-dec | cast from-wei); \
+	echo "  ETH:   $$ETH_BAL ETH"; \
+	echo "  BREAD: $$BREAD_BAL BREAD"
+
+0x%:
+	@:
