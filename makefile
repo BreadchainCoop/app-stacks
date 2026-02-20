@@ -1,4 +1,4 @@
-.PHONY: deploy anvil update-env update-contract-submodules update-saving-circles-dev warp time-increase mine timestamp time-reset
+.PHONY: deploy install-contract-deps anvil update-env update-contract-submodules update-saving-circles-dev warp time-increase mine timestamp time-reset
 
 ANVIL_ACCOUNTS := 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 \
 	0x70997970C51812dc3A010C7d01b50e0d17dc79C8 \
@@ -17,6 +17,8 @@ RPC_URL ?= http://localhost:8545
 PRIVATE_KEY ?= 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 ADMIN_ADDRESS ?= 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 OZ_UPGRADEABLE_REENTRANCY_COMMIT ?= 5c4c29275d02e06265ce1cfcad5a420b58a5ca02
+SAVING_CIRCLES_BRANCH ?= feat/member-withdrawable-view
+SOLC_OPTIMIZER_RUNS ?= 200
 
 anvil:
 	anvil --fork-url https://rpc.gnosischain.com --chain-id 31337 --block-time 5
@@ -33,13 +35,17 @@ reset-nonces:
 	done
 	@echo "✓ All nonces reset successfully"
 
+install-contract-deps:
+	cd contracts && forge install
+
 deploy:
 	cd contracts && \
 	export RPC_URL=$(RPC_URL) && \
 	export PRIVATE_KEY=$(PRIVATE_KEY) && \
 	export ADMIN_ADDRESS=$(ADMIN_ADDRESS) && \
-	forge install && \
 	forge script script/Deploy.s.sol:Deploy \
+		--optimize \
+		--optimizer-runs $(SOLC_OPTIMIZER_RUNS) \
 		--rpc-url $(RPC_URL) \
 		--broadcast \
 		--private-key $(PRIVATE_KEY) \
@@ -103,15 +109,15 @@ update-contract-submodules:
 	git -C contracts/lib/openzeppelin-contracts-upgradeable checkout $(OZ_UPGRADEABLE_REENTRANCY_COMMIT)
 	@test -f contracts/lib/openzeppelin-contracts-upgradeable/contracts/utils/ReentrancyGuardUpgradeable.sol || \
 		( echo "Error: missing contracts/lib/openzeppelin-contracts-upgradeable/contracts/utils/ReentrancyGuardUpgradeable.sol after checkout $(OZ_UPGRADEABLE_REENTRANCY_COMMIT)"; exit 1 )
-	git -C contracts/lib/saving-circles fetch origin dev && \
-	git -C contracts/lib/saving-circles checkout dev && \
-	git -C contracts/lib/saving-circles pull --ff-only origin dev
+	git -C contracts/lib/saving-circles fetch origin $(SAVING_CIRCLES_BRANCH) && \
+	git -C contracts/lib/saving-circles checkout $(SAVING_CIRCLES_BRANCH) && \
+	git -C contracts/lib/saving-circles pull --ff-only origin $(SAVING_CIRCLES_BRANCH)
 
 update-saving-circles-dev:
 	git submodule update --init contracts/lib/saving-circles && \
-	git -C contracts/lib/saving-circles fetch origin dev && \
-	git -C contracts/lib/saving-circles checkout dev && \
-	git -C contracts/lib/saving-circles pull --ff-only origin dev
+	git -C contracts/lib/saving-circles fetch origin $(SAVING_CIRCLES_BRANCH) && \
+	git -C contracts/lib/saving-circles checkout $(SAVING_CIRCLES_BRANCH) && \
+	git -C contracts/lib/saving-circles pull --ff-only origin $(SAVING_CIRCLES_BRANCH)
 
 # Time manipulation commands for Anvil
 mine:
