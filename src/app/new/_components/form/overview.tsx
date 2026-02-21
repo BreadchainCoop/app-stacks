@@ -124,7 +124,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
           -2
         )}${data.members === 1 ? "" : "s"}`.trim(),
         deposit: data.depositAmount,
-        total: data.members * data.depositAmount,
+        total: data.members ** 2 * data.depositAmount,
         members: data.members,
       };
 
@@ -140,7 +140,8 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
         ...localCircles,
         [circle.id]: {
           name: circle.name,
-          owner: user.address, // Store the owner for reference
+          owner: user.address,
+          totalMembers: data.members,
         },
       };
       localStorage.setItem("circles", JSON.stringify(localCircles));

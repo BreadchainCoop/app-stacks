@@ -55,7 +55,7 @@ const DaysLeft = ({
       <div>
         <div className="flex items-center justify-start gap-0.5">
           <CalendarStarIcon size={24} className="fill-blue-2" />
-          <Body>Days left until next round</Body>
+          <Body>Days left until current round ends</Body>
         </div>
         <p className="text-h2 text-2xl leading-6 mt-2">{daysLeft}</p>
       </div>

@@ -113,6 +113,7 @@ const StackDetailsBreakdown = ({
   const capitalizedLabel = `${intervalLabel[0].toUpperCase()}${intervalLabel.slice(
     1
   )}`;
+  const _roundsLeft = status.status === "pending-start" ? "-" : roundsLeft;
 
   return (
     <div className="md:flex-1">
@@ -138,9 +139,9 @@ const StackDetailsBreakdown = ({
       <StackDetailsBreakdownRow label="Time left">
         <>
           <p className="text-h2 leading-6 tracking-[-2%] text-2xl">
-            {status.status === "finished" ? "0" : roundsLeft}
+            {status.status === "finished" ? "0" : _roundsLeft}
           </p>
-          <p>{capitalizedLabel}s</p>
+          {status.status !== "pending-start" && <p>{capitalizedLabel}s</p>}
         </>
       </StackDetailsBreakdownRow>
     </div>

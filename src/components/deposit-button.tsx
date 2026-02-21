@@ -7,8 +7,8 @@ import {
 } from "@breadcoop/ui";
 import { useModal } from "./modal/context";
 import { localButtonClassNames } from "./lifted-button";
-import { useReadContract, useSimulateContract, useWriteContract } from "wagmi";
-import { Address, erc20Abi } from "viem";
+import { useReadContract } from "wagmi";
+import { Address, encodeFunctionData, erc20Abi } from "viem";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { useMemo, useState } from "react";
 import { waitForTransactionReceipt } from "@wagmi/core";
@@ -18,6 +18,7 @@ import { getDefaultChainId } from "@/utils/chain";
 import { useQueryClient } from "@tanstack/react-query";
 import Loading from "@/app/loading";
 import { MAX_UINT256 } from "@/utils/solidity";
+import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
 
 interface DepositButtonProps extends Omit<LiftedButtonProps, "children"> {
   label?: string;
@@ -36,6 +37,7 @@ const DepositButton = ({
 }: DepositButtonProps) => {
   const [depositing, setDepositing] = useState(false);
   const queryClient = useQueryClient();
+  const { sendSponsoredTransaction } = useSponsoredTx();
   const { user } = useConnectedUser();
   const userAddress = user.status === "CONNECTED" ? user.address : undefined;
   const modal = useModal();
@@ -59,17 +61,6 @@ const DepositButton = ({
     return allowance < amount;
   }, [allowance, amount, userAddress]);
 
-  const { data: approveConfig } = useSimulateContract({
-    address: tokenAddress,
-    abi: erc20Abi,
-    functionName: "approve",
-    args: [SAVING_CIRCLES_CONTRACT_ADDRESS, MAX_UINT256],
-    query: { enabled: needsApproval && !!userAddress },
-  });
-
-  const { writeContractAsync: writeApprove } = useWriteContract();
-  const { writeContractAsync: writeDeposit } = useWriteContract();
-
   const deposit = async () => {
     if (depositing) return;
 
@@ -78,24 +69,31 @@ const DepositButton = ({
 
     try {
       if (needsApproval) {
-        const approveHash = await writeApprove({
-          ...approveConfig!.request,
+        const approveData = encodeFunctionData({
+          abi: erc20Abi,
+          functionName: "approve",
+          args: [SAVING_CIRCLES_CONTRACT_ADDRESS, MAX_UINT256],
         });
 
-        console.log({ approveHash });
+        const { hash: approveHash } = await sendSponsoredTransaction({
+          to: tokenAddress,
+          data: approveData,
+        });
 
-        const approveReceipt = await waitForTransactionReceipt(wagmiConfig, {
+        await waitForTransactionReceipt(wagmiConfig, {
           hash: approveHash,
         });
-
-        console.log({ approveReceipt });
       }
 
-      const depositHash = await writeDeposit({
-        address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+      const depositData = encodeFunctionData({
         abi: savingCirclesAbi,
         functionName: "deposit",
         args: [circleId, amount],
+      });
+
+      const { hash: depositHash } = await sendSponsoredTransaction({
+        to: SAVING_CIRCLES_CONTRACT_ADDRESS,
+        data: depositData,
       });
 
       await waitForTransactionReceipt(wagmiConfig, { hash: depositHash });

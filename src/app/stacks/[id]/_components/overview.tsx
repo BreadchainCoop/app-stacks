@@ -18,6 +18,8 @@ import { useCircleStatus } from "@/hooks/use-circle-status";
 import StartCircleButton from "@/components/start-circle-button";
 import DepositButton from "@/components/deposit-button";
 import { useModal } from "@/components/modal/context";
+import { useEffect, useState } from "react";
+import { LocalStorageCircles } from "@/interfaces/circle";
 
 const Overview = ({
   circle,
@@ -33,18 +35,33 @@ const Overview = ({
 }) => {
   const { setModal } = useModal();
   const connectedUser = useConnectedUser();
+  const [totalMembers, setTotalMembers] = useState<string | number>(0);
   const formattedCircleStatus = getUserCircleStatus(circle, member, {
     includeClaimable: true,
     // includeDeposited: true,
   });
-  const totalMembers = Number(circle.totalRounds);
+
+  useEffect(() => {
+    if (formattedCircleStatus.status === "pending-start") {
+      const localCircles: LocalStorageCircles = JSON.parse(
+        localStorage.getItem("circles") || "{}"
+      );
+
+      const localCircle = localCircles[circle.circleId.toString()];
+
+      setTotalMembers(localCircle?.totalMembers || "-");
+    } else {
+      setTotalMembers(Number(circle.totalRounds));
+    }
+  }, []);
+
   let roundsCompleted = BigInt(0);
   let membersDeposited: bigint | number = BigInt(0);
   let poolBalance = BigInt(0);
 
   if (formattedCircleStatus.status === "finished") {
     roundsCompleted = circle.totalRounds;
-    membersDeposited = totalMembers;
+    membersDeposited = totalMembers as number;
     poolBalance = BigInt(totalMembers) * circle.circleInfo.depositAmount;
   } else {
     roundsCompleted = circle.completedRounds;
@@ -60,7 +77,13 @@ const Overview = ({
         <Body bold className="text-xs shrink-0">
           <span className="font-normal">Stack status: </span>
           <span>
-            {roundsCompleted} out of {circle.totalRounds} rounds complete
+            {totalMembers === "-" ? (
+              "-"
+            ) : (
+              <>
+                {roundsCompleted} out of {totalMembers} rounds complete
+              </>
+            )}
           </span>
         </Body>
       </header>
@@ -68,8 +91,14 @@ const Overview = ({
         <Body className="flex flex-col justify-start md:items-start">
           <span className="text-surface-grey">Deposits made by</span>
           <span>
-            <span className="font-bold">{membersDeposited}</span> out of{" "}
-            <span className="font-bold">{totalMembers}</span> members
+            {totalMembers === "-" ? (
+              "-"
+            ) : (
+              <>
+                <span className="font-bold">{membersDeposited}</span> out of{" "}
+                <span className="font-bold">{totalMembers}</span> members
+              </>
+            )}
           </span>
         </Body>
         <Body className="flex flex-col justify-start md:items-center md:justify-center">
@@ -79,8 +108,9 @@ const Overview = ({
             <span className="font-bold mt-[0.2rem]">
               {formatBalance(+formatEther(poolBalance), 2)} of{" "}
               {formatBalance(
-                +formatEther(circle.circleInfo.depositAmount) * totalMembers,
-                3
+                +formatEther(circle.circleInfo.depositAmount) *
+                  (typeof totalMembers === "string" ? 0 : totalMembers),
+                2
               )}{" "}
               BREAD
             </span>
