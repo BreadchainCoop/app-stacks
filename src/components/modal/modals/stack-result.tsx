@@ -41,7 +41,10 @@ function buildInviteUrl(
   circleId: string,
   nonce: bigint,
   signature: string,
-  name: string
+  name: string,
+  members: number,
+  interval: string,
+  deposit: string
 ): string {
   const url = new URL(baseUrl);
   url.searchParams.set("contract", SAVING_CIRCLES_CONTRACT_ADDRESS);
@@ -49,6 +52,9 @@ function buildInviteUrl(
   url.searchParams.set("nonce", nonce.toString());
   url.searchParams.set("signature", signature);
   url.searchParams.set("name", name);
+  url.searchParams.set("members", String(members));
+  url.searchParams.set("interval", interval);
+  url.searchParams.set("deposit", deposit);
 
   return url.toString();
 }
@@ -146,7 +152,10 @@ export const StackSuccessResultModal = ({
           modalState.circle.id,
           nonce,
           signature,
-          modalState.circle.name
+          modalState.circle.name,
+          modalState.circle.members,
+          modalState.circle.duration.split(" ")[1],
+          formatBalance(modalState.circle.deposit, 2)
         );
 
         signedInvites.push({ nonce, signature, url, used: false });

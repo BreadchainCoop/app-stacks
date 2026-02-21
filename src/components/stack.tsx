@@ -1,35 +1,16 @@
-import {
-  Body,
-  Heading3,
-  Chip,
-  formatBalance,
-  // LiftedButton
-} from "@breadcoop/ui";
+import { Body, Heading3, Chip, formatBalance } from "@breadcoop/ui";
 import { UsersIcon } from "./icons/users";
 import { CoinIcon, CoinsIcon } from "./icons/coin";
 import { CalendarIcon } from "./icons/calendar";
 import LocalLiftedButton from "./lifted-button";
 import Link from "next/link";
-import {
-  // HandWithdrawIcon,
-  QuestionIcon,
-} from "@phosphor-icons/react/ssr";
-// import { useModal } from "./modal/context";
+import { QuestionIcon } from "@phosphor-icons/react/ssr";
 import ClaimButton from "./claim-button";
 import { ICircleList, LocalStorageCircle } from "@/interfaces/circle";
 import { formatEther } from "viem";
 import DepositButton from "./deposit-button";
 import { HandWithdrawIcon } from "@phosphor-icons/react";
 import { parseCircleIntervalToDate } from "@/utils/stacks";
-
-// const headerStatuses: ICircleList["status"][] = [
-//   "payment_due",
-//   "claimable",
-//   "pending-start",
-//   "in-progress",
-//   "finished",
-//   "expired",
-// ];
 
 const Stack = ({
   stack,
@@ -38,7 +19,6 @@ const Stack = ({
   stack: ICircleList;
   stackNames: Record<string, LocalStorageCircle>;
 }) => {
-  // const { setModal } = useModal();
   const depositAmount = formatEther(stack.depositAmount);
   const totalGoal =
     Number(depositAmount) * stack.totalMember * stack.totalMember;

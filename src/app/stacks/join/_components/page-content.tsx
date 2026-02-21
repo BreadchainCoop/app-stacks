@@ -31,6 +31,9 @@ export default function PageContent() {
   const nonce = searchParams.get("nonce");
   const signature = searchParams.get("signature");
   const circleName = searchParams.get("name") || "-";
+  const members = Number(searchParams.get("members"));
+  const interval = searchParams.get("interval") || "";
+  const deposit = Number(searchParams.get("deposit"));
 
   const [redeeming, setRedeeming] = useState(false);
   const { sendSponsoredTransaction } = useSponsoredTx();
@@ -80,7 +83,10 @@ export default function PageContent() {
       let localCircles = JSON.parse(localStorage.getItem("circles") || "{}");
       localCircles = {
         ...localCircles,
-        [circleId]: { name: circleName },
+        [circleId]: {
+          name: circleName,
+          totalMembers: members,
+        },
       };
       localStorage.setItem("circles", JSON.stringify(localCircles));
 
@@ -130,14 +136,20 @@ export default function PageContent() {
                   <div className="">
                     <RowDetail label="Group name" body={circleName} />
                     <RowDetail label="Stacks group ID" body={circleId} />
-                    <RowDetail label="Duration" body="Duration" />
+                    <RowDetail
+                      label="Duration"
+                      body={`${members} ${interval}`}
+                    />
                     <RowDetail
                       label="Est. Deposit amount"
                       body={`${formatEther(
                         circleResult.data.depositAmount
                       )} BREAD`}
                     />
-                    <RowDetail label="Stack goal" body={`30 BREAD`} />
+                    <RowDetail
+                      label="Stack goal"
+                      body={`${members ** 2 * deposit} BREAD`}
+                    />
                   </div>
                 </AccordionContent>
               </AccordionItem>

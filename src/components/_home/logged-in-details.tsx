@@ -1,3 +1,4 @@
+import HomeHeader from "./header";
 import HomeTab from "./tab";
 import HomeUserStacks from "./user-stacks";
 import { useConnectedUser } from "@breadcoop/ui";
@@ -10,6 +11,7 @@ const HomeLoggedInDetails = () => {
 
   return (
     <>
+      <HomeHeader type="persona" />
       <HomeTab />
       <HomeUserStacks address={user.address} />
     </>

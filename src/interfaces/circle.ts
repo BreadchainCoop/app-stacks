@@ -43,7 +43,8 @@ export type ICircleList = ICircleBaseList &
 
 export interface LocalStorageCircle {
   name: string;
-  invite_links: string[];
+  invite_links?: string[];
+  totalMembers: number;
 }
 
 export type LocalStorageCircles = Record<string, LocalStorageCircle>;
