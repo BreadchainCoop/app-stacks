@@ -11,6 +11,14 @@
   .page-layout {
     @apply px-4 mx-auto max-w-299 md:px-6 lg:px-8;
   }
+
+  .body-container {
+    @apply overflow-x-hidden min-h-screen;
+  }
+
+  .body-container div[data-rk]:first-child {
+    @apply min-h-screen flex flex-col *:w-full;
+  }
 }
 
 @layer components {

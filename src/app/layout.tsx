@@ -21,7 +21,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-roboto text-text-standard antialiased">
-        <div className="overflow-x-hidden">
+        <div className="body-container">
           <Providers>
             <ModalPresenter />
             <Navbar />
