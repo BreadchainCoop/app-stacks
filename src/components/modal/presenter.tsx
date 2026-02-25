@@ -13,6 +13,8 @@ import {
 } from "./modals/stack-result";
 import StackFailed from "./modals/stack-failed";
 import WithdrawBreadModal from "./modals/withdraw-bread";
+import WalletFundingModal from "./modals/wallet-funding";
+import WalletFundingStatusModal from "./modals/wallet-funding-status";
 
 const ModalPresenter = () => {
   const { modalState, setModal } = useModal();
@@ -54,6 +56,12 @@ const ModalPresenter = () => {
                 <StackFailed modalState={modalState} />
               )}
               {modalState.type === "WITHDRAW_BREAD" && <WithdrawBreadModal />}
+              {modalState.type === "WALLET_FUNDING" && (
+                <WalletFundingModal modalState={modalState} />
+              )}
+              {modalState.type === "WALLET_FUNDING_STATUS" && (
+                <WalletFundingStatusModal modalState={modalState} />
+              )}
             </Dialog.Content>
           </>
         )}
