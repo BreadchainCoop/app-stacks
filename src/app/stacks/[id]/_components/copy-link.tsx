@@ -1,8 +1,7 @@
 "use client";
 
-import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { useShortenedUrl } from "@/hooks/use-shortened-url";
-import { LiftedButton } from "@breadcoop/ui";
+import { LiftedButton, useCopyToClipboard } from "@breadcoop/ui";
 import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 

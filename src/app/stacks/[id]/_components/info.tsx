@@ -1,8 +1,7 @@
-import CopyButton from "@/components/copy-button";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { formatAddress } from "@/utils/address";
-import { Body } from "@breadcoop/ui";
-import { ArrowUpRightIcon, CopyIcon } from "@phosphor-icons/react/ssr";
+import { Body, CopyButtonIcon } from "@breadcoop/ui";
+import { ArrowUpRightIcon } from "@phosphor-icons/react/ssr";
 import { ReactNode } from "react";
 import { Address } from "viem";
 
@@ -38,13 +37,14 @@ const StackInfo = ({ owner }: { owner: Address }) => {
       <StackInfoRow label="Created by:">
         <Body className="flex items-center justify-end gap-1">
           {formatAddress(owner)}
-          <CopyButton
+          <CopyButtonIcon textToCopy={owner} />
+          {/* <CopyButton
             textToCopy={owner}
             varaint="icon"
             className="flex items-center justify-end gap-1"
           >
             <CopyIcon size={24} className="fill-blue-2" />
-          </CopyButton>
+          </CopyButton> */}
         </Body>
       </StackInfoRow>
     </div>

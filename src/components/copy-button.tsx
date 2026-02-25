@@ -1,19 +1,15 @@
 "use client";
 
-import {
-  useCopyToClipboard,
-  UseCopyToClipboardPayload,
-} from "@/hooks/use-copy-to-clipboard";
 import { cn } from "@/lib/utils";
-// import { shortenUrl } from "@/utils/shorten";
+import { useCopyToClipboard } from "@breadcoop/ui";
 import { CheckIcon } from "@phosphor-icons/react";
 import { ButtonHTMLAttributes, ReactNode } from "react";
 
-interface CopyButtonProps
-  extends ButtonHTMLAttributes<HTMLButtonElement>, UseCopyToClipboardPayload {
+interface CopyButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
   varaint: "icon" | "text" | "icon-text";
   checkedIconSize?: number;
+  textToCopy: string;
 }
 
 const CopyButton = ({
