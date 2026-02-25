@@ -15,7 +15,7 @@ const depositIntervalSchema = z
   .min(2, "At least two deposit intervals are required");
 
 const envSchema = z.object({
-  NEXT_PUBLIC_CHAIN_ID: z.coerce.number(),
+  NEXT_PUBLIC_CHAIN_ID: z.coerce.number().default(100),
   NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS: z.string(),
   NEXT_PUBLIC_SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS: z.string(),
   NEXT_PUBLIC_BREAD_TOKEN_ADDRESS: z.string(),

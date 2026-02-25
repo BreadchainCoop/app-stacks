@@ -72,6 +72,20 @@ export type WithdrawBreadModalState = {
   type: "WITHDRAW_BREAD";
 };
 
+export type WalletFundingModalState = {
+  type: "WALLET_FUNDING";
+  walletAddress?: Address;
+  breadBalance?: string;
+  onFund: () => Promise<boolean>;
+  onSkip?: () => void;
+};
+
+export type WalletFundingStatusModalState = {
+  type: "WALLET_FUNDING_STATUS";
+  status: TModalStatus;
+  onRetry?: () => Promise<void>;
+};
+
 export type ModalState =
   | DepositInitModalState
   | DepositLoadingModalState
@@ -83,6 +97,8 @@ export type ModalState =
   | StackInitFailedModalState
   | StackFailedModalState
   | WithdrawBreadModalState
+  | WalletFundingModalState
+  | WalletFundingStatusModalState
   | null;
 
 export type ModalContext = {
