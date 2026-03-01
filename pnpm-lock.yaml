@@ -8,8 +8,8 @@ importers:
   .:
     dependencies:
       "@breadcoop/ui":
-        specifier: file:breadcoop-ui-1.0.24.tgz
-        version: file:breadcoop-ui-1.0.24.tgz(ltx3fzdqwhovahso7bpnp2i7se)
+        specifier: ^1.0.25
+        version: 1.0.25(ltx3fzdqwhovahso7bpnp2i7se)
       "@duneanalytics/client-sdk":
         specifier: ^0.2.5
         version: 0.2.5
@@ -176,13 +176,11 @@ packages:
         integrity: sha512-A4Umpi8B9/pqR78D1Yoze4xHyQaujioVRqqO3d6xuDFw9VRtjg6tK3bPlwE0aW+nVH/ntllCpPa2PbI8Rnjcug==,
       }
 
-  "@breadcoop/ui@file:breadcoop-ui-1.0.24.tgz":
+  "@breadcoop/ui@1.0.25":
     resolution:
       {
-        integrity: sha512-dUlqoB8CaW6Dao86Lrjyl2YOxB6XQaDz584LUQ2QfR7I3+7Ul6/PaMnCWqsNfylP/dfAuVNVBk1Y1D8lmE1G3g==,
-        tarball: file:breadcoop-ui-1.0.24.tgz,
+        integrity: sha512-iZ6seTpCmm+WAZ7ILQrtRhqrJoOqdr6MobaYp/HPJFpF4OcTWjmRj7lNeTlDL+xwb2u7JnIJMUV9l3u42nrhBg==,
       }
-    version: 1.0.24
     peerDependencies:
       "@privy-io/react-auth": ^3.13.1
       "@rainbow-me/rainbowkit": ^2
@@ -8174,7 +8172,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  "@breadcoop/ui@file:breadcoop-ui-1.0.24.tgz(ltx3fzdqwhovahso7bpnp2i7se)":
+  "@breadcoop/ui@1.0.25(ltx3fzdqwhovahso7bpnp2i7se)":
     dependencies:
       "@privy-io/react-auth": 3.14.1(@solana-program/system@0.10.0(@solana/kit@5.5.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)))(@solana-program/token@0.9.0(@solana/kit@5.5.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)))(@solana/kit@5.5.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10))(@solana/sysvars@5.5.1(typescript@5.9.3))(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@19.1.0))(@types/react@19.2.14)(@upstash/redis@1.36.2)(bufferutil@4.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.9.3)(use-sync-external-store@1.4.0(react@19.1.0))(utf-8-validate@5.0.10)(zod@4.3.6)
       "@radix-ui/react-navigation-menu": 1.2.14(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
