@@ -8,8 +8,8 @@ importers:
   .:
     dependencies:
       "@breadcoop/ui":
-        specifier: ^1.0.25
-        version: 1.0.25(ltx3fzdqwhovahso7bpnp2i7se)
+        specifier: file:breadcoop-ui-1.0.25.tgz
+        version: file:breadcoop-ui-1.0.25.tgz(ltx3fzdqwhovahso7bpnp2i7se)
       "@duneanalytics/client-sdk":
         specifier: ^0.2.5
         version: 0.2.5
@@ -47,8 +47,8 @@ importers:
         specifier: ^1.36.2
         version: 1.36.2
       "@wagmi/core":
-        specifier: ^3.0.0
-        version: 3.4.0(@tanstack/query-core@5.90.20)(@types/react@19.2.14)(ox@0.12.4(typescript@5.9.3)(zod@4.3.6))(react@19.1.0)(typescript@5.9.3)(use-sync-external-store@1.4.0(react@19.1.0))(viem@2.46.3(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.6))
+        specifier: 2.x.x
+        version: 2.22.1(@tanstack/query-core@5.90.20)(@types/react@19.2.14)(react@19.1.0)(typescript@5.9.3)(use-sync-external-store@1.4.0(react@19.1.0))(viem@2.46.3(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.6))
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -176,11 +176,13 @@ packages:
         integrity: sha512-A4Umpi8B9/pqR78D1Yoze4xHyQaujioVRqqO3d6xuDFw9VRtjg6tK3bPlwE0aW+nVH/ntllCpPa2PbI8Rnjcug==,
       }
 
-  "@breadcoop/ui@1.0.25":
+  "@breadcoop/ui@file:breadcoop-ui-1.0.25.tgz":
     resolution:
       {
         integrity: sha512-iZ6seTpCmm+WAZ7ILQrtRhqrJoOqdr6MobaYp/HPJFpF4OcTWjmRj7lNeTlDL+xwb2u7JnIJMUV9l3u42nrhBg==,
+        tarball: file:breadcoop-ui-1.0.25.tgz,
       }
+    version: 1.0.25
     peerDependencies:
       "@privy-io/react-auth": ^3.13.1
       "@rainbow-me/rainbowkit": ^2
@@ -3063,24 +3065,6 @@ packages:
       viem: 2.x
     peerDependenciesMeta:
       "@tanstack/query-core":
-        optional: true
-      typescript:
-        optional: true
-
-  "@wagmi/core@3.4.0":
-    resolution:
-      {
-        integrity: sha512-EU5gDsUp5t7+cuLv12/L8hfyWfCIKsBNiiBqpOqxZJxvAcAiQk4xFe2jMgaQPqApc3Omvxrk032M8AQ4N0cQeg==,
-      }
-    peerDependencies:
-      "@tanstack/query-core": ">=5.0.0"
-      ox: ">=0.11.1"
-      typescript: ">=5.7.3"
-      viem: 2.x
-    peerDependenciesMeta:
-      "@tanstack/query-core":
-        optional: true
-      ox:
         optional: true
       typescript:
         optional: true
@@ -8172,7 +8156,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  "@breadcoop/ui@1.0.25(ltx3fzdqwhovahso7bpnp2i7se)":
+  "@breadcoop/ui@file:breadcoop-ui-1.0.25.tgz(ltx3fzdqwhovahso7bpnp2i7se)":
     dependencies:
       "@privy-io/react-auth": 3.14.1(@solana-program/system@0.10.0(@solana/kit@5.5.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)))(@solana-program/token@0.9.0(@solana/kit@5.5.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)))(@solana/kit@5.5.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10))(@solana/sysvars@5.5.1(typescript@5.9.3))(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@19.1.0))(@types/react@19.2.14)(@upstash/redis@1.36.2)(bufferutil@4.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.9.3)(use-sync-external-store@1.4.0(react@19.1.0))(utf-8-validate@5.0.10)(zod@4.3.6)
       "@radix-ui/react-navigation-menu": 1.2.14(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -11159,22 +11143,6 @@ snapshots:
       zustand: 5.0.0(@types/react@19.2.14)(react@19.1.0)(use-sync-external-store@1.4.0(react@19.1.0))
     optionalDependencies:
       "@tanstack/query-core": 5.90.20
-      typescript: 5.9.3
-    transitivePeerDependencies:
-      - "@types/react"
-      - immer
-      - react
-      - use-sync-external-store
-
-  "@wagmi/core@3.4.0(@tanstack/query-core@5.90.20)(@types/react@19.2.14)(ox@0.12.4(typescript@5.9.3)(zod@4.3.6))(react@19.1.0)(typescript@5.9.3)(use-sync-external-store@1.4.0(react@19.1.0))(viem@2.46.3(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.6))":
-    dependencies:
-      eventemitter3: 5.0.1
-      mipd: 0.0.7(typescript@5.9.3)
-      viem: 2.46.3(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.6)
-      zustand: 5.0.0(@types/react@19.2.14)(react@19.1.0)(use-sync-external-store@1.4.0(react@19.1.0))
-    optionalDependencies:
-      "@tanstack/query-core": 5.90.20
-      ox: 0.12.4(typescript@5.9.3)(zod@4.3.6)
       typescript: 5.9.3
     transitivePeerDependencies:
       - "@types/react"
