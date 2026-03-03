@@ -10,6 +10,7 @@ import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { LocalStorageCircle, MemberCircleInfo } from "@/interfaces/circle";
 import { getDefaultChainId } from "@/utils/chain";
 import { useShortenedUrl } from "@/hooks/use-shortened-url";
+import { useExpandToken } from "@/hooks/use-expand-token";
 
 const TopRowInfo = ({
   LIcon,
@@ -71,8 +72,9 @@ const StackMembers = ({
   })();
 
   const inviteLinks = localCircle?.invite_links ?? [];
+  const { result: resolvedInviteLinks } = useExpandToken(inviteLinks);
 
-  const nonceChecks = inviteLinks
+  const nonceChecks = resolvedInviteLinks
     .map((link) => {
       try {
         const url = new URL(link);
@@ -98,7 +100,7 @@ const StackMembers = ({
     },
   });
 
-  const pendingInviteLinks = inviteLinks.filter((_, index) => {
+  const pendingInviteLinks = resolvedInviteLinks.filter((_, index) => {
     if (!nonceResults || nonceResults.length <= index) return false;
     const result = nonceResults[index];
 
