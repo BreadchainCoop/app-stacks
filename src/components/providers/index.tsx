@@ -3,6 +3,7 @@
 import { ComponentProps, ReactNode } from "react";
 import ToolsProviders from "./tools";
 import { Web3Provider } from "./web3";
+import { SupabaseProvider } from "./supabase";
 import { ModalProvider } from "../modal/context";
 import { BreadUIKitProvider, ConnectedUserProvider } from "@breadcoop/ui";
 import { clientEnv } from "@/lib/env";
@@ -44,18 +45,20 @@ const Providers = ({ children }: { children: ReactNode }) => {
         clientId={clientEnv.NEXT_PUBLIC_PRIVY_CLIENT_ID}
         config={privyConfig}
       >
-        <Web3Provider>
-          <BreadUIKitProvider
-            app="stacks"
-            isProd={isProd}
-            tokenConfig={tokenConfig}
-            authProvider="privy"
-          >
-            <ConnectedUserProvider isProd={isProd}>
-              <ModalProvider>{children}</ModalProvider>
-            </ConnectedUserProvider>
-          </BreadUIKitProvider>
-        </Web3Provider>
+        <SupabaseProvider>
+          <Web3Provider>
+            <BreadUIKitProvider
+              app="stacks"
+              isProd={isProd}
+              tokenConfig={tokenConfig}
+              authProvider="privy"
+            >
+              <ConnectedUserProvider isProd={isProd}>
+                <ModalProvider>{children}</ModalProvider>
+              </ConnectedUserProvider>
+            </BreadUIKitProvider>
+          </Web3Provider>
+        </SupabaseProvider>
       </PrivyProvider>
     </ToolsProviders>
   );
