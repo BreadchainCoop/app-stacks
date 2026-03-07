@@ -14,6 +14,8 @@ const envSchema = z.object({
   NEXT_PUBLIC_PRIVY_APP_ID: z.string(),
   NEXT_PUBLIC_PRIVY_CLIENT_ID: z.string(),
   NEXT_PUBLIC_ALCHEMY_API_KEY_ETHEREUM_MAINNET: z.string(),
+  NEXT_PUBLIC_SUPABASE_URL: z.string(),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string(),
 });
 
 const parsedSchema = envSchema.safeParse({
@@ -31,6 +33,8 @@ const parsedSchema = envSchema.safeParse({
   NEXT_PUBLIC_PRIVY_CLIENT_ID: process.env.NEXT_PUBLIC_PRIVY_CLIENT_ID,
   NEXT_PUBLIC_ALCHEMY_API_KEY_ETHEREUM_MAINNET:
     process.env.NEXT_PUBLIC_ALCHEMY_API_KEY_ETHEREUM_MAINNET,
+  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
 });
 
 if (!parsedSchema.success) {
