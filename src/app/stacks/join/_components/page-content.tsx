@@ -17,15 +17,25 @@ import LocalLiftedButton from "@/components/lifted-button";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Loading from "@/app/loading";
-import { waitForTransactionReceipt } from "@wagmi/core";
+import { simulateContract } from "@wagmi/core";
 import { wagmiConfig } from "@/components/providers/web3";
 import { getDefaultChainId } from "@/utils/chain";
 import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
+import { useWaitForTxReceipt } from "@/hooks/use-wait-for-tx-receipt";
+
+const errorMessages: Record<string, string> = {
+  InviteAlreadyUsed: "This invitation has already been used.",
+  AlreadyMember: "You are already a member of this circle.",
+  AlreadyActive: "This circle has already started.",
+  NotCommissioned: "This circle does not exist.",
+  InvalidSigner: "This invitation link is invalid.",
+};
 
 export default function PageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useConnectedUser();
+  const { waitForTxReceipt } = useWaitForTxReceipt();
   const circleId = searchParams.get("circleId") as string;
   const parsedId = BigInt(circleId || "");
   const nonce = searchParams.get("nonce");
@@ -62,12 +72,32 @@ export default function PageContent() {
     chainId: getDefaultChainId(),
   });
 
+  const { data: isNonceUsed } = useReadContract({
+    abi: savingCirclesAbi,
+    address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+    functionName: "usedNonces",
+    args: [parsedId, BigInt(nonce || "0")],
+    query: {
+      enabled: !!nonce,
+    },
+    chainId: getDefaultChainId(),
+  });
+
   const redeemInvite = async () => {
     if (user.status !== "CONNECTED" || !nonce || !signature) return;
 
     setRedeeming(true);
 
     try {
+      // Simulate first to catch contract reverts before Privy opens its modal
+      await simulateContract(wagmiConfig, {
+        address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+        abi: savingCirclesAbi,
+        functionName: "redeemInvite",
+        args: [parsedId, BigInt(nonce), signature as `0x${string}`],
+        account: user.address as `0x${string}`,
+      });
+
       const encodedData = encodeFunctionData({
         abi: savingCirclesAbi,
         functionName: "redeemInvite",
@@ -78,7 +108,7 @@ export default function PageContent() {
         data: encodedData,
       });
 
-      await waitForTransactionReceipt(wagmiConfig, { hash });
+      await waitForTxReceipt(hash);
 
       let localCircles = JSON.parse(localStorage.getItem("circles") || "{}");
       localCircles = {
@@ -92,9 +122,19 @@ export default function PageContent() {
 
       alert("Invitation Accepted!");
       router.push(`/stacks/${circleId}`);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      alert(`Failed to redeem invite`);
+      const contractError =
+        (error?.cause?.data?.errorName as string | undefined) ||
+        error?.metaMessages?.[0]?.match(/Error:\s*(\w+)\(\)/)?.[1];
+
+      const shortMessage = error?.shortMessage as string;
+      const message =
+        errorMessages[contractError ?? ""] ||
+        shortMessage ||
+        "Failed to redeem invite.";
+
+      alert(message);
     } finally {
       setRedeeming(false);
     }
@@ -171,6 +211,15 @@ export default function PageContent() {
                     <Body className="text-system-green text-center">
                       You are already a member of this circle!
                     </Body>
+                  ) : isNonceUsed ? (
+                    <LocalLiftedButton
+                      width="full"
+                      disabled
+                      preset="positive"
+                      className="text-white"
+                    >
+                      Invitation already used
+                    </LocalLiftedButton>
                   ) : (
                     <LocalLiftedButton
                       onClick={redeemInvite}
