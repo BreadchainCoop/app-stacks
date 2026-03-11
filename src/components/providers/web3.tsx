@@ -16,10 +16,11 @@ import {
   // walletConnectWallet,
 } from "@rainbow-me/rainbowkit/wallets";
 import { http } from "wagmi";
-import { gnosis } from "wagmi/chains";
+import { gnosis, sepolia } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { foundryChain } from "@/lib/wagmi";
+import { clientEnv } from "@/lib/env";
 import { WagmiProvider, createConfig } from "@privy-io/wagmi";
+import { foundryChain } from "@/lib/wagmi";
 
 // https://github.com/rainbow-me/rainbowkit/issues/2476#issuecomment-3117608183
 export function getWallets() {
@@ -57,18 +58,20 @@ export const wagmiConfig = createConfig({
   connectors,
   // @ts-expect-error Correct
   chains: (() => {
-    const _chains = [gnosis];
+    const _chains = [gnosis, sepolia];
     // @ts-expect-error Correct
     if (process.env.NODE_ENV === "development") _chains.push(foundryChain);
 
     return _chains;
   })(),
   transports: {
-    [gnosis.id]: http(),
-    [foundryChain.id]: http(),
+    [gnosis.id]: http(clientEnv.NEXT_PUBLIC_GNOSIS_RPC_URL),
+    [sepolia.id]: http(clientEnv.NEXT_PUBLIC_SEPOLIA_RPC_URL),
+    [foundryChain.id]: http(clientEnv.NEXT_PUBLIC_LOCAL_RPC_URL),
   },
   ssr: true,
-});
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+}) as any;
 
 const queryClient = new QueryClient({
   defaultOptions: {

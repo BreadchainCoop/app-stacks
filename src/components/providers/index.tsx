@@ -8,8 +8,7 @@ import { BreadUIKitProvider, ConnectedUserProvider } from "@breadcoop/ui";
 import { clientEnv } from "@/lib/env";
 import { Address, erc20Abi } from "viem";
 import { PrivyClientConfig, PrivyProvider } from "@privy-io/react-auth";
-import { gnosis } from "viem/chains";
-import { foundryChain } from "@/lib/wagmi";
+import { getDefaultChainDetail } from "@/utils/chain";
 
 const tokenConfig: ComponentProps<typeof BreadUIKitProvider>["tokenConfig"] = {
   BREAD: {
@@ -18,11 +17,7 @@ const tokenConfig: ComponentProps<typeof BreadUIKitProvider>["tokenConfig"] = {
   },
 };
 
-// TODO: Provide our RPC_URL
-// const gnosisOverride = addRpcUrlOverrideToChain(gnosis, "")
-
-const _chain =
-  clientEnv.NEXT_PUBLIC_NODE_ENV === "production" ? gnosis : foundryChain;
+const _chain = getDefaultChainDetail();
 
 const privyConfig: PrivyClientConfig = {
   defaultChain: _chain,
