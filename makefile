@@ -1,4 +1,4 @@
-.PHONY: deploy install-contract-deps anvil update-env update-contract-submodules update-saving-circles-dev warp time-increase mine timestamp time-reset
+.PHONY: deploy install-contract-deps anvil update-env update-contract-submodules update-saving-circles-dev start-local warp time-increase mine timestamp time-reset
 
 ANVIL_ACCOUNTS := 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 \
 	0x70997970C51812dc3A010C7d01b50e0d17dc79C8 \
@@ -118,6 +118,12 @@ update-saving-circles-dev:
 	git -C contracts/lib/saving-circles fetch origin $(SAVING_CIRCLES_BRANCH) && \
 	git -C contracts/lib/saving-circles checkout $(SAVING_CIRCLES_BRANCH) && \
 	git -C contracts/lib/saving-circles pull --ff-only origin $(SAVING_CIRCLES_BRANCH)
+
+# Make sure to start a new anvil instance before running this
+start-local:
+	rm -rf contracts/broadcast contracts/cache contracts/out
+	$(MAKE) deploy
+	pnpm run dev
 
 # Time manipulation commands for Anvil
 mine:

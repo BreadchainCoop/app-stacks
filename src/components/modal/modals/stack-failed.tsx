@@ -8,18 +8,26 @@ import {
 import { StackFailedModalState, useModal } from "../context";
 import LocalLiftedButton from "@/components/lifted-button";
 import { useState } from "react";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { savingCirclesAbi } from "@/lib/abis/saving-circles";
-import { useWaitForTxReceipt } from "@/hooks/use-wait-for-tx-receipt";
 import { useQueryClient } from "@tanstack/react-query";
-import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
-import { encodeFunctionData } from "viem";
+import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
+import { parseContractError } from "@/utils/parse-contract-error";
+
+const DECOMMISSION_ERRORS: Record<string, string> = {
+  NotDecommissionable: "This stack cannot be retired yet.",
+  NotActive: "This stack is not active.",
+};
+
+const parseDecommissionError = (error: unknown) =>
+  parseContractError(
+    error,
+    DECOMMISSION_ERRORS,
+    "Failed to retire stack. Please try again."
+  );
 
 const StackFailed = ({ modalState }: { modalState: StackFailedModalState }) => {
-  const { sendSponsoredTransaction } = useSponsoredTx();
-  const { waitForTxReceipt } = useWaitForTxReceipt();
   const queryClient = useQueryClient();
   const { setModal } = useModal();
+  const { sendSavingCirclesTx } = useSavingCirclesTx();
 
   const [isDecommissioning, setIsDecommissioning] = useState(false);
   const [feedback, setFeedback] = useState<{
@@ -34,40 +42,20 @@ const StackFailed = ({ modalState }: { modalState: StackFailedModalState }) => {
     setIsDecommissioning(true);
 
     try {
-      const encodedData = encodeFunctionData({
-        abi: savingCirclesAbi,
+      await sendSavingCirclesTx({
         functionName: "decommission",
         args: [modalState.id],
       });
-      const { hash } = await sendSponsoredTransaction({
-        to: SAVING_CIRCLES_CONTRACT_ADDRESS,
-        data: encodedData,
-      });
-
-      await waitForTxReceipt(hash);
       queryClient.invalidateQueries({ queryKey: ["readContract"] });
 
       setFeedback({
         type: "success",
         message: "Stack successfully retired — funds returned!",
       });
-
-      setTimeout(() => {
-        setModal(null);
-      }, 5000);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
+      setTimeout(() => setModal(null), 5000);
+    } catch (err) {
       console.error("Decommission failed:", err);
-
-      const errorMsg =
-        err?.shortMessage ||
-        err?.message ||
-        "Failed to retire stack. Please try again.";
-
-      setFeedback({
-        type: "error",
-        message: errorMsg,
-      });
+      setFeedback({ type: "error", message: parseDecommissionError(err) });
     } finally {
       setIsDecommissioning(false);
     }

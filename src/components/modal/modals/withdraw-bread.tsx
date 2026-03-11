@@ -15,7 +15,7 @@ import {
   useConnectedUser,
 } from "@breadcoop/ui";
 import { useAccount, useReadContract } from "wagmi";
-import { Address, encodeFunctionData, erc20Abi, isAddress } from "viem";
+import { Address, erc20Abi, isAddress } from "viem";
 import LocalLiftedButton from "@/components/lifted-button";
 import Loading from "@/app/loading";
 import { cn } from "@/lib/utils";
@@ -24,7 +24,8 @@ import { getDefaultChainId } from "@/utils/chain";
 import { CircularProgressIcon } from "@/components/icons/circular-progress";
 import { ArrowDownIcon } from "@phosphor-icons/react";
 import { useModal } from "../context";
-import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
+import { useSimulateAndSponsorTx } from "@/hooks/use-simulate-and-sponsor-tx";
+import { parseContractError } from "@/utils/parse-contract-error";
 
 const BREAD_DECIMALS = 18;
 
@@ -71,10 +72,19 @@ function SuccessContent({
   );
 }
 
+const parseWithdrawError = (error: unknown) =>
+  parseContractError(
+    error,
+    { ERC20InsufficientBalance: "Insufficient BREAD balance." },
+    "Something went wrong during the withdrawal."
+  );
+
 const WithdrawBreadModal = () => {
+  const { simulateAndSponsorTx } = useSimulateAndSponsorTx();
   const [level, setLevel] = useState<"form" | "loading" | "error" | "success">(
     "form"
   );
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const { address: recipientAddress, isConnected } = useAccount();
   const { user } = useConnectedUser();
   const connectedAddress = (user as TUserConnected).address;
@@ -94,8 +104,6 @@ const WithdrawBreadModal = () => {
       enabled: isConnected && Boolean(connectedAddress),
     },
   });
-
-  const { sendSponsoredTransaction } = useSponsoredTx();
 
   const balance = data
     ? formatBalance(Number(data) / 10 ** BREAD_DECIMALS, 2)
@@ -137,26 +145,26 @@ const WithdrawBreadModal = () => {
     if (disableButton) return;
 
     setLevel("loading");
+    setErrorMsg(null);
 
     const recipientAddress = form.address as Address;
-    const amountToSend = Number(form.amount);
-
-    const encodedData = encodeFunctionData({
-      abi: erc20Abi,
-      functionName: "transfer",
-      args: [recipientAddress, BigInt(amountToSend * 10 ** BREAD_DECIMALS)],
-    });
+    const amountToSend = BigInt(
+      Math.floor(Number(form.amount) * 10 ** BREAD_DECIMALS)
+    );
 
     try {
-      const { hash } = await sendSponsoredTransaction({
-        to: BREAD_TOKEN_ADDRESS,
-        data: encodedData,
-        chainId: getDefaultChainId(),
+      const hash = await simulateAndSponsorTx({
+        address: BREAD_TOKEN_ADDRESS,
+        abi: erc20Abi,
+        functionName: "transfer",
+        args: [recipientAddress, amountToSend],
       });
+
       console.log("Transaction sent", { hash });
       setLevel("success");
     } catch (error) {
       console.error("Withdraw error", error);
+      setErrorMsg(parseWithdrawError(error));
       setLevel("error");
     }
   };
@@ -170,7 +178,7 @@ const WithdrawBreadModal = () => {
         <>
           <ModalStatus status="error" statusMsg="Withdrawal Failed" />
           <Body className="text-center">
-            Something went wrong during the withdrawal
+            {errorMsg ?? "Something went wrong during the withdrawal."}
           </Body>
           <div className="w-full">
             <LocalLiftedButton

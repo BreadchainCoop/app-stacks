@@ -26,6 +26,7 @@ export type StackInitSuccessModalState = {
 
 export type StackInitFailedModalState = {
   type: "STACK_CREATION_FAILED";
+  msg?: string;
 };
 
 export type DepositInitModalState = {

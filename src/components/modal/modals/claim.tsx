@@ -22,11 +22,9 @@ const ClaimModal = ({
   } else {
     status = modalState.result;
     if (modalState.result === "error") {
-      // status = "error";
       title = "Claim failed!";
-      msg = "Something went wrong. Please try again!";
+      msg = modalState.msg || "Something went wrong. Please try again!";
     } else {
-      // status = "success";
       title = "Claim successful";
       msg = "Successfully unlocked!";
     }

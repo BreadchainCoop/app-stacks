@@ -1,29 +1,37 @@
 "use client";
 
 import { LiftedButtonProps } from "@breadcoop/ui";
-import { encodeFunctionData, formatEther } from "viem";
+import { formatEther } from "viem";
 import LocalLiftedButton from "./lifted-button";
 import { useState } from "react";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { savingCirclesAbi } from "@/lib/abis/saving-circles";
-import { waitForTransactionReceipt } from "@wagmi/core";
-import { wagmiConfig } from "./providers/web3";
 import { useQueryClient } from "@tanstack/react-query";
 import Loading from "@/app/loading";
-import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
+import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
+import { parseContractError } from "@/utils/parse-contract-error";
 
 interface StartCircleButtonProps extends Omit<LiftedButtonProps, "children"> {
   amount: bigint;
   circleId: bigint;
 }
 
+const START_ERRORS: Record<string, string> = {
+  AlreadyActive: "This circle has already been started.",
+  NotOwner: "Only the circle owner can start it.",
+  InvalidMemberCount: "At least 2 members are required to start a circle.",
+  NotCommissioned: "This circle does not exist.",
+  InvalidDepositInterval: "The deposit interval is invalid.",
+};
+
+const parseStartError = (error: unknown) =>
+  parseContractError(error, START_ERRORS);
+
 const StartCircleButton = ({
   amount,
   circleId,
   ...props
 }: StartCircleButtonProps) => {
+  const { sendSavingCirclesTx } = useSavingCirclesTx();
   const queryClient = useQueryClient();
-  const { sendSponsoredTransaction } = useSponsoredTx();
   const [starting, setStarting] = useState(false);
 
   const start = async () => {
@@ -32,40 +40,33 @@ const StartCircleButton = ({
     setStarting(true);
 
     try {
-      const encodedData = encodeFunctionData({
-        abi: savingCirclesAbi,
-        functionName: "start",
-        args: [circleId],
-      });
-      const { hash } = await sendSponsoredTransaction({
-        to: SAVING_CIRCLES_CONTRACT_ADDRESS,
-        data: encodedData,
-      });
-
-      await waitForTransactionReceipt(wagmiConfig, { hash });
+      await sendSavingCirclesTx({ functionName: "start", args: [circleId] });
 
       queryClient.invalidateQueries({ queryKey: ["readContract"] });
-    } catch (error) {
-      console.log("___ START CIRCLE ERROR ___", error);
+    } catch (err) {
+      console.error("___ START CIRCLE ERROR ___", err);
+      alert(parseStartError(err));
     } finally {
       setStarting(false);
     }
   };
 
   return (
-    <LocalLiftedButton
-      {...props}
-      onClick={start}
-      className={`${props.className || ""} font-semibold`}
-    >
-      {starting ? (
-        <span className="flex items-center justify-center">
-          <Loading />
-        </span>
-      ) : (
-        <>Start Stacks - {formatEther(amount)} BREAD</>
-      )}
-    </LocalLiftedButton>
+    <div className="flex flex-col gap-1">
+      <LocalLiftedButton
+        {...props}
+        onClick={start}
+        className={`${props.className || ""} font-semibold`}
+      >
+        {starting ? (
+          <span className="flex items-center justify-center">
+            <Loading />
+          </span>
+        ) : (
+          <>Start Stacks - {formatEther(amount)} BREAD</>
+        )}
+      </LocalLiftedButton>
+    </div>
   );
 };
 

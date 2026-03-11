@@ -11,14 +11,14 @@ import { useReadContract } from "wagmi";
 import { Address, encodeFunctionData, erc20Abi } from "viem";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { useMemo, useState } from "react";
-import { waitForTransactionReceipt } from "@wagmi/core";
-import { savingCirclesAbi } from "@/lib/abis/saving-circles";
-import { wagmiConfig } from "./providers/web3";
 import { getDefaultChainId } from "@/utils/chain";
 import { useQueryClient } from "@tanstack/react-query";
 import Loading from "@/app/loading";
 import { MAX_UINT256 } from "@/utils/solidity";
 import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
+import { useWaitForTxReceipt } from "@/hooks/use-wait-for-tx-receipt";
+import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
+import { parseContractError } from "@/utils/parse-contract-error";
 
 interface DepositButtonProps extends Omit<LiftedButtonProps, "children"> {
   label?: string;
@@ -26,6 +26,22 @@ interface DepositButtonProps extends Omit<LiftedButtonProps, "children"> {
   tokenAddress: Address;
   circleId: bigint;
 }
+
+const DEPOSIT_ERRORS: Record<string, string> = {
+  NotActive: "This circle is not active.",
+  NotMember: "You are not a member of this circle.",
+  CircleExpired: "This circle has expired.",
+  CircleTimedOut: "The deposit window has closed.",
+  ExceedsDepositAmount: "Amount exceeds the required deposit.",
+  DepositBeforeCircleStart: "The circle hasn't started yet.",
+};
+
+const parseDepositError = (error: unknown) =>
+  parseContractError(
+    error,
+    DEPOSIT_ERRORS,
+    "Transaction failed. You don't have enough BREAD."
+  );
 
 const DepositButton = ({
   label = "Pay Deposit",
@@ -38,6 +54,8 @@ const DepositButton = ({
   const [depositing, setDepositing] = useState(false);
   const queryClient = useQueryClient();
   const { sendSponsoredTransaction } = useSponsoredTx();
+  const { waitForTxReceipt } = useWaitForTxReceipt();
+  const { sendSavingCirclesTx } = useSavingCirclesTx();
   const { user } = useConnectedUser();
   const userAddress = user.status === "CONNECTED" ? user.address : undefined;
   const modal = useModal();
@@ -80,33 +98,23 @@ const DepositButton = ({
           data: approveData,
         });
 
-        await waitForTransactionReceipt(wagmiConfig, {
-          hash: approveHash,
-        });
+        await waitForTxReceipt(approveHash);
       }
 
-      const depositData = encodeFunctionData({
-        abi: savingCirclesAbi,
+      await sendSavingCirclesTx({
         functionName: "deposit",
         args: [circleId, amount],
       });
-
-      const { hash: depositHash } = await sendSponsoredTransaction({
-        to: SAVING_CIRCLES_CONTRACT_ADDRESS,
-        data: depositData,
-      });
-
-      await waitForTransactionReceipt(wagmiConfig, { hash: depositHash });
 
       queryClient.invalidateQueries({ queryKey: ["readContract"] });
 
       modal.setModal({ type: "DEPOSIT_RESULT", result: "success" });
     } catch (error) {
-      console.log("__ ERROR __", error);
+      console.error("__ ERROR __", error);
       modal.setModal({
         type: "DEPOSIT_RESULT",
         result: "error",
-        msg: "Transaction failed. You don't have enough BREAD.",
+        msg: parseDepositError(error),
       });
     } finally {
       setDepositing(false);

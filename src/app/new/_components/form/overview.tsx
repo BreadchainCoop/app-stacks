@@ -30,6 +30,23 @@ import { waitForTransactionReceipt } from "@wagmi/core";
 import { wagmiConfig } from "@/components/providers/web3";
 import { clientEnv } from "@/lib/env";
 import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
+import { simulateContract } from "@wagmi/core";
+import { parseContractError } from "@/utils/parse-contract-error";
+
+const CREATE_ERRORS: Record<string, string> = {
+  TokenNotAllowed: "The token is not allowed for this circle.",
+  InvalidDepositInterval: "The deposit interval is invalid.",
+  InvalidDepositAmount: "The deposit amount is invalid.",
+  InvalidOwner: "Invalid owner address.",
+  AlreadyExists: "A circle with this ID already exists.",
+};
+
+const parseCreateError = (error: unknown) =>
+  parseContractError(
+    error,
+    CREATE_ERRORS,
+    "Failed to create stack. Please try again."
+  );
 
 const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
   const modal = useModal();
@@ -53,34 +70,35 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
         status: "awaiting",
       });
 
+      const circleArgs = {
+        owner: user.address,
+        currentIndex: BigInt(0),
+        depositAmount: parseEther(String(data.depositAmount)),
+        token: BREAD_TOKEN_ADDRESS,
+        depositInterval:
+          SECONDS_PER_DAY * BigInt(data.depositInterval === "weekly" ? 7 : 30),
+        effectiveCircleStartTime: BigInt(0),
+        circleEnd: BigInt(0),
+      };
+
+      // Simulate before opening Privy modal
+      await simulateContract(wagmiConfig, {
+        address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+        abi: savingCirclesAbi,
+        functionName: "create",
+        args: [circleArgs],
+        account: user.address,
+      });
+
       const encodedData = encodeFunctionData({
         abi: savingCirclesAbi,
         functionName: "create",
-        args: [
-          {
-            owner: user.address,
-            currentIndex: BigInt(0),
-            depositAmount: parseEther(String(data.depositAmount)),
-            token: BREAD_TOKEN_ADDRESS,
-            depositInterval:
-              SECONDS_PER_DAY *
-              BigInt(data.depositInterval === "weekly" ? 7 : 30),
-            effectiveCircleStartTime: BigInt(0),
-            circleEnd: BigInt(0),
-          },
-        ],
+        args: [circleArgs],
       });
 
       const sponsoredTx = sendSponsoredTransaction(
-        {
-          to: SAVING_CIRCLES_CONTRACT_ADDRESS,
-          data: encodedData,
-        },
-        {
-          uiOptions: {
-            showWalletUIs: false,
-          },
-        }
+        { to: SAVING_CIRCLES_CONTRACT_ADDRESS, data: encodedData },
+        { uiOptions: { showWalletUIs: false } }
       );
 
       modal.setModal({
@@ -119,21 +137,15 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
       const circle = {
         name: data.name,
         id: newCircleId.toString(),
-        duration: `${data.members} ${data.depositInterval.slice(
-          0,
-          -2
-        )}${data.members === 1 ? "" : "s"}`.trim(),
+        duration:
+          `${data.members} ${data.depositInterval.slice(0, -2)}${data.members === 1 ? "" : "s"}`.trim(),
         deposit: data.depositAmount,
         total: data.members ** 2 * data.depositAmount,
         members: data.members,
       };
 
       await sleep(500);
-
-      modal.setModal({
-        type: "STACK_CREATION_SUCCESS",
-        circle,
-      });
+      modal.setModal({ type: "STACK_CREATION_SUCCESS", circle });
 
       let localCircles = JSON.parse(localStorage.getItem("circles") || "{}");
       localCircles = {
@@ -148,9 +160,11 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
 
       form.reset();
     } catch (error) {
-      console.log("__ ERROR __", error);
-
-      modal.setModal({ type: "STACK_CREATION_FAILED" });
+      console.error("__ ERROR __", error);
+      modal.setModal({
+        type: "STACK_CREATION_FAILED",
+        msg: parseCreateError(error),
+      });
     }
   };
 

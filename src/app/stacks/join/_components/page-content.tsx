@@ -1,7 +1,7 @@
 "use client";
 
 import { useReadContract } from "wagmi";
-import { encodeFunctionData, formatEther } from "viem";
+import { formatEther } from "viem";
 import {
   Accordion,
   AccordionHeader,
@@ -17,11 +17,8 @@ import LocalLiftedButton from "@/components/lifted-button";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Loading from "@/app/loading";
-import { simulateContract } from "@wagmi/core";
-import { wagmiConfig } from "@/components/providers/web3";
 import { getDefaultChainId } from "@/utils/chain";
-import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
-import { useWaitForTxReceipt } from "@/hooks/use-wait-for-tx-receipt";
+import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
 
 const errorMessages: Record<string, string> = {
   InviteAlreadyUsed: "This invitation has already been used.",
@@ -35,7 +32,7 @@ export default function PageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useConnectedUser();
-  const { waitForTxReceipt } = useWaitForTxReceipt();
+  const { sendSavingCirclesTx } = useSavingCirclesTx();
   const circleId = searchParams.get("circleId") as string;
   const parsedId = BigInt(circleId || "");
   const nonce = searchParams.get("nonce");
@@ -46,7 +43,6 @@ export default function PageContent() {
   const deposit = Number(searchParams.get("deposit"));
 
   const [redeeming, setRedeeming] = useState(false);
-  const { sendSponsoredTransaction } = useSponsoredTx();
 
   const circleResult = useReadContract({
     abi: savingCirclesAbi,
@@ -89,26 +85,10 @@ export default function PageContent() {
     setRedeeming(true);
 
     try {
-      // Simulate first to catch contract reverts before Privy opens its modal
-      await simulateContract(wagmiConfig, {
-        address: SAVING_CIRCLES_CONTRACT_ADDRESS,
-        abi: savingCirclesAbi,
-        functionName: "redeemInvite",
-        args: [parsedId, BigInt(nonce), signature as `0x${string}`],
-        account: user.address as `0x${string}`,
-      });
-
-      const encodedData = encodeFunctionData({
-        abi: savingCirclesAbi,
+      await sendSavingCirclesTx({
         functionName: "redeemInvite",
         args: [parsedId, BigInt(nonce), signature as `0x${string}`],
       });
-      const { hash } = await sendSponsoredTransaction({
-        to: SAVING_CIRCLES_CONTRACT_ADDRESS,
-        data: encodedData,
-      });
-
-      await waitForTxReceipt(hash);
 
       let localCircles = JSON.parse(localStorage.getItem("circles") || "{}");
       localCircles = {

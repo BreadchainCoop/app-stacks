@@ -326,17 +326,18 @@ function RowDetail({ label, body }: { label: string; body: string | number }) {
   );
 }
 
-export const StackFailedResultModal = (
-  {
-    // modalState,
-  }: {
-    modalState: StackInitFailedModalState;
-  }
-) => {
+export const StackFailedResultModal = ({
+  modalState,
+}: {
+  modalState: StackInitFailedModalState;
+}) => {
   return (
     <ModalContainer status="error">
       <ModalHeader title="Stack Creation Failed"></ModalHeader>
-      <ModalStatus status="error" msg="Unable to create stack" />
+      <ModalStatus
+        status="error"
+        msg={modalState.msg || "Unable to create stack"}
+      />
     </ModalContainer>
   );
 };

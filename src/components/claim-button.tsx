@@ -2,15 +2,21 @@ import React, { useState } from "react";
 import LocalLiftedButton from "./lifted-button";
 import { HandWithdrawIcon } from "@phosphor-icons/react";
 import { useModal } from "./modal/context";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { savingCirclesAbi } from "@/lib/abis/saving-circles";
-import { waitForTransactionReceipt } from "@wagmi/core";
-import { wagmiConfig } from "./providers/web3";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import { Address, encodeFunctionData } from "viem";
+import { Address } from "viem";
 import { formatBalance } from "@breadcoop/ui";
-import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
+import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
+import { parseContractError } from "@/utils/parse-contract-error";
+
+const CLAIM_ERRORS: Record<string, string> = {
+  NotWithdrawable: "It's not your turn to claim yet.",
+  NotMember: "You are not a member of this circle.",
+  NotActive: "This circle is not active.",
+};
+
+const parseClaimError = (error: unknown) =>
+  parseContractError(error, CLAIM_ERRORS, "Failed to claim. Please try again.");
 
 const ClaimButton = ({
   amount,
@@ -32,7 +38,7 @@ const ClaimButton = ({
   const queryClient = useQueryClient();
   const { setModal } = useModal();
   const [claiming, setClaiming] = useState(false);
-  const { sendSponsoredTransaction } = useSponsoredTx();
+  const { sendSavingCirclesTx } = useSavingCirclesTx();
 
   console.log({ nextDeposit, roundsLeft, nextDepositAddress });
 
@@ -40,22 +46,12 @@ const ClaimButton = ({
     if (claiming) return;
 
     setClaiming(true);
-
     setModal({ type: "CLAIM_LOADING" });
 
     try {
-      const encodedData = encodeFunctionData({
-        abi: savingCirclesAbi,
+      await sendSavingCirclesTx({
         functionName: "withdraw",
         args: [circleId],
-      });
-      const { hash } = await sendSponsoredTransaction({
-        to: SAVING_CIRCLES_CONTRACT_ADDRESS,
-        data: encodedData,
-      });
-
-      await waitForTransactionReceipt(wagmiConfig, {
-        hash,
       });
 
       queryClient.invalidateQueries({ queryKey: ["readContract"] });
@@ -70,8 +66,14 @@ const ClaimButton = ({
         circleId,
       });
     } catch (error) {
-      console.log("__ ERROR __", error);
-      setModal({ type: "CLAIM_RESULT", result: "error", msg: "Unknown" });
+      console.error("__ ERROR __", error);
+      setModal({
+        type: "CLAIM_RESULT",
+        result: "error",
+        msg: parseClaimError(error),
+      });
+    } finally {
+      setClaiming(false);
     }
   };
 
