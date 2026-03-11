@@ -4,6 +4,7 @@ import { useSendTransaction } from "@privy-io/react-auth";
 
 export const useSponsoredTx = () => {
   const { sendTransaction } = useSendTransaction();
+  const shouldSponsor = clientEnv.NEXT_PUBLIC_TARGET_NETWORK !== "local";
 
   const sendSponsoredTransaction: typeof sendTransaction = async (
     input,
@@ -11,7 +12,10 @@ export const useSponsoredTx = () => {
   ) => {
     return sendTransaction(
       { ...input, chainId: getDefaultChainId() },
-      { ...options, sponsor: clientEnv.NEXT_PUBLIC_NODE_ENV === "production" }
+      {
+        ...options,
+        sponsor: shouldSponsor,
+      }
     );
   };
 

@@ -30,7 +30,7 @@ const privyConfig: PrivyClientConfig = {
 };
 
 const Providers = ({ children }: { children: ReactNode }) => {
-  const isProd = clientEnv.NEXT_PUBLIC_NODE_ENV === "production";
+  const isProd = clientEnv.NEXT_PUBLIC_TARGET_NETWORK === "gnosis";
 
   return (
     <ToolsProviders>

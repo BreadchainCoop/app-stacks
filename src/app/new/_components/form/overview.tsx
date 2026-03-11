@@ -234,7 +234,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
           <LoginButton
             app="stacks"
             status={user.status}
-            isProd={clientEnv.NEXT_PUBLIC_NODE_ENV === "production"}
+            isProd={clientEnv.NEXT_PUBLIC_TARGET_NETWORK === "gnosis"}
           />
         )}
         <LocalLiftedButton
