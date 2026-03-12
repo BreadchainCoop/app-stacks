@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { Redis } from "@upstash/redis";
 import { serverEnv } from "@/lib/envs/server";
 import {
@@ -40,10 +39,6 @@ export function validateUrl(url: string): { valid: boolean; error?: string } {
   } catch {
     return { valid: false, error: "long_url is not a valid URL" };
   }
-}
-
-export function createErrorResponse(error: string, status: number = 400) {
-  return NextResponse.json({ success: false, error }, { status });
 }
 
 function getCacheKey(long_url: string): string {

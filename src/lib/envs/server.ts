@@ -4,6 +4,8 @@ const envSchema = z.object({
   SPOO_TOKEN: z.string(),
   UPSTASH_REDIS_REST_URL: z.string(),
   UPSTASH_REDIS_REST_TOKEN: z.string(),
+  NEXT_PUBLIC_SUPABASE_URL: z.string(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string(),
 });
 
 const parsedSchema = envSchema.safeParse(process.env);

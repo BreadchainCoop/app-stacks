@@ -3,6 +3,20 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { clientEnv } from "@/lib/env";
 
+export interface SupabaseInviteLink {
+  short: string;
+  long: string;
+  used: boolean;
+}
+
+export interface SupabaseStackMetadata {
+  id: string;
+  stackname: string;
+  created_at: string;
+  expected_members: number;
+  invite_links: SupabaseInviteLink[];
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -44,21 +58,12 @@ export type Database = {
         };
       };
       stacks_metadata: {
-        Row: {
-          id: string;
-          stackname: string;
-          created_at: string;
-        };
-        Insert: {
-          id: string;
-          stackname: string;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          stackname?: string;
-          created_at?: string;
-        };
+        Row: SupabaseStackMetadata;
+        Insert: SupabaseStackMetadata;
+        // Update: {
+        //   invite_links?: SupabaseInviteLink[];
+        // };
+        Update: Pick<SupabaseStackMetadata, "invite_links">;
       };
     };
   };
@@ -101,35 +106,35 @@ export const getStacksMetadata = (client: AppSupabaseClient) =>
 export const getProfile = (client: AppSupabaseClient, userId: string) =>
   client.from("profiles").select("*").eq("user_id", userId).single();
 
-export const upsertProfile = (
-  client: AppSupabaseClient,
-  userId: string,
-  username: string | null
-) =>
-  client
-    .from("profiles")
-    .upsert(
-      { user_id: userId, username },
-      {
-        onConflict: "user_id",
-      }
-    )
-    .select("*")
-    .single();
+// export const upsertProfile = (
+//   client: AppSupabaseClient,
+//   userId: string,
+//   username: string | null
+// ) =>
+//   client
+//     .from("profiles")
+//     .upsert(
+//       { user_id: userId, username },
+//       {
+//         onConflict: "user_id",
+//       }
+//     )
+//     .select("*")
+//     .single();
 
-export const upsertUser = (
-  client: AppSupabaseClient,
-  id: string,
-  privyUserId: string,
-  walletAddress?: string | null
-) =>
-  client.from("users").upsert(
-    {
-      id,
-      privy_user_id: privyUserId,
-      wallet_address: walletAddress,
-    },
-    {
-      onConflict: "id",
-    }
-  );
+// export const upsertUser = (
+//   client: AppSupabaseClient,
+//   id: string,
+//   privyUserId: string,
+//   walletAddress?: string | null
+// ) =>
+//   client.from("users").upsert(
+//     {
+//       id,
+//       privy_user_id: privyUserId,
+//       wallet_address: walletAddress,
+//     },
+//     {
+//       onConflict: "id",
+//     }
+//   );

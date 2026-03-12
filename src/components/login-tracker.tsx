@@ -1,11 +1,18 @@
 "use client";
 
+import { onboardSupabaseUser } from "@/lib/onboarding/supabase";
 import { useLogin } from "@privy-io/react-auth";
 
 const LoginTracker = () => {
   useLogin({
-    onComplete(params) {
-      console.log("User logged in", params);
+    async onComplete({ user, isNewUser }) {
+      if (!isNewUser) return;
+
+      try {
+        await onboardSupabaseUser(user);
+      } catch (err) {
+        console.error("Onboarding failed:", err);
+      }
     },
   });
 

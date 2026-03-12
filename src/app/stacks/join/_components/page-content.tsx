@@ -90,15 +90,11 @@ export default function PageContent() {
         args: [parsedId, BigInt(nonce), signature as `0x${string}`],
       });
 
-      let localCircles = JSON.parse(localStorage.getItem("circles") || "{}");
-      localCircles = {
-        ...localCircles,
-        [circleId]: {
-          name: circleName,
-          totalMembers: members,
-        },
-      };
-      localStorage.setItem("circles", JSON.stringify(localCircles));
+      fetch("/api/stacks/invite", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ circleId, nonce }),
+      });
 
       alert("Invitation Accepted!");
       router.push(`/stacks/${circleId}`);
