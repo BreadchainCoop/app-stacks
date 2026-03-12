@@ -4,7 +4,7 @@ import { useSendTransaction } from "@privy-io/react-auth";
 
 export const useSponsoredTx = () => {
   const { sendTransaction } = useSendTransaction();
-  const shouldSponsor = clientEnv.NEXT_PUBLIC_TARGET_NETWORK !== "local";
+  const shouldSponsor = clientEnv.NEXT_PUBLIC_TARGET_NETWORK === "gnosis";
 
   const sendSponsoredTransaction: typeof sendTransaction = async (
     input,
