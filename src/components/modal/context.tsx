@@ -2,6 +2,7 @@
 
 import { type ReactNode, createContext, useContext, useState } from "react";
 import { Address } from "viem";
+import type { DepositIntervalValue } from "@/lib/deposit-intervals";
 
 export type TModalStatus = "loading" | "success" | "error";
 
@@ -18,6 +19,8 @@ export type StackInitSuccessModalState = {
     name: string;
     id: string;
     duration: string;
+    intervalLabel: string;
+    intervalValue: DepositIntervalValue;
     deposit: number;
     total: number;
     members: number;

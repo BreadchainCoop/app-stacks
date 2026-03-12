@@ -5,7 +5,6 @@ import {
   getUserCircleStatus,
   IFormattedUserCircleStatusResult,
 } from "@/lib/get-user-circle-status";
-import { SECONDS_PER_DAY } from "@/utils/solidity";
 import {
   Body,
   formatBalance,
@@ -17,16 +16,17 @@ import {
 import { CalendarDotsIcon } from "@phosphor-icons/react/ssr";
 import { ReactNode } from "react";
 import { formatEther, zeroAddress } from "viem";
+import { formatIntervalFromSeconds } from "@/lib/deposit-intervals";
 
 const StackDetailsTotal = ({
-  intervalLabel,
+  intervalSummaryLabel,
   depositPerRound,
   totalRounds,
   circleStatus,
   poolBalance,
   completedRounds,
 }: {
-  intervalLabel: "month" | "week";
+  intervalSummaryLabel: string;
   depositPerRound: string;
   totalRounds: bigint;
   circleStatus: IFormattedUserCircleStatusResult;
@@ -59,7 +59,7 @@ const StackDetailsTotal = ({
             size={24}
           />
           <Body className="text-surface-grey-2">
-            Total stacked per {intervalLabel}
+            Total stacked per {intervalSummaryLabel}
           </Body>
         </div>
       </div>
@@ -99,25 +99,20 @@ const StackDetailsBreakdownRow = ({
 
 const StackDetailsBreakdown = ({
   circle,
-  intervalLabel,
-  depositInterval,
+  intervalSummaryLabel,
   roundsLeft,
   status,
 }: {
   circle: MemberCircleInfo;
-  intervalLabel: "month" | "week";
-  depositInterval: number;
+  intervalSummaryLabel: string;
   roundsLeft: number | string;
   status: IFormattedUserCircleStatusResult;
 }) => {
-  const capitalizedLabel = `${intervalLabel[0].toUpperCase()}${intervalLabel.slice(
-    1
-  )}`;
   const _roundsLeft = status.status === "pending-start" ? "-" : roundsLeft;
 
   return (
     <div className="md:flex-1">
-      <StackDetailsBreakdownRow label={`${capitalizedLabel}ly deposit`}>
+      <StackDetailsBreakdownRow label="Deposit per round">
         <>
           <Logo
             size={24}
@@ -131,9 +126,8 @@ const StackDetailsBreakdown = ({
         <>
           <CalendarDotsIcon size={24} className="fill-blue-2" />
           <p className="text-h2 text-2xl leading-6 tracking-[-2%]">
-            {depositInterval}
+            {intervalSummaryLabel}
           </p>
-          <p>Days</p>
         </>
       </StackDetailsBreakdownRow>
       <StackDetailsBreakdownRow label="Time left">
@@ -141,7 +135,7 @@ const StackDetailsBreakdown = ({
           <p className="text-h2 leading-6 tracking-[-2%] text-2xl">
             {status.status === "finished" ? "0" : _roundsLeft}
           </p>
-          {status.status !== "pending-start" && <p>{capitalizedLabel}s</p>}
+          {status.status !== "pending-start" && <p>Rounds</p>}
         </>
       </StackDetailsBreakdownRow>
     </div>
@@ -167,8 +161,9 @@ const StackDetails = ({
       : undefined;
   const { data: creationTimestamp } = useGetCircleCreated({ circleId: id });
 
-  const depositInterval = Number(circle.depositInterval / SECONDS_PER_DAY);
-  const intervalLabel = depositInterval % 30 === 0 ? "month" : "week";
+  const { summaryLabel: intervalSummaryLabel } = formatIntervalFromSeconds(
+    circle.depositInterval
+  );
 
   const depositPerRound = circle.depositAmount * members;
   const circleStatus = getUserCircleStatus(_circle, zeroAddress);
@@ -209,7 +204,7 @@ const StackDetails = ({
       </header>
       <div className="md:flex md:justify-between md:gap-3">
         <StackDetailsTotal
-          intervalLabel={intervalLabel}
+          intervalSummaryLabel={intervalSummaryLabel}
           depositPerRound={formatEther(depositPerRound)}
           poolBalance={formatEther(_circle.totalPoolBalance)}
           completedRounds={_circle.completedRounds}
@@ -218,8 +213,7 @@ const StackDetails = ({
         />
         <StackDetailsBreakdown
           circle={circle}
-          intervalLabel={intervalLabel}
-          depositInterval={depositInterval}
+          intervalSummaryLabel={intervalSummaryLabel}
           roundsLeft={roundsLeft.toString()}
           status={circleStatus}
         />

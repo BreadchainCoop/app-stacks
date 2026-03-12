@@ -154,7 +154,7 @@ export const StackSuccessResultModal = ({
           signature,
           modalState.circle.name,
           modalState.circle.members,
-          modalState.circle.duration.split(" ")[1],
+          modalState.circle.intervalLabel,
           formatBalance(modalState.circle.deposit, 2)
         );
 

@@ -9,10 +9,15 @@ import { MouseEventHandler, ReactNode } from "react";
 import { useFormContext } from "react-hook-form";
 import { StackFormSchemaData } from "./schema";
 import NumericInput from "@/components/numeric-input";
+import {
+  DEPOSIT_INTERVAL_OPTIONS,
+  getDepositIntervalOption,
+} from "@/lib/deposit-intervals";
 
 const StackForm = ({ onContinue }: { onContinue: () => void }) => {
   const form = useFormContext<StackFormSchemaData>();
   const depositInterval = form.watch("depositInterval");
+  const depositIntervalLabel = getDepositIntervalOption(depositInterval).label;
 
   const validateStack: MouseEventHandler<HTMLButtonElement> = async (e) => {
     e.preventDefault();
@@ -73,11 +78,10 @@ const StackForm = ({ onContinue }: { onContinue: () => void }) => {
           <Field>
             <div>
               <Label htmlFor="depositAmount">
-                <span className="capitalize">{depositInterval}</span> deposit
-                for each member
+                <span>{depositIntervalLabel}</span> deposit for each member
               </Label>
             </div>
-            <InputDescription desc="The total amount of money you want to stack up with friends every week or month." />
+            <InputDescription desc="The total amount of money you want to stack up with friends every round." />
             <InputDescription desc="1 BREAD = 1 USD" className="text-xs" />
             <div className="relative">
               <NumericInput
@@ -99,30 +103,21 @@ const StackForm = ({ onContinue }: { onContinue: () => void }) => {
               <Label htmlFor="depositInterval">Deposit Interval</Label>
             </div>
             <div className="flex flex-col gap-2">
-              <RadioButton
-                id="weekly"
-                checked={form.watch("depositInterval") === "weekly"}
-                description=" (every 7 days)"
-                label="Weekly"
-                name="depositInterval"
-                onChange={() => {
-                  form.setValue("depositInterval", "weekly");
-                  form.clearErrors("depositInterval");
-                }}
-                value="weekly"
-              />
-              <RadioButton
-                id="monthly"
-                checked={form.watch("depositInterval") === "monthly"}
-                description=" (every 30 days)"
-                label="Monthly"
-                name="depositInterval"
-                onChange={() => {
-                  form.setValue("depositInterval", "monthly");
-                  form.clearErrors("depositInterval");
-                }}
-                value="monthly"
-              />
+              {DEPOSIT_INTERVAL_OPTIONS.map((option) => (
+                <RadioButton
+                  key={option.value}
+                  id={option.value}
+                  checked={depositInterval === option.value}
+                  description={` ${option.description}`}
+                  label={option.label}
+                  name="depositInterval"
+                  onChange={() => {
+                    form.setValue("depositInterval", option.value);
+                    form.clearErrors("depositInterval");
+                  }}
+                  value={option.value}
+                />
+              ))}
             </div>
             <ErrorMessage
               msg={form.formState.errors.depositInterval?.message}

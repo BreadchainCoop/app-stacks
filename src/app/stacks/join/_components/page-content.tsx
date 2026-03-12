@@ -156,9 +156,10 @@ export default function PageContent() {
                   <div className="">
                     <RowDetail label="Group name" body={circleName} />
                     <RowDetail label="Stacks group ID" body={circleId} />
+                    <RowDetail label="Duration" body={`${members} rounds`} />
                     <RowDetail
-                      label="Duration"
-                      body={`${members} ${interval}`}
+                      label="Members deposit every"
+                      body={interval || "-"}
                     />
                     <RowDetail
                       label="Est. Deposit amount"

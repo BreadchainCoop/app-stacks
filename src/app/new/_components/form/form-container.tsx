@@ -8,6 +8,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import stackSchema, { StackFormSchemaData } from "./schema";
 import { Heading2 } from "@breadcoop/ui";
 import { useSearchParams } from "next/navigation";
+import {
+  DEFAULT_DEPOSIT_INTERVAL,
+  isDepositIntervalValue,
+} from "@/lib/deposit-intervals";
 
 const StackFormContainer = () => {
   const params = useSearchParams();
@@ -22,8 +26,9 @@ const StackFormContainer = () => {
       depositAmount: params.get("amount")
         ? Number(params.get("amount"))
         : undefined,
-      depositInterval:
-        interval === "weekly" || interval === "monthly" ? interval : "weekly",
+      depositInterval: isDepositIntervalValue(interval)
+        ? interval
+        : DEFAULT_DEPOSIT_INTERVAL,
     },
   });
   const [showOverview, setShowOverview] = useState(false);

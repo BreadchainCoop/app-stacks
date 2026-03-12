@@ -4,6 +4,23 @@ import Countdown from "@/components/countdown";
 import { Body } from "@breadcoop/ui";
 import { CalendarStarIcon } from "@phosphor-icons/react";
 
+const formatRemainingTime = (secondsLeft: number) => {
+  if (secondsLeft <= 0) return "0 minutes";
+
+  const minutes = Math.ceil(secondsLeft / 60);
+  if (minutes < 60) {
+    return `${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
+  }
+
+  const hours = Math.ceil(secondsLeft / (60 * 60));
+  if (hours < 24) {
+    return `${hours} ${hours === 1 ? "hour" : "hours"}`;
+  }
+
+  const days = Math.ceil(secondsLeft / (60 * 60 * 24));
+  return `${days} ${days === 1 ? "day" : "days"}`;
+};
+
 const DaysLeft = ({
   depositWindowEnd,
   effectiveCircleStartTime,
@@ -17,7 +34,7 @@ const DaysLeft = ({
   depositInterval: bigint | undefined;
   isActive?: boolean;
 }) => {
-  let daysLeft = "-";
+  let timeLeftLabel = "-";
   let progressPercent = 0;
 
   if (
@@ -39,13 +56,12 @@ const DaysLeft = ({
     const timeLeft = currentRoundEnd - now;
 
     if (timeLeft > 0) {
-      const _daysLeft = Math.ceil(timeLeft / (60 * 60 * 24));
-      daysLeft = `${_daysLeft} ${_daysLeft === 1 ? "day" : "days"}`;
+      timeLeftLabel = formatRemainingTime(timeLeft);
 
       const timePassed = now - currentRoundStart;
       progressPercent = Math.min(100, (timePassed / totalDuration) * 100);
     } else {
-      daysLeft = "0 days";
+      timeLeftLabel = "0 minutes";
       progressPercent = 100;
     }
   }
@@ -55,9 +71,9 @@ const DaysLeft = ({
       <div>
         <div className="flex items-center justify-start gap-0.5">
           <CalendarStarIcon size={24} className="fill-blue-2" />
-          <Body>Days left until current round ends</Body>
+          <Body>Time left until current round ends</Body>
         </div>
-        <p className="text-h2 text-2xl leading-6 mt-2">{daysLeft}</p>
+        <p className="text-h2 text-2xl leading-6 mt-2">{timeLeftLabel}</p>
       </div>
       <div className="w-full h-4 bg-paper-2 mt-4 mb-2 p-0.75">
         <div

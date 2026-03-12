@@ -37,7 +37,7 @@ const tutorials = [
   {
     Icon: HandDepositIcon,
     title: "Make your contributions",
-    body: "Each member deposits a set amount every week or month into the group’s shared pool. Once everyone has contributed, the payout begins!",
+    body: "Each member deposits a set amount at the selected interval into the group’s shared pool. Once everyone has contributed, the payout begins!",
     para: "Deposits are tracked on-chain, so everything is transparent and secure.",
     className: "rotate-180",
   },
