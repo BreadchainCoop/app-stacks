@@ -4,6 +4,12 @@ const envSchema = z.object({
   SPOO_TOKEN: z.string(),
   UPSTASH_REDIS_REST_URL: z.string(),
   UPSTASH_REDIS_REST_TOKEN: z.string(),
+  SEPOLIA_AUTO_FUND_ENABLED: z.string().default("false"),
+  SEPOLIA_RPC_URL: z.string().optional(),
+  SEPOLIA_FUNDER_PRIVATE_KEY: z.string().optional(),
+  NEXT_PUBLIC_SEPOLIA_BREAD_TOKEN_ADDRESS: z.string().optional(),
+  SEPOLIA_AUTO_FUND_AMOUNT_WEI: z.string().optional(),
+  SEPOLIA_AUTO_FUND_REDIS_PREFIX: z.string().default("auto_fund"),
 });
 
 const parsedSchema = envSchema.safeParse(process.env);
