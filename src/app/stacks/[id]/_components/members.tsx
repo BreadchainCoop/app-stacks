@@ -7,10 +7,9 @@ import { useCircleMembersWithBalances } from "@/hooks/use-circle-members";
 import { useReadContracts } from "wagmi";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
-import { LocalStorageCircle, MemberCircleInfo } from "@/interfaces/circle";
+import { MemberCircleInfo } from "@/interfaces/circle";
 import { getDefaultChainId } from "@/utils/chain";
-import { useShortenedUrl } from "@/hooks/use-shortened-url";
-import { useExpandToken } from "@/hooks/use-expand-token";
+import { useStackSupabase } from "@/hooks/use-stack-supabase";
 
 const TopRowInfo = ({
   LIcon,
@@ -40,54 +39,36 @@ const StackMembers = ({
   circle,
   id,
   member,
+  isMember,
 }: {
   id: string;
   member: Address;
-  // circle: Exclude<ReturnType<typeof useUserCircleData>["circleData"], undefined>;
   circle: MemberCircleInfo;
+  isMember: boolean;
 }) => {
   const info = useCircleMembersWithBalances(BigInt(id));
+  const isOwner = circle.owner === member;
+
+  const { data: stackMetadata } = useStackSupabase(id, isMember);
 
   const totalMembers = info.isLoading ? "-" : info.members.length;
-
   const totalBaseDeposit =
     +formatEther(circle.depositAmount) * Number(circle.currentIndex);
 
-  const isOwner = circle.owner === member;
-
-  console.log("__ IS OWNER __", isOwner);
-
-  const localCircle = (() => {
-    const localCircles = localStorage.getItem("circles");
-    if (!localCircles) return null;
-    try {
-      const parsed = JSON.parse(localCircles) as Record<
-        string,
-        LocalStorageCircle
-      >;
-      return parsed[id] ?? null;
-    } catch {
-      return null;
-    }
-  })();
-
-  const inviteLinks = localCircle?.invite_links ?? [];
-  const { result: resolvedInviteLinks } = useExpandToken(inviteLinks);
-
-  const nonceChecks = resolvedInviteLinks
+  const nonceChecks = (stackMetadata?.invite_links ?? [])
     .map((link) => {
       try {
-        const url = new URL(link);
+        const url = new URL(link.long);
         const nonceStr = url.searchParams.get("nonce");
         if (!nonceStr) return null;
-        return BigInt(nonceStr);
+        return { nonce: BigInt(nonceStr), short: link.short };
       } catch {
         return null;
       }
     })
-    .filter((n): n is bigint => n !== null);
+    .filter((n): n is { nonce: bigint; short: string } => n !== null);
 
-  const contracts = nonceChecks.map((nonce) => ({
+  const contracts = nonceChecks.map(({ nonce }) => ({
     ...savingCircleContract,
     args: [BigInt(id), nonce],
     chainId: getDefaultChainId(),
@@ -96,29 +77,20 @@ const StackMembers = ({
   const { data: nonceResults, isLoading: isCheckingNonces } = useReadContracts({
     contracts,
     query: {
-      enabled: isOwner && contracts.length > 0,
+      enabled: isMember && contracts.length > 0,
     },
   });
 
-  const pendingInviteLinks = resolvedInviteLinks.filter((_, index) => {
-    if (!nonceResults || nonceResults.length <= index) return false;
-    const result = nonceResults[index];
-
-    if (result.status !== "success") return false;
-
-    return result.result === false;
-  });
+  const pendingInviteLinks = nonceChecks
+    .filter((_, index) => {
+      if (!nonceResults || nonceResults.length <= index) return false;
+      const result = nonceResults[index];
+      if (result.status !== "success") return false;
+      return result.result === false;
+    })
+    .map((link) => link.short);
 
   const pendingCount = pendingInviteLinks.length;
-
-  const { result: shortenedLinks, isShortening } =
-    useShortenedUrl(pendingInviteLinks);
-
-  console.log("__ SHORTENED LINKS __", {
-    shortenedLinks,
-    isShortening,
-    pendingInviteLinks,
-  });
 
   return (
     <section className="p-4 flex flex-col gap-4">
@@ -135,7 +107,7 @@ const StackMembers = ({
           value={totalMembers}
         />
 
-        {isOwner && (
+        {isMember && (
           <TopRowInfo
             LIcon={HourglassIcon}
             title="Pending invites:"
@@ -149,9 +121,7 @@ const StackMembers = ({
         id={id}
         info={info}
         totalBaseDeposit={totalBaseDeposit}
-        pendingInviteLinks={
-          isOwner ? (isShortening ? pendingInviteLinks : shortenedLinks) : []
-        }
+        pendingInviteLinks={isOwner ? pendingInviteLinks : []}
       />
     </section>
   );

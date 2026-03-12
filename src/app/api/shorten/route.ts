@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   checkExistingShortUrl,
-  createErrorResponse,
   createShortUrl,
   getCachedShortUrl,
   setCachedShortUrl,
   validateUrl,
 } from "./utils";
 import { ShortenRequestBody } from "./interface";
+import { createErrorResponse } from "../utils";
 
 export async function POST(request: NextRequest) {
   try {

@@ -24,6 +24,7 @@ import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../../lib/constants";
 import { useSignTypedData } from "@privy-io/react-auth";
 import { getDefaultChainId } from "@/utils/chain";
 import { shortenUrl } from "@/utils/shorten";
+import { SupabaseInviteLink } from "@/lib/supabase";
 
 type InviteLink = {
   nonce: bigint;
@@ -83,6 +84,7 @@ export const StackSuccessResultModal = ({
       const circleId = BigInt(modalState.circle.id);
       const inviteCount = Math.max(1, modalState.circle.members - 1);
 
+      const supabaseInviteLinks: SupabaseInviteLink[] = [];
       // Generate unique nonces
       const invitePayloads: {
         nonce: bigint;
@@ -158,6 +160,7 @@ export const StackSuccessResultModal = ({
           formatBalance(modalState.circle.deposit, 2)
         );
 
+        supabaseInviteLinks.push({ long: url, short: "", used: false });
         signedInvites.push({ nonce, signature, url, used: false });
       }
 
@@ -171,18 +174,22 @@ export const StackSuccessResultModal = ({
         const result = shorteningResults[index];
         if (result.status === "fulfilled" && result.value !== invite.url) {
           invite.url = result.value;
+          supabaseInviteLinks[index].short = result.value;
+        } else {
+          supabaseInviteLinks[index].short = supabaseInviteLinks[index].long;
         }
       });
 
-      let localCircles = JSON.parse(localStorage.getItem("circles") || "{}");
-      localCircles = {
-        ...localCircles,
-        [modalState.circle.id]: {
-          ...localCircles[modalState.circle.id],
-          invite_links: signedInvites.map((i) => i.url),
-        },
-      };
-      localStorage.setItem("circles", JSON.stringify(localCircles));
+      fetch("/api/stacks/metadata", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: modalState.circle.id,
+          stackname: modalState.circle.name,
+          expected_members: modalState.circle.members,
+          invite_links: supabaseInviteLinks,
+        }),
+      });
 
       setSigningProgress("");
       setInvites(signedInvites);

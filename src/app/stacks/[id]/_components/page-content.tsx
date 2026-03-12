@@ -60,6 +60,7 @@ const PageContent = ({ id }: { id: string }) => {
               id={id}
               circle={userCircleData.circleData.circleInfo}
               member={member}
+              isMember={userCircleData.circleData?.isMember}
             />
             <StackInfo owner={userCircleData.circleData.circleInfo.owner} />
           </div>

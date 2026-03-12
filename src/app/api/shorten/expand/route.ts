@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createErrorResponse, expandShortUrlWithCache } from "../utils";
+import { expandShortUrlWithCache } from "../utils";
+import { createErrorResponse } from "../../utils";
 
 interface ExpandRequestBody {
   short_url: string;

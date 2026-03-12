@@ -18,8 +18,11 @@ import { useCircleStatus } from "@/hooks/use-circle-status";
 import StartCircleButton from "@/components/start-circle-button";
 import DepositButton from "@/components/deposit-button";
 import { useModal } from "@/components/modal/context";
-import { useEffect, useState } from "react";
-import { LocalStorageCircles } from "@/interfaces/circle";
+import { useStackSupabase } from "@/hooks/use-stack-supabase";
+import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
+import { savingCirclesAbi } from "@/lib/abis/saving-circles";
+import { getDefaultChainId } from "@/utils/chain";
+import { useReadContracts } from "wagmi";
 
 const Overview = ({
   circle,
@@ -35,25 +38,57 @@ const Overview = ({
 }) => {
   const { setModal } = useModal();
   const connectedUser = useConnectedUser();
-  const [totalMembers, setTotalMembers] = useState<string | number>(0);
   const formattedCircleStatus = getUserCircleStatus(circle, member, {
     includeClaimable: true,
     // includeDeposited: true,
   });
+  const { data: stackMetadata } = useStackSupabase(
+    circle.circleId.toString(),
+    circle.isMember
+  );
 
-  useEffect(() => {
-    if (formattedCircleStatus.status === "pending-start") {
-      const localCircles: LocalStorageCircles = JSON.parse(
-        localStorage.getItem("circles") || "{}"
-      );
+  const nonceChecks = (stackMetadata?.invite_links ?? [])
+    .map((link) => {
+      try {
+        const url = new URL(link.long);
+        const nonceStr = url.searchParams.get("nonce");
+        if (!nonceStr) return null;
+        return BigInt(nonceStr);
+      } catch {
+        return null;
+      }
+    })
+    .filter((n): n is bigint => n !== null);
 
-      const localCircle = localCircles[circle.circleId.toString()];
+  const contracts = nonceChecks.map((nonce) => ({
+    address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+    abi: savingCirclesAbi,
+    functionName: "usedNonces" as const,
+    args: [circle.circleId, nonce],
+    chainId: getDefaultChainId(),
+  }));
 
-      setTotalMembers(localCircle?.totalMembers || "-");
-    } else {
-      setTotalMembers(Number(circle.totalRounds));
-    }
-  }, []);
+  const { data: nonceResults } = useReadContracts({
+    contracts,
+    query: {
+      enabled: circle.isMember && contracts.length > 0,
+    },
+  });
+
+  const pendingInvites = nonceChecks.filter((_, index) => {
+    if (!nonceResults || nonceResults.length <= index) return false;
+    const result = nonceResults[index];
+    if (result.status !== "success") return false;
+    return result.result === false;
+  }).length;
+
+  const expectedMembers = stackMetadata?.expected_members ?? 0;
+  const invitesComplete = pendingInvites === 0 && expectedMembers > 0;
+
+  const totalMembers =
+    formattedCircleStatus.status === "pending-start"
+      ? expectedMembers || "-"
+      : Number(circle.totalRounds);
 
   let roundsCompleted = BigInt(0);
   let membersDeposited: bigint | number = BigInt(0);
@@ -149,7 +184,16 @@ const Overview = ({
       <div className="mt-4">
         {formattedCircleStatus.status === "pending-start" ? (
           <>
-            {member === circle.circleInfo.owner ? (
+            {!invitesComplete && circle.isMember ? (
+              <Body className="text-center text-surface-grey">
+                Waiting for{" "}
+                <span className="font-bold text-surface-ink">
+                  {pendingInvites}
+                </span>{" "}
+                {pendingInvites === 1 ? "invite" : "invites"} to be accepted
+                before the stack can start.
+              </Body>
+            ) : member === circle.circleInfo.owner ? (
               <StartCircleButton
                 circleId={BigInt(circle.circleId)}
                 amount={circle.circleInfo.depositAmount}
