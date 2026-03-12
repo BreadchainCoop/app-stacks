@@ -7,6 +7,7 @@ import {
   erc20Abi,
   Hex,
   http,
+  parseEther,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
@@ -19,6 +20,8 @@ type FundRequestBody = {
 
 const FUNDER_CHAIN_ID = 11155111;
 const MIN_BALANCE_TO_SKIP_WEI = BigInt("20000000000000000000"); // 20 BREAD
+const NATIVE_TOP_UP_WEI = parseEther("0.0005");
+const NATIVE_MIN_BALANCE_WEI = parseEther("0.0002");
 
 function getConfig() {
   return {
@@ -100,6 +103,44 @@ export async function POST(request: NextRequest) {
       transport: http(cfg.rpcUrl),
     });
 
+    const nativeBalance = await publicClient.getBalance({
+      address: walletAddress,
+    });
+
+    let nativeFunding: {
+      funded: boolean;
+      beforeWei: string;
+      thresholdWei: string;
+      amountWei: string;
+      txHash?: string;
+      blockNumber?: string;
+    } = {
+      funded: false,
+      beforeWei: nativeBalance.toString(),
+      thresholdWei: NATIVE_MIN_BALANCE_WEI.toString(),
+      amountWei: NATIVE_TOP_UP_WEI.toString(),
+    };
+
+    if (nativeBalance < NATIVE_MIN_BALANCE_WEI) {
+      const nativeTxHash = await walletClient.sendTransaction({
+        to: walletAddress,
+        value: NATIVE_TOP_UP_WEI,
+        chain: sepolia,
+        account,
+      });
+
+      const nativeReceipt = await publicClient.waitForTransactionReceipt({
+        hash: nativeTxHash,
+      });
+
+      nativeFunding = {
+        ...nativeFunding,
+        funded: true,
+        txHash: nativeTxHash,
+        blockNumber: nativeReceipt.blockNumber.toString(),
+      };
+    }
+
     const currentBalance = (await publicClient.readContract({
       address: tokenAddress,
       abi: erc20Abi,
@@ -111,6 +152,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         alreadyFunded: true,
+        nativeFunding,
         walletAddress,
         chainId: FUNDER_CHAIN_ID,
         tokenAddress,
@@ -123,6 +165,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         alreadyFunded: true,
+        nativeFunding,
         walletAddress,
         chainId: FUNDER_CHAIN_ID,
         tokenAddress,
@@ -148,6 +191,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       alreadyFunded: false,
+      nativeFunding,
       walletAddress,
       chainId: FUNDER_CHAIN_ID,
       tokenAddress,
