@@ -6,6 +6,7 @@ import {
 
 export const DEPOSIT_INTERVAL_VALUES = [
   "five_minutes",
+  "fifteen_minutes",
   "hourly",
   "daily",
   "weekly",
@@ -29,6 +30,13 @@ export const DEPOSIT_INTERVAL_OPTIONS: readonly DepositIntervalOption[] = [
     description: "(every 5 minutes)",
     summaryLabel: "5 minutes",
     seconds: SECONDS_PER_MINUTE * BigInt(5),
+  },
+  {
+    value: "fifteen_minutes",
+    label: "Every 15 minutes",
+    description: "(every 15 minutes)",
+    summaryLabel: "15 minutes",
+    seconds: SECONDS_PER_MINUTE * BigInt(15),
   },
   {
     value: "hourly",
