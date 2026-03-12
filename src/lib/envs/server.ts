@@ -1,9 +1,9 @@
 import z from "zod";
 
 const envSchema = z.object({
-  SPOO_TOKEN: z.string(),
-  UPSTASH_REDIS_REST_URL: z.string(),
-  UPSTASH_REDIS_REST_TOKEN: z.string(),
+  SPOO_TOKEN: z.string().default(""),
+  UPSTASH_REDIS_REST_URL: z.string().default(""),
+  UPSTASH_REDIS_REST_TOKEN: z.string().default(""),
   SEPOLIA_AUTO_FUND_ENABLED: z.string().default("false"),
   SEPOLIA_RPC_URL: z.string().optional(),
   SEPOLIA_FUNDER_PRIVATE_KEY: z.string().optional(),

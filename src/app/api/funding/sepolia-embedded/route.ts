@@ -34,6 +34,12 @@ function badRequest(message: string, status = 400) {
   return NextResponse.json({ success: false, error: message }, { status });
 }
 
+function normalizePrivateKey(privateKey: string): Hex | null {
+  const trimmed = privateKey.trim();
+  const withPrefix = trimmed.startsWith("0x") ? trimmed : `0x${trimmed}`;
+  return /^0x[0-9a-fA-F]{64}$/.test(withPrefix) ? (withPrefix as Hex) : null;
+}
+
 export async function POST(request: NextRequest) {
   const cfg = getConfig();
 
@@ -69,13 +75,20 @@ export async function POST(request: NextRequest) {
   const walletAddress = getAddress(walletAddressInput);
   const tokenAddress = getAddress(cfg.tokenAddress);
   const amountWei = BigInt(cfg.amountWei);
+  const normalizedPrivateKey = normalizePrivateKey(cfg.privateKey);
 
   if (amountWei <= BigInt(0)) {
     return badRequest("SEPOLIA_AUTO_FUND_AMOUNT_WEI must be > 0", 500);
   }
+  if (!normalizedPrivateKey) {
+    return badRequest(
+      "SEPOLIA_FUNDER_PRIVATE_KEY must be 64 hex chars (with or without 0x)",
+      500
+    );
+  }
 
   try {
-    const account = privateKeyToAccount(cfg.privateKey as Hex);
+    const account = privateKeyToAccount(normalizedPrivateKey);
     const walletClient = createWalletClient({
       account,
       chain: sepolia,
@@ -144,6 +157,11 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Sepolia embedded wallet funding failed:", error);
-    return badRequest("Funding failed", 500);
+    return badRequest(
+      error instanceof Error
+        ? `Funding failed: ${error.message}`
+        : "Funding failed",
+      500
+    );
   }
 }
