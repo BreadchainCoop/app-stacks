@@ -8,7 +8,7 @@ import { BreadUIKitProvider, ConnectedUserProvider } from "@breadcoop/ui";
 import { clientEnv } from "@/lib/env";
 import { Address, erc20Abi } from "viem";
 import { PrivyClientConfig, PrivyProvider } from "@privy-io/react-auth";
-import { getDefaultChainDetail } from "@/utils/chain";
+import { getDefaultChainDetail, getDefaultChainId } from "@/utils/chain";
 
 const tokenConfig: ComponentProps<typeof BreadUIKitProvider>["tokenConfig"] = {
   BREAD: {
@@ -31,6 +31,7 @@ const privyConfig: PrivyClientConfig = {
 
 const Providers = ({ children }: { children: ReactNode }) => {
   const isProd = clientEnv.NEXT_PUBLIC_TARGET_NETWORK === "gnosis";
+  const appChainId = getDefaultChainId();
 
   return (
     <ToolsProviders>
@@ -43,6 +44,8 @@ const Providers = ({ children }: { children: ReactNode }) => {
           <BreadUIKitProvider
             app="stacks"
             isProd={isProd}
+            chainId={appChainId}
+            supportedChainIds={[appChainId]}
             tokenConfig={tokenConfig}
             authProvider="privy"
           >
