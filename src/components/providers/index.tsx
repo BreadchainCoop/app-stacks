@@ -58,19 +58,28 @@ function SepoliaEmbeddedAutoFund() {
     if (!walletAddress) return;
     if (requestedFor.current === walletAddress) return;
 
-    requestedFor.current = walletAddress;
+    void (async () => {
+      try {
+        const response = await fetch("/api/funding/sepolia-embedded", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            walletAddress,
+            chainId: SEPOLIA_CHAIN_ID,
+          }),
+        });
 
-    void fetch("/api/funding/sepolia-embedded", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        walletAddress,
-        chainId: SEPOLIA_CHAIN_ID,
-      }),
-    }).catch(() => {
-      // Allow a future retry if request fails due to transient network issues.
-      requestedFor.current = null;
-    });
+        if (!response.ok) {
+          requestedFor.current = null;
+          return;
+        }
+
+        requestedFor.current = walletAddress;
+      } catch {
+        // Allow a future retry if request fails due to transient network issues.
+        requestedFor.current = null;
+      }
+    })();
   }, [ready, wallets]);
 
   return null;

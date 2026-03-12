@@ -9,7 +9,6 @@ const envSchema = z.object({
   SEPOLIA_FUNDER_PRIVATE_KEY: z.string().optional(),
   NEXT_PUBLIC_SEPOLIA_BREAD_TOKEN_ADDRESS: z.string().optional(),
   SEPOLIA_AUTO_FUND_AMOUNT_WEI: z.string().optional(),
-  SEPOLIA_AUTO_FUND_REDIS_PREFIX: z.string().default("auto_fund"),
 });
 
 const parsedSchema = envSchema.safeParse(process.env);

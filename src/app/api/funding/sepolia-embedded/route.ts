@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Redis } from "@upstash/redis";
 import {
   getAddress,
   isAddress,
@@ -19,7 +18,7 @@ type FundRequestBody = {
 };
 
 const FUNDER_CHAIN_ID = 11155111;
-const LOCK_TTL_SECONDS = 30;
+const MIN_BALANCE_TO_SKIP_WEI = BigInt("20000000000000000000"); // 20 BREAD
 
 function getConfig() {
   return {
@@ -28,7 +27,6 @@ function getConfig() {
     privateKey: serverEnv.SEPOLIA_FUNDER_PRIVATE_KEY,
     tokenAddress: serverEnv.NEXT_PUBLIC_SEPOLIA_BREAD_TOKEN_ADDRESS,
     amountWei: serverEnv.SEPOLIA_AUTO_FUND_AMOUNT_WEI,
-    redisPrefix: serverEnv.SEPOLIA_AUTO_FUND_REDIS_PREFIX,
   };
 }
 
@@ -76,35 +74,6 @@ export async function POST(request: NextRequest) {
     return badRequest("SEPOLIA_AUTO_FUND_AMOUNT_WEI must be > 0", 500);
   }
 
-  const redis = new Redis({
-    url: serverEnv.UPSTASH_REDIS_REST_URL,
-    token: serverEnv.UPSTASH_REDIS_REST_TOKEN,
-  });
-
-  const fundedKey = `${cfg.redisPrefix}:sepolia:${walletAddress}:funded`;
-  const lockKey = `${cfg.redisPrefix}:sepolia:${walletAddress}:lock`;
-
-  const alreadyFunded = await redis.get(fundedKey);
-  if (alreadyFunded) {
-    return NextResponse.json({
-      success: true,
-      alreadyFunded: true,
-      walletAddress,
-      chainId: FUNDER_CHAIN_ID,
-      tokenAddress,
-      amountWei: amountWei.toString(),
-    });
-  }
-
-  const lockAcquired = await redis.set(lockKey, "1", {
-    nx: true,
-    ex: LOCK_TTL_SECONDS,
-  });
-
-  if (!lockAcquired) {
-    return badRequest("Funding already in progress for this wallet", 409);
-  }
-
   try {
     const account = privateKeyToAccount(cfg.privateKey as Hex);
     const walletClient = createWalletClient({
@@ -126,10 +95,6 @@ export async function POST(request: NextRequest) {
     })) as bigint;
 
     if (currentBalance >= amountWei) {
-      await redis.set(
-        fundedKey,
-        JSON.stringify({ reason: "already_has_tokens" })
-      );
       return NextResponse.json({
         success: true,
         alreadyFunded: true,
@@ -137,7 +102,20 @@ export async function POST(request: NextRequest) {
         chainId: FUNDER_CHAIN_ID,
         tokenAddress,
         amountWei: amountWei.toString(),
-        reason: "already_has_tokens",
+        reason: "already_has_funding_amount",
+      });
+    }
+
+    if (currentBalance >= MIN_BALANCE_TO_SKIP_WEI) {
+      return NextResponse.json({
+        success: true,
+        alreadyFunded: true,
+        walletAddress,
+        chainId: FUNDER_CHAIN_ID,
+        tokenAddress,
+        amountWei: amountWei.toString(),
+        reason: "balance_above_threshold",
+        minBalanceToSkipWei: MIN_BALANCE_TO_SKIP_WEI.toString(),
       });
     }
 
@@ -154,16 +132,6 @@ export async function POST(request: NextRequest) {
       hash: txHash,
     });
 
-    await redis.set(
-      fundedKey,
-      JSON.stringify({
-        txHash,
-        amountWei: amountWei.toString(),
-        fundedAt: new Date().toISOString(),
-        blockNumber: receipt.blockNumber.toString(),
-      })
-    );
-
     return NextResponse.json({
       success: true,
       alreadyFunded: false,
@@ -177,7 +145,5 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Sepolia embedded wallet funding failed:", error);
     return badRequest("Funding failed", 500);
-  } finally {
-    await redis.del(lockKey);
   }
 }
