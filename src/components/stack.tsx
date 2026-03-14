@@ -6,19 +6,23 @@ import LocalLiftedButton from "./lifted-button";
 import Link from "next/link";
 import { QuestionIcon } from "@phosphor-icons/react/ssr";
 import ClaimButton from "./claim-button";
-import { ICircleList, LocalStorageCircle } from "@/interfaces/circle";
+import { ICircleList } from "@/interfaces/circle";
 import { formatEther } from "viem";
 import DepositButton from "./deposit-button";
 import { HandWithdrawIcon } from "@phosphor-icons/react";
 import { parseCircleIntervalToDate } from "@/utils/stacks";
+import { Database } from "@/lib/supabase";
+
+type StackMetadata = Database["public"]["Tables"]["stacks_metadata"]["Row"];
 
 const Stack = ({
   stack,
-  stackNames,
+  stacksMap,
 }: {
   stack: ICircleList;
-  stackNames: Record<string, LocalStorageCircle>;
+  stacksMap: Record<string, StackMetadata>;
 }) => {
+  const stackMeta = stacksMap[String(stack.id)];
   const depositAmount = formatEther(stack.depositAmount);
   const totalGoal =
     Number(depositAmount) * stack.totalMember * stack.totalMember;
@@ -66,7 +70,7 @@ const Stack = ({
     <li className="border border-paper-1 p-6 flex flex-col gap-6 bg-paper-0 shadow-[0px_4px_12px_0px_#1B201A26] xl:max-w-94">
       <div className="flex flex-col gap-2">
         <Heading3 className="m-0 text-2xl font-bold">
-          {stackNames[String(stack.id)]?.name || "Circle name"}
+          {stackMeta?.stackname ?? `Stack ${stack.id}`}
         </Heading3>
         <div className="flex items-center justify-between">
           <Body bold className="text-surface-grey">

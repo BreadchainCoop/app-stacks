@@ -12,6 +12,7 @@ const supabaseAdmin = createClient(
 interface RedeemInviteRequestBody {
   circleId: string;
   nonce: string;
+  privyUserId: string;
 }
 
 export async function PATCH(req: NextRequest) {
@@ -28,7 +29,7 @@ export async function PATCH(req: NextRequest) {
       return createErrorResponse("Invalid request body");
     }
 
-    const { circleId, nonce } = body as RedeemInviteRequestBody;
+    const { circleId, nonce, privyUserId } = body as RedeemInviteRequestBody;
 
     if (!circleId || typeof circleId !== "string") {
       return createErrorResponse("circleId is required and must be a string");
@@ -36,6 +37,12 @@ export async function PATCH(req: NextRequest) {
 
     if (!nonce || typeof nonce !== "string") {
       return createErrorResponse("nonce is required and must be a string");
+    }
+
+    if (!privyUserId || typeof privyUserId !== "string") {
+      return createErrorResponse(
+        "privyUserId is required and must be a string"
+      );
     }
 
     const { data, error: fetchError } = await supabaseAdmin
@@ -62,6 +69,26 @@ export async function PATCH(req: NextRequest) {
     if (updateError) {
       console.error("Failed to update invite link:", updateError);
       return createErrorResponse("Failed to update invite link", 500);
+    }
+
+    const { data: user, error: userFetchError } = await supabaseAdmin
+      .from("users")
+      .select("id")
+      .eq("privy_user_id", privyUserId)
+      .single();
+
+    if (userFetchError || !user) {
+      console.error("Failed to fetch user:", userFetchError);
+      return createErrorResponse("Failed to find user", 404);
+    }
+
+    const { error: userStackError } = await supabaseAdmin
+      .from("user_stacks")
+      .insert({ user_id: user.id, stack_id: circleId });
+
+    if (userStackError) {
+      console.error("Failed to insert user_stacks:", userStackError);
+      return createErrorResponse("Failed to save user stack", 500);
     }
 
     return NextResponse.json({ success: true });
