@@ -7,11 +7,15 @@ import CardCarousel from "../card-carousel";
 import { useSearchParams } from "next/navigation";
 import { tabs } from "./tab";
 import { Body } from "@breadcoop/ui";
+import { usePrivy } from "@privy-io/react-auth";
+import { useUserStacksMetadata } from "@/hooks/use-user-stacks-metadata";
 
 type Tab = "due" | "claim" | "past" | "all";
 
 const HomeUserStacks = ({ address }: { address: Address }) => {
   const userCirclesList = useUserCirclesList(address);
+  const { user } = usePrivy();
+  const { stacksMap } = useUserStacksMetadata(user?.id);
   const { isLoading } = userCirclesList;
   let { circles } = userCirclesList;
   const tab = (useSearchParams().get("tab") || "all") as Tab;
@@ -45,7 +49,7 @@ const HomeUserStacks = ({ address }: { address: Address }) => {
           {circles.length === 0 ? (
             <Body className="text-center">No stacks</Body>
           ) : (
-            <CardCarousel circles={circles} />
+            <CardCarousel circles={circles} stacksMap={stacksMap} />
           )}
         </>
       )}

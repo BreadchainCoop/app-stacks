@@ -147,17 +147,6 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
       await sleep(500);
       modal.setModal({ type: "STACK_CREATION_SUCCESS", circle });
 
-      let localCircles = JSON.parse(localStorage.getItem("circles") || "{}");
-      localCircles = {
-        ...localCircles,
-        [circle.id]: {
-          name: circle.name,
-          owner: user.address,
-          totalMembers: data.members,
-        },
-      };
-      localStorage.setItem("circles", JSON.stringify(localCircles));
-
       form.reset();
     } catch (error) {
       console.error("__ ERROR __", error);

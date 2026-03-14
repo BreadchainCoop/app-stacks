@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
         privy_user_id: privyUserId,
         wallet_address: walletAddress ?? null,
       },
-      { onConflict: "privy_user_id" }
+      { onConflict: "privy_user_id", ignoreDuplicates: true }
     );
 
     if (userError) {
@@ -51,9 +51,24 @@ export async function POST(req: NextRequest) {
       return createErrorResponse("Failed to create user", 500);
     }
 
+    // Fetch the actual user id — will differ from userId if row already existed
+    const { data: existingUser, error: fetchError } = await supabaseAdmin
+      .from("users")
+      .select("id")
+      .eq("privy_user_id", privyUserId)
+      .single();
+
+    if (fetchError || !existingUser) {
+      console.error("Failed to fetch user:", fetchError);
+      return createErrorResponse("Failed to fetch user", 500);
+    }
+
     const { error: profileError } = await supabaseAdmin
       .from("profiles")
-      .upsert({ user_id: userId }, { onConflict: "user_id" });
+      .upsert(
+        { user_id: existingUser.id },
+        { onConflict: "user_id", ignoreDuplicates: true }
+      );
 
     if (profileError) {
       console.error("Failed to upsert profile:", profileError);

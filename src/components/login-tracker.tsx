@@ -5,9 +5,7 @@ import { useLogin } from "@privy-io/react-auth";
 
 const LoginTracker = () => {
   useLogin({
-    async onComplete({ user, isNewUser }) {
-      if (!isNewUser) return;
-
+    async onComplete({ user }) {
       try {
         await onboardSupabaseUser(user);
       } catch (err) {

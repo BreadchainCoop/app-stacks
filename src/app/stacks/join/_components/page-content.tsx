@@ -8,7 +8,13 @@ import {
   AccordionContent,
   AccordionItem,
 } from "@/components/accordion";
-import { Body, Heading1, LoginButton, useConnectedUser } from "@breadcoop/ui";
+import {
+  Body,
+  formatBalance,
+  Heading1,
+  LoginButton,
+  useConnectedUser,
+} from "@breadcoop/ui";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../../../lib/constants";
 import { savingCirclesAbi } from "../../../../lib/abis/saving-circles";
 import { CheckIcon, ConfettiIcon } from "@phosphor-icons/react";
@@ -19,6 +25,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Loading from "@/app/loading";
 import { getDefaultChainId } from "@/utils/chain";
 import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
+import { usePrivy } from "@privy-io/react-auth";
 
 const errorMessages: Record<string, string> = {
   InviteAlreadyUsed: "This invitation has already been used.",
@@ -41,6 +48,7 @@ export default function PageContent() {
   const members = Number(searchParams.get("members"));
   const interval = searchParams.get("interval") || "";
   const deposit = Number(searchParams.get("deposit"));
+  const { user: privyUser } = usePrivy();
 
   const [redeeming, setRedeeming] = useState(false);
 
@@ -93,7 +101,7 @@ export default function PageContent() {
       fetch("/api/stacks/invite", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ circleId, nonce }),
+        body: JSON.stringify({ circleId, nonce, privyUserId: privyUser?.id }),
       });
 
       alert("Invitation Accepted!");
@@ -164,7 +172,7 @@ export default function PageContent() {
                     />
                     <RowDetail
                       label="Stack goal"
-                      body={`${members ** 2 * deposit} BREAD`}
+                      body={`${formatBalance(members ** 2 * deposit, 2)} BREAD`}
                     />
                   </div>
                 </AccordionContent>

@@ -21,7 +21,7 @@ import { useEffect, useState } from "react";
 import { usePublicClient } from "wagmi";
 import { savingCirclesAbi } from "../../../lib/abis/saving-circles";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../../lib/constants";
-import { useSignTypedData } from "@privy-io/react-auth";
+import { usePrivy, useSignTypedData } from "@privy-io/react-auth";
 import { getDefaultChainId } from "@/utils/chain";
 import { shortenUrl } from "@/utils/shorten";
 import { SupabaseInviteLink } from "@/lib/supabase";
@@ -65,6 +65,7 @@ export const StackSuccessResultModal = ({
 }: {
   modalState: StackInitSuccessModalState;
 }) => {
+  const { user: privyUser } = usePrivy();
   const publicClient = usePublicClient();
   const { signTypedData } = useSignTypedData();
   const modal = useModal();
@@ -188,6 +189,7 @@ export const StackSuccessResultModal = ({
           stackname: modalState.circle.name,
           expected_members: modalState.circle.members,
           invite_links: supabaseInviteLinks,
+          privyUserId: privyUser?.id,
         }),
       });
 
@@ -203,10 +205,8 @@ export const StackSuccessResultModal = ({
   };
 
   useEffect(() => {
-    if (invites.length === 0 && !isGenerating && !error) {
-      generateInvites();
-    }
-  }, [invites.length, isGenerating, error]);
+    generateInvites();
+  }, []);
 
   return (
     <ModalContainer className="max-w-142!">

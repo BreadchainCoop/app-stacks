@@ -1,6 +1,10 @@
 import { Body, Heading3 } from "@breadcoop/ui";
 import { Icon } from "@phosphor-icons/react";
-import { HourglassIcon, UsersIcon } from "@phosphor-icons/react/ssr";
+import {
+  EnvelopeOpenIcon,
+  HourglassIcon,
+  UsersIcon,
+} from "@phosphor-icons/react/ssr";
 import MembersInfo from "./members-info";
 import { Address, formatEther } from "viem";
 import { useCircleMembersWithBalances } from "@/hooks/use-circle-members";
@@ -108,11 +112,18 @@ const StackMembers = ({
         />
 
         {isMember && (
-          <TopRowInfo
-            LIcon={HourglassIcon}
-            title="Pending invites:"
-            value={isCheckingNonces ? "…" : pendingCount}
-          />
+          <>
+            <TopRowInfo
+              LIcon={EnvelopeOpenIcon}
+              title="Invited:"
+              value={stackMetadata?.invite_links.length || "..."}
+            />
+            <TopRowInfo
+              LIcon={HourglassIcon}
+              title="Pending:"
+              value={isCheckingNonces ? "..." : pendingCount}
+            />
+          </>
         )}
       </div>
 

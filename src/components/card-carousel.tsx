@@ -3,20 +3,24 @@
 import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react/ssr";
 import { useEffect, useState } from "react";
 import Stack from "./stack";
-import { ICircleList, LocalStorageCircle } from "@/interfaces/circle";
+import { ICircleList } from "@/interfaces/circle";
+import { Database } from "@/lib/supabase";
+
+type StackMetadata = Database["public"]["Tables"]["stacks_metadata"]["Row"];
 
 interface CardCarouselProps {
   circles: ICircleList[];
+  stacksMap: Record<string, StackMetadata>;
 }
 
-export default function CardCarousel({ circles }: CardCarouselProps) {
+export default function CardCarousel({
+  circles,
+  stacksMap,
+}: CardCarouselProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [cardsPerPage, setCardsPerPage] = useState(1);
   const [isAnimating, setIsAnimating] = useState(false);
   const [direction, setDirection] = useState("next");
-  const stackNames = JSON.parse(
-    localStorage.getItem("circles") || "{}"
-  ) as Record<string, LocalStorageCircle>;
 
   const getCardsPerPage = () => {
     if (typeof window === "undefined") return 1;
@@ -86,7 +90,7 @@ export default function CardCarousel({ circles }: CardCarouselProps) {
           }`}
         >
           {visibleCards.map((card) => (
-            <Stack stackNames={stackNames} stack={card} key={card.id} />
+            <Stack stacksMap={stacksMap} stack={card} key={card.id} />
           ))}
         </div>
       </div>
