@@ -1,4 +1,3 @@
-````markdown
 # Technical Specification
 
 # Saving Circles Autopay Automation Proposal
@@ -197,6 +196,7 @@ classDiagram
     TriggerService --> LitPolicySigner : may invoke
     LitPolicySigner --> DelegatedSavingCircles : may sign for
 ```
+
 ````
 
 ---
@@ -618,3 +618,4 @@ At the moment, the document reflects a proposed direction rather than a finalize
 | Manual missed-deposit rate       | % of due deposits missed by opted-in users      | Should be materially reduced                |
 
 ---
+````
