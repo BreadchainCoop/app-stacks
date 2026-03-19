@@ -537,7 +537,7 @@ Questions:
 
 | Term                   | Definition                                                          |
 | ---------------------- | ------------------------------------------------------------------- |
-| Saving Circles         | Cooperative savings product where members contribute across rounds  |
+| Saving Circles         | Main contract for the product with logic and functions              |
 | DelegatedSavingCircles | Contract that enables delegated deposits on behalf of members       |
 | Autopay                | Optional recurring deposit flow after user setup                    |
 | Gelato                 | External automation / execution service under consideration         |
@@ -558,11 +558,6 @@ Questions:
 - Internal discussions about Gelato as automation candidate
 - Internal discussions about Lit as authorization / signing candidate
 
-Questions:
-
-- Should this section include PRs, issues, or architectural notes once created?
-- Should external Lit and Gelato documentation be added in the repo version?
-
 ---
 
 ## 10. Alternative Approaches
@@ -581,41 +576,10 @@ Questions:
 
 No final approach has been selected yet.
 
-Current likely decision path:
-
-1. Decide whether the primary goal is:
-   - simplicity
-   - self-hosting
-   - trust minimization
-   - avoiding external dependencies
-
-2. Choose the architecture accordingly:
-   - **Gelato** if operational simplicity is preferred
-   - **self-hosted worker** if control is preferred
-   - **Lit + trigger layer** if trust in signing should be reduced
-   - **hybrid** if the team wants a middle ground
-
 At the moment, the document reflects a proposed direction rather than a finalized implementation choice.
 
 ---
 
 ## 11. Relevant Metrics
 
-| Metric                           | Description                                     | Target                                      |
-| -------------------------------- | ----------------------------------------------- | ------------------------------------------- |
-| Autopay setup completion rate    | % of eligible users who complete autopay setup  | Question: target unknown                    |
-| Time to complete setup           | Time from autopay offer to completed setup      | Question: target unknown                    |
-| Autopay adoption rate            | % of joined users who opt into autopay          | Question: target unknown                    |
-| Automatic execution success rate | % of due deposits executed successfully         | Question: target unknown                    |
-| Execution latency                | Time from due state to tx submission            | Question: target unknown                    |
-| Authorization failure rate       | % of setup attempts rejected due to auth issues | Low                                         |
-| Execution failure rate           | % of attempted automatic deposits that fail     | Question: target unknown                    |
-| Revocation success rate          | % of users able to disable autopay correctly    | 100% once implemented                       |
-| User support incidents           | Number of autopay-related support issues        | Should decrease relative to manual friction |
-| Manual missed-deposit rate       | % of due deposits missed by opted-in users      | Should be materially reduced                |
-
 ---
-
-```
-
-```
