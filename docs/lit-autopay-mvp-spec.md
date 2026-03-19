@@ -3,8 +3,7 @@
 # Saving Circles Autopay Automation Proposal
 
 **Version:** 1.0  
-**Date:** 2026-03-19  
-**Author:** Francisco Rolotti _(assumed; update if needed)_
+**Date:** 2026-03-19
 
 ---
 
@@ -196,8 +195,6 @@ classDiagram
     TriggerService --> LitPolicySigner : may invoke
     LitPolicySigner --> DelegatedSavingCircles : may sign for
 ```
-
-````
 
 ---
 
@@ -618,4 +615,7 @@ At the moment, the document reflects a proposed direction rather than a finalize
 | Manual missed-deposit rate       | % of due deposits missed by opted-in users      | Should be materially reduced                |
 
 ---
-````
+
+```
+
+```
