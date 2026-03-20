@@ -18,34 +18,34 @@ import { useState } from "react";
 const tutorials = [
   {
     Icon: CoinsIcon,
-    title: "A simple way to reach your money goals—together.",
-    body: "Stacks helps friends and family save money as a group. Everyone contributes a little, takes turns receiving the total, and supports each other financially.",
-    para: "Think of it as a digital saving circle, but safer and automatic.",
-  },
-  {
-    Icon: FlagBannerFoldIcon,
-    title: "Set a goal for your group",
-    body: "Decide what you’re saving for—like tuition, a trip, or a new gadget. Pick how much everyone contributes and how often.",
-    para: "Each member saves the same amount toward the same goal.",
+    title: "Collective savings, no banks or credit",
+    body: "Everyone contributes, everyone takes turns to receive the full benefit.",
+    para: "Generations-tested savings circles, now digital & automatic.",
   },
   {
     Icon: PaperPlaneTiltIcon,
+    title: "What are you saving for?",
+    body: "Use Bread Stacks to meet both individual & common goals.",
+    para: "Big expense or small, your group decides.",
+  },
+  {
+    Icon: FlagBannerFoldIcon,
     title: "Invite your friends",
-    body: "Share your goal with friends or family and start stacking money together. The more people you invite, the faster you reach your goal!",
-    para: "You’ll get a shareable link or code to invite others.",
+    body: "Bread Stacks relies on your community to build savings, together.",
+    para: "Share your link with those closest to you.",
   },
   {
     Icon: HandDepositIcon,
-    title: "Make your contributions",
-    body: "Each member deposits a set amount every week or month into the group’s shared pool. Once everyone has contributed, the payout begins!",
-    para: "Deposits are tracked on-chain, so everything is transparent and secure.",
+    title: "Agree on your contributions",
+    body: "Choose how much and how often each member contributes.",
+    para: "Every payment moves your group closer to the goal.",
     className: "rotate-180",
   },
   {
     Icon: ArrowClockwiseIcon,
-    title: "Get paid out",
-    body: "Each round, one group member receives the total amount stacked. Everyone takes turns until all members have received their payout.",
-    para: "If someone misses a payment, all deposits are refunded to the others—so your money is always safe. No one loses money if a member doesn’t pay.",
+    title: "Receive your payout",
+    body: "Take it in turns to receive the full amount.",
+    para: "If someone misses a payment, every member is refunded in full.",
   },
 ];
 
