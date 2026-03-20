@@ -3,6 +3,7 @@
 import z from "zod";
 
 const envSchema = z.object({
+  NEXT_PUBLIC_CHAIN_ID: z.coerce.number(),
   NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS: z.string(),
   NEXT_PUBLIC_SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS: z.string(),
   NEXT_PUBLIC_BREAD_TOKEN_ADDRESS: z.string(),
@@ -19,6 +20,7 @@ const envSchema = z.object({
 });
 
 const parsedSchema = envSchema.safeParse({
+  NEXT_PUBLIC_CHAIN_ID: process.env.NEXT_PUBLIC_CHAIN_ID,
   NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS:
     process.env.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS,
   NEXT_PUBLIC_SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS:

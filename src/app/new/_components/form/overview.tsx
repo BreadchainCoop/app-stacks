@@ -28,7 +28,6 @@ import { useModal } from "@/components/modal/context";
 import { sleep } from "@/utils/sleep";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { wagmiConfig } from "@/components/providers/web3";
-import { clientEnv } from "@/lib/env";
 import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
 import { simulateContract } from "@wagmi/core";
 import { parseContractError } from "@/utils/parse-contract-error";
@@ -220,11 +219,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
             Create Stack
           </LocalLiftedButton>
         ) : (
-          <LoginButton
-            app="stacks"
-            status={user.status}
-            isProd={clientEnv.NEXT_PUBLIC_NODE_ENV === "production"}
-          />
+          <LoginButton app="stacks" status={user.status} />
         )}
         <LocalLiftedButton
           className="lg:hidden"

@@ -36,8 +36,6 @@ const privyConfig: PrivyClientConfig = {
 };
 
 const Providers = ({ children }: { children: ReactNode }) => {
-  const isProd = clientEnv.NEXT_PUBLIC_NODE_ENV === "production";
-
   return (
     <ToolsProviders>
       <PrivyProvider
@@ -49,11 +47,11 @@ const Providers = ({ children }: { children: ReactNode }) => {
           <Web3Provider>
             <BreadUIKitProvider
               app="stacks"
-              isProd={isProd}
+              chainId={clientEnv.NEXT_PUBLIC_CHAIN_ID}
               tokenConfig={tokenConfig}
               authProvider="privy"
             >
-              <ConnectedUserProvider isProd={isProd}>
+              <ConnectedUserProvider>
                 <ModalProvider>{children}</ModalProvider>
               </ConnectedUserProvider>
             </BreadUIKitProvider>
