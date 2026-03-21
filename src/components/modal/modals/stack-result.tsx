@@ -25,6 +25,8 @@ import { usePrivy, useSignTypedData } from "@privy-io/react-auth";
 import { getDefaultChainId } from "@/utils/chain";
 import { shortenUrl } from "@/utils/shorten";
 import { SupabaseInviteLink } from "@/lib/supabase";
+import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
+import { clientEnv } from "@/lib/env";
 
 type InviteLink = {
   nonce: bigint;
@@ -60,11 +62,14 @@ function buildInviteUrl(
   return url.toString();
 }
 
+const isLocal = clientEnv.NEXT_PUBLIC_NODE_ENV === "local";
+
 export const StackSuccessResultModal = ({
   modalState,
 }: {
   modalState: StackInitSuccessModalState;
 }) => {
+  const blockTimestamp = useBlockTimestamp();
   const { user: privyUser } = usePrivy();
   const publicClient = usePublicClient();
   const { signTypedData } = useSignTypedData();
@@ -90,7 +95,7 @@ export const StackSuccessResultModal = ({
       const invitePayloads: {
         nonce: bigint;
       }[] = [];
-      let candidate = BigInt(Date.now());
+      let candidate = BigInt(isLocal ? blockTimestamp : Date.now());
 
       while (invitePayloads.length < inviteCount) {
         const alreadyUsed = await publicClient.readContract({

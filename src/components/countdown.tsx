@@ -1,5 +1,8 @@
+"use client";
+
+import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { Body, cn } from "@breadcoop/ui";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface CountdownProps {
   targetSeconds: number;
@@ -10,23 +13,27 @@ export default function Countdown({
   targetSeconds,
   className,
 }: CountdownProps) {
+  const blockTimestamp = useBlockTimestamp(true);
   const [timeLeft, setTimeLeft] = useState(0);
+  const baseRef = useRef({ blockTime: 0, wallTime: 0 });
 
   useEffect(() => {
-    const calculateTimeLeft = (): number => {
-      const now = Math.floor(Date.now() / 1000);
-      const difference = targetSeconds - now;
-      return difference > 0 ? difference : 0;
-    };
+    const blockNowSec = Math.floor(blockTimestamp / 1000);
+    baseRef.current = { blockTime: blockNowSec, wallTime: Date.now() };
 
-    setTimeLeft(calculateTimeLeft());
+    const diff = targetSeconds - blockNowSec;
+    setTimeLeft(diff > 0 ? diff : 0);
 
     const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeft());
+      const elapsedSec = Math.floor(
+        (Date.now() - baseRef.current.wallTime) / 1000
+      );
+      const remaining = targetSeconds - baseRef.current.blockTime - elapsedSec;
+      setTimeLeft(remaining > 0 ? remaining : 0);
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [blockTimestamp, targetSeconds]);
 
   const formatTime = (seconds: number): string => {
     if (seconds === 0) return "0 days";

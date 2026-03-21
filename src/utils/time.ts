@@ -1,5 +1,8 @@
-export function formatRelativeTime(date: Date | string | number): string {
-  const now = new Date();
+export function formatRelativeTime(
+  date: Date | string | number,
+  now: Date = new Date()
+): string {
+  // const now = new Date();
   const then = typeof date === "object" ? date : new Date(date);
   const diffInSeconds = Math.floor((now.getTime() - then.getTime()) / 1000);
 

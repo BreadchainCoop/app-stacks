@@ -24,11 +24,12 @@ export const getUserCircleStatus = (
     undefined
   >,
   currentAccount: Address | undefined,
-  config: GetUserCircleStatusConfig = {}
+  config: GetUserCircleStatusConfig = {},
+  now = BigInt(Math.floor(Date.now() / 1000))
 ): IFormattedUserCircleStatusResult => {
   const isOwner = circle.isOwner;
   const isCurrentWithdrawer = circle.isCurrentWithdrawer;
-  const now = BigInt(Math.floor(Date.now() / 1000));
+  // const now = BigInt(Math.floor(Date.now() / 1000));
   const hasDepositedThisRound =
     circle.userBalance >= circle.circleInfo.depositAmount;
   const depositWindowOpen = circle.depositWindowEnd > now;

@@ -25,10 +25,7 @@ make update-contract-submodules
 ### 2. Install Dependencies
 
 ```bash
-# Install frontend dependencies
-npm install
-# or
-yarn install
+pnpm install
 ```
 
 ### 3. Environment Setup
@@ -58,17 +55,17 @@ This will:
 
 ### 5. Deploy Contracts
 
-In another terminal, deploy the smart contracts to your local network:
+In another terminal, deploy the smart contracts and start the development server:
 
 ```bash
-make deploy
+make start-local
 ```
 
 This will:
 
-- Compile the contracts
-- Deploy them to your local Anvil instance
+- Compile and deploy the contracts to your local Anvil instance
 - Automatically update your `.env.local` with the deployed contract addresses
+- Start the Next.js development server
 
 **Default deployer account**: `0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266` (Anvil's first account)
 
@@ -87,12 +84,6 @@ Import the default Anvil account for testing:
 
 ⚠️ **Never use this account on mainnet or with real funds!**
 
-### 7. Start the Development Server
-
-```bash
-pnpm run dev
-```
-
 Open [http://localhost:3000](http://localhost:3000) to see your dApp.
 
 ## Development Workflow
@@ -104,7 +95,7 @@ If the contract submodules are out of date, update them and redeploy:
 ```bash
 make update-contract-submodules
 make anvil-reset
-make deploy
+make start-local
 ```
 
 ### Resetting the Local Blockchain
@@ -118,54 +109,73 @@ make anvil-reset
 Then redeploy:
 
 ```bash
-make deploy
+make start-local
 ```
+
+### Funding a Wallet
+
+When signing in through Privy (or any embedded wallet), the generated address starts with zero balances. Use `make fund-wallet` to top it up with ETH, BREAD, or both:
+
+```bash
+# Fund with 100 ETH and 100 BREAD (default amounts)
+make fund-wallet 0xYourWalletAddress
+
+# Fund with a specific ETH amount only
+make fund-wallet 0xYourWalletAddress eth=50
+
+# Fund with a specific BREAD amount only
+make fund-wallet 0xYourWalletAddress bread=200
+```
+
+The command will print the resulting ETH and BREAD balances for the address once complete.
 
 ### Time Manipulation (for testing)
 
-Anvil derives its block timestamps from your **machine's system clock**. To simulate future dates and test time-dependent contract logic, you need to manually set your machine's date and time to a future value.
+Use the Makefile commands to manipulate Anvil's block timestamp directly — no system clock changes needed.
 
-**To move time forward:**
-
-1. Change your machine's system date/time to the desired future date.
-2. Mine a new block so Anvil picks up the new timestamp:
+**To jump to a specific timestamp:**
 
 ```bash
-make mine
+make warp TIMESTAMP=1735689600   # January 1, 2025 00:00:00 UTC
 ```
 
-3. Verify the new timestamp:
+**To advance time by a number of seconds:**
 
 ```bash
-make timestamp
+make time-increase SECONDS=86400   # advance by 1 day
 ```
 
-> ⚠️ **Important:** Anvil only moves time forward. If you set your machine's clock back to the present (or any earlier time), Anvil will **not** reflect that change — it will continue using the last recorded timestamp. To work around this, always set your system clock to a time _further in the future_ than the last block's timestamp, never backwards.
+> ⚠️ **Important:** Anvil's clock only moves forward. Once a block has been mined at a given timestamp, you cannot go back to an earlier one. To start fresh, restart Anvil with `make anvil-reset`.
 
 **Typical workflow for time-based testing:**
 
-1. Set system clock → future date (e.g. 30 days ahead)
-2. `make mine` to produce a block at that timestamp
-3. Interact with contracts as needed
-4. To advance further, set system clock to an even later date and repeat
-
-**To return to normal development**, restart Anvil (`make anvil-reset`) after resetting your system clock — the reset will start a fresh chain anchored to the current block timestamp of the Gnosis fork.
+1. `make time-increase SECONDS=2592000` to jump 30 days ahead
+2. Interact with contracts as needed
+3. Advance further with another `make time-increase` or jump to a precise moment with `make warp`
 
 ```bash
-make mine          # Mine a single block
-make timestamp     # Show current block timestamp
+make mine                          # Mine a single block
+make timestamp                     # Show current block timestamp
+make time-increase SECONDS=86400   # Advance time by 1 day
+make warp TIMESTAMP=1735689600     # Jump to a specific timestamp (January 1, 2025 00:00:00 UTC)
 ```
 
 ## Useful Make Commands
 
-| Command                           | Description                            |
-| --------------------------------- | -------------------------------------- |
-| `make anvil`                      | Start local blockchain (Gnosis fork)   |
-| `make deploy`                     | Deploy contracts and update .env.local |
-| `make anvil-reset`                | Reset blockchain to fresh state        |
-| `make update-contract-submodules` | Update contract dependencies           |
-| `make mine`                       | Mine a single block                    |
-| `make timestamp`                  | Show current block timestamp           |
+| Command                              | Description                            |
+| ------------------------------------ | -------------------------------------- |
+| `make anvil`                         | Start local blockchain (Gnosis fork)   |
+| `make start-local`                   | Deploy contracts and start dev server  |
+| `make deploy`                        | Deploy contracts and update .env.local |
+| `make anvil-reset`                   | Reset blockchain to fresh state        |
+| `make update-contract-submodules`    | Update contract dependencies           |
+| `make fund-wallet 0xAddress`         | Fund a wallet with ETH and BREAD       |
+| `make fund-wallet 0xAddress eth=N`   | Fund a wallet with N ETH only          |
+| `make fund-wallet 0xAddress bread=N` | Fund a wallet with N BREAD only        |
+| `make mine`                          | Mine a single block                    |
+| `make timestamp`                     | Show current block timestamp           |
+| `make time-increase SECONDS=N`       | Advance Anvil time by N seconds        |
+| `make warp TIMESTAMP=N`              | Set Anvil time to a specific timestamp |
 
 ## Custom Deployment
 
