@@ -13,8 +13,10 @@ import { zeroAddress } from "viem";
 import { getUserCircleStatus } from "@/lib/get-user-circle-status";
 import { useModal } from "@/components/modal/context";
 import BackMeta from "./back-meta";
+import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 
 const PageContent = ({ id }: { id: string }) => {
+  const now = useBlockTimestamp();
   const { setModal } = useModal();
   const { user } = useConnectedUser();
   const address =
@@ -32,7 +34,12 @@ const PageContent = ({ id }: { id: string }) => {
     console.log("__ CONFIG __", address, member);
     if (!userCircleData.circleData?.isMember) return;
 
-    const circleStatus = getUserCircleStatus(userCircleData.circleData, member);
+    const circleStatus = getUserCircleStatus(
+      userCircleData.circleData,
+      member,
+      {},
+      BigInt(Math.floor(now / 1000))
+    );
 
     if (
       circleStatus.status === "failed" &&

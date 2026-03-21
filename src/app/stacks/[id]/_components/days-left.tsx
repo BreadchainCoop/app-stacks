@@ -1,6 +1,7 @@
 "use client";
 
 import Countdown from "@/components/countdown";
+import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { Body } from "@breadcoop/ui";
 import { CalendarStarIcon } from "@phosphor-icons/react";
 
@@ -17,6 +18,7 @@ const DaysLeft = ({
   depositInterval: bigint | undefined;
   isActive?: boolean;
 }) => {
+  const blockTimestamp = useBlockTimestamp();
   let daysLeft = "-";
   let progressPercent = 0;
 
@@ -27,7 +29,7 @@ const DaysLeft = ({
     depositInterval &&
     currentIndex !== undefined
   ) {
-    const now = Math.floor(Date.now() / 1000);
+    const now = Math.floor(blockTimestamp / 1000);
     const currentRoundEnd = Number(depositWindowEnd);
 
     const currentRoundStart =

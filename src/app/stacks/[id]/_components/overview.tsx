@@ -23,6 +23,7 @@ import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { getDefaultChainId } from "@/utils/chain";
 import { useReadContracts } from "wagmi";
+import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 
 const Overview = ({
   circle,
@@ -36,12 +37,15 @@ const Overview = ({
     undefined
   >;
 }) => {
+  const now = useBlockTimestamp();
   const { setModal } = useModal();
   const connectedUser = useConnectedUser();
-  const formattedCircleStatus = getUserCircleStatus(circle, member, {
-    includeClaimable: true,
-    // includeDeposited: true,
-  });
+  const formattedCircleStatus = getUserCircleStatus(
+    circle,
+    member,
+    { includeClaimable: true },
+    BigInt(Math.floor(now / 1000))
+  );
   const { data: stackMetadata } = useStackSupabase(
     circle.circleId.toString(),
     circle.isMember

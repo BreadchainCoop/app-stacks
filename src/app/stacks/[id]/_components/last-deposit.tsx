@@ -9,6 +9,7 @@ import { useWatchContractEvent, usePublicClient } from "wagmi";
 import { useState } from "react";
 import { useGetLastDeposit } from "@/hooks/use-get-last-deposit";
 import { formatRelativeTime } from "@/utils/time";
+import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 
 interface LastDepositProps {
   id: string;
@@ -17,6 +18,7 @@ interface LastDepositProps {
 }
 
 const LastDeposit = ({ id, status, isActive }: LastDepositProps) => {
+  const now = useBlockTimestamp();
   const { lastDepositTime: _lastDepositTime } = useGetLastDeposit({
     circleId: id,
     enabled: Boolean(isActive),
@@ -51,7 +53,7 @@ const LastDeposit = ({ id, status, isActive }: LastDepositProps) => {
           {status === "finished"
             ? "Ended"
             : lastestDepositTime
-              ? formatRelativeTime(lastestDepositTime)
+              ? formatRelativeTime(lastestDepositTime, new Date(now))
               : "-"}
         </Body>
       </div>

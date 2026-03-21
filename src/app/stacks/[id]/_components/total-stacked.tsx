@@ -17,6 +17,7 @@ import { Address, formatEther } from "viem";
 import ClaimButton from "@/components/claim-button";
 import { useGetLastClaimed } from "@/hooks/use-get-last-claimed";
 import { formatRelativeTime } from "@/utils/time";
+import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 
 const TotalStacked = ({
   id,
@@ -159,6 +160,7 @@ function LastClaimStatus({
   address: Address;
   circleId: string;
 }) {
+  const now = useBlockTimestamp();
   const { data } = useGetLastClaimed({
     circleId,
     accountAddress: address,
@@ -173,7 +175,7 @@ function LastClaimStatus({
       width="full"
       className="font-semibold text-paper-main"
     >
-      Claimed {formatRelativeTime(data.timestamp)}
+      Claimed {formatRelativeTime(data.timestamp, new Date(now))}
     </LiftedButton>
   );
 }

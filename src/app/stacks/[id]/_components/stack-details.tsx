@@ -1,3 +1,4 @@
+import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useGetCircleCreated } from "@/hooks/use-get-cricle-created";
 import { useUserCircleData } from "@/hooks/use-user-circle-data";
 import { MemberCircleInfo } from "@/interfaces/circle";
@@ -158,6 +159,7 @@ const StackDetails = ({
     undefined
   >;
 }) => {
+  const blockTimestamp = useBlockTimestamp();
   const circle = _circle.circleInfo;
   const members = _circle.totalRounds;
   const { user } = useConnectedUser();
@@ -171,7 +173,12 @@ const StackDetails = ({
   const intervalLabel = depositInterval % 30 === 0 ? "month" : "week";
 
   const depositPerRound = circle.depositAmount * members;
-  const circleStatus = getUserCircleStatus(_circle, zeroAddress);
+  const circleStatus = getUserCircleStatus(
+    _circle,
+    zeroAddress,
+    {},
+    BigInt(Math.floor(blockTimestamp / 1000))
+  );
   const roundsLeft =
     circleStatus.status === "finished" ? 0 : members - circle.currentIndex;
 

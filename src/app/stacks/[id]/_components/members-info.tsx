@@ -7,6 +7,7 @@ import {
   AccordionItem,
 } from "@/components/accordion";
 import PendingInviteLink from "@/components/pending-invite-link";
+import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useCircleMembersWithBalances } from "@/hooks/use-circle-members";
 import { useGetCircleCreated } from "@/hooks/use-get-cricle-created";
 import { useGetLastDeposit } from "@/hooks/use-get-last-deposit";
@@ -16,19 +17,6 @@ import { useUserCircleData } from "@/hooks/use-user-circle-data";
 import { formatRelativeTime, formatShortDate } from "@/utils/time";
 import { Body, Chip } from "@breadcoop/ui";
 import { Address, formatEther } from "viem";
-
-// type PendingNonces = (
-//   | {
-//       error?: undefined;
-//       result: boolean;
-//       status: "success";
-//     }
-//   | {
-//       error: Error;
-//       result?: undefined;
-//       status: "failure";
-//     }
-// )[];
 
 function DepositRow({ label, body }: { label: string; body: string }) {
   return (
@@ -121,6 +109,7 @@ function MemberInfoContent({
   isOWner: boolean;
   circleId: string;
 }) {
+  const now = useBlockTimestamp();
   const { data: creationTimestamp } = useGetCircleCreated({
     circleId,
     enabled: isOWner,
@@ -148,8 +137,7 @@ function MemberInfoContent({
       circleData.circleData.circleInfo.effectiveCircleStartTime === BigInt(0)
         ? undefined
         : Math.ceil(
-            (Number(circleData.circleData.depositWindowEnd) -
-              Date.now() / 1000) /
+            (Number(circleData.circleData.depositWindowEnd) - now / 1000) /
               86_400
           );
   }
@@ -170,7 +158,7 @@ function MemberInfoContent({
       />
       <DepositRow
         label="Last deposit"
-        body={`${lastDepositTime ? formatRelativeTime(lastDepositTime) : "-"}`}
+        body={`${lastDepositTime ? formatRelativeTime(lastDepositTime, new Date(now)) : "-"}`}
       />
       <DepositRow label="Total deposits" body={`${totalDeposits} BREAD`} />
       <DepositRow
