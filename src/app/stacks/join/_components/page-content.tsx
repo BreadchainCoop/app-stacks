@@ -19,6 +19,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Loading from "@/app/loading";
 import { getDefaultChainId } from "@/utils/chain";
 import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
+import { getAutopayFeatureConfig } from "@/lib/autopay";
 
 const errorMessages: Record<string, string> = {
   InviteAlreadyUsed: "This invitation has already been used.",
@@ -43,6 +44,11 @@ export default function PageContent() {
   const deposit = Number(searchParams.get("deposit"));
 
   const [redeeming, setRedeeming] = useState(false);
+  const [joinedCircle, setJoinedCircle] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const autopayConfig = getAutopayFeatureConfig();
 
   const circleResult = useReadContract({
     abi: savingCirclesAbi,
@@ -100,8 +106,10 @@ export default function PageContent() {
       };
       localStorage.setItem("circles", JSON.stringify(localCircles));
 
-      alert("Invitation Accepted!");
-      router.push(`/stacks/${circleId}`);
+      setJoinedCircle({
+        id: circleId,
+        name: circleName,
+      });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       const contractError =
@@ -130,116 +138,181 @@ export default function PageContent() {
 
   return (
     <div className="*:mb-6 last:mb-0 page-layout py-6 w-full max-w-142 mx-auto sm:shadow-[0px_4px_12px_0px_#1B201A26]">
-      <div className="flex flex-col text-center items-center justify-center gap-3">
-        <ConfettiIcon className="size-20 fill-primary-blue" />
-        <Heading1 className="text-2xl leading-6">You are invited!</Heading1>
-        <Body className="">
-          Accept this invite to join this stacks saving journey.
-        </Body>
-      </div>
-
-      {circleResult.data ? (
+      {joinedCircle ? (
         <>
-          <div className="border-t border-blue-0 pt-6">
-            <Body className="text-center mb-6">
-              You have been invited to join &quot;{circleName}&quot; Stacks
-              saving journey.
+          <div className="flex flex-col text-center items-center justify-center gap-3">
+            <ConfettiIcon className="size-20 fill-primary-blue" />
+            <Heading1 className="text-2xl leading-6">
+              You joined the circle
+            </Heading1>
+            <Body>
+              You are now a member of &quot;{joinedCircle.name}&quot;.
             </Body>
-
-            <Accordion defaultValue="details">
-              <AccordionItem
-                value="details"
-                className="border-blue-0! bg-transparent!"
-              >
-                <AccordionHeader>Stacks details</AccordionHeader>
-                <AccordionContent>
-                  <div className="">
-                    <RowDetail label="Group name" body={circleName} />
-                    <RowDetail label="Stacks group ID" body={circleId} />
-                    <RowDetail label="Duration" body={`${members} rounds`} />
-                    <RowDetail
-                      label="Members deposit every"
-                      body={interval || "-"}
-                    />
-                    <RowDetail
-                      label="Est. Deposit amount"
-                      body={`${formatEther(
-                        circleResult.data.depositAmount
-                      )} BREAD`}
-                    />
-                    <RowDetail
-                      label="Stack goal"
-                      body={`${members ** 2 * deposit} BREAD`}
-                    />
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
           </div>
 
-          <Alert
-            closeAble={false}
-            variant="warning"
-            title="IMPORTANT: This invite can only be accepted once!"
-            description="Each invite is unique and can only be accepted once."
-          />
+          <section className="border-t border-blue-0 pt-6">
+            {autopayConfig.isConfigured ? (
+              <>
+                <Body className="mb-4">
+                  Optional autopay helps avoid missed deposits. It only applies
+                  to your own contribution path for this circle, and you can
+                  skip setup for now.
+                </Body>
 
-          {user.status === "CONNECTED" ? (
+                <div className="flex flex-col gap-3">
+                  <LocalLiftedButton
+                    width="full"
+                    onClick={() =>
+                      router.push(`/stacks/${joinedCircle.id}?autopay=setup`)
+                    }
+                  >
+                    Enable autopay
+                  </LocalLiftedButton>
+                  <LocalLiftedButton
+                    width="full"
+                    preset="secondary"
+                    onClick={() => router.push(`/stacks/${joinedCircle.id}`)}
+                  >
+                    Skip for now
+                  </LocalLiftedButton>
+                </div>
+              </>
+            ) : (
+              <>
+                <Body className="mb-4">
+                  Your invite is redeemed and your stack membership is active.
+                  Autopay is not configured on this deployment, so you can
+                  continue directly to the circle.
+                </Body>
+                <LocalLiftedButton
+                  width="full"
+                  onClick={() => router.push(`/stacks/${joinedCircle.id}`)}
+                >
+                  Continue to circle
+                </LocalLiftedButton>
+              </>
+            )}
+          </section>
+        </>
+      ) : (
+        <>
+          <div className="flex flex-col text-center items-center justify-center gap-3">
+            <ConfettiIcon className="size-20 fill-primary-blue" />
+            <Heading1 className="text-2xl leading-6">You are invited!</Heading1>
+            <Body className="">
+              Accept this invite to join this stacks saving journey.
+            </Body>
+          </div>
+
+          {circleResult.data ? (
             <>
-              {typeof isMember === "boolean" ? (
+              <div className="border-t border-blue-0 pt-6">
+                <Body className="text-center mb-6">
+                  You have been invited to join &quot;{circleName}&quot; Stacks
+                  saving journey.
+                </Body>
+
+                <Accordion defaultValue="details">
+                  <AccordionItem
+                    value="details"
+                    className="border-blue-0! bg-transparent!"
+                  >
+                    <AccordionHeader>Stacks details</AccordionHeader>
+                    <AccordionContent>
+                      <div className="">
+                        <RowDetail label="Group name" body={circleName} />
+                        <RowDetail label="Stacks group ID" body={circleId} />
+                        <RowDetail
+                          label="Duration"
+                          body={`${members} rounds`}
+                        />
+                        <RowDetail
+                          label="Members deposit every"
+                          body={interval || "-"}
+                        />
+                        <RowDetail
+                          label="Est. Deposit amount"
+                          body={`${formatEther(
+                            circleResult.data.depositAmount
+                          )} BREAD`}
+                        />
+                        <RowDetail
+                          label="Stack goal"
+                          body={`${members ** 2 * deposit} BREAD`}
+                        />
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </div>
+
+              <Alert
+                closeAble={false}
+                variant="warning"
+                title="IMPORTANT: This invite can only be accepted once!"
+                description="Each invite is unique and can only be accepted once."
+              />
+
+              {user.status === "CONNECTED" ? (
                 <>
-                  {isMember ? (
-                    <Body className="text-system-green text-center">
-                      You are already a member of this circle!
+                  {typeof isMember === "boolean" ? (
+                    <>
+                      {isMember ? (
+                        <Body className="text-system-green text-center">
+                          You are already a member of this circle!
+                        </Body>
+                      ) : isNonceUsed ? (
+                        <LocalLiftedButton
+                          width="full"
+                          disabled
+                          preset="positive"
+                          className="text-white"
+                        >
+                          Invitation already used
+                        </LocalLiftedButton>
+                      ) : (
+                        <LocalLiftedButton
+                          onClick={redeemInvite}
+                          width="full"
+                          leftIcon={
+                            redeeming ? undefined : <CheckIcon size={24} />
+                          }
+                          className="bg-system-green"
+                          disabled={redeeming}
+                        >
+                          {redeeming ? <Loading /> : "Accept invite"}
+                        </LocalLiftedButton>
+                      )}
+                    </>
+                  ) : isMemberError ? (
+                    <Body className="text-system-red text-center">
+                      Unable to get data! Please refresh the page!
                     </Body>
-                  ) : isNonceUsed ? (
-                    <LocalLiftedButton
-                      width="full"
-                      disabled
-                      preset="positive"
-                      className="text-white"
-                    >
-                      Invitation already used
-                    </LocalLiftedButton>
                   ) : (
-                    <LocalLiftedButton
-                      onClick={redeemInvite}
-                      width="full"
-                      leftIcon={redeeming ? undefined : <CheckIcon size={24} />}
-                      className="bg-system-green"
-                      disabled={redeeming}
-                    >
-                      {redeeming ? <Loading /> : "Accept invite"}
-                    </LocalLiftedButton>
+                    <div className="flex items-center justify-center">
+                      <Loading />
+                    </div>
                   )}
                 </>
-              ) : isMemberError ? (
-                <Body className="text-system-red text-center">
-                  Unable to get data! Please refresh the page!
-                </Body>
               ) : (
-                <div className="flex items-center justify-center">
-                  <Loading />
-                </div>
+                <LoginButton app="stacks" status={user.status} />
               )}
-            </>
-          ) : (
-            <LoginButton app="stacks" status={user.status} />
-          )}
 
-          <Body>
-            Note: You can also access your member invite links through your
-            Stacks details page.
-          </Body>
+              <Body>
+                Note: You can also access your member invite links through your
+                Stacks details page.
+              </Body>
+            </>
+          ) : circleResult.error ? (
+            <Body className="text-system-red text-center">
+              Unable to load circle details. Please try again.
+            </Body>
+          ) : (
+            <div className="flex items-center justify-center">
+              <Loading />
+            </div>
+          )}
         </>
-      ) : circleResult.error ? (
-        <Body className="text-system-red text-center">
-          Unable to load circle details. Please try again.
-        </Body>
-      ) : (
-        <div className="flex items-center justify-center">
-          <Loading />
-        </div>
       )}
     </div>
   );

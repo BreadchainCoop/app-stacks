@@ -13,9 +13,12 @@ import { zeroAddress } from "viem";
 import { getUserCircleStatus } from "@/lib/get-user-circle-status";
 import { useModal } from "@/components/modal/context";
 import BackMeta from "./back-meta";
+import AutopaySetupCard from "@/components/autopay-setup-card";
+import { useSearchParams } from "next/navigation";
 
 const PageContent = ({ id }: { id: string }) => {
   const { setModal } = useModal();
+  const searchParams = useSearchParams();
   const { user } = useConnectedUser();
   const address =
     user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
@@ -27,6 +30,7 @@ const PageContent = ({ id }: { id: string }) => {
     member,
     enabled: Boolean(member),
   });
+  const emphasizeAutopay = searchParams.get("autopay") === "setup";
 
   useEffect(() => {
     console.log("__ CONFIG __", address, member);
@@ -54,6 +58,11 @@ const PageContent = ({ id }: { id: string }) => {
               id={id}
               circle={userCircleData.circleData}
               member={member}
+            />
+            <AutopaySetupCard
+              circle={userCircleData.circleData}
+              member={member}
+              emphasize={emphasizeAutopay}
             />
             <StackDetails id={id} circle={userCircleData.circleData} />
             <StackMembers
