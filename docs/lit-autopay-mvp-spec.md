@@ -15,7 +15,7 @@ Saving Circles currently depends on members making deposits manually when their 
 
 The team wants to explore an optional autopay flow that a member can enable after joining a circle. The intended outcome is that once the member has opted in and granted the required permissions, future due deposits could be executed automatically without the member needing to return and manually submit each contribution.
 
-At the moment, there is **no implemented automation layer** for this feature. Gelato had been considered as a possible automation mechanism, and Lit Protocol is being explored as a possible alternative or complement, especially around authorization and policy-controlled signing.
+At the moment, there is **no implemented automation layer** for this feature. Gelato had been considered as a possible automation mechanism, and Lit Protocol is being explored as a possible alternative or complement, especially around policy-controlled signing and transaction execution via Lit Actions and PKPs.
 
 This specification addresses the design question of how to support delegated automated deposits for Saving Circles, and what role Gelato, Lit Protocol, a custom worker, or other automation layers might play.
 
@@ -44,7 +44,12 @@ Important architectural conclusion from prior discussion:
 - Lit does **not** automatically make deposits happen by itself
 - Some executor or trigger still needs to exist
 - If Gelato is removed, some other automation layer is still needed
-- Lit is strongest as a policy-controlled signing layer, not necessarily as a complete automation scheduler
+- Lit is strongest as a policy-controlled signing and execution layer, not necessarily as a complete automation scheduler
+
+Note:
+
+- Current Lit docs make Lit a credible candidate for programmable policy checks, PKP-based signing, and transaction signing or submission within a Lit Action, but not for the scheduler role by itself
+- Relevant SDK / Action primitives include `executeJs`, `Lit.Actions.checkConditions()`, `pkpSign`, PKP Permissions, `signAndCombineEcdsa`, and PKP Viem Account methods such as `signTransaction`, `signMessage`, and `signTypedData`
 
 Prior working context / draft material:
 
@@ -127,7 +132,7 @@ Questions / unknown measurable criteria:
 | Delegated deposit permissions        | Makes future automated deposits possible                          | Requires explicit user trust and permissions   |
 | Optional autopay flow                | Preserves user choice and does not block normal participation     | Some users may ignore setup                    |
 | Automation layer for due deposits    | Reduces missed contributions and manual effort                    | Requires external execution mechanism          |
-| Lit-based authorization/signing path | Could reduce reliance on a backend private key                    | Adds complexity and still needs a trigger      |
+| Lit-based authorization/signing path | Could reduce reliance on a backend private key and central signer | Adds complexity and still needs a trigger      |
 | Gelato-based execution path          | Could simplify automation operations                              | Adds external dependency and trust assumptions |
 
 ---
@@ -179,6 +184,7 @@ classDiagram
 
     class LitPolicySigner {
         +evaluatePolicy()
+        +executeJs()
         +signTransaction()
     }
 
@@ -231,7 +237,7 @@ stateDiagram-v2
 ### 5.1 Main (“Happy”) Path
 
 **Pre-condition:**
-User has successfully joined a Saving Circle, delegated deposit functionality exists onchain, and the system has a chosen automation architecture in place.
+User has successfully joined a Saving Circle, delegated deposit functionality exists onchain, and the system has a chosen automation architecture in place. If the Lit-based path is selected, a PKP exists or is provisioned, PKP permissions are configured, a trigger service exists, and deterministic inputs for the Lit Action can be prepared.
 
 **Actor:**
 User triggers autopay setup from the post-join experience or stack detail page.
@@ -239,8 +245,13 @@ User triggers autopay setup from the post-join experience or stack detail page.
 **System validates:**
 Membership status, delegated deposit permissions, token approval, and autopay authorization requirements.
 
+Note:
+
+- The current `DelegatedSavingCircles` contract enables delegated deposits per member address, not per circle
+- A practical Lit-backed authorization model could therefore carry a member-level scope such as `all circles` or `selected circles`, with specific `circleId` values enforced by policy before signing
+
 **System persists / computes / emits:**
-Autopay configuration is recorded in the chosen system, and a future automation layer may later detect eligibility and execute a deposit.
+Autopay configuration is recorded in the chosen system, and a future automation layer may later detect eligibility and execute a deposit. If Lit is used, the app / backend / worker prepares deterministic execution inputs, invokes the Lit Action, and records the outcome for later status display.
 
 **Post-condition:**
 User has opted into autopay and, once payment becomes due, the automation system can attempt deposit execution without requiring the user to return manually.
@@ -280,6 +291,8 @@ Note:
 
 - The exact implementation of `Authorization Layer`, `Automation Trigger`, and `Executor / Signer` is **not yet decided or implemented**
 - This diagram reflects the intended target flow, not current delivered functionality
+- If the Lit-based path is selected, the trigger would invoke a Lit Action via `executeJs`; the action may evaluate conditions, request PKP signing, and optionally submit the signed transaction
+- The current delegated contract does not enforce circle-scoped opt-in onchain, so a per-circle or all-circles autopay preference would need to be enforced in the authorization / Lit policy layer unless the contracts change later
 
 ---
 
@@ -361,13 +374,17 @@ sequenceDiagram
     participant PKP as Lit PKP
     participant DSC as DelegatedSavingCircles
 
-    Trigger->>Lit: Invoke check for due deposit
-    Lit->>Lit: Evaluate policy and eligibility
-    Lit->>PKP: Request signature
-    PKP-->>Lit: Signature authorized
-    Lit->>DSC: Submit deposit transaction
+    Trigger->>Lit: Invoke Lit Action via executeJs
+    Lit->>Lit: Evaluate policy and eligibility with checkConditions()
+    Lit->>PKP: Produce signature shares and combine with signAndCombineEcdsa
+    PKP-->>Lit: Signed transaction available
+    Lit->>DSC: Optionally submit deposit transaction
     DSC-->>Lit: Success / failure
 ```
+
+Note:
+
+- The intended Lit-based model is: app / backend / worker determines candidate deposits, trigger invokes Lit Action with deterministic inputs, Lit Action checks policy conditions, PKP signs, transaction may be submitted from within the Lit Action, and app / backend records the result
 
 ---
 
@@ -473,16 +490,18 @@ erDiagram
 
 ### Candidate Configurable Variables
 
-| Variable                                  | Purpose                                    | Notes                             |
-| ----------------------------------------- | ------------------------------------------ | --------------------------------- |
-| Delegated Saving Circles contract address | Needed for delegated deposit interactions  | Exact env var names not finalized |
-| Saving Circles contract address           | Needed for context / validation            | Confirm source of truth           |
-| Lit network identifier                    | Needed only if Lit is used                 | Not final                         |
-| Lit policy identifier                     | Needed only if Lit policy model is adopted | Not final                         |
-| Gelato task / config identifiers          | Needed only if Gelato is adopted           | Not final                         |
-| Automation enablement flag                | Turn autopay on or off per environment     | Recommended                       |
-| Trigger frequency                         | Defines how often due deposits are checked | Needed if polling model is used   |
-| Allowed execution networks                | Defines supported environments             | Needs decision                    |
+| Variable                                  | Purpose                                    | Notes                                                       |
+| ----------------------------------------- | ------------------------------------------ | ----------------------------------------------------------- |
+| Delegated Saving Circles contract address | Needed for delegated deposit interactions  | Exact env var names not finalized                           |
+| Saving Circles contract address           | Needed for context / validation            | Confirm source of truth                                     |
+| Lit network identifier                    | Needed only if Lit is used                 | Not final                                                   |
+| Lit policy identifier                     | Needed only if Lit policy model is adopted | Not final                                                   |
+| Lit PKP identifier / permitted action CID | Needed only if PKP signing is adopted      | PKP permissions required                                    |
+| Lit payment environment                   | Needed only if Lit is adopted              | `naga-dev`, `naga-test`, or mainnet                         |
+| Gelato task / config identifiers          | Needed only if Gelato is adopted           | Not final                                                   |
+| Automation enablement flag                | Turn autopay on or off per environment     | Recommended                                                 |
+| Trigger frequency                         | Defines how often due deposits are checked | Needed if polling model is used                             |
+| Allowed execution networks                | Defines supported environments             | For Gnosis, use xDai / chain ID 100 / Lit identifier `xdai` |
 
 Questions:
 
@@ -495,39 +514,53 @@ Questions:
 
 ## 7. Edge Cases and Concessions
 
-| Edge Case / Concession                         | Description                                           | Accepted Risk / Mitigation                             |
-| ---------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------ |
-| No automation exists yet                       | Current design has no implemented execution service   | Document clearly and do not overstate implementation   |
-| Gelato is only a candidate                     | It has been discussed, not integrated                 | Keep vendor-specific logic out of early UX if possible |
-| Lit is only a candidate                        | No PKP / Lit Action integration exists yet            | Treat Lit as future architecture option                |
-| Contracts do not self-execute                  | Some external actor must always submit tx             | Must choose executor architecture                      |
-| User approval scope may be broad               | Allowance / delegation can be larger than one deposit | Needs careful UX and policy design                     |
-| Future execution status may be hard to show    | No finalized backend state model exists yet           | Define persistence and observability later             |
-| Onchain due state vs app due state may diverge | Need a single authority for eligibility               | Clarify in implementation design                       |
-| No finalized revocation model                  | User may need to disable autopay later                | Add explicit revocation flow                           |
-| No finalized retry strategy                    | Failed deposits may remain unresolved                 | Add retry and alerting design                          |
-| No final trust model decision                  | Backend signer vs Lit vs external network not chosen  | Must be resolved before production build               |
+| Edge Case / Concession                          | Description                                                                          | Accepted Risk / Mitigation                                                                                  |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| No automation exists yet                        | Current design has no implemented execution service                                  | Document clearly and do not overstate implementation                                                        |
+| Gelato is only a candidate                      | It has been discussed, not integrated                                                | Keep vendor-specific logic out of early UX if possible                                                      |
+| Lit is only a candidate                         | No PKP / Lit Action integration exists yet                                           | Treat Lit as future architecture option                                                                     |
+| Contracts do not self-execute                   | Some external actor must always submit tx                                            | Must choose executor architecture                                                                           |
+| User approval scope may be broad                | Allowance / delegation can be larger than one deposit                                | Needs careful UX and policy design                                                                          |
+| Delegated opt-in is global onchain              | `setDelegatedDepositsEnabled(true)` applies per member wallet, not per circle        | Use Lit authorization scope such as `all circles` or `selected circles` if circle-level control is required |
+| Future execution status may be hard to show     | No finalized backend state model exists yet                                          | Define persistence and observability later                                                                  |
+| Onchain due state vs app due state may diverge  | Need a single authority for eligibility                                              | Clarify in implementation design                                                                            |
+| Lit Action inputs may be non-deterministic      | Variable inputs or external fetch-heavy logic can create timeout or consensus issues | Keep inputs deterministic and minimize external reads                                                       |
+| Lit write operations may duplicate side effects | Lit Actions run on multiple nodes unless controlled                                  | Use `runOnce()` for submission or external writes where appropriate                                         |
+| PKP signing cannot be inside `runOnce()`        | PKP signing needs multi-node participation                                           | Keep `signAndCombineEcdsa` or equivalent signing logic outside `runOnce()`                                  |
+| PKP permissions are required                    | Lit Action code cannot sign unless permissions are configured                        | Configure PKP Permissions before execution                                                                  |
+| Lit payment model differs by environment        | Dev / test / mainnet have different cost models                                      | `naga-dev` is free, `naga-test` uses test tokens, mainnet uses LITKEY                                       |
+| Chain naming can be inconsistent                | Product may say Gnosis while Lit docs refer to xDai                                  | Specify xDai / chain ID 100 / Lit identifier `xdai`; token here is BREAD                                    |
+| No finalized revocation model                   | User may need to disable autopay later                                               | Add explicit revocation flow                                                                                |
+| No finalized retry strategy                     | Failed deposits may remain unresolved                                                | Add retry and alerting design                                                                               |
+| No final trust model decision                   | Backend signer vs Lit vs external network not chosen                                 | Must be resolved before production build                                                                    |
 
 ---
 
 ## 8. Open Questions
 
-| #   | Question                                                                                                |
-| --- | ------------------------------------------------------------------------------------------------------- |
-| Q1  | Is the goal to fully replace Gelato, or just avoid depending on it by default?                          |
-| Q2  | Is a self-hosted worker acceptable, or does the team want a lower-trust design?                         |
-| Q3  | If Lit is adopted, will it be used for authorization only, or also for signing and broadcasting?        |
-| Q4  | If Lit is adopted, what will trigger the Lit Action: cron, listener, custom service, or something else? |
-| Q5  | Is any contract change acceptable in a later iteration if it improves automation design substantially?  |
-| Q6  | What exact user consent payload should define autopay authorization?                                    |
-| Q7  | How should users revoke or modify autopay after setup?                                                  |
-| Q8  | What is the authoritative source of “payment due” for execution decisions?                              |
-| Q9  | Should there be support for batching multiple eligible deposits in one run?                             |
-| Q10 | What persistence layer should store autopay configuration and execution history?                        |
-| Q11 | What level of auditability is required for failed and successful deposits?                              |
-| Q12 | Does the team prefer external automation reliability or self-hosted control?                            |
-| Q13 | What is the acceptable delay between due time and execution time?                                       |
-| Q14 | Is internal testing the only immediate goal, or should this design already target production readiness? |
+| #   | Question                                                                                                                                  |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Q1  | Is the goal to fully replace Gelato, or just avoid depending on it by default?                                                            |
+| Q2  | Is a self-hosted worker acceptable, or does the team want a lower-trust design?                                                           |
+| Q3  | If Lit is adopted, will it be used for authorization only, or also for signing and broadcasting?                                          |
+| Q4  | If Lit is adopted, what will trigger the Lit Action: cron, listener, custom service, or something else?                                   |
+| Q5  | Is any contract change acceptable in a later iteration if it improves automation design substantially?                                    |
+| Q6  | What exact user consent payload should define autopay authorization?                                                                      |
+| Q7  | How should users revoke or modify autopay after setup?                                                                                    |
+| Q8  | What is the authoritative source of “payment due” for execution decisions?                                                                |
+| Q9  | Should there be support for batching multiple eligible deposits in one run?                                                               |
+| Q10 | What persistence layer should store autopay configuration and execution history?                                                          |
+| Q11 | What level of auditability is required for failed and successful deposits?                                                                |
+| Q12 | Does the team prefer external automation reliability or self-hosted control?                                                              |
+| Q13 | What is the acceptable delay between due time and execution time?                                                                         |
+| Q14 | Is internal testing the only immediate goal, or should this design already target production readiness?                                   |
+| Q15 | Is the PKP user-scoped, app-scoped, or environment-scoped?                                                                                |
+| Q16 | What exact transaction does the PKP sign: only `depositIfAllowed`, or a batched variant as well?                                          |
+| Q17 | Should the Lit Action only sign, or sign and submit the transaction?                                                                      |
+| Q18 | What deterministic inputs are passed into the Lit Action for each execution attempt?                                                      |
+| Q19 | Who pays Lit compute / signing costs in each environment?                                                                                 |
+| Q20 | Should autopay authorization support `all circles` and `selected circles` scopes for the same member?                                     |
+| Q21 | If circle-scoped autopay is required, is Lit policy enforcement sufficient for MVP, or is an onchain contract change eventually required? |
 
 ---
 
@@ -535,18 +568,18 @@ Questions:
 
 ### 9.1 Glossary
 
-| Term                   | Definition                                                          |
-| ---------------------- | ------------------------------------------------------------------- |
-| Saving Circles         | Main contract for the product with logic and functions              |
-| DelegatedSavingCircles | Contract that enables delegated deposits on behalf of members       |
-| Autopay                | Optional recurring deposit flow after user setup                    |
-| Gelato                 | External automation / execution service under consideration         |
-| Lit Protocol           | Programmable key management and policy-controlled signing network   |
-| PKP                    | Programmable Key Pair in Lit; a signer controlled by Lit policies   |
-| Lit Action             | Executable logic in Lit that can evaluate rules and request signing |
-| Trigger / Scheduler    | External mechanism that decides when to check and attempt execution |
-| Executor               | Component that actually sends or signs the deposit transaction      |
-| Due Deposit            | A deposit that is currently eligible / required for the member      |
+| Term                   | Definition                                                                                             |
+| ---------------------- | ------------------------------------------------------------------------------------------------------ |
+| Saving Circles         | Main contract for the product with logic and functions                                                 |
+| DelegatedSavingCircles | Contract that enables delegated deposits on behalf of members                                          |
+| Autopay                | Optional recurring deposit flow after user setup                                                       |
+| Gelato                 | External automation / execution service under consideration                                            |
+| Lit Protocol           | Programmable key management and policy-controlled signing network                                      |
+| PKP                    | Programmable Key Pair in Lit; a signer controlled by Lit policies                                      |
+| Lit Action             | Executable logic in Lit that can evaluate rules, check conditions, and request or submit signing flows |
+| Trigger / Scheduler    | External mechanism that decides when to check and attempt execution                                    |
+| Executor               | Component that actually sends or signs the deposit transaction                                         |
+| Due Deposit            | A deposit that is currently eligible / required for the member                                         |
 
 ---
 
@@ -562,15 +595,15 @@ Questions:
 
 ## 10. Alternative Approaches
 
-| Approach                                          | Pros                                                      | Cons                                                                 |
-| ------------------------------------------------- | --------------------------------------------------------- | -------------------------------------------------------------------- |
-| Gelato-based automation                           | Mature automation layer, less internal operational burden | External dependency, additional trust / vendor reliance              |
-| Self-hosted worker                                | Full control, no external dependency                      | Internal ops burden, centralized signer unless improved              |
-| Lit for authorization only + self-hosted executor | Better authorization model while keeping simple execution | Still centralized execution path                                     |
-| Lit PKP + Lit Action + trigger service            | Reduced signer trust, policy-based execution              | More complex, still needs trigger layer                              |
-| Chainlink / other automation network              | More decentralized automation option                      | Likely more integration complexity and possible contract constraints |
-| Hybrid model: lightweight scheduler + Lit signer  | Balanced architecture with reduced signer trust           | Still not fully decentralized, two moving parts                      |
-| Keep manual deposits only                         | Simplest system, lowest complexity                        | No autopay value, continued user friction                            |
+| Approach                                          | Pros                                                                                                                                                                                                                                                          | Cons                                                                                                                        |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Gelato-based automation                           | Mature automation layer, less internal operational burden                                                                                                                                                                                                     | External dependency, additional trust / vendor reliance                                                                     |
+| Self-hosted worker                                | Full control, no external dependency                                                                                                                                                                                                                          | Internal ops burden, centralized signer unless improved                                                                     |
+| Lit for authorization only + self-hosted executor | Better authorization model while keeping simple execution; can express scopes such as `all circles` or `selected circles` per member                                                                                                                          | Still centralized execution path                                                                                            |
+| Lit PKP + Lit Action + trigger service            | Policy-controlled signing, reduced reliance on a centralized private key, can sign and submit transactions inside a Lit Action, and can enforce per-member scopes such as `all circles` or `selected circles` even if delegated opt-in remains global onchain | Still needs trigger layer, requires PKP permissions setup, deterministic design constraints, and Lit payment considerations |
+| Chainlink / other automation network              | More decentralized automation option                                                                                                                                                                                                                          | Likely more integration complexity and possible contract constraints                                                        |
+| Hybrid model: lightweight scheduler + Lit signer  | Balanced architecture with reduced signer trust                                                                                                                                                                                                               | Still not fully decentralized, two moving parts                                                                             |
+| Keep manual deposits only                         | Simplest system, lowest complexity                                                                                                                                                                                                                            | No autopay value, continued user friction                                                                                   |
 
 ### Decision Rationale
 
