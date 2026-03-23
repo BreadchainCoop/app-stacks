@@ -18,8 +18,10 @@ import { useSimulateAndSponsorTx } from "@/hooks/use-simulate-and-sponsor-tx";
 import { useWaitForTxReceipt } from "@/hooks/use-wait-for-tx-receipt";
 import { useAutopayStatus } from "@/hooks/use-autopay-status";
 import {
+  AutopayAuthorizationScope,
   buildAutopayAuthorizationTypedData,
   getAutopayFeatureConfig,
+  getAutopayAuthorizationScopeLabel,
 } from "@/lib/autopay";
 import { delegatedSavingCirclesAbi } from "@/lib/abis/delegated-saving-circles";
 import { useUserCircleData } from "@/hooks/use-user-circle-data";
@@ -75,6 +77,8 @@ export default function AutopaySetupCard({
   const [pendingAction, setPendingAction] = useState<
     "delegate" | "approve" | "authorize" | null
   >(null);
+  const [authorizationScope, setAuthorizationScope] =
+    useState<AutopayAuthorizationScope>("circle");
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -159,6 +163,7 @@ export default function AutopaySetupCard({
         circleId: circle.circleId,
         member,
         delegatedContract: config.delegatedContract,
+        scope: authorizationScope,
       });
 
       const { signature } = await signTypedData(typedData, {
@@ -175,6 +180,7 @@ export default function AutopaySetupCard({
         body: JSON.stringify({
           circleId: circle.circleId.toString(),
           member,
+          scope: authorizationScope,
           signature,
         }),
       });
@@ -190,7 +196,11 @@ export default function AutopaySetupCard({
       }
 
       await refresh();
-      setFeedback("Lit-scoped autopay authorization saved for this circle.");
+      setFeedback(
+        `Lit-scoped autopay authorization saved for ${getAutopayAuthorizationScopeLabel(
+          authorizationScope
+        ).toLowerCase()}.`
+      );
     } catch (err) {
       setError(
         err instanceof Error
@@ -255,10 +265,9 @@ export default function AutopaySetupCard({
             <StatusRow
               label="Lit authorization active"
               ready={Boolean(autopay.authorization?.active)}
-              detail={`Scoped to wallet ${member.slice(
-                0,
-                6
-              )}...${member.slice(-4)} for circle #${circle.circleId.toString()}.`}
+              detail={`${getAutopayAuthorizationScopeLabel(
+                autopay.authorization?.scope ?? "circle"
+              )} for wallet ${member.slice(0, 6)}...${member.slice(-4)}.`}
             />
             <StatusRow
               label="Eligible for automated deposit"
@@ -301,6 +310,31 @@ export default function AutopaySetupCard({
             </div>
           )}
 
+          {!autopay.authorization?.active && (
+            <div className="grid grid-cols-2 gap-3 pt-4">
+              <LocalLiftedButton
+                width="full"
+                preset={
+                  authorizationScope === "circle" ? "primary" : "secondary"
+                }
+                onClick={() => setAuthorizationScope("circle")}
+                disabled={pendingAction !== null}
+              >
+                This circle only
+              </LocalLiftedButton>
+              <LocalLiftedButton
+                width="full"
+                preset={
+                  authorizationScope === "all_circles" ? "primary" : "secondary"
+                }
+                onClick={() => setAuthorizationScope("all_circles")}
+                disabled={pendingAction !== null}
+              >
+                All my circles
+              </LocalLiftedButton>
+            </div>
+          )}
+
           <div className="flex flex-col gap-3 pt-4 md:flex-row">
             {user.status === "CONNECTED" ? (
               <>
@@ -334,7 +368,7 @@ export default function AutopaySetupCard({
                 >
                   {pendingAction === "authorize"
                     ? "Authorizing..."
-                    : "3. Authorize with Lit"}
+                    : `3. Authorize ${authorizationScope === "all_circles" ? "all circles" : "this circle"}`}
                 </LocalLiftedButton>
               </>
             ) : (

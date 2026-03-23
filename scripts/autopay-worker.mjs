@@ -47,6 +47,7 @@ const delegatedSavingCirclesAbi = [
 
 const AUTOPAY_AUTH_DOMAIN_NAME = "StacksAutopayLit";
 const AUTOPAY_AUTH_DOMAIN_VERSION = "1";
+const AUTOPAY_ALL_CIRCLES_SENTINEL = 0n;
 const storeDir = path.join(process.cwd(), ".autopay-data");
 const storePath = path.join(storeDir, "autopay-state.json");
 
@@ -127,22 +128,29 @@ async function writeStore(store) {
   await writeFile(storePath, JSON.stringify(store, null, 2), "utf8");
 }
 
-function getKey(circleId, member) {
+function getKey(circleId, member, scope = "circle") {
+  if (scope === "all_circles") {
+    return `all:${member.toLowerCase()}`;
+  }
+
   return `${circleId.toString()}:${member.toLowerCase()}`;
 }
 
 function buildTypedData({
   circleId,
+  scope = "circle",
   member,
   delegatedContract,
   verifyingContract,
   policyId,
   chainId,
 }) {
+  const signedCircleId =
+    scope === "all_circles" ? AUTOPAY_ALL_CIRCLES_SENTINEL : circleId;
   const safeCircleId =
-    circleId <= BigInt(Number.MAX_SAFE_INTEGER)
-      ? Number(circleId)
-      : circleId.toString();
+    signedCircleId <= BigInt(Number.MAX_SAFE_INTEGER)
+      ? Number(signedCircleId)
+      : signedCircleId.toString();
 
   return {
     domain: {
@@ -154,6 +162,7 @@ function buildTypedData({
     types: {
       AutopayAuthorization: [
         { name: "circleId", type: "uint256" },
+        { name: "scope", type: "string" },
         { name: "member", type: "address" },
         { name: "delegatedContract", type: "address" },
         { name: "policyId", type: "string" },
@@ -162,6 +171,7 @@ function buildTypedData({
     primaryType: "AutopayAuthorization",
     message: {
       circleId: safeCircleId,
+      scope,
       member,
       delegatedContract,
       policyId,
@@ -221,7 +231,9 @@ async function main() {
     const member = getAddress(members[i]);
     const circleId = circleIds[i];
     const key = getKey(circleId, member);
-    const auth = store.authorizations[key];
+    const allCirclesKey = getKey(circleId, member, "all_circles");
+    const auth =
+      store.authorizations[key] ?? store.authorizations[allCirclesKey];
 
     if (!auth?.active) {
       store.results[key] = {
@@ -237,7 +249,11 @@ async function main() {
 
     const validSignature = await verifyTypedData({
       ...buildTypedData({
-        circleId,
+        circleId:
+          auth.scope === "all_circles"
+            ? AUTOPAY_ALL_CIRCLES_SENTINEL
+            : BigInt(auth.circleId),
+        scope: auth.scope ?? "circle",
         member,
         delegatedContract: getAddress(delegatedContract),
         verifyingContract: getAddress(savingCirclesContract),
@@ -254,7 +270,7 @@ async function main() {
         member,
         status: "skipped",
         message:
-          "Skipped: saved Lit authorization signature no longer verifies.",
+          "Skipped: saved Lit authorization signature no longer verifies for the selected scope.",
         updatedAt: new Date().toISOString(),
         executor: account.address,
       };

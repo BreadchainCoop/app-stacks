@@ -8,10 +8,14 @@ import { getDefaultChainId } from "@/utils/chain";
 
 export const AUTOPAY_AUTH_DOMAIN_NAME = "StacksAutopayLit";
 export const AUTOPAY_AUTH_DOMAIN_VERSION = "1";
+export const AUTOPAY_ALL_CIRCLES_SENTINEL = 0n;
+
+export type AutopayAuthorizationScope = "circle" | "all_circles";
 
 export type AutopayAuthorizationRecord = {
   circleId: string;
   member: Address;
+  scope: AutopayAuthorizationScope;
   chainId: number;
   delegatedContract: Address;
   savingCirclesContract: Address;
@@ -37,8 +41,32 @@ export type AutopayStateResponse = {
   result: AutopayExecutionResult | null;
 };
 
-export function getAutopayAuthorizationKey(circleId: bigint, member: Address) {
+export function getAutopayAuthorizationKey(
+  circleId: bigint,
+  member: Address,
+  scope: AutopayAuthorizationScope = "circle"
+) {
+  if (scope === "all_circles") {
+    return `all:${member.toLowerCase()}`;
+  }
+
   return `${circleId.toString()}:${member.toLowerCase()}`;
+}
+
+export function getAutopayAuthorizationLookupKeys(
+  circleId: bigint,
+  member: Address
+) {
+  return [
+    getAutopayAuthorizationKey(circleId, member, "circle"),
+    getAutopayAuthorizationKey(circleId, member, "all_circles"),
+  ] as const;
+}
+
+export function getAutopayAuthorizationScopeLabel(
+  scope: AutopayAuthorizationScope
+) {
+  return scope === "all_circles" ? "All circles" : "This circle";
 }
 
 function toTypedDataNumber(value: bigint | number) {
@@ -52,11 +80,16 @@ export function buildAutopayAuthorizationTypedData({
   circleId,
   member,
   delegatedContract,
+  scope = "circle",
 }: {
   circleId: bigint;
   member: Address;
   delegatedContract: Address;
+  scope?: AutopayAuthorizationScope;
 }) {
+  const signedCircleId =
+    scope === "all_circles" ? AUTOPAY_ALL_CIRCLES_SENTINEL : circleId;
+
   return {
     domain: {
       name: AUTOPAY_AUTH_DOMAIN_NAME,
@@ -67,6 +100,7 @@ export function buildAutopayAuthorizationTypedData({
     types: {
       AutopayAuthorization: [
         { name: "circleId", type: "uint256" },
+        { name: "scope", type: "string" },
         { name: "member", type: "address" },
         { name: "delegatedContract", type: "address" },
         { name: "policyId", type: "string" },
@@ -74,7 +108,8 @@ export function buildAutopayAuthorizationTypedData({
     },
     primaryType: "AutopayAuthorization" as const,
     message: {
-      circleId: toTypedDataNumber(circleId),
+      circleId: toTypedDataNumber(signedCircleId),
+      scope,
       member,
       delegatedContract,
       policyId: clientEnv.NEXT_PUBLIC_LIT_AUTOPAY_POLICY_ID || "",

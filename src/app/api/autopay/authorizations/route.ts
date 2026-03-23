@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   AutopayAuthorizationRecord,
+  AutopayAuthorizationScope,
   buildAutopayAuthorizationTypedData,
   getAutopayAuthorizationKey,
   getAutopayFeatureConfig,
@@ -13,6 +14,7 @@ export const runtime = "nodejs";
 type RequestBody = {
   circleId?: string;
   member?: string;
+  scope?: AutopayAuthorizationScope;
   signature?: `0x${string}`;
 };
 
@@ -57,12 +59,21 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  if (body.scope && body.scope !== "circle" && body.scope !== "all_circles") {
+    return NextResponse.json(
+      { success: false, error: "scope must be circle or all_circles" },
+      { status: 400 }
+    );
+  }
+
   const member = getAddress(body.member);
   const circleId = BigInt(body.circleId);
+  const scope = body.scope ?? "circle";
   const typedData = buildAutopayAuthorizationTypedData({
     circleId,
     member,
     delegatedContract,
+    scope,
   });
 
   const isValid = await verifyTypedData({
@@ -79,8 +90,9 @@ export async function POST(request: NextRequest) {
   }
 
   const record: AutopayAuthorizationRecord = {
-    circleId: circleId.toString(),
+    circleId: typedData.message.circleId.toString(),
     member,
+    scope,
     chainId: typedData.domain.chainId,
     delegatedContract,
     savingCirclesContract: typedData.domain.verifyingContract,
@@ -92,7 +104,8 @@ export async function POST(request: NextRequest) {
   };
 
   const store = await readAutopayStore();
-  store.authorizations[getAutopayAuthorizationKey(circleId, member)] = record;
+  store.authorizations[getAutopayAuthorizationKey(circleId, member, scope)] =
+    record;
   await writeAutopayStore(store);
 
   return NextResponse.json({ success: true, authorization: record });
