@@ -1,6 +1,12 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+import { createLitClient } from "@lit-protocol/lit-client";
+import { naga, nagaDev, nagaTest } from "@lit-protocol/networks";
+import {
+  createAuthManager,
+  storagePlugins,
+} from "@lit-protocol/auth";
 import {
   createPublicClient,
   createWalletClient,
@@ -11,6 +17,7 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { foundry, gnosis, sepolia } from "viem/chains";
+import { litAutopayPolicyActionCode } from "./lit/autopay-policy.mjs";
 
 const delegatedSavingCirclesAbi = [
   {
@@ -114,6 +121,20 @@ function getSelectedContractConfig() {
   };
 }
 
+function getLitNetworkConfig() {
+  const litNetwork = process.env.NEXT_PUBLIC_LIT_AUTOPAY_NETWORK || "naga-dev";
+  const networkMap = {
+    naga,
+    "naga-dev": nagaDev,
+    "naga-test": nagaTest,
+  };
+
+  return {
+    litNetwork,
+    sdkLitNetwork: networkMap[litNetwork] ?? nagaDev,
+  };
+}
+
 async function readStore() {
   try {
     const raw = await readFile(storePath, "utf8");
@@ -179,12 +200,71 @@ function buildTypedData({
   };
 }
 
+async function buildLitAuthContext({ litClient, account, litNetwork }) {
+  const authManager = createAuthManager({
+    storage: storagePlugins.localStorageNode({
+      appName: "bread-autopay-worker",
+      networkName: litNetwork,
+      storagePath: path.join(process.cwd(), ".lit-auth"),
+    }),
+  });
+
+  return authManager.createEoaAuthContext({
+    litClient,
+    config: {
+      account,
+    },
+    authConfig: {
+      domain: "localhost",
+      statement: "Authorize Lit autopay policy execution",
+      expiration: new Date(Date.now() + 1000 * 60 * 10).toISOString(),
+      resources: [["lit-action-execution", "*"]],
+    },
+  });
+}
+
+async function evaluateLitAutopayPolicy({
+  litClient,
+  authContext,
+  authorization,
+  candidate,
+  userMaxPriceWei,
+}) {
+  const result = await litClient.executeJs({
+    authContext,
+    code: litAutopayPolicyActionCode,
+    jsParams: {
+      authorization,
+      candidate,
+    },
+    responseStrategy: { strategy: "leastCommon" },
+    useSingleNode: false,
+    userMaxPrice: userMaxPriceWei,
+  });
+
+  const parsed =
+    typeof result.response === "string"
+      ? JSON.parse(result.response)
+      : result.response;
+
+  return {
+    authorized: Boolean(parsed?.authorized),
+    reason:
+      typeof parsed?.reason === "string"
+        ? parsed.reason
+        : "Lit policy did not authorize execution.",
+  };
+}
+
 async function main() {
   const { delegatedContract, savingCirclesContract } =
     getSelectedContractConfig();
   const litPolicyId = process.env.NEXT_PUBLIC_LIT_AUTOPAY_POLICY_ID;
-  const litNetwork = process.env.NEXT_PUBLIC_LIT_AUTOPAY_NETWORK;
+  const { litNetwork, sdkLitNetwork } = getLitNetworkConfig();
   const privateKey = process.env.AUTOPAY_WORKER_PRIVATE_KEY;
+  const userMaxPriceWei = BigInt(
+    process.env.LIT_AUTOPAY_USER_MAX_PRICE_WEI || "30000000000000000"
+  );
   const { chain, rpcUrl } = getChainConfig();
 
   if (
@@ -215,6 +295,14 @@ async function main() {
     account,
     chain,
     transport: http(rpcUrl),
+  });
+  const litClient = await createLitClient({
+    network: sdkLitNetwork,
+  });
+  const litAuthContext = await buildLitAuthContext({
+    litClient,
+    account,
+    litNetwork,
   });
 
   const store = await readStore();
@@ -271,6 +359,42 @@ async function main() {
         status: "skipped",
         message:
           "Skipped: saved Lit authorization signature no longer verifies for the selected scope.",
+        updatedAt: new Date().toISOString(),
+        executor: account.address,
+      };
+      continue;
+    }
+
+    const litDecision = await evaluateLitAutopayPolicy({
+      litClient,
+      authContext: litAuthContext,
+      userMaxPriceWei,
+      authorization: {
+        active: auth.active,
+        member: auth.member,
+        circleId: auth.circleId,
+        scope: auth.scope ?? "circle",
+        delegatedContract: auth.delegatedContract,
+        savingCirclesContract: auth.savingCirclesContract,
+        chainId: auth.chainId,
+        litPolicyId: auth.litPolicyId,
+      },
+      candidate: {
+        member,
+        circleId: circleId.toString(),
+        delegatedContract: getAddress(delegatedContract),
+        savingCirclesContract: getAddress(savingCirclesContract),
+        chainId: chain.id,
+        litPolicyId,
+      },
+    });
+
+    if (!litDecision.authorized) {
+      store.results[key] = {
+        circleId: circleId.toString(),
+        member,
+        status: "skipped",
+        message: `Skipped by Lit policy: ${litDecision.reason}`,
         updatedAt: new Date().toISOString(),
         executor: account.address,
       };

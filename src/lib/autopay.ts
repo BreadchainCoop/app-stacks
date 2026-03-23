@@ -8,7 +8,7 @@ import { getDefaultChainId } from "@/utils/chain";
 
 export const AUTOPAY_AUTH_DOMAIN_NAME = "StacksAutopayLit";
 export const AUTOPAY_AUTH_DOMAIN_VERSION = "1";
-export const AUTOPAY_ALL_CIRCLES_SENTINEL = 0n;
+export const AUTOPAY_ALL_CIRCLES_SENTINEL = BigInt(0);
 
 export type AutopayAuthorizationScope = "circle" | "all_circles";
 
