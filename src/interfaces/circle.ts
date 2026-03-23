@@ -39,6 +39,7 @@ type ICircleNoWithdraw = {
 export type ICircleList = ICircleBaseList &
   (ICircleWithdraw | ICircleNoWithdraw) & {
     status?: ICircleStatus;
+    isMember?: boolean;
   };
 
 export interface LocalStorageCircle {

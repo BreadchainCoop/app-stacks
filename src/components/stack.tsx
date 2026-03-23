@@ -60,11 +60,14 @@ const Stack = ({
     },
   ];
 
-  const statusMode = !stack.status
-    ? undefined
-    : stack.status === "expired" || stack.status === "finished"
-      ? ""
-      : stack.status;
+  const isRetired =
+    stack.status === "expired" ||
+    stack.status === "finished" ||
+    stack.status === "decommissioned" ||
+    stack.status === "failed";
+
+  const showPaymentDue = stack.isMember && stack.status === "payment_due";
+  const showMemberBadge = stack.isMember && !isRetired && !showPaymentDue;
 
   return (
     <li className="border border-paper-1 p-6 flex flex-col gap-6 bg-paper-0 shadow-[0px_4px_12px_0px_#1B201A26] xl:max-w-94">
@@ -76,15 +79,14 @@ const Stack = ({
           <Body bold className="text-surface-grey">
             ID: {stack.id}
           </Body>
-          {statusMode && (
-            <Chip
-              className={`font-bold border-current! ${
-                stack.status === "payment_due"
-                  ? "text-system-warning"
-                  : "text-system-green"
-              }`}
-            >
-              {stack.status === "payment_due" ? "Payment due" : "Member"}
+          {showPaymentDue && (
+            <Chip className="font-bold border-current! text-system-warning">
+              Payment due
+            </Chip>
+          )}
+          {showMemberBadge && (
+            <Chip className="font-bold border-current! text-system-green">
+              Member
             </Chip>
           )}
         </div>
@@ -131,7 +133,7 @@ const Stack = ({
         })}
       </ul>
       <div className="flex flex-col gap-3 mt-auto">
-        {stack.status === "claimable" ? (
+        {stack.isMember && stack.status === "claimable" ? (
           <ClaimButton
             amount={
               Number(formatEther(stack.depositAmount)) * stack.totalMember
@@ -145,7 +147,7 @@ const Stack = ({
             roundsLeft={BigInt(stack.totalMember - 1) - stack.currentIndex}
             nextDepositAddress={stack.token}
           />
-        ) : stack.status === "payment_due" ? (
+        ) : stack.isMember && stack.status === "payment_due" ? (
           <DepositButton
             circleId={stack.id}
             tokenAddress={stack.token}
@@ -153,7 +155,7 @@ const Stack = ({
             leftIcon={<HandWithdrawIcon />}
             amount={stack.depositAmount}
           />
-        ) : statusMode === "" ? (
+        ) : isRetired ? (
           <Body
             bold
             className="flex items-center justify-center gap-2 bg-surface-grey text-surface-ink opacity-50 py-4 px-8"

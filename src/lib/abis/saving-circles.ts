@@ -1233,4 +1233,42 @@ export const savingCirclesAbi = [
     name: "TransferFailed",
     inputs: [],
   },
+  {
+    type: "function",
+    name: "circleState",
+    inputs: [
+      {
+        name: "id",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "state",
+        type: "uint8",
+        internalType: "enum ISavingCircles.CircleState",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "roundState",
+    inputs: [
+      {
+        name: "id",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "state",
+        type: "uint8",
+        internalType: "enum ISavingCircles.RoundState",
+      },
+    ],
+    stateMutability: "view",
+  },
 ] as const;
