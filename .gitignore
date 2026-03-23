@@ -38,3 +38,5 @@ cache/
 broadcast/
 # Local Netlify folder
 .netlify
+
+.autopay-data/
