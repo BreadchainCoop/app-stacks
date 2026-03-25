@@ -26,6 +26,17 @@ function normalizePkps(result) {
   return [];
 }
 
+function safeJson(value) {
+  return JSON.stringify(
+    value,
+    (_, nestedValue) =>
+      typeof nestedValue === "bigint"
+        ? nestedValue.toString()
+        : nestedValue,
+    2
+  );
+}
+
 async function main() {
   const privateKey = process.env.AUTOPAY_WORKER_PRIVATE_KEY;
   if (!privateKey) {
@@ -93,7 +104,7 @@ async function main() {
     if (pubkey) console.log(`pubkey: ${pubkey}`);
     if (ethAddress) console.log(`address: ${ethAddress}`);
     if (tokenId) console.log(`tokenId: ${tokenId}`);
-    console.log(`raw: ${JSON.stringify(pkp, null, 2)}`);
+    console.log(`raw: ${safeJson(pkp)}`);
   }
 
   const first = pkps[0];
