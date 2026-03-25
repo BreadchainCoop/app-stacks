@@ -1,0 +1,313 @@
+import * as react_jsx_runtime from 'react/jsx-runtime';
+import * as viem from 'viem';
+import { Address, Abi, Hex, Chain } from 'viem';
+import React$1, { AnchorHTMLAttributes, FC, ComponentType, ReactNode, ButtonHTMLAttributes } from 'react';
+import * as _tanstack_react_query from '@tanstack/react-query';
+import { UseEnsNameReturnType } from 'wagmi';
+import { GetEnsNameReturnType } from '@wagmi/core';
+import { Icon } from '@phosphor-icons/react';
+import { ClassValue } from 'clsx';
+
+type App = "fund" | "stacks" | "net";
+
+type AuthProvider = "privy" | "general";
+type TokenConfig = {
+    BREAD: {
+        address: Address;
+        abi: Abi;
+    };
+};
+declare const BreadUIKitProvider: ({ isProd, chainId, supportedChainIds, tokenConfig, children, app, authProvider, }: {
+    isProd?: boolean;
+    chainId?: number;
+    supportedChainIds?: number[];
+    tokenConfig: TokenConfig;
+    app: App;
+    authProvider: AuthProvider;
+    children: React.ReactNode;
+}) => react_jsx_runtime.JSX.Element;
+
+type LinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
+    href: string;
+    children?: React$1.ReactNode;
+};
+declare const useLinkComponent: () => React$1.ComponentType<LinkProps>;
+declare const LinkProvider: FC<{
+    Link: ComponentType<LinkProps>;
+    children: ReactNode;
+}>;
+
+declare const useBreadBalance: ({ address }: {
+    address: Address;
+}) => {
+    BREAD: string;
+    refetchBalance: (options?: _tanstack_react_query.RefetchOptions) => Promise<_tanstack_react_query.QueryObserverResult<bigint, viem.ReadContractErrorType>>;
+    isLoading: boolean;
+};
+
+interface UseCopyToClipboardPayload {
+    textToCopy: string;
+}
+declare const useCopyToClipboard: ({ textToCopy, }: UseCopyToClipboardPayload) => {
+    copied: boolean;
+    copy: () => Promise<void>;
+};
+
+interface LoginButtonPrivyProps {
+    app: App;
+    status: "CONNECTED" | "LOADING" | "UNSUPPORTED_CHAIN" | "NOT_CONNECTED";
+    label?: string;
+    rightIcon?: ReactNode;
+}
+
+interface LoginButtonProps extends LoginButtonPrivyProps {
+    /** @deprecated Chain behavior is controlled via BreadUIKitProvider config. */
+    isProd?: boolean;
+}
+declare const LoginButton: ({ label, isProd: _isProd, ...props }: LoginButtonProps) => react_jsx_runtime.JSX.Element;
+
+interface CopyButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>, UseCopyToClipboardPayload {
+    checkedIconSize?: number;
+}
+declare const CopyButtonIcon: ({ children, textToCopy, checkedIconSize, ...buttonProps }: CopyButtonProps) => react_jsx_runtime.JSX.Element;
+
+interface ChipProps {
+    size?: "small" | "regular";
+    children: ReactNode;
+    icon?: boolean;
+    className?: string;
+}
+declare const Chip: ({ size, icon, className, children, }: ChipProps) => react_jsx_runtime.JSX.Element;
+
+type TUserLoading = {
+    status: "LOADING";
+};
+type TUserNotConnected = {
+    status: "NOT_CONNECTED";
+};
+type TUserConnected = {
+    status: "CONNECTED" | "UNSUPPORTED_CHAIN";
+    address: Hex;
+    chain: Chain;
+};
+type TConnectedUserState = TUserLoading | TUserNotConnected | TUserConnected;
+
+declare const useConnectedUser: () => {
+    user: TConnectedUserState;
+    isSafe: boolean;
+};
+
+interface ConnectedUserProviderProps {
+    children: React.ReactNode;
+    /** @deprecated Chain behavior is controlled via BreadUIKitProvider config. */
+    isProd?: boolean;
+}
+declare function ConnectedUserProvider({ children, isProd: _isProd }: ConnectedUserProviderProps): react_jsx_runtime.JSX.Element;
+
+interface FooterProps {
+    className?: string;
+    topClassName?: string;
+    infoClassName?: string;
+    mode?: "colored" | "transparent";
+}
+declare function Footer({ className, topClassName, infoClassName, mode, }: FooterProps): react_jsx_runtime.JSX.Element;
+
+type LiftedButtonColors = {
+    bg: string;
+    text: string;
+    hoverBg: string;
+    hoverText: string;
+    shadowBg: string;
+};
+type LiftedButtonPreset = keyof typeof LIFTED_BUTTON_PRESETS;
+declare const LIFTED_BUTTON_PRESETS: {
+    primary: {
+        bg: string;
+        text: string;
+        hoverBg: string;
+        hoverText: string;
+        shadowBg: string;
+    };
+    secondary: {
+        bg: string;
+        text: string;
+        hoverBg: string;
+        hoverText: string;
+        shadowBg: string;
+    };
+    destructive: {
+        bg: string;
+        text: string;
+        hoverBg: string;
+        hoverText: string;
+        shadowBg: string;
+    };
+    positive: {
+        bg: string;
+        text: string;
+        hoverBg: string;
+        hoverText: string;
+        shadowBg: string;
+    };
+    stroke: {
+        bg: string;
+        text: string;
+        hoverBg: string;
+        hoverText: string;
+        shadowBg: string;
+    };
+    burn: {
+        bg: string;
+        text: string;
+        hoverBg: string;
+        hoverText: string;
+        shadowBg: string;
+    };
+};
+
+type LiftedButtonProps = {
+    children: React$1.ReactNode;
+    leftIcon?: React$1.ReactNode;
+    rightIcon?: React$1.ReactNode;
+    disabled?: boolean;
+    preset?: LiftedButtonPreset;
+    colorOverrides?: Partial<LiftedButtonColors>;
+    offsetPx?: number;
+    durationMs?: number;
+    className?: string;
+    width?: "full" | "auto" | "mobile-full";
+    scrollTo?: string;
+} & React$1.ComponentPropsWithoutRef<"button">;
+/**
+ * LiftedButton — a square-edged button that floats up-left of a dark base layer.
+ * - Preset: Choose "primary" (default), "secondary", "destructive", or "positive"
+ * - ColorOverrides: Pass in a dict specifying manual colours
+ * - Hover: fades to alternate colors.
+ * - Active: depresses button and colors return to normal.
+ * - Transition duration defaults to 500ms.
+ * - Icons can be rendered on the right or left.
+ */
+declare function LiftedButton({ children, leftIcon, rightIcon, disabled, preset, colorOverrides, offsetPx, durationMs, className, type, width, scrollTo, ...rest }: LiftedButtonProps): react_jsx_runtime.JSX.Element;
+
+declare const fontVariables: {
+    readonly breadDisplay: "--font-breadDisplay";
+    readonly breadBody: "--font-breadBody";
+};
+declare const Typography: React$1.FC<{
+    variant: "h1" | "h2" | "h3" | "h4" | "h5" | "body" | "caption";
+    children: React$1.ReactNode;
+    className?: string;
+}>;
+declare const Heading1: React$1.FC<{
+    children: React$1.ReactNode;
+    className?: string;
+}>;
+declare const Heading2: React$1.FC<{
+    children: React$1.ReactNode;
+    className?: string;
+}>;
+declare const Heading3: React$1.FC<{
+    children: React$1.ReactNode;
+    className?: string;
+}>;
+declare const Heading4: React$1.FC<{
+    children: React$1.ReactNode;
+    className?: string;
+}>;
+declare const Heading5: React$1.FC<{
+    children: React$1.ReactNode;
+    className?: string;
+}>;
+declare const Body: React$1.FC<{
+    children: React$1.ReactNode;
+    className?: string;
+    bold?: boolean;
+}>;
+declare const Caption: React$1.FC<{
+    children: React$1.ReactNode;
+    className?: string;
+}>;
+
+interface FormattedDecimalNumberProps {
+    value: number | string;
+    className?: string;
+    integralPartClassName?: string;
+    decimalPartClassName?: string;
+    withBreadIcon?: boolean;
+    breadIconClassName?: string;
+    breadSize?: number;
+    unit?: string;
+}
+declare function FormattedDecimalNumber({ value, className, integralPartClassName, decimalPartClassName, withBreadIcon, breadIconClassName, breadSize, unit, }: FormattedDecimalNumberProps): react_jsx_runtime.JSX.Element;
+
+type LogoColor = "orange" | "blue" | "jade" | "white";
+type LogoVariant = "square" | "line";
+type LogoProps = {
+    /** Size of the logo in pixels. Defaults to 32px */
+    size?: number;
+    /** Additional CSS classes to apply to the logo */
+    className?: string;
+    /** Color variant of the logo: "orange" (default), "blue", "jade", or "white" */
+    color?: LogoColor;
+    /** Variant of the logo: "square" or "line" */
+    variant?: LogoVariant;
+    /** Optional text to display next to the logo */
+    text?: string;
+} & React$1.ComponentPropsWithoutRef<"svg">;
+/**
+ * Logo component that renders the Bread UI Kit logo SVG.
+ *
+ * @param size - Size of the logo in pixels (default: 32)
+ * @param className - Additional CSS classes
+ * @param color - Color variant: "orange" (default), "blue", "jade", or "white"
+ * @param variant - Variant of the logo: "square" or "line"
+ * @param text - Optional text to display next to the logo
+ */
+declare function Logo({ size, className, color, variant, text, ...rest }: LogoProps): react_jsx_runtime.JSX.Element | undefined;
+
+interface NavSolidarityAppsProps {
+    current?: App;
+    className?: string;
+    showTitle?: boolean;
+    showSelected?: boolean;
+    rearranged?: boolean;
+}
+declare const NavSolidarityApps: ({ current, className, showTitle, showSelected, rearranged, }: NavSolidarityAppsProps) => react_jsx_runtime.JSX.Element;
+declare const NavSolidarityAppsDesktop: ({ label, app, }: {
+    app: App;
+    label: string;
+}) => react_jsx_runtime.JSX.Element;
+
+interface NavAccountDetailsProps {
+    userAddress: Address;
+    chain: Chain;
+    ensNameResult: UseEnsNameReturnType<GetEnsNameReturnType> | {
+        data: string | undefined;
+        isLoading: boolean;
+        isError: boolean;
+    };
+    className?: string;
+    app: App;
+    widgetItems?: ReactNode;
+    actionItems?: ReactNode;
+}
+
+interface NavbarProps extends Pick<NavAccountDetailsProps, "widgetItems" | "actionItems"> {
+    app: App;
+    children: ReactNode;
+    className?: string;
+}
+declare function Navbar({ app, children, className, widgetItems, actionItems }: NavbarProps): react_jsx_runtime.JSX.Element;
+
+declare const NavAccountWidgetItem: ({ I, label, children, appIconColor, }: {
+    I: Icon;
+    appIconColor: string;
+    label: string;
+    children: ReactNode;
+}) => react_jsx_runtime.JSX.Element;
+
+declare function cn(...inputs: ClassValue[]): string;
+
+declare function formatBalance(value: number, decimals?: number): string;
+
+export { Body, BreadUIKitProvider, Caption, Chip, ConnectedUserProvider, CopyButtonIcon, Footer, FormattedDecimalNumber, Heading1, Heading2, Heading3, Heading4, Heading5, LiftedButton, type LiftedButtonProps, type LinkProps, LinkProvider, LoginButton, Logo, type LogoColor, type LogoProps, type LogoVariant, NavAccountWidgetItem, NavSolidarityApps, NavSolidarityAppsDesktop, Navbar, type TConnectedUserState, type TUserConnected, type TUserLoading, type TUserNotConnected, Typography, cn, fontVariables, formatBalance, useBreadBalance, useConnectedUser, useCopyToClipboard, useLinkComponent };

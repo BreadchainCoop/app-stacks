@@ -1,0 +1,292 @@
+# Bread UI Kit
+
+A React TypeScript component library for implementing Bread Coop branding in JS/TS projects. Built for **Tailwind CSS v4**.
+
+## Installation
+
+```bash
+pnpm install @breadcoop/ui
+```
+
+## Preview
+
+Preview the available typography and components on the [Storybook Demo](http://breadcoopstorybook.netlify.app/).
+
+### Quick Setup
+
+1. **Install Tailwind v4** in your project:
+
+   ```bash
+   npm install tailwindcss@next @tailwindcss/postcss@next
+   ```
+
+2. **Import the theme** in your main CSS file:
+
+   ```css
+   /* globals.css or your main CSS file */
+   @import "tailwindcss";
+   @import "@breadcoop/ui/theme";
+   ```
+
+3. **Use components** in your React app:
+   ```tsx
+   import { LiftedButton, Heading1, Body } from "@breadcoop/ui";
+   import "./globals.css"; // Make sure to import your CSS file i.e. in layout.ts
+   ```
+
+## Usage
+
+### Basic Setup
+
+```css
+/* globals.css */
+@import "tailwindcss";
+@import "@breadcoop/ui/theme";
+```
+
+```tsx
+import React from "react";
+import { LiftedButton, Heading1, Body } from "@breadcoop/ui";
+import "./globals.css";
+
+function App() {
+  return (
+    <div>
+      <Heading1>Welcome to Bread Coop</Heading1>
+      <Body>This text uses our brand typography.</Body>
+      <LiftedButton preset="primary" onClick={() => console.log("Clicked!")}>
+        Click me
+      </LiftedButton>
+
+      {/* Tailwind classes available in imported theme can be used */}
+      <div className="bg-primary-orange text-white p-4 rounded-md">
+        Custom styled element
+      </div>
+    </div>
+  );
+}
+```
+
+### Web3 Chain Configuration
+
+`BreadUIKitProvider` now supports explicit chain configuration.
+
+```tsx
+import { BreadUIKitProvider } from "@breadcoop/ui";
+import { erc20Abi } from "viem";
+
+<BreadUIKitProvider
+  app="fund"
+  authProvider="general"
+  chainId={11155111}
+  supportedChainIds={[11155111]}
+  tokenConfig={{
+    BREAD: {
+      address: "0xYourSepoliaBreadTokenAddress",
+      abi: erc20Abi,
+    },
+  }}
+>
+  {children}
+</BreadUIKitProvider>;
+```
+
+`chainId` is the primary target network used by login/switch-chain and reads.
+`supportedChainIds` controls which chains are treated as connected vs unsupported.
+
+### Migration Notes
+
+- Preferred: pass `chainId` (and optionally `supportedChainIds`) explicitly.
+- Legacy fallback: `isProd` is still accepted for backward compatibility (`true -> 100`, `false -> 31337`).
+- For Sepolia, set `chainId={11155111}` to avoid automatic switching to Gnosis.
+
+## Components
+
+### Typography
+
+```tsx
+import { Typography } from "@breadcoop/ui";
+
+<Typography variant="h1">Main Heading</Typography>
+<Typography variant="h2">Section Heading</Typography>
+<Typography variant="body">Body text content</Typography>
+<Typography variant="caption">Small caption text</Typography>
+```
+
+#### Individual Typography Components
+
+```tsx
+import { Heading1, Heading2, Heading3, Body, Caption } from "@breadcoop/ui";
+
+<Heading1>Main Heading</Heading1>
+<Heading2>Section Heading</Heading2>
+<Heading3>Subsection Heading</Heading3>
+<Body>Body text content</Body>
+<Body bold>Bold body text content</Body>
+<Caption>Small caption text</Caption>
+```
+
+#### Props
+
+| Component           | Props                                                                  | Description                     |
+| ------------------- | ---------------------------------------------------------------------- | ------------------------------- |
+| Typography          | `variant: "h1" \| "h2" \| "h3" \| "h4" \| "h5" \| "body" \| "caption"` | Typography variant              |
+| Typography          | `children: React.ReactNode`                                            | Content to display              |
+| Typography          | `className?: string`                                                   | Additional CSS classes          |
+| Heading1-3, Caption | `children: React.ReactNode`                                            | Content to display              |
+| Heading1-3, Caption | `className?: string`                                                   | Additional CSS classes          |
+| Body                | `children: React.ReactNode`                                            | Content to display              |
+| Body                | `className?: string`                                                   | Additional CSS classes          |
+| Body                | `bold?: boolean`                                                       | Make text bold (default: false) |
+
+### LiftedButton
+
+```tsx
+import { LiftedButton } from "@breadcoop/ui";
+
+<Typography variant="h1">Main Heading</Typography>
+<Typography variant="h2">Section Heading</Typography>
+<Typography variant="body">Body text content</Typography>
+<Typography variant="caption">Small caption text</Typography>
+```
+
+#### Props
+
+| Prop           | Type                                                                | Default   | Description                         |
+| -------------- | ------------------------------------------------------------------- | --------- | ----------------------------------- |
+| children       | React.ReactNode                                                     | -         | The content of the button           |
+| preset         | 'primary' \| 'secondary' \| 'destructive' \| 'positive' \| 'stroke' | 'primary' | The preset style of the button      |
+| leftIcon       | React.ReactNode                                                     | -         | Icon to display on the left side    |
+| rightIcon      | React.ReactNode                                                     | -         | Icon to display on the right side   |
+| disabled       | boolean                                                             | false     | Whether the button is disabled      |
+| colorOverrides | Partial<LiftedButtonColors>                                         | {}        | Override specific colors            |
+| offsetPx       | number                                                              | 4         | Pixel offset for the lifted effect  |
+| durationMs     | number                                                              | 300       | Transition duration in milliseconds |
+| width          | 'full' \| 'auto' \| 'mobile-full'                                   | 'auto'    | Button width behavior               |
+| scrollTo       | string                                                              | -         | Element ID to scroll to on click    |
+| className      | string                                                              | ''        | Additional CSS classes              |
+| type           | 'button' \| 'submit' \| 'reset'                                     | 'button'  | Button type                         |
+| onClick        | () => void                                                          | -         | Click handler                       |
+
+#### Presets
+
+- **primary**: Orange background with white text
+- **secondary**: Light orange background with orange text
+- **stroke**: White background with dark text and border
+
+#### Examples
+
+```tsx
+import { LiftedButton } from "@breadcoop/ui";
+import { ArrowUpRight, SignOut } from "@phosphor-icons/react";
+
+// Basic usage
+<LiftedButton>Click me</LiftedButton>
+
+// With presets
+<LiftedButton preset="primary">Primary Button</LiftedButton>
+<LiftedButton preset="secondary">Secondary Button</LiftedButton>
+<LiftedButton preset="stroke">Cancel</LiftedButton>
+
+// With icons
+<LiftedButton leftIcon={<ArrowUpRight />}>External Link</LiftedButton>
+<LiftedButton rightIcon={<SignOut />}>Sign Out</LiftedButton>
+
+// Full width
+<LiftedButton width="full">Full Width Button</LiftedButton>
+
+// Mobile full width (full on mobile, auto on desktop)
+<LiftedButton width="mobile-full">Responsive Button</LiftedButton>
+
+// Custom offset and duration
+<LiftedButton offsetPx={8} durationMs={500}>
+  Custom Animation
+</LiftedButton>
+
+// Scroll to element
+<LiftedButton scrollTo="contact-section">
+  Contact Us
+</LiftedButton>
+
+// Disabled state
+<LiftedButton disabled>Disabled Button</LiftedButton>
+```
+
+#### Logo Component
+
+```tsx
+import { Logo } from '@breadcoop/ui';
+
+// Basic usage
+<Logo />
+
+// With text and custom styling
+<Logo
+  text="Bread Coop"
+  className="text-xl font-bold"
+  color="blue"
+  size={48}
+/>
+
+// Different variants
+<Logo variant="square" color="jade" />
+<Logo variant="line" color="white" />
+```
+
+#### Props
+
+| Prop      | Type                                      | Default  | Description                                     |
+| --------- | ----------------------------------------- | -------- | ----------------------------------------------- |
+| size      | `number`                                  | 32       | Size in pixels                                  |
+| color     | `"orange" \| "blue" \| "jade" \| "white"` | "orange" | Color variant                                   |
+| variant   | `"square" \| "line"`                      | -        | Logo variant                                    |
+| text      | `string`                                  | -        | Optional text to display next to the logo       |
+| className | `string`                                  | -        | Additional CSS classes (applied to svg element) |
+
+## Local Development & Usage
+
+### Setting Up for Local Development
+
+If you want to use this UI kit in your project during development or make custom modifications, you can set it up locally.
+
+#### Step 1: Clone the Repository
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd bread-ui-kit
+
+# Install dependencies
+npm install
+
+# Build the library
+npm run build
+```
+
+#### Step 2: Configure Your Project's package.json
+
+**Option A: Using file: protocol (Recommended)**
+
+Add a local reference to your project's `package.json`:
+
+```json
+{
+  "dependencies": {
+    "bread-ui-kit": "file:../bread-ui-kit"
+  }
+}
+```
+
+Then install:
+
+```bash
+pnpm install
+```
+
+### Development Workflow
+
+When making changes to the UI kit:
+
+1. **Make your changes** in the `src/` directory
+2. **Build the library**: `npm run build`
+3. **Test in your project** - `pnpm install`

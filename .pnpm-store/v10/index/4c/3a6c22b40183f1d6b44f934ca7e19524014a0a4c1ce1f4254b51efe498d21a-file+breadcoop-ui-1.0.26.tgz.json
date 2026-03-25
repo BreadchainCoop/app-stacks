@@ -1,0 +1,115 @@
+{
+  "name": "@breadcoop/ui",
+  "version": "1.0.26",
+  "requiresBuild": false,
+  "files": {
+    "dist/fonts/fonts.css": {
+      "checkedAt": 1774451484159,
+      "integrity": "sha512-juQyfiyov1LpZthOQPkgUE4Q/IqG4lwVE8P/xSXTs3SlE3XGwOvaqauk7N53a3gacuHd+I/w7w5m6hAAt53nCg==",
+      "mode": 420,
+      "size": 985
+    },
+    "dist/theme.css": {
+      "checkedAt": 1774451484160,
+      "integrity": "sha512-S2sCy9aMpqQ6C+5eW8jGVp7ogp0fxb3e9of2ybktmMpUbyqokqKMIlar5dn6MaYcc/JVFGBvU7mWaulZmo2h3A==",
+      "mode": 420,
+      "size": 5464
+    },
+    "theme.css": {
+      "checkedAt": 1774451484160,
+      "integrity": "sha512-S2sCy9aMpqQ6C+5eW8jGVp7ogp0fxb3e9of2ybktmMpUbyqokqKMIlar5dn6MaYcc/JVFGBvU7mWaulZmo2h3A==",
+      "mode": 420,
+      "size": 5464
+    },
+    "dist/index.js": {
+      "checkedAt": 1774451484160,
+      "integrity": "sha512-4BPnkDBIYG0UJsC0t7ZdfIwO90c8w9w0M9wPK3VX6twxgZU5TsMPgiehXY0gHFafLZ9q6JGD1RjQhHPn8SuJ7g==",
+      "mode": 420,
+      "size": 108024
+    },
+    "dist/tailwind-preset.js": {
+      "checkedAt": 1774451484160,
+      "integrity": "sha512-BX069MAKpQX51TP9xPxcOrNoE1NIb2ZEIUVzwGKX5+mPcri3sZIojpH511X4daTfyeQTW+jeGJ+VagjtgeVMCQ==",
+      "mode": 420,
+      "size": 1434
+    },
+    "tailwind-preset.js": {
+      "checkedAt": 1774451484160,
+      "integrity": "sha512-BX069MAKpQX51TP9xPxcOrNoE1NIb2ZEIUVzwGKX5+mPcri3sZIojpH511X4daTfyeQTW+jeGJ+VagjtgeVMCQ==",
+      "mode": 420,
+      "size": 1434
+    },
+    "package.json": {
+      "checkedAt": 1774451484161,
+      "integrity": "sha512-4wRSsloB3sySwWfs87YRj35JrTwfTMHUI+dFsqbJQyQT59UK0e/PIaF+XZn5atrHbg881M9HzzBPoPVYrZkWOg==",
+      "mode": 420,
+      "size": 2816
+    },
+    "dist/fonts/readme.md": {
+      "checkedAt": 1774451484161,
+      "integrity": "sha512-eHywAML9MjTIsg9dc+R4aBj72/29J89YTrbAkS5qlK/smeMCnoICSDGkAxgcvFPgGfTkNWRUps62eyBdBuuewA==",
+      "mode": 420,
+      "size": 1264
+    },
+    "README.md": {
+      "checkedAt": 1774451484161,
+      "integrity": "sha512-3wVCAsPe7uqLW89i51fGKXwrh5Bdh4QENM1v0wyBlVApe22xXsO4hvlAuWnxRKch6OBmayZk/nAskQigMo8QBg==",
+      "mode": 420,
+      "size": 10035
+    },
+    "dist/index.mjs": {
+      "checkedAt": 1774451484162,
+      "integrity": "sha512-eIwFzMC49XzVurHRLZyLeR8GREiTnpF42KQK56hK3iwJXUGt0iNI9i7B0EPzT5HM3qmrbNa3cKJ/oyRnpnqKvw==",
+      "mode": 420,
+      "size": 106483
+    },
+    "dist/index.d.mts": {
+      "checkedAt": 1774451484162,
+      "integrity": "sha512-wYxYw/Xdn2AQWnHz09I67TJnwmvjFeqNJPimYO7apLEBJZWsgDCKN3Z4m7oCE3hkkSi/I7WTce/XzE0X/pJEzQ==",
+      "mode": 420,
+      "size": 10411
+    },
+    "dist/index.d.ts": {
+      "checkedAt": 1774451484162,
+      "integrity": "sha512-wYxYw/Xdn2AQWnHz09I67TJnwmvjFeqNJPimYO7apLEBJZWsgDCKN3Z4m7oCE3hkkSi/I7WTce/XzE0X/pJEzQ==",
+      "mode": 420,
+      "size": 10411
+    },
+    "dist/fonts/PogacaBodyBold.woff2": {
+      "checkedAt": 1774451484163,
+      "integrity": "sha512-MR0tP/U6+LT/EgIJ0AtFHjoucV7wYMD+r6EV13LDoQXYYHXWkmcKkzW9KlKiZLx0GpxVk5xdw6baOqXBxih0EQ==",
+      "mode": 420,
+      "size": 35040
+    },
+    "dist/fonts/PogacaBodyLight.woff2": {
+      "checkedAt": 1774451484163,
+      "integrity": "sha512-mT8oCG4WLnTb076C+R64BnUgrQM+azTTG7DYKv0IhD1VBkofyIsmx7NcMr0Vtv4kD92pTZxh4+mAZZBKWJTbIw==",
+      "mode": 420,
+      "size": 34008
+    },
+    "dist/fonts/PogacaBodyRegular.woff2": {
+      "checkedAt": 1774451484163,
+      "integrity": "sha512-D3P8javj8DN+rk14JhqU3KcdEedabZfM7Akf9OaO4t6ba7OVOkUHkFBtiDPWdOwPj7IZdTOxAa36BaVPqq9a2A==",
+      "mode": 420,
+      "size": 19452
+    },
+    "dist/fonts/PogacaDisplayBlack.woff2": {
+      "checkedAt": 1774451484163,
+      "integrity": "sha512-MdG++JGHzKAV5RPYWYrXIWFQ0JFbmT2UT4ElF/xnSSdTLbp5OCUQV3SDPvqUmwfCqAHsgWb3S0D14FRUnx2pVA==",
+      "mode": 420,
+      "size": 32144
+    },
+    "dist/fonts/PogacaDisplayBold.woff2": {
+      "checkedAt": 1774451484164,
+      "integrity": "sha512-UrBtc2CoP8C107xKptqUOFZpjDk4xoMwXIC774DTzG3dQGlfv5wsljAeZW083YePjQOFqy5cpes1pgdgOHmx5g==",
+      "mode": 420,
+      "size": 16344
+    },
+    "dist/fonts/PogacaDisplayRegular.woff2": {
+      "checkedAt": 1774451484164,
+      "integrity": "sha512-0LL++tU70D/4KjntcP6nzgTKZytajmqvuvzO2s1zafl1r0l9T/jlXHejx30lPJ06PSc8/w5t9EantThaqR1lJA==",
+      "mode": 420,
+      "size": 31388
+    }
+  }
+}

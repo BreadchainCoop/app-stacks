@@ -6,6 +6,7 @@ import { naga, nagaDev, nagaTest } from "@lit-protocol/networks";
 import {
   createAuthManager,
   storagePlugins,
+  ViemAccountAuthenticator,
 } from "@lit-protocol/auth";
 import {
   createPublicClient,
@@ -223,6 +224,38 @@ async function buildLitAuthContext({ litClient, account, litNetwork }) {
   });
 }
 
+async function buildPkpAuthContext({
+  litClient,
+  account,
+  litNetwork,
+  pkpPublicKey,
+}) {
+  const authManager = createAuthManager({
+    storage: storagePlugins.localStorageNode({
+      appName: "bread-autopay-worker-pkp",
+      networkName: litNetwork,
+      storagePath: path.join(process.cwd(), ".lit-auth"),
+    }),
+  });
+
+  const authData = await ViemAccountAuthenticator.authenticate(account);
+
+  return authManager.createPkpAuthContext({
+    authData,
+    pkpPublicKey,
+    litClient,
+    authConfig: {
+      domain: "localhost",
+      statement: "Authorize Lit PKP autopay execution",
+      expiration: new Date(Date.now() + 1000 * 60 * 10).toISOString(),
+      resources: [
+        ["pkp-signing", "*"],
+        ["lit-action-execution", "*"],
+      ],
+    },
+  });
+}
+
 async function evaluateLitAutopayPolicy({
   litClient,
   authContext,
@@ -262,6 +295,8 @@ async function main() {
   const litPolicyId = process.env.NEXT_PUBLIC_LIT_AUTOPAY_POLICY_ID;
   const { litNetwork, sdkLitNetwork } = getLitNetworkConfig();
   const privateKey = process.env.AUTOPAY_WORKER_PRIVATE_KEY;
+  const pkpPublicKey = process.env.LIT_AUTOPAY_PKP_PUBLIC_KEY;
+  const executorMode = pkpPublicKey ? "pkp" : "eoa";
   const userMaxPriceWei = BigInt(
     process.env.LIT_AUTOPAY_USER_MAX_PRICE_WEI || "30000000000000000"
   );
@@ -291,11 +326,6 @@ async function main() {
     chain,
     transport: http(rpcUrl),
   });
-  const walletClient = createWalletClient({
-    account,
-    chain,
-    transport: http(rpcUrl),
-  });
   const litClient = await createLitClient({
     network: sdkLitNetwork,
   });
@@ -303,6 +333,31 @@ async function main() {
     litClient,
     account,
     litNetwork,
+  });
+  let executorAccount = account;
+  let executorLabel = account.address;
+  let walletClient;
+
+  if (executorMode === "pkp") {
+    const pkpAuthContext = await buildPkpAuthContext({
+      litClient,
+      account,
+      litNetwork,
+      pkpPublicKey,
+    });
+
+    executorAccount = await litClient.getPkpViemAccount({
+      pkpPublicKey,
+      authContext: pkpAuthContext,
+      chainConfig: chain,
+    });
+    executorLabel = executorAccount.address;
+  }
+
+  walletClient = createWalletClient({
+    account: executorAccount,
+    chain,
+    transport: http(rpcUrl),
   });
 
   const store = await readStore();
@@ -330,7 +385,7 @@ async function main() {
         status: "skipped",
         message: "Skipped: no active Lit authorization recorded.",
         updatedAt: new Date().toISOString(),
-        executor: account.address,
+        executor: executorLabel,
       };
       continue;
     }
@@ -360,7 +415,7 @@ async function main() {
         message:
           "Skipped: saved Lit authorization signature no longer verifies for the selected scope.",
         updatedAt: new Date().toISOString(),
-        executor: account.address,
+        executor: executorLabel,
       };
       continue;
     }
@@ -396,7 +451,7 @@ async function main() {
         status: "skipped",
         message: `Skipped by Lit policy: ${litDecision.reason}`,
         updatedAt: new Date().toISOString(),
-        executor: account.address,
+        executor: executorLabel,
       };
       continue;
     }
@@ -418,7 +473,7 @@ async function main() {
 
     if (eligibleMembers.length === 1) {
       const { request } = await publicClient.simulateContract({
-        account,
+        account: executorAccount,
         address: getAddress(delegatedContract),
         abi: delegatedSavingCirclesAbi,
         functionName: "depositIfAllowed",
@@ -428,7 +483,7 @@ async function main() {
       txHash = await walletClient.writeContract(request);
     } else {
       const { request } = await publicClient.simulateContract({
-        account,
+        account: executorAccount,
         address: getAddress(delegatedContract),
         abi: delegatedSavingCirclesAbi,
         functionName: "batchDepositIfAllowed",
@@ -446,10 +501,10 @@ async function main() {
         circleId: eligibleCircleIds[i].toString(),
         member: eligibleMembers[i],
         status: "success",
-        message: `Automated deposit executed on ${litNetwork} Lit policy ${litPolicyId}.`,
+        message: `Automated deposit executed via ${executorMode.toUpperCase()} executor on ${litNetwork} Lit policy ${litPolicyId}.`,
         updatedAt: new Date().toISOString(),
         txHash,
-        executor: account.address,
+        executor: executorLabel,
       };
     }
 
@@ -467,7 +522,7 @@ async function main() {
         message:
           error instanceof Error ? error.message : "Worker execution failed.",
         updatedAt: new Date().toISOString(),
-        executor: account.address,
+        executor: executorLabel,
       };
     }
 
