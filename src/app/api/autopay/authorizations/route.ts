@@ -18,6 +18,12 @@ type RequestBody = {
   signature?: `0x${string}`;
 };
 
+type DeleteRequestBody = {
+  circleId?: string;
+  member?: string;
+  scope?: AutopayAuthorizationScope;
+};
+
 export async function POST(request: NextRequest) {
   const { delegatedContract, isConfigured, litNetwork, litPolicyId } =
     getAutopayFeatureConfig();
@@ -109,4 +115,65 @@ export async function POST(request: NextRequest) {
   await writeAutopayStore(store);
 
   return NextResponse.json({ success: true, authorization: record });
+}
+
+export async function DELETE(request: NextRequest) {
+  let body: DeleteRequestBody;
+  try {
+    body = (await request.json()) as DeleteRequestBody;
+  } catch {
+    return NextResponse.json(
+      { success: false, error: "Invalid JSON body" },
+      { status: 400 }
+    );
+  }
+
+  if (!body.circleId || !body.member) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "circleId and member are required",
+      },
+      { status: 400 }
+    );
+  }
+
+  if (!isAddress(body.member)) {
+    return NextResponse.json(
+      { success: false, error: "member must be a valid address" },
+      { status: 400 }
+    );
+  }
+
+  if (body.scope && body.scope !== "circle" && body.scope !== "all_circles") {
+    return NextResponse.json(
+      { success: false, error: "scope must be circle or all_circles" },
+      { status: 400 }
+    );
+  }
+
+  const member = getAddress(body.member);
+  const circleId = BigInt(body.circleId);
+  const scope = body.scope ?? "circle";
+  const key = getAutopayAuthorizationKey(circleId, member, scope);
+  const store = await readAutopayStore();
+  const existing = store.authorizations[key];
+
+  if (!existing) {
+    return NextResponse.json(
+      { success: false, error: "No autopay authorization found for selection" },
+      { status: 404 }
+    );
+  }
+
+  store.authorizations[key] = {
+    ...existing,
+    active: false,
+  };
+  await writeAutopayStore(store);
+
+  return NextResponse.json({
+    success: true,
+    authorization: store.authorizations[key],
+  });
 }

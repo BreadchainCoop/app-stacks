@@ -212,6 +212,47 @@ export default function AutopaySetupCard({
     }
   };
 
+  const revokeAuthorization = async () => {
+    if (!autopay.authorization || pendingAction) return;
+
+    setPendingAction("authorize");
+    setError(null);
+    setFeedback(null);
+
+    try {
+      const response = await fetch("/api/autopay/authorizations", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          circleId: circle.circleId.toString(),
+          member,
+          scope: autopay.authorization.scope,
+        }),
+      });
+
+      const json = (await response.json()) as
+        | { success: true }
+        | { success: false; error: string };
+
+      if (!response.ok || !json.success) {
+        throw new Error(
+          "error" in json ? json.error : "Failed to revoke authorization"
+        );
+      }
+
+      await refresh();
+      setFeedback("Autopay authorization revoked.");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to revoke authorization."
+      );
+    } finally {
+      setPendingAction(null);
+    }
+  };
+
   return (
     <section
       className={`bg-paper-0 p-5 mb-4 ${
@@ -370,6 +411,18 @@ export default function AutopaySetupCard({
                     ? "Authorizing..."
                     : `3. Authorize ${authorizationScope === "all_circles" ? "all circles" : "this circle"}`}
                 </LocalLiftedButton>
+                {autopay.authorization?.active && (
+                  <LocalLiftedButton
+                    width="full"
+                    preset="secondary"
+                    onClick={revokeAuthorization}
+                    disabled={pendingAction !== null}
+                  >
+                    {pendingAction === "authorize"
+                      ? "Revoking..."
+                      : "Revoke autopay"}
+                  </LocalLiftedButton>
+                )}
               </>
             ) : (
               <LoginButton app="stacks" status={user.status} />
