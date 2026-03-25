@@ -2,8 +2,8 @@
 
 # Saving Circles Autopay Automation Proposal
 
-**Version:** 1.0  
-**Date:** 2026-03-19
+**Version:** 1.1  
+**Date:** 2026-03-25
 
 ---
 
@@ -45,11 +45,13 @@ Important architectural conclusion from prior discussion:
 - Some executor or trigger still needs to exist
 - If Gelato is removed, some other automation layer is still needed
 - Lit is strongest as a policy-controlled signing and execution layer, not necessarily as a complete automation scheduler
+- The current `DelegatedSavingCircles` execution functions are permissionless, so Lit cannot be the exclusive onchain enforcement layer unless contracts change
 
 Note:
 
 - Current Lit docs make Lit a credible candidate for programmable policy checks, PKP-based signing, and transaction signing or submission within a Lit Action, but not for the scheduler role by itself
 - Relevant SDK / Action primitives include `executeJs`, `Lit.Actions.checkConditions()`, `pkpSign`, PKP Permissions, `signAndCombineEcdsa`, and PKP Viem Account methods such as `signTransaction`, `signMessage`, and `signTypedData`
+- Under the current contract model, Lit can govern the app's automation path and signer trust model, but a third party can still call delegated deposit functions directly whenever onchain conditions are satisfied
 
 Prior working context / draft material:
 
@@ -514,25 +516,26 @@ Questions:
 
 ## 7. Edge Cases and Concessions
 
-| Edge Case / Concession                          | Description                                                                          | Accepted Risk / Mitigation                                                                                  |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
-| No automation exists yet                        | Current design has no implemented execution service                                  | Document clearly and do not overstate implementation                                                        |
-| Gelato is only a candidate                      | It has been discussed, not integrated                                                | Keep vendor-specific logic out of early UX if possible                                                      |
-| Lit is only a candidate                         | No PKP / Lit Action integration exists yet                                           | Treat Lit as future architecture option                                                                     |
-| Contracts do not self-execute                   | Some external actor must always submit tx                                            | Must choose executor architecture                                                                           |
-| User approval scope may be broad                | Allowance / delegation can be larger than one deposit                                | Needs careful UX and policy design                                                                          |
-| Delegated opt-in is global onchain              | `setDelegatedDepositsEnabled(true)` applies per member wallet, not per circle        | Use Lit authorization scope such as `all circles` or `selected circles` if circle-level control is required |
-| Future execution status may be hard to show     | No finalized backend state model exists yet                                          | Define persistence and observability later                                                                  |
-| Onchain due state vs app due state may diverge  | Need a single authority for eligibility                                              | Clarify in implementation design                                                                            |
-| Lit Action inputs may be non-deterministic      | Variable inputs or external fetch-heavy logic can create timeout or consensus issues | Keep inputs deterministic and minimize external reads                                                       |
-| Lit write operations may duplicate side effects | Lit Actions run on multiple nodes unless controlled                                  | Use `runOnce()` for submission or external writes where appropriate                                         |
-| PKP signing cannot be inside `runOnce()`        | PKP signing needs multi-node participation                                           | Keep `signAndCombineEcdsa` or equivalent signing logic outside `runOnce()`                                  |
-| PKP permissions are required                    | Lit Action code cannot sign unless permissions are configured                        | Configure PKP Permissions before execution                                                                  |
-| Lit payment model differs by environment        | Dev / test / mainnet have different cost models                                      | `naga-dev` is free, `naga-test` uses test tokens, mainnet uses LITKEY                                       |
-| Chain naming can be inconsistent                | Product may say Gnosis while Lit docs refer to xDai                                  | Specify xDai / chain ID 100 / Lit identifier `xdai`; token here is BREAD                                    |
-| No finalized revocation model                   | User may need to disable autopay later                                               | Add explicit revocation flow                                                                                |
-| No finalized retry strategy                     | Failed deposits may remain unresolved                                                | Add retry and alerting design                                                                               |
-| No final trust model decision                   | Backend signer vs Lit vs external network not chosen                                 | Must be resolved before production build                                                                    |
+| Edge Case / Concession                          | Description                                                                                                      | Accepted Risk / Mitigation                                                                                  |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| No automation exists yet                        | Current design has no implemented execution service                                                              | Document clearly and do not overstate implementation                                                        |
+| Gelato is only a candidate                      | It has been discussed, not integrated                                                                            | Keep vendor-specific logic out of early UX if possible                                                      |
+| Lit is only a candidate                         | No PKP / Lit Action integration exists yet                                                                       | Treat Lit as future architecture option                                                                     |
+| Contracts do not self-execute                   | Some external actor must always submit tx                                                                        | Must choose executor architecture                                                                           |
+| User approval scope may be broad                | Allowance / delegation can be larger than one deposit                                                            | Needs careful UX and policy design                                                                          |
+| Delegated opt-in is global onchain              | `setDelegatedDepositsEnabled(true)` applies per member wallet, not per circle                                    | Use Lit authorization scope such as `all circles` or `selected circles` if circle-level control is required |
+| Delegated execution is permissionless           | Any actor can call `depositIfAllowed` / `batchDepositIfAllowed` for an opted-in member with sufficient allowance | Lit cannot exclusively enforce execution without contract changes                                           |
+| Future execution status may be hard to show     | No finalized backend state model exists yet                                                                      | Define persistence and observability later                                                                  |
+| Onchain due state vs app due state may diverge  | Need a single authority for eligibility                                                                          | Clarify in implementation design                                                                            |
+| Lit Action inputs may be non-deterministic      | Variable inputs or external fetch-heavy logic can create timeout or consensus issues                             | Keep inputs deterministic and minimize external reads                                                       |
+| Lit write operations may duplicate side effects | Lit Actions run on multiple nodes unless controlled                                                              | Use `runOnce()` for submission or external writes where appropriate                                         |
+| PKP signing cannot be inside `runOnce()`        | PKP signing needs multi-node participation                                                                       | Keep `signAndCombineEcdsa` or equivalent signing logic outside `runOnce()`                                  |
+| PKP permissions are required                    | Lit Action code cannot sign unless permissions are configured                                                    | Configure PKP Permissions before execution                                                                  |
+| Lit payment model differs by environment        | Dev / test / mainnet have different cost models                                                                  | `naga-dev` is free, `naga-test` uses test tokens, mainnet uses LITKEY                                       |
+| Chain naming can be inconsistent                | Product may say Gnosis while Lit docs refer to xDai                                                              | Specify xDai / chain ID 100 / Lit identifier `xdai`; token here is BREAD                                    |
+| No finalized revocation model                   | User may need to disable autopay later                                                                           | Add explicit revocation flow                                                                                |
+| No finalized retry strategy                     | Failed deposits may remain unresolved                                                                            | Add retry and alerting design                                                                               |
+| No final trust model decision                   | Backend signer vs Lit vs external network not chosen                                                             | Must be resolved before production build                                                                    |
 
 ---
 
@@ -561,6 +564,8 @@ Questions:
 | Q19 | Who pays Lit compute / signing costs in each environment?                                                                                 |
 | Q20 | Should autopay authorization support `all circles` and `selected circles` scopes for the same member?                                     |
 | Q21 | If circle-scoped autopay is required, is Lit policy enforcement sufficient for MVP, or is an onchain contract change eventually required? |
+| Q22 | Is it acceptable for MVP that Lit governs only the app's automation path while onchain delegated execution remains permissionless?        |
+| Q23 | If stronger enforcement is required later, should the contract add executor restrictions or onchain signature-based authorization?        |
 
 ---
 
@@ -595,19 +600,25 @@ Questions:
 
 ## 10. Alternative Approaches
 
-| Approach                                          | Pros                                                                                                                                                                                                                                                          | Cons                                                                                                                        |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Gelato-based automation                           | Mature automation layer, less internal operational burden                                                                                                                                                                                                     | External dependency, additional trust / vendor reliance                                                                     |
-| Self-hosted worker                                | Full control, no external dependency                                                                                                                                                                                                                          | Internal ops burden, centralized signer unless improved                                                                     |
-| Lit for authorization only + self-hosted executor | Better authorization model while keeping simple execution; can express scopes such as `all circles` or `selected circles` per member                                                                                                                          | Still centralized execution path                                                                                            |
-| Lit PKP + Lit Action + trigger service            | Policy-controlled signing, reduced reliance on a centralized private key, can sign and submit transactions inside a Lit Action, and can enforce per-member scopes such as `all circles` or `selected circles` even if delegated opt-in remains global onchain | Still needs trigger layer, requires PKP permissions setup, deterministic design constraints, and Lit payment considerations |
-| Chainlink / other automation network              | More decentralized automation option                                                                                                                                                                                                                          | Likely more integration complexity and possible contract constraints                                                        |
-| Hybrid model: lightweight scheduler + Lit signer  | Balanced architecture with reduced signer trust                                                                                                                                                                                                               | Still not fully decentralized, two moving parts                                                                             |
-| Keep manual deposits only                         | Simplest system, lowest complexity                                                                                                                                                                                                                            | No autopay value, continued user friction                                                                                   |
+| Approach                                          | Pros                                                                                                                                                                                                                                        | Cons                                                                                                                                                                                                        |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Gelato-based automation                           | Mature automation layer, less internal operational burden                                                                                                                                                                                   | External dependency, additional trust / vendor reliance                                                                                                                                                     |
+| Self-hosted worker                                | Full control, no external dependency                                                                                                                                                                                                        | Internal ops burden, centralized signer unless improved                                                                                                                                                     |
+| Lit for authorization only + self-hosted executor | Better authorization model while keeping simple execution; can express scopes such as `all circles` or `selected circles` per member                                                                                                        | Still centralized execution path and still not an exclusive onchain execution gate                                                                                                                          |
+| Lit PKP + Lit Action + trigger service            | Policy-controlled signing, reduced reliance on a centralized private key, can sign and submit transactions inside a Lit Action, and can enforce per-member scopes such as `all circles` or `selected circles` for the app's automation path | Still needs trigger layer, requires PKP permissions setup, deterministic design constraints, Lit payment considerations, and does not stop third parties from calling the permissionless delegated contract |
+| Chainlink / other automation network              | More decentralized automation option                                                                                                                                                                                                        | Likely more integration complexity and possible contract constraints                                                                                                                                        |
+| Hybrid model: lightweight scheduler + Lit signer  | Balanced architecture with reduced signer trust and a pragmatic hackathon-ready MVP path                                                                                                                                                    | Still not fully decentralized, two moving parts, and still not an exclusive onchain execution gate                                                                                                          |
+| Keep manual deposits only                         | Simplest system, lowest complexity                                                                                                                                                                                                          | No autopay value, continued user friction                                                                                                                                                                   |
 
 ### Decision Rationale
 
-No final approach has been selected yet.
+Most natural MVP path under the current contracts is a lightweight scheduler / worker that discovers due deposits and invokes a Lit Action backed by a PKP for the app-controlled execution path.
+
+Important caveat:
+
+- This architecture demonstrates Lit as a policy enforcer, programmable signer, and automation facilitator for the app's execution path
+- It does **not** make Lit the sole enforcement layer because `depositIfAllowed` and `batchDepositIfAllowed` remain permissionless onchain
+- If exclusive enforcement becomes a hard requirement, a later contract revision is likely needed
 
 At the moment, the document reflects a proposed direction rather than a finalized implementation choice.
 
