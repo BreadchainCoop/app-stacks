@@ -10,6 +10,7 @@
     "autopay:mint-pkp": "node scripts/lit/mint-pkp.mjs",
     "autopay:list-pkps": "node scripts/lit/list-pkps.mjs",
     "autopay:pkp-permissions": "node scripts/lit/pkp-permissions.mjs",
+    "autopay:create-authorization": "node scripts/lit/create-autopay-authorization.mjs",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "format": "prettier --write .",

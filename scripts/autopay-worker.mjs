@@ -9,14 +9,27 @@ import {
   ViemAccountAuthenticator,
 } from "@lit-protocol/auth";
 import {
+  concatHex,
   createPublicClient,
   createWalletClient,
   getAddress,
+  hashMessage,
+  hashTypedData,
+  hexToBytes,
   http,
   isAddress,
+  keccak256,
+  recoverAddress,
+  serializeTransaction,
+  toBytes,
+  toHex,
   verifyTypedData,
 } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+import {
+  privateKeyToAccount,
+  publicKeyToAddress,
+  toAccount,
+} from "viem/accounts";
 import { foundry, gnosis, sepolia } from "viem/chains";
 import { litAutopayPolicyActionCode } from "./lit/autopay-policy.mjs";
 
@@ -289,6 +302,159 @@ async function evaluateLitAutopayPolicy({
   };
 }
 
+function createPkpViemAccount({
+  litClient,
+  pkpPublicKey,
+  authContext,
+  chain,
+  userMaxPriceWei,
+  keySetIdentifier,
+}) {
+  const address = publicKeyToAddress(pkpPublicKey);
+
+  const signWithPkp = async (data, options) => {
+    const result = await litClient.chain.raw.pkpSign({
+      chain: "ethereum",
+      signingScheme: "EcdsaK256Sha256",
+      pubKey: pkpPublicKey,
+      toSign: data,
+      authContext,
+      bypassAutoHashing: options?.bypassAutoHashing,
+      userMaxPrice: userMaxPriceWei,
+      keySetIdentifier,
+    });
+
+    return result.signature;
+  };
+
+  const signAndRecover = async (
+    bytesToSign,
+    expectedAddress,
+    { bypassAutoHashing = false, hashForRecovery } = {}
+  ) => {
+    const signature = await signWithPkp(
+      bytesToSign,
+      bypassAutoHashing ? { bypassAutoHashing: true } : undefined
+    );
+    const r = `0x${signature.slice(2, 66).padStart(64, "0")}`;
+    const s = `0x${signature.slice(66, 130).padStart(64, "0")}`;
+
+    let recoveryId;
+    const recoveryHash = hashForRecovery ?? keccak256(bytesToSign);
+
+    for (let recId = 0; recId <= 1; recId += 1) {
+      const maybe = await recoverAddress({
+        hash: recoveryHash,
+        signature: { r, s, v: BigInt(27 + recId) },
+      });
+
+      if (maybe.toLowerCase() === expectedAddress.toLowerCase()) {
+        recoveryId = recId;
+        break;
+      }
+    }
+
+    if (recoveryId === undefined) {
+      throw new Error("Failed to recover address from PKP signature.");
+    }
+
+    return { r, s, recoveryId };
+  };
+
+  const populateTxFields = async (tx) => {
+    const client = createPublicClient({
+      chain,
+      transport: http(chain.rpcUrls.default.http[0]),
+    });
+
+    const populated = { ...tx };
+
+    if (populated.nonce === undefined) {
+      populated.nonce = await client.getTransactionCount({ address });
+    }
+
+    if (populated.chainId === undefined) {
+      populated.chainId = await client.getChainId();
+    }
+
+    if (populated.gasPrice === undefined && populated.maxFeePerGas === undefined) {
+      const latestBlock = await client.getBlock({ blockTag: "latest" });
+      const baseFeePerGas = latestBlock.baseFeePerGas;
+
+      if (baseFeePerGas) {
+        const priorityFee = 1_500_000_000n;
+        populated.maxPriorityFeePerGas = priorityFee;
+        populated.maxFeePerGas = baseFeePerGas * 2n + priorityFee;
+        populated.type = "eip1559";
+      } else {
+        populated.gasPrice = await client.getGasPrice();
+        populated.type = "legacy";
+      }
+    }
+
+    if (populated.gas === undefined) {
+      populated.gas = await client.estimateGas({
+        account: address,
+        to: populated.to,
+        value: populated.value || 0n,
+        data: populated.data,
+      });
+    }
+
+    return populated;
+  };
+
+  return toAccount({
+    address,
+    async signMessage({ message }) {
+      const digestHex = hashMessage(
+        typeof message === "string"
+          ? message
+          : typeof message === "object" && "raw" in message
+            ? message.raw
+            : message
+      );
+      const { r, s, recoveryId } = await signAndRecover(
+        hexToBytes(digestHex),
+        address,
+        {
+          bypassAutoHashing: true,
+          hashForRecovery: digestHex,
+        }
+      );
+
+      return concatHex([r, s, toHex(27 + recoveryId)]);
+    },
+    async signTransaction(txRequest) {
+      const populatedTx = await populateTxFields(txRequest);
+      const unsignedTxSerialized = serializeTransaction(populatedTx);
+      const { r, s, recoveryId } = await signAndRecover(
+        toBytes(unsignedTxSerialized),
+        address
+      );
+
+      return serializeTransaction(populatedTx, {
+        r,
+        s,
+        v: BigInt(27 + recoveryId),
+      });
+    },
+    async signTypedData(typedData) {
+      const digestHex = hashTypedData(typedData);
+      const { r, s, recoveryId } = await signAndRecover(
+        toBytes(digestHex),
+        address,
+        {
+          bypassAutoHashing: true,
+          hashForRecovery: digestHex,
+        }
+      );
+
+      return concatHex([r, s, toHex(27 + recoveryId)]);
+    },
+  });
+}
+
 async function main() {
   const { delegatedContract, savingCirclesContract } =
     getSelectedContractConfig();
@@ -296,6 +462,8 @@ async function main() {
   const { litNetwork, sdkLitNetwork } = getLitNetworkConfig();
   const privateKey = process.env.AUTOPAY_WORKER_PRIVATE_KEY;
   const pkpPublicKey = process.env.LIT_AUTOPAY_PKP_PUBLIC_KEY;
+  const pkpKeySetIdentifier =
+    process.env.LIT_AUTOPAY_PKP_KEYSET_ID || "naga-keyset1";
   const executorMode = pkpPublicKey ? "pkp" : "eoa";
   const userMaxPriceWei = BigInt(
     process.env.LIT_AUTOPAY_USER_MAX_PRICE_WEI || "30000000000000000"
@@ -346,10 +514,13 @@ async function main() {
       pkpPublicKey,
     });
 
-    executorAccount = await litClient.getPkpViemAccount({
+    executorAccount = createPkpViemAccount({
+      litClient,
       pkpPublicKey,
       authContext: pkpAuthContext,
-      chainConfig: chain,
+      chain,
+      userMaxPriceWei,
+      keySetIdentifier: pkpKeySetIdentifier,
     });
     executorLabel = executorAccount.address;
   }
