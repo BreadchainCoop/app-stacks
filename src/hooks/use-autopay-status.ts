@@ -21,8 +21,14 @@ export function useAutopayStatus({
 }) {
   const { delegatedContract, isConfigured } = getAutopayFeatureConfig();
   const enabled = isConfigured && member !== undefined;
+  const remainingRounds =
+    circle.totalRounds > circle.completedRounds
+      ? circle.totalRounds - circle.completedRounds
+      : BigInt(0);
   const expectedAllowance =
-    circle.circleInfo.depositAmount * circle.totalRounds;
+    remainingRounds === BigInt(0)
+      ? BigInt(0)
+      : circle.circleInfo.depositAmount * remainingRounds - circle.userBalance;
 
   const { data: delegatedEnabled = false } = useReadContract({
     address: delegatedContract,
@@ -81,6 +87,7 @@ export function useAutopayStatus({
     delegatedContract,
     delegatedEnabled,
     allowance,
+    remainingRounds,
     expectedAllowance,
     allowanceReady: allowance >= expectedAllowance,
     authorization: stateQuery.data?.authorization ?? null,

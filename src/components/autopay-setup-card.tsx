@@ -151,7 +151,7 @@ export default function AutopaySetupCard({
       await refresh();
 
       setFeedback(
-        `Allowance ready for ${formatEther(autopay.expectedAllowance)} BREAD.`
+        `Allowance ready for ${formatEther(autopay.expectedAllowance)} BREAD across the remaining autopay path.`
       );
     } catch (err) {
       setError(
@@ -318,7 +318,7 @@ export default function AutopaySetupCard({
                 <StatusRow
                   label="Delegated BREAD allowance ready"
                   ready={autopay.allowanceReady}
-                  detail={`Approves ${formatEther(autopay.expectedAllowance)} BREAD for the full circle path.`}
+                  detail={`Approves ${formatEther(autopay.expectedAllowance)} BREAD for the remaining autopay path.`}
                 />
                 <StatusRow
                   label="Lit authorization active"
