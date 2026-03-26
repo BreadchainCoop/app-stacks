@@ -1,0 +1,757 @@
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
+import process from "node:process";
+import { Redis } from "@upstash/redis";
+import { createLitClient } from "@lit-protocol/lit-client";
+import { naga, nagaDev, nagaTest } from "@lit-protocol/networks";
+import {
+  createAuthManager,
+  storagePlugins,
+  ViemAccountAuthenticator,
+} from "@lit-protocol/auth";
+import {
+  concatHex,
+  createPublicClient,
+  createWalletClient,
+  getAddress,
+  hashMessage,
+  hashTypedData,
+  hexToBytes,
+  http,
+  isAddress,
+  keccak256,
+  recoverAddress,
+  serializeTransaction,
+  toBytes,
+  toHex,
+  verifyTypedData,
+} from "viem";
+import {
+  privateKeyToAccount,
+  publicKeyToAddress,
+  toAccount,
+} from "viem/accounts";
+import { foundry, gnosis, sepolia } from "viem/chains";
+import { litAutopayPolicyActionCode } from "./lit/autopay-policy.mjs";
+
+const delegatedSavingCirclesAbi = [
+  {
+    type: "function",
+    name: "getAddressesForDeposit",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { name: "circleIds", type: "uint256[]" },
+      { name: "members", type: "address[]" },
+    ],
+  },
+  {
+    type: "function",
+    name: "depositIfAllowed",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "_circleId", type: "uint256" },
+      { name: "_member", type: "address" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "batchDepositIfAllowed",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "_circleIds", type: "uint256[]" },
+      { name: "_members", type: "address[]" },
+    ],
+    outputs: [],
+  },
+];
+
+const AUTOPAY_AUTH_DOMAIN_NAME = "StacksAutopayLit";
+const AUTOPAY_AUTH_DOMAIN_VERSION = "1";
+const AUTOPAY_ALL_CIRCLES_SENTINEL = 0n;
+const storeDir = path.join(process.cwd(), ".autopay-data");
+const storePath = path.join(storeDir, "autopay-state.json");
+const AUTOPAY_REDIS_KEY = "autopay:state";
+
+let redisClient;
+
+function getChainConfig() {
+  const targetNetwork = process.env.NEXT_PUBLIC_TARGET_NETWORK || "gnosis";
+
+  if (targetNetwork === "local") {
+    return {
+      chain: foundry,
+      rpcUrl:
+        process.env.AUTOPAY_WORKER_RPC_URL ||
+        process.env.NEXT_PUBLIC_LOCAL_RPC_URL ||
+        "http://localhost:8545",
+    };
+  }
+
+  if (targetNetwork === "sepolia") {
+    return {
+      chain: sepolia,
+      rpcUrl:
+        process.env.AUTOPAY_WORKER_RPC_URL ||
+        process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL,
+    };
+  }
+
+  return {
+    chain: gnosis,
+    rpcUrl:
+      process.env.AUTOPAY_WORKER_RPC_URL ||
+      process.env.NEXT_PUBLIC_GNOSIS_RPC_URL,
+  };
+}
+
+function getSelectedContractConfig() {
+  const targetNetwork = process.env.NEXT_PUBLIC_TARGET_NETWORK || "gnosis";
+
+  if (targetNetwork === "local") {
+    return {
+      delegatedContract:
+        process.env.NEXT_PUBLIC_LOCAL_DELEGATED_SAVING_CIRCLES_CONTRACT_ADDRESS ||
+        process.env.NEXT_PUBLIC_DELEGATED_SAVING_CIRCLES_CONTRACT_ADDRESS,
+      savingCirclesContract:
+        process.env.NEXT_PUBLIC_LOCAL_SAVING_CIRCLES_CONTRACT_ADDRESS ||
+        process.env.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS,
+    };
+  }
+
+  if (targetNetwork === "sepolia") {
+    return {
+      delegatedContract:
+        process.env.NEXT_PUBLIC_SEPOLIA_DELEGATED_SAVING_CIRCLES_CONTRACT_ADDRESS ||
+        process.env.NEXT_PUBLIC_DELEGATED_SAVING_CIRCLES_CONTRACT_ADDRESS,
+      savingCirclesContract:
+        process.env.NEXT_PUBLIC_SEPOLIA_SAVING_CIRCLES_CONTRACT_ADDRESS ||
+        process.env.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS,
+    };
+  }
+
+  return {
+    delegatedContract:
+      process.env.NEXT_PUBLIC_DELEGATED_SAVING_CIRCLES_CONTRACT_ADDRESS,
+    savingCirclesContract:
+      process.env.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS,
+  };
+}
+
+function getLitNetworkConfig() {
+  const litNetwork = process.env.NEXT_PUBLIC_LIT_AUTOPAY_NETWORK || "naga-dev";
+  const networkMap = {
+    naga,
+    "naga-dev": nagaDev,
+    "naga-test": nagaTest,
+  };
+
+  return {
+    litNetwork,
+    sdkLitNetwork: networkMap[litNetwork] ?? nagaDev,
+  };
+}
+
+function getRedisClient() {
+  if (redisClient !== undefined) {
+    return redisClient;
+  }
+
+  if (
+    !process.env.UPSTASH_REDIS_REST_URL ||
+    !process.env.UPSTASH_REDIS_REST_TOKEN
+  ) {
+    redisClient = null;
+    return redisClient;
+  }
+
+  redisClient = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  });
+
+  return redisClient;
+}
+
+async function readStore() {
+  const redis = getRedisClient();
+
+  if (redis) {
+    try {
+      const parsed = await redis.get(AUTOPAY_REDIS_KEY);
+      return {
+        authorizations: parsed?.authorizations ?? {},
+        results: parsed?.results ?? {},
+      };
+    } catch {
+      return { authorizations: {}, results: {} };
+    }
+  }
+
+  try {
+    const raw = await readFile(storePath, "utf8");
+    return JSON.parse(raw);
+  } catch {
+    return { authorizations: {}, results: {} };
+  }
+}
+
+async function writeStore(store) {
+  const redis = getRedisClient();
+
+  if (redis) {
+    await redis.set(AUTOPAY_REDIS_KEY, store);
+    return;
+  }
+
+  await mkdir(storeDir, { recursive: true });
+  await writeFile(storePath, JSON.stringify(store, null, 2), "utf8");
+}
+
+function getKey(circleId, member, scope = "circle") {
+  if (scope === "all_circles") {
+    return `all:${member.toLowerCase()}`;
+  }
+
+  return `${circleId.toString()}:${member.toLowerCase()}`;
+}
+
+function buildTypedData({
+  circleId,
+  scope = "circle",
+  member,
+  delegatedContract,
+  verifyingContract,
+  policyId,
+  chainId,
+}) {
+  const signedCircleId =
+    scope === "all_circles" ? AUTOPAY_ALL_CIRCLES_SENTINEL : circleId;
+  const safeCircleId =
+    signedCircleId <= BigInt(Number.MAX_SAFE_INTEGER)
+      ? Number(signedCircleId)
+      : signedCircleId.toString();
+
+  return {
+    domain: {
+      name: AUTOPAY_AUTH_DOMAIN_NAME,
+      version: AUTOPAY_AUTH_DOMAIN_VERSION,
+      chainId,
+      verifyingContract,
+    },
+    types: {
+      AutopayAuthorization: [
+        { name: "circleId", type: "uint256" },
+        { name: "scope", type: "string" },
+        { name: "member", type: "address" },
+        { name: "delegatedContract", type: "address" },
+        { name: "policyId", type: "string" },
+      ],
+    },
+    primaryType: "AutopayAuthorization",
+    message: {
+      circleId: safeCircleId,
+      scope,
+      member,
+      delegatedContract,
+      policyId,
+    },
+  };
+}
+
+async function buildLitAuthContext({ litClient, account, litNetwork }) {
+  const authManager = createAuthManager({
+    storage: storagePlugins.localStorageNode({
+      appName: "bread-autopay-worker",
+      networkName: litNetwork,
+      storagePath: path.join(process.cwd(), ".lit-auth"),
+    }),
+  });
+
+  return authManager.createEoaAuthContext({
+    litClient,
+    config: {
+      account,
+    },
+    authConfig: {
+      domain: "localhost",
+      statement: "Authorize Lit autopay policy execution",
+      expiration: new Date(Date.now() + 1000 * 60 * 10).toISOString(),
+      resources: [["lit-action-execution", "*"]],
+    },
+  });
+}
+
+async function buildPkpAuthContext({
+  litClient,
+  account,
+  litNetwork,
+  pkpPublicKey,
+}) {
+  const authManager = createAuthManager({
+    storage: storagePlugins.localStorageNode({
+      appName: "bread-autopay-worker-pkp",
+      networkName: litNetwork,
+      storagePath: path.join(process.cwd(), ".lit-auth"),
+    }),
+  });
+
+  const authData = await ViemAccountAuthenticator.authenticate(account);
+
+  return authManager.createPkpAuthContext({
+    authData,
+    pkpPublicKey,
+    litClient,
+    authConfig: {
+      domain: "localhost",
+      statement: "Authorize Lit PKP autopay execution",
+      expiration: new Date(Date.now() + 1000 * 60 * 10).toISOString(),
+      resources: [
+        ["pkp-signing", "*"],
+        ["lit-action-execution", "*"],
+      ],
+    },
+  });
+}
+
+async function evaluateLitAutopayPolicy({
+  litClient,
+  authContext,
+  authorization,
+  candidate,
+  userMaxPriceWei,
+}) {
+  const result = await litClient.executeJs({
+    authContext,
+    code: litAutopayPolicyActionCode,
+    jsParams: {
+      authorization,
+      candidate,
+    },
+    responseStrategy: { strategy: "leastCommon" },
+    useSingleNode: false,
+    userMaxPrice: userMaxPriceWei,
+  });
+
+  const parsed =
+    typeof result.response === "string"
+      ? JSON.parse(result.response)
+      : result.response;
+
+  return {
+    authorized: Boolean(parsed?.authorized),
+    reason:
+      typeof parsed?.reason === "string"
+        ? parsed.reason
+        : "Lit policy did not authorize execution.",
+  };
+}
+
+function createPkpViemAccount({
+  litClient,
+  pkpPublicKey,
+  authContext,
+  chain,
+  userMaxPriceWei,
+  keySetIdentifier,
+}) {
+  const address = publicKeyToAddress(pkpPublicKey);
+
+  const signWithPkp = async (data, options) => {
+    const result = await litClient.chain.raw.pkpSign({
+      chain: "ethereum",
+      signingScheme: "EcdsaK256Sha256",
+      pubKey: pkpPublicKey,
+      toSign: data,
+      authContext,
+      bypassAutoHashing: options?.bypassAutoHashing,
+      userMaxPrice: userMaxPriceWei,
+      keySetIdentifier,
+    });
+
+    return result.signature;
+  };
+
+  const signAndRecover = async (
+    bytesToSign,
+    expectedAddress,
+    { bypassAutoHashing = false, hashForRecovery } = {}
+  ) => {
+    const signature = await signWithPkp(
+      bytesToSign,
+      bypassAutoHashing ? { bypassAutoHashing: true } : undefined
+    );
+    const r = `0x${signature.slice(2, 66).padStart(64, "0")}`;
+    const s = `0x${signature.slice(66, 130).padStart(64, "0")}`;
+
+    let recoveryId;
+    const recoveryHash = hashForRecovery ?? keccak256(bytesToSign);
+
+    for (let recId = 0; recId <= 1; recId += 1) {
+      const maybe = await recoverAddress({
+        hash: recoveryHash,
+        signature: { r, s, v: BigInt(27 + recId) },
+      });
+
+      if (maybe.toLowerCase() === expectedAddress.toLowerCase()) {
+        recoveryId = recId;
+        break;
+      }
+    }
+
+    if (recoveryId === undefined) {
+      throw new Error("Failed to recover address from PKP signature.");
+    }
+
+    return { r, s, recoveryId };
+  };
+
+  const populateTxFields = async (tx) => {
+    const client = createPublicClient({
+      chain,
+      transport: http(chain.rpcUrls.default.http[0]),
+    });
+
+    const populated = { ...tx };
+
+    if (populated.nonce === undefined) {
+      populated.nonce = await client.getTransactionCount({ address });
+    }
+
+    if (populated.chainId === undefined) {
+      populated.chainId = await client.getChainId();
+    }
+
+    if (populated.gasPrice === undefined && populated.maxFeePerGas === undefined) {
+      const latestBlock = await client.getBlock({ blockTag: "latest" });
+      const baseFeePerGas = latestBlock.baseFeePerGas;
+
+      if (baseFeePerGas) {
+        const priorityFee = 1_500_000_000n;
+        populated.maxPriorityFeePerGas = priorityFee;
+        populated.maxFeePerGas = baseFeePerGas * 2n + priorityFee;
+        populated.type = "eip1559";
+      } else {
+        populated.gasPrice = await client.getGasPrice();
+        populated.type = "legacy";
+      }
+    }
+
+    if (populated.gas === undefined) {
+      populated.gas = await client.estimateGas({
+        account: address,
+        to: populated.to,
+        value: populated.value || 0n,
+        data: populated.data,
+      });
+    }
+
+    return populated;
+  };
+
+  return toAccount({
+    address,
+    async signMessage({ message }) {
+      const digestHex = hashMessage(
+        typeof message === "string"
+          ? message
+          : typeof message === "object" && "raw" in message
+            ? message.raw
+            : message
+      );
+      const { r, s, recoveryId } = await signAndRecover(
+        hexToBytes(digestHex),
+        address,
+        {
+          bypassAutoHashing: true,
+          hashForRecovery: digestHex,
+        }
+      );
+
+      return concatHex([r, s, toHex(27 + recoveryId)]);
+    },
+    async signTransaction(txRequest) {
+      const populatedTx = await populateTxFields(txRequest);
+      const unsignedTxSerialized = serializeTransaction(populatedTx);
+      const { r, s, recoveryId } = await signAndRecover(
+        toBytes(unsignedTxSerialized),
+        address
+      );
+
+      return serializeTransaction(populatedTx, {
+        r,
+        s,
+        v: BigInt(27 + recoveryId),
+      });
+    },
+    async signTypedData(typedData) {
+      const digestHex = hashTypedData(typedData);
+      const { r, s, recoveryId } = await signAndRecover(
+        toBytes(digestHex),
+        address,
+        {
+          bypassAutoHashing: true,
+          hashForRecovery: digestHex,
+        }
+      );
+
+      return concatHex([r, s, toHex(27 + recoveryId)]);
+    },
+  });
+}
+
+export async function runAutopayWorker() {
+  const { delegatedContract, savingCirclesContract } =
+    getSelectedContractConfig();
+  const litPolicyId = process.env.NEXT_PUBLIC_LIT_AUTOPAY_POLICY_ID;
+  const { litNetwork, sdkLitNetwork } = getLitNetworkConfig();
+  const privateKey = process.env.AUTOPAY_WORKER_PRIVATE_KEY;
+  const pkpPublicKey = process.env.LIT_AUTOPAY_PKP_PUBLIC_KEY;
+  const pkpKeySetIdentifier =
+    process.env.LIT_AUTOPAY_PKP_KEYSET_ID || "naga-keyset1";
+  const executorMode = pkpPublicKey ? "pkp" : "eoa";
+  const userMaxPriceWei = BigInt(
+    process.env.LIT_AUTOPAY_USER_MAX_PRICE_WEI || "30000000000000000"
+  );
+  const { chain, rpcUrl } = getChainConfig();
+
+  if (
+    !delegatedContract ||
+    !savingCirclesContract ||
+    !litPolicyId ||
+    !litNetwork
+  ) {
+    throw new Error(
+      "Missing delegated contract or Lit autopay env vars. Check .env.local before running the worker."
+    );
+  }
+  if (!rpcUrl || !privateKey) {
+    throw new Error("Missing AUTOPAY_WORKER RPC or private key configuration.");
+  }
+  if (!isAddress(delegatedContract) || !isAddress(savingCirclesContract)) {
+    throw new Error("Autopay contract addresses must be valid EVM addresses.");
+  }
+
+  const account = privateKeyToAccount(
+    privateKey.startsWith("0x") ? privateKey : `0x${privateKey}`
+  );
+  const publicClient = createPublicClient({
+    chain,
+    transport: http(rpcUrl),
+  });
+  const litClient = await createLitClient({
+    network: sdkLitNetwork,
+  });
+  const litAuthContext = await buildLitAuthContext({
+    litClient,
+    account,
+    litNetwork,
+  });
+  let executorAccount = account;
+  let executorLabel = account.address;
+  let walletClient;
+
+  if (executorMode === "pkp") {
+    const pkpAuthContext = await buildPkpAuthContext({
+      litClient,
+      account,
+      litNetwork,
+      pkpPublicKey,
+    });
+
+    executorAccount = createPkpViemAccount({
+      litClient,
+      pkpPublicKey,
+      authContext: pkpAuthContext,
+      chain,
+      userMaxPriceWei,
+      keySetIdentifier: pkpKeySetIdentifier,
+    });
+    executorLabel = executorAccount.address;
+  }
+
+  walletClient = createWalletClient({
+    account: executorAccount,
+    chain,
+    transport: http(rpcUrl),
+  });
+
+  const store = await readStore();
+  const [circleIds, members] = await publicClient.readContract({
+    address: getAddress(delegatedContract),
+    abi: delegatedSavingCirclesAbi,
+    functionName: "getAddressesForDeposit",
+  });
+
+  const eligibleCircleIds = [];
+  const eligibleMembers = [];
+
+  for (let i = 0; i < members.length; i += 1) {
+    const member = getAddress(members[i]);
+    const circleId = circleIds[i];
+    const key = getKey(circleId, member);
+    const allCirclesKey = getKey(circleId, member, "all_circles");
+    const auth =
+      store.authorizations[key] ?? store.authorizations[allCirclesKey];
+
+    if (!auth?.active) {
+      store.results[key] = {
+        circleId: circleId.toString(),
+        member,
+        status: "skipped",
+        message: "Skipped: no active Lit authorization recorded.",
+        updatedAt: new Date().toISOString(),
+        executor: executorLabel,
+      };
+      continue;
+    }
+
+    const validSignature = await verifyTypedData({
+      ...buildTypedData({
+        circleId:
+          auth.scope === "all_circles"
+            ? AUTOPAY_ALL_CIRCLES_SENTINEL
+            : BigInt(auth.circleId),
+        scope: auth.scope ?? "circle",
+        member,
+        delegatedContract: getAddress(delegatedContract),
+        verifyingContract: getAddress(savingCirclesContract),
+        policyId: litPolicyId,
+        chainId: chain.id,
+      }),
+      address: member,
+      signature: auth.signature,
+    });
+
+    if (!validSignature) {
+      store.results[key] = {
+        circleId: circleId.toString(),
+        member,
+        status: "skipped",
+        message:
+          "Skipped: saved Lit authorization signature no longer verifies for the selected scope.",
+        updatedAt: new Date().toISOString(),
+        executor: executorLabel,
+      };
+      continue;
+    }
+
+    const litDecision = await evaluateLitAutopayPolicy({
+      litClient,
+      authContext: litAuthContext,
+      userMaxPriceWei,
+      authorization: {
+        active: auth.active,
+        member: auth.member,
+        circleId: auth.circleId,
+        scope: auth.scope ?? "circle",
+        delegatedContract: auth.delegatedContract,
+        savingCirclesContract: auth.savingCirclesContract,
+        chainId: auth.chainId,
+        litPolicyId: auth.litPolicyId,
+      },
+      candidate: {
+        member,
+        circleId: circleId.toString(),
+        delegatedContract: getAddress(delegatedContract),
+        savingCirclesContract: getAddress(savingCirclesContract),
+        chainId: chain.id,
+        litPolicyId,
+      },
+    });
+
+    if (!litDecision.authorized) {
+      store.results[key] = {
+        circleId: circleId.toString(),
+        member,
+        status: "skipped",
+        message: `Skipped by Lit policy: ${litDecision.reason}`,
+        updatedAt: new Date().toISOString(),
+        executor: executorLabel,
+      };
+      continue;
+    }
+
+    eligibleCircleIds.push(circleId);
+    eligibleMembers.push(member);
+  }
+
+  if (eligibleMembers.length === 0) {
+    await writeStore(store);
+    return {
+      success: true,
+      message: "No eligible delegated deposits with active Lit authorization.",
+      executedCount: 0,
+      txHash: null,
+      executor: executorLabel,
+    };
+  }
+
+  try {
+    let txHash;
+
+    if (eligibleMembers.length === 1) {
+      const { request } = await publicClient.simulateContract({
+        account: executorAccount,
+        address: getAddress(delegatedContract),
+        abi: delegatedSavingCirclesAbi,
+        functionName: "depositIfAllowed",
+        args: [eligibleCircleIds[0], eligibleMembers[0]],
+      });
+
+      txHash = await walletClient.writeContract(request);
+    } else {
+      const { request } = await publicClient.simulateContract({
+        account: executorAccount,
+        address: getAddress(delegatedContract),
+        abi: delegatedSavingCirclesAbi,
+        functionName: "batchDepositIfAllowed",
+        args: [eligibleCircleIds, eligibleMembers],
+      });
+
+      txHash = await walletClient.writeContract(request);
+    }
+
+    await publicClient.waitForTransactionReceipt({ hash: txHash });
+
+    for (let i = 0; i < eligibleMembers.length; i += 1) {
+      const key = getKey(eligibleCircleIds[i], eligibleMembers[i]);
+      store.results[key] = {
+        circleId: eligibleCircleIds[i].toString(),
+        member: eligibleMembers[i],
+        status: "success",
+        message: `Automated deposit executed via ${executorMode.toUpperCase()} executor on ${litNetwork} Lit policy ${litPolicyId}.`,
+        updatedAt: new Date().toISOString(),
+        txHash,
+        executor: executorLabel,
+      };
+    }
+
+    await writeStore(store);
+
+    return {
+      success: true,
+      message: `Executed ${eligibleMembers.length} delegated deposit(s).`,
+      executedCount: eligibleMembers.length,
+      txHash,
+      executor: executorLabel,
+    };
+  } catch (error) {
+    for (let i = 0; i < eligibleMembers.length; i += 1) {
+      const key = getKey(eligibleCircleIds[i], eligibleMembers[i]);
+      store.results[key] = {
+        circleId: eligibleCircleIds[i].toString(),
+        member: eligibleMembers[i],
+        status: "error",
+        message:
+          error instanceof Error ? error.message : "Worker execution failed.",
+        updatedAt: new Date().toISOString(),
+        executor: executorLabel,
+      };
+    }
+
+    await writeStore(store);
+    throw error;
+  }
+}
