@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+import { Redis } from "@upstash/redis";
 import { createLitClient } from "@lit-protocol/lit-client";
 import { naga, nagaDev, nagaTest } from "@lit-protocol/networks";
 import {
@@ -71,6 +72,9 @@ const AUTOPAY_AUTH_DOMAIN_VERSION = "1";
 const AUTOPAY_ALL_CIRCLES_SENTINEL = 0n;
 const storeDir = path.join(process.cwd(), ".autopay-data");
 const storePath = path.join(storeDir, "autopay-state.json");
+const AUTOPAY_REDIS_KEY = "autopay:state";
+
+let redisClient;
 
 function getChainConfig() {
   const targetNetwork = process.env.NEXT_PUBLIC_TARGET_NETWORK || "gnosis";
@@ -149,7 +153,42 @@ function getLitNetworkConfig() {
   };
 }
 
+function getRedisClient() {
+  if (redisClient !== undefined) {
+    return redisClient;
+  }
+
+  if (
+    !process.env.UPSTASH_REDIS_REST_URL ||
+    !process.env.UPSTASH_REDIS_REST_TOKEN
+  ) {
+    redisClient = null;
+    return redisClient;
+  }
+
+  redisClient = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  });
+
+  return redisClient;
+}
+
 async function readStore() {
+  const redis = getRedisClient();
+
+  if (redis) {
+    try {
+      const parsed = await redis.get(AUTOPAY_REDIS_KEY);
+      return {
+        authorizations: parsed?.authorizations ?? {},
+        results: parsed?.results ?? {},
+      };
+    } catch {
+      return { authorizations: {}, results: {} };
+    }
+  }
+
   try {
     const raw = await readFile(storePath, "utf8");
     return JSON.parse(raw);
@@ -159,6 +198,13 @@ async function readStore() {
 }
 
 async function writeStore(store) {
+  const redis = getRedisClient();
+
+  if (redis) {
+    await redis.set(AUTOPAY_REDIS_KEY, store);
+    return;
+  }
+
   await mkdir(storeDir, { recursive: true });
   await writeFile(storePath, JSON.stringify(store, null, 2), "utf8");
 }
