@@ -73,6 +73,8 @@ const AUTOPAY_ALL_CIRCLES_SENTINEL = 0n;
 const storeDir = path.join(process.cwd(), ".autopay-data");
 const storePath = path.join(storeDir, "autopay-state.json");
 const AUTOPAY_REDIS_KEY = "autopay:state";
+const LIT_AUTH_STORAGE_PATH =
+  process.env.LIT_AUTH_STORAGE_PATH || path.join("/tmp", "bread-lit-auth");
 
 let redisClient;
 
@@ -265,7 +267,7 @@ async function buildLitAuthContext({ litClient, account, litNetwork }) {
     storage: storagePlugins.localStorageNode({
       appName: "bread-autopay-worker",
       networkName: litNetwork,
-      storagePath: path.join(process.cwd(), ".lit-auth"),
+      storagePath: LIT_AUTH_STORAGE_PATH,
     }),
   });
 
@@ -293,7 +295,7 @@ async function buildPkpAuthContext({
     storage: storagePlugins.localStorageNode({
       appName: "bread-autopay-worker-pkp",
       networkName: litNetwork,
-      storagePath: path.join(process.cwd(), ".lit-auth"),
+      storagePath: LIT_AUTH_STORAGE_PATH,
     }),
   });
 
