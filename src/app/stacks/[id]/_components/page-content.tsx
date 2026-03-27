@@ -30,8 +30,7 @@ const PageContent = ({ id }: { id: string }) => {
 
   useEffect(() => {
     console.log("__ CONFIG __", address, member);
-    if (!userCircleData.circleData || !address || member === zeroAddress)
-      return;
+    if (!userCircleData.circleData?.isMember) return;
 
     const circleStatus = getUserCircleStatus(userCircleData.circleData, member);
 
