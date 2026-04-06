@@ -8,6 +8,8 @@ import LoginTracker from "@/components/login-tracker";
 
 export const metadata = generateMetadata();
 
+//
+
 export default function RootLayout({
   children,
 }: {
