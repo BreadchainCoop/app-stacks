@@ -9,10 +9,12 @@ import { MouseEventHandler, ReactNode } from "react";
 import { useFormContext } from "react-hook-form";
 import { StackFormSchemaData } from "./schema";
 import NumericInput from "@/components/numeric-input";
+import { DEPOSIT_INTERVALS, getIntervalById } from "@/utils/deposit-interval";
 
 const StackForm = ({ onContinue }: { onContinue: () => void }) => {
   const form = useFormContext<StackFormSchemaData>();
   const depositInterval = form.watch("depositInterval");
+  const interval = getIntervalById(depositInterval);
 
   const validateStack: MouseEventHandler<HTMLButtonElement> = async (e) => {
     e.preventDefault();
@@ -73,7 +75,7 @@ const StackForm = ({ onContinue }: { onContinue: () => void }) => {
           <Field>
             <div>
               <Label htmlFor="depositAmount">
-                <span className="capitalize">{depositInterval}</span> deposit
+                <span className="capitalize">{interval?.label}</span> deposit
                 for each member
               </Label>
             </div>
@@ -99,30 +101,21 @@ const StackForm = ({ onContinue }: { onContinue: () => void }) => {
               <Label htmlFor="depositInterval">Deposit Interval</Label>
             </div>
             <div className="flex flex-col gap-2">
-              <RadioButton
-                id="weekly"
-                checked={form.watch("depositInterval") === "weekly"}
-                description=" (every 7 days)"
-                label="Weekly"
-                name="depositInterval"
-                onChange={() => {
-                  form.setValue("depositInterval", "weekly");
-                  form.clearErrors("depositInterval");
-                }}
-                value="weekly"
-              />
-              <RadioButton
-                id="monthly"
-                checked={form.watch("depositInterval") === "monthly"}
-                description=" (every 30 days)"
-                label="Monthly"
-                name="depositInterval"
-                onChange={() => {
-                  form.setValue("depositInterval", "monthly");
-                  form.clearErrors("depositInterval");
-                }}
-                value="monthly"
-              />
+              {DEPOSIT_INTERVALS.map((interval) => (
+                <RadioButton
+                  key={interval.id}
+                  id={interval.id}
+                  checked={depositInterval === interval.id}
+                  label={interval.label}
+                  description={` (every ${(interval.description || interval.label).toLowerCase()})`}
+                  name="depositInterval"
+                  onChange={() => {
+                    form.setValue("depositInterval", interval.id);
+                    form.clearErrors("depositInterval");
+                  }}
+                  value={interval.id}
+                />
+              ))}
             </div>
             <ErrorMessage
               msg={form.formState.errors.depositInterval?.message}
@@ -183,7 +176,7 @@ function RadioButton({
           className="w-4 h-4 border-jade-2 cursor-pointer"
         />
         <div className="">
-          <span className="text-body font-bold">{label}</span>
+          <span className="text-body font-bold capitalize">{label}</span>
           <span className="text-body">{description}</span>
         </div>
       </label>

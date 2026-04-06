@@ -1,6 +1,18 @@
 "use client";
 
+import { DepositInterval } from "@/interfaces/deposit-interval";
 import z from "zod";
+
+const depositIntervalSchema = z
+  .array(
+    z.object({
+      id: z.string().min(1),
+      label: z.string().min(1),
+      seconds: z.number().positive(),
+      description: z.string().optional(),
+    })
+  )
+  .min(2, "At least two deposit intervals are required");
 
 const envSchema = z.object({
   NEXT_PUBLIC_CHAIN_ID: z.coerce.number(),
@@ -17,6 +29,20 @@ const envSchema = z.object({
   NEXT_PUBLIC_ALCHEMY_API_KEY_ETHEREUM_MAINNET: z.string(),
   NEXT_PUBLIC_SUPABASE_URL: z.string(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string(),
+  NEXT_PUBLIC_DEPOSIT_INTERVALS: z
+    .string()
+    .transform((val, ctx) => {
+      try {
+        return JSON.parse(val) as DepositInterval[];
+      } catch {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "NEXT_PUBLIC_DEPOSIT_INTERVALS must be valid JSON",
+        });
+        return z.NEVER;
+      }
+    })
+    .pipe(depositIntervalSchema),
 });
 
 const parsedSchema = envSchema.safeParse({
@@ -37,6 +63,7 @@ const parsedSchema = envSchema.safeParse({
     process.env.NEXT_PUBLIC_ALCHEMY_API_KEY_ETHEREUM_MAINNET,
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  NEXT_PUBLIC_DEPOSIT_INTERVALS: process.env.NEXT_PUBLIC_DEPOSIT_INTERVALS,
 });
 
 if (!parsedSchema.success) {
