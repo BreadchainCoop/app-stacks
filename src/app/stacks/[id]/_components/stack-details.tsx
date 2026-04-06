@@ -6,7 +6,11 @@ import {
   getUserCircleStatus,
   IFormattedUserCircleStatusResult,
 } from "@/lib/get-user-circle-status";
-import { SECONDS_PER_DAY } from "@/utils/solidity";
+import {
+  formatSecondsHuman,
+  getIntervalBySeconds,
+  splitIntervalId,
+} from "@/utils/deposit-interval";
 import {
   Body,
   formatBalance,
@@ -27,7 +31,7 @@ const StackDetailsTotal = ({
   poolBalance,
   completedRounds,
 }: {
-  intervalLabel: "month" | "week";
+  intervalLabel: string;
   depositPerRound: string;
   totalRounds: bigint;
   circleStatus: IFormattedUserCircleStatusResult;
@@ -92,7 +96,7 @@ const StackDetailsBreakdownRow = ({
 }) => {
   return (
     <div className="bg-paper-1 py-2 px-4 flex flex-col gap-2.5 mb-2 last:mb-0 md:flex-row md:justify-between">
-      <Body className="text-surface-grey-2">{label}</Body>
+      <Body className="text-surface-grey-2 capitalize">{label}</Body>
       <div className="flex items-center gap-2">{children}</div>
     </div>
   );
@@ -100,25 +104,30 @@ const StackDetailsBreakdownRow = ({
 
 const StackDetailsBreakdown = ({
   circle,
+  intervalId,
   intervalLabel,
   depositInterval,
   roundsLeft,
   status,
 }: {
   circle: MemberCircleInfo;
-  intervalLabel: "month" | "week";
-  depositInterval: number;
+  intervalId: string;
+  intervalLabel: string;
+  depositInterval: string;
   roundsLeft: number | string;
   status: IFormattedUserCircleStatusResult;
 }) => {
-  const capitalizedLabel = `${intervalLabel[0].toUpperCase()}${intervalLabel.slice(
-    1
-  )}`;
-  const _roundsLeft = status.status === "pending-start" ? "-" : roundsLeft;
+  let _roundsLeft = "-";
+
+  const parsedInterval = splitIntervalId(intervalId);
+
+  if (status.status !== "pending-start") {
+    _roundsLeft = `${+roundsLeft * parsedInterval[0]}`;
+  }
 
   return (
     <div className="md:flex-1">
-      <StackDetailsBreakdownRow label={`${capitalizedLabel}ly deposit`}>
+      <StackDetailsBreakdownRow label={`${intervalLabel} deposit`}>
         <>
           <Logo
             size={24}
@@ -132,9 +141,9 @@ const StackDetailsBreakdown = ({
         <>
           <CalendarDotsIcon size={24} className="fill-blue-2" />
           <p className="text-h2 text-2xl leading-6 tracking-[-2%]">
-            {depositInterval}
+            {depositInterval.split(" ")[0]}
           </p>
-          <p>Days</p>
+          <p>{depositInterval.split(" ")[1]}</p>
         </>
       </StackDetailsBreakdownRow>
       <StackDetailsBreakdownRow label="Time left">
@@ -142,7 +151,7 @@ const StackDetailsBreakdown = ({
           <p className="text-h2 leading-6 tracking-[-2%] text-2xl">
             {status.status === "finished" ? "0" : _roundsLeft}
           </p>
-          {status.status !== "pending-start" && <p>{capitalizedLabel}s</p>}
+          {status.status !== "pending-start" && <p>{parsedInterval[1]}</p>}
         </>
       </StackDetailsBreakdownRow>
     </div>
@@ -169,8 +178,10 @@ const StackDetails = ({
       : undefined;
   const { data: creationTimestamp } = useGetCircleCreated({ circleId: id });
 
-  const depositInterval = Number(circle.depositInterval / SECONDS_PER_DAY);
-  const intervalLabel = depositInterval % 30 === 0 ? "month" : "week";
+  const depositIntervalSeconds = Number(circle.depositInterval);
+  const matchedInterval = getIntervalBySeconds(depositIntervalSeconds);
+  const intervalLabel =
+    matchedInterval?.label ?? formatSecondsHuman(depositIntervalSeconds);
 
   const depositPerRound = circle.depositAmount * members;
   const circleStatus = getUserCircleStatus(
@@ -216,7 +227,11 @@ const StackDetails = ({
       </header>
       <div className="md:flex md:justify-between md:gap-3">
         <StackDetailsTotal
-          intervalLabel={intervalLabel}
+          intervalLabel={
+            intervalLabel.endsWith("ly")
+              ? intervalLabel.slice(0, -2)
+              : intervalLabel
+          }
           depositPerRound={formatEther(depositPerRound)}
           poolBalance={formatEther(_circle.totalPoolBalance)}
           completedRounds={_circle.completedRounds}
@@ -225,8 +240,11 @@ const StackDetails = ({
         />
         <StackDetailsBreakdown
           circle={circle}
+          intervalId={matchedInterval?.id || ""}
           intervalLabel={intervalLabel}
-          depositInterval={depositInterval}
+          depositInterval={
+            matchedInterval?.description || matchedInterval?.label || ""
+          }
           roundsLeft={roundsLeft.toString()}
           status={circleStatus}
         />

@@ -46,7 +46,7 @@ function buildInviteUrl(
   signature: string,
   name: string,
   members: number,
-  interval: string,
+  duration: string,
   deposit: string
 ): string {
   const url = new URL(baseUrl);
@@ -56,7 +56,7 @@ function buildInviteUrl(
   url.searchParams.set("signature", signature);
   url.searchParams.set("name", name);
   url.searchParams.set("members", String(members));
-  url.searchParams.set("interval", interval);
+  url.searchParams.set("duration", duration);
   url.searchParams.set("deposit", deposit);
 
   return url.toString();
@@ -162,7 +162,7 @@ export const StackSuccessResultModal = ({
           signature,
           modalState.circle.name,
           modalState.circle.members,
-          modalState.circle.duration.split(" ")[1],
+          modalState.circle.duration,
           formatBalance(modalState.circle.deposit, 2)
         );
 

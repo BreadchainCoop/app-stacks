@@ -6,7 +6,7 @@ import { useTotalCircles } from "./use-total-circles";
 import { Address } from "viem";
 import { getDefaultChainId } from "@/utils/chain";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 40;
 
 export function useAllCircles(page: number = 0) {
   const skip = page * PAGE_SIZE;

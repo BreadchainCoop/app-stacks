@@ -23,7 +23,6 @@ import {
   SAVING_CIRCLES_CONTRACT_ADDRESS,
 } from "../../../../lib/constants";
 import { encodeFunctionData, parseEther, parseEventLogs } from "viem";
-import { SECONDS_PER_DAY } from "@/utils/solidity";
 import { useModal } from "@/components/modal/context";
 import { sleep } from "@/utils/sleep";
 import { waitForTransactionReceipt } from "@wagmi/core";
@@ -31,6 +30,7 @@ import { wagmiConfig } from "@/components/providers/web3";
 import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
 import { simulateContract } from "@wagmi/core";
 import { parseContractError } from "@/utils/parse-contract-error";
+import { getIntervalById, splitIntervalId } from "@/utils/deposit-interval";
 
 const CREATE_ERRORS: Record<string, string> = {
   TokenNotAllowed: "The token is not allowed for this circle.",
@@ -51,6 +51,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
   const modal = useModal();
   const form = useFormContext<StackFormSchemaData>();
   const depositInterval = form.watch("depositInterval");
+  const interval = getIntervalById(depositInterval);
   const members = form.watch("members");
   const frequency = members ? `${members}x` : "-";
   const freqDeposit = form.watch("depositAmount") || 0;
@@ -62,6 +63,8 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
     try {
       // This is just for typescript check. user is available at this point
       if (user.status !== "CONNECTED") return;
+      // This is just for typescript check. interval is available at this point
+      if (!interval) return;
 
       modal.setModal({
         type: "STACK_CREATION_INIT",
@@ -74,8 +77,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
         currentIndex: BigInt(0),
         depositAmount: parseEther(String(data.depositAmount)),
         token: BREAD_TOKEN_ADDRESS,
-        depositInterval:
-          SECONDS_PER_DAY * BigInt(data.depositInterval === "weekly" ? 7 : 30),
+        depositInterval: BigInt(interval.seconds),
         effectiveCircleStartTime: BigInt(0),
         circleEnd: BigInt(0),
       };
@@ -133,11 +135,13 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
         status: "successful",
       });
 
+      const parsedInterval = splitIntervalId(interval.id);
+      const duration = `${data.members * parsedInterval[0]} ${parsedInterval[1]}`;
+
       const circle = {
         name: data.name,
         id: newCircleId.toString(),
-        duration:
-          `${data.members} ${data.depositInterval.slice(0, -2)}${data.members === 1 ? "" : "s"}`.trim(),
+        duration,
         deposit: data.depositAmount,
         total: data.members ** 2 * data.depositAmount,
         members: data.members,
@@ -173,7 +177,13 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
         <ReviewedRow
           RIcon={CalendarIcon}
           title="Members deposit every"
-          body={form.watch("depositInterval")?.slice(0, -2) || "-"}
+          body={
+            interval
+              ? interval.label.endsWith("ly")
+                ? interval.label.slice(0, -2)
+                : interval.label
+              : "-"
+          }
           capitalize
         />
         <ReviewedRow

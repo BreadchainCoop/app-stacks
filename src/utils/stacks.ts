@@ -1,8 +1,20 @@
-import { SECONDS_PER_DAY } from "./solidity";
+import { getIntervalBySeconds, splitIntervalId } from "./deposit-interval";
 
 export const parseCircleIntervalToDate = (depositInterval: bigint) => {
-  const interval = Number(depositInterval / SECONDS_PER_DAY);
-  const label = interval % 30 === 0 ? "month" : "week";
+  const seconds = Number(depositInterval);
+  const matched = getIntervalBySeconds(seconds);
 
-  return { interval, label };
+  if (matched) {
+    const [n, unit] = splitIntervalId(matched.id);
+    const label = n === 1 ? `a ${unit}` : `every ${n} ${unit}`;
+    return { interval: seconds, label };
+  }
+
+  // fallback for unknown intervals
+  const days = Math.round(seconds / 86400);
+
+  return {
+    interval: days,
+    label: days === 1 ? "a day" : `every ${days} days`,
+  };
 };

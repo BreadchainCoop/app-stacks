@@ -47,7 +47,7 @@ const Stack = ({
       className: "hidden md:flex",
     },
     {
-      label: `${formatBalance(Number(depositAmount) * stack.totalMember, 2)} BREAD a ${
+      label: `${formatBalance(Number(depositAmount) * stack.totalMember, 2)} BREAD ${
         parseCircleIntervalToDate(stack.depositInterval).label
       }`,
       icon: <CoinsIcon />,

@@ -46,7 +46,7 @@ export default function PageContent() {
   const signature = searchParams.get("signature");
   const circleName = searchParams.get("name") || "-";
   const members = Number(searchParams.get("members"));
-  const interval = searchParams.get("interval") || "";
+  const duration = searchParams.get("duration") || "";
   const deposit = Number(searchParams.get("deposit"));
   const { user: privyUser } = usePrivy();
 
@@ -160,10 +160,7 @@ export default function PageContent() {
                   <div className="">
                     <RowDetail label="Group name" body={circleName} />
                     <RowDetail label="Stacks group ID" body={circleId} />
-                    <RowDetail
-                      label="Duration"
-                      body={`${members} ${interval}`}
-                    />
+                    <RowDetail label="Duration" body={duration} />
                     <RowDetail
                       label="Est. Deposit amount"
                       body={`${formatEther(
