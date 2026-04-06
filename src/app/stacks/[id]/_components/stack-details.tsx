@@ -1,7 +1,7 @@
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useGetCircleCreated } from "@/hooks/use-get-cricle-created";
 import { useUserCircleData } from "@/hooks/use-user-circle-data";
-import { MemberCircleInfo } from "@/interfaces/circle";
+import { ICircleStatus, MemberCircleInfo } from "@/interfaces/circle";
 import {
   getUserCircleStatus,
   IFormattedUserCircleStatusResult,
@@ -22,6 +22,13 @@ import {
 import { CalendarDotsIcon } from "@phosphor-icons/react/ssr";
 import { ReactNode } from "react";
 import { formatEther, zeroAddress } from "viem";
+
+const failedStatuses: ICircleStatus[] = [
+  "decommissioned",
+  "expired",
+  "failed",
+  "finished",
+];
 
 const StackDetailsTotal = ({
   intervalLabel,
@@ -149,7 +156,8 @@ const StackDetailsBreakdown = ({
       <StackDetailsBreakdownRow label="Time left">
         <>
           <p className="text-h2 leading-6 tracking-[-2%] text-2xl">
-            {status.status === "finished" ? "0" : _roundsLeft}
+            {/* {status.status === "finished" ? "0" : _roundsLeft} */}
+            {failedStatuses.includes(status.status) ? "0" : _roundsLeft}
           </p>
           {status.status !== "pending-start" && <p>{parsedInterval[1]}</p>}
         </>
