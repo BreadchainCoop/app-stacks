@@ -24,6 +24,14 @@ import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { getDefaultChainId } from "@/utils/chain";
 import { useReadContracts } from "wagmi";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
+import { ICircleStatus } from "@/interfaces/circle";
+
+const failedStatuses: ICircleStatus[] = [
+  "decommissioned",
+  "expired",
+  "failed",
+  "finished",
+];
 
 const Overview = ({
   circle,
@@ -116,7 +124,9 @@ const Overview = ({
         <Body bold className="text-xs shrink-0">
           <span className="font-normal">Stack status: </span>
           <span>
-            {totalMembers === "-" ? (
+            {failedStatuses.includes(formattedCircleStatus.status) ? (
+              <>{formattedCircleStatus.status}</>
+            ) : totalMembers === "-" ? (
               "-"
             ) : (
               <>
@@ -130,7 +140,8 @@ const Overview = ({
         <Body className="flex flex-col justify-start md:items-start">
           <span className="text-surface-grey">Deposits made by</span>
           <span>
-            {totalMembers === "-" ? (
+            {totalMembers === "-" ||
+            failedStatuses.includes(formattedCircleStatus.status) ? (
               "-"
             ) : (
               <>
@@ -143,16 +154,22 @@ const Overview = ({
         <Body className="flex flex-col justify-start md:items-center md:justify-center">
           <span className="text-surface-grey">Total Deposit</span>
           <span className="inline-flex items-center justify-start">
-            <Logo size={24} variant="square" className="mr-1" />
-            <span className="font-bold mt-[0.2rem]">
-              {formatBalance(+formatEther(poolBalance), 2)} of{" "}
-              {formatBalance(
-                +formatEther(circle.circleInfo.depositAmount) *
-                  (typeof totalMembers === "string" ? 0 : totalMembers),
-                2
-              )}{" "}
-              BREAD
-            </span>
+            {failedStatuses.includes(formattedCircleStatus.status) ? (
+              "-"
+            ) : (
+              <>
+                <Logo size={24} variant="square" className="mr-1" />
+                <span className="font-bold mt-[0.2rem]">
+                  {formatBalance(+formatEther(poolBalance), 2)} of{" "}
+                  {formatBalance(
+                    +formatEther(circle.circleInfo.depositAmount) *
+                      (typeof totalMembers === "string" ? 0 : totalMembers),
+                    2
+                  )}{" "}
+                  BREAD
+                </span>
+              </>
+            )}
           </span>
         </Body>
         <Body className="flex flex-col justify-start md:justify-end md:items-end">
@@ -183,7 +200,10 @@ const Overview = ({
         effectiveCircleStartTime={circle.circleInfo.effectiveCircleStartTime}
         currentIndex={circle.circleInfo.currentIndex}
         depositInterval={circle.circleInfo.depositInterval}
-        isActive={status.isActive}
+        isActive={
+          status.isActive &&
+          !failedStatuses.includes(formattedCircleStatus.status)
+        }
       />
       <div className="mt-4">
         {formattedCircleStatus.status === "pending-start" ? (

@@ -67,7 +67,7 @@ const DaysLeft = ({
           style={{ width: `${progressPercent}%` }}
         />
       </div>
-      {Boolean(Number(effectiveCircleStartTime)) && (
+      {Boolean(Number(effectiveCircleStartTime)) && isActive && (
         <Countdown
           targetSeconds={Number(depositWindowEnd)}
           // key={depositWindowEnd}
