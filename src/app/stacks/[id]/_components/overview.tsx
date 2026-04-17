@@ -48,11 +48,18 @@ const Overview = ({
   const now = useBlockTimestamp();
   const { setModal } = useModal();
   const connectedUser = useConnectedUser();
+  const nowSeconds = BigInt(Math.floor(now / 1000));
   const formattedCircleStatus = getUserCircleStatus(
     circle,
     member,
     { includeClaimable: true },
-    BigInt(Math.floor(now / 1000))
+    nowSeconds
+  );
+  const depositCircleStatus = getUserCircleStatus(
+    circle,
+    member,
+    { includeDeposited: true },
+    nowSeconds
   );
   const { data: stackMetadata } = useStackSupabase(
     circle.circleId.toString(),
@@ -87,15 +94,24 @@ const Overview = ({
     },
   });
 
-  const pendingInvites = nonceChecks.filter((_, index) => {
-    if (!nonceResults || nonceResults.length <= index) return false;
-    const result = nonceResults[index];
-    if (result.status !== "success") return false;
-    return result.result === false;
-  }).length;
-
   const expectedMembers = stackMetadata?.expected_members ?? 0;
-  const invitesComplete = pendingInvites === 0 && expectedMembers > 0;
+  const acceptedMembers = Number(circle.totalRounds);
+  const hasEnoughMembersToStart = acceptedMembers >= 2;
+  const hasInviteMetadata = expectedMembers > 0 || nonceChecks.length > 0;
+  const inviteStatusReady =
+    nonceChecks.length === 0 || nonceResults?.length === nonceChecks.length;
+
+  const pendingInvites = inviteStatusReady
+    ? nonceChecks.filter((_, index) => {
+        const result = nonceResults?.[index];
+        if (result?.status !== "success") return true;
+        return result.result === false;
+      }).length
+    : nonceChecks.length;
+
+  const invitesComplete = hasInviteMetadata
+    ? hasEnoughMembersToStart && inviteStatusReady && pendingInvites === 0
+    : hasEnoughMembersToStart;
 
   const totalMembers =
     formattedCircleStatus.status === "pending-start"
@@ -229,7 +245,7 @@ const Overview = ({
               </LiftedButton>
             )}
           </>
-        ) : formattedCircleStatus.status === "payment_due" ? (
+        ) : depositCircleStatus.status === "payment_due" ? (
           <>
             {connectedUser.user.status === "CONNECTED" ? (
               <DepositButton
