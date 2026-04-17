@@ -33,7 +33,7 @@ export function useUserCirclesList(address: Address) {
         { includeClaimable: true },
         now
       ).status;
-      const canWithdraw = c.canWithdraw && c.isCurrentWithdrawer;
+      const canWithdraw = c.canWithdraw;
 
       return {
         ...c.circleInfo,

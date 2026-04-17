@@ -28,7 +28,6 @@ export const getUserCircleStatus = (
   now = BigInt(Math.floor(Date.now() / 1000))
 ): IFormattedUserCircleStatusResult => {
   const isOwner = circle.isOwner;
-  const isCurrentWithdrawer = circle.isCurrentWithdrawer;
   // const now = BigInt(Math.floor(Date.now() / 1000));
   const hasDepositedThisRound =
     circle.userBalance >= circle.circleInfo.depositAmount;
@@ -106,29 +105,28 @@ export const getUserCircleStatus = (
     };
   }
 
-  // if (config.includeClaimable && canWithdraw) {
+  if (config.includeClaimable && circle.canWithdraw) {
+    return {
+      status: "claimable",
+      statusLabel: "Claimable",
+      variant: "success",
+      title: "It's your turn to claim",
+      desc: "All deposits for your claim round are complete. Withdraw the full pot now.",
+    };
+  }
+
   if (
     config.includeClaimable &&
     circle.totalPoolBalance ===
       circle.circleInfo.depositAmount * circle.totalRounds
   ) {
-    if (isCurrentWithdrawer) {
-      return {
-        status: "claimable",
-        statusLabel: "Claimable",
-        variant: "success",
-        title: "It's your turn to claim",
-        desc: "All deposits for this round are complete. Withdraw the full pot now.",
-      };
-    } else {
-      return {
-        status: "deposit-completed",
-        statusLabel: "Deposits Completed",
-        variant: "success",
-        title: "Round deposits complete",
-        desc: "Waiting for the current withdrawer to claim this round's payout.",
-      };
-    }
+    return {
+      status: "deposit-completed",
+      statusLabel: "Deposits Completed",
+      variant: "success",
+      title: "Round deposits complete",
+      desc: "Waiting for the eligible member to claim this round's payout.",
+    };
   }
 
   if (config.includeDeposited && hasDepositedThisRound) {
