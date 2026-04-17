@@ -279,6 +279,11 @@ export const savingCirclesViewerAbi = [
                 type: "uint256",
                 internalType: "uint256",
               },
+              {
+                name: "currentWithdrawer",
+                type: "address",
+                internalType: "address",
+              },
             ],
           },
           {
@@ -453,6 +458,11 @@ export const savingCirclesViewerAbi = [
             type: "uint256",
             internalType: "uint256",
           },
+          {
+            name: "currentWithdrawer",
+            type: "address",
+            internalType: "address",
+          },
         ],
       },
     ],
@@ -595,6 +605,11 @@ export const savingCirclesViewerAbi = [
             name: "totalRounds",
             type: "uint256",
             internalType: "uint256",
+          },
+          {
+            name: "currentWithdrawer",
+            type: "address",
+            internalType: "address",
           },
         ],
       },
