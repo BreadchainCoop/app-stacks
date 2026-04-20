@@ -90,7 +90,7 @@ const DaysLeft = ({
               ? "Circle completed"
               : isPendingStart
                 ? "Waiting for circle to start"
-              : "Days left until current round ends"}
+                : "Days left until current round ends"}
           </Body>
         </div>
         {!isCompleted && !isPendingStart && (

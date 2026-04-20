@@ -33,7 +33,7 @@ const Stack = ({
       Number(depositAmount) *
       Number(stack.totalMember) +
     Number(formatEther(stack.totalPoolBalance || BigInt(0)));
-  const percentageDone = (totalDeposited / totalGoal) * 100;
+  const percentageDone = totalGoal > 0 ? (totalDeposited / totalGoal) * 100 : 0;
 
   const items = [
     {
@@ -98,21 +98,29 @@ const Stack = ({
             <Body bold className="text-xs sm:text-base">
               Stack progress
             </Body>
-            <div className="flex items-center gap-2">
+            {stack.status === "pending-start" ? (
               <Body className="text-xs sm:text-sm text-surface-grey">
-                Round{" "}
-                {Math.min(Number(stack.currentIndex) + 1, stack.totalMember)}/
-                {stack.totalMember}
+                Not started
               </Body>
-              <Body bold className="text-xs sm:text-base">
-                {Math.round(percentageDone * 100) / 100}%
-              </Body>
-            </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Body className="text-xs sm:text-sm text-surface-grey">
+                  Round{" "}
+                  {Math.min(Number(stack.currentIndex) + 1, stack.totalMember)}/
+                  {stack.totalMember}
+                </Body>
+                <Body bold className="text-xs sm:text-base">
+                  {Math.round(percentageDone * 100) / 100}%
+                </Body>
+              </div>
+            )}
           </div>
           <div className="w-full h-3.5 p-0.75 bg-paper-main">
             <div
               className={`h-full ${stack.status === "finished" ? "bg-system-green" : "bg-primary-blue"}`}
-              style={{ width: `${percentageDone}%` }}
+              style={{
+                width: `${stack.status === "pending-start" ? 0 : percentageDone}%`,
+              }}
             />
           </div>
         </div>
