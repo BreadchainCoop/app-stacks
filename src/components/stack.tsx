@@ -9,7 +9,7 @@ import ClaimButton from "./claim-button";
 import { ICircleList } from "@/interfaces/circle";
 import { formatEther } from "viem";
 import DepositButton from "./deposit-button";
-import { HandWithdrawIcon } from "@phosphor-icons/react";
+import { CheckCircleIcon, HandWithdrawIcon } from "@phosphor-icons/react";
 import { parseCircleIntervalToDate } from "@/utils/stacks";
 import { Database } from "@/lib/supabase";
 
@@ -62,7 +62,10 @@ const Stack = ({
 
   const statusMode = !stack.status
     ? undefined
-    : stack.status === "expired" || stack.status === "finished"
+    : stack.status === "expired" ||
+        stack.status === "finished" ||
+        stack.status === "failed" ||
+        stack.status === "decommissioned"
       ? ""
       : stack.status;
 
@@ -95,13 +98,20 @@ const Stack = ({
             <Body bold className="text-xs sm:text-base">
               Stack progress
             </Body>
-            <Body bold className="text-xs sm:text-base">
-              {Math.round(percentageDone * 100) / 100}%
-            </Body>
+            <div className="flex items-center gap-2">
+              <Body className="text-xs sm:text-sm text-surface-grey">
+                Round{" "}
+                {Math.min(Number(stack.currentIndex) + 1, stack.totalMember)}/
+                {stack.totalMember}
+              </Body>
+              <Body bold className="text-xs sm:text-base">
+                {Math.round(percentageDone * 100) / 100}%
+              </Body>
+            </div>
           </div>
           <div className="w-full h-3.5 p-0.75 bg-paper-main">
             <div
-              className="h-full bg-primary-blue"
+              className={`h-full ${stack.status === "finished" ? "bg-system-green" : "bg-primary-blue"}`}
               style={{ width: `${percentageDone}%` }}
             />
           </div>
@@ -153,6 +163,14 @@ const Stack = ({
             leftIcon={<HandWithdrawIcon />}
             amount={stack.depositAmount}
           />
+        ) : stack.status === "finished" ? (
+          <Body
+            bold
+            className="flex items-center justify-center gap-2 bg-system-green text-paper-main py-4 px-8"
+          >
+            <CheckCircleIcon size={20} />
+            Completed
+          </Body>
         ) : statusMode === "" ? (
           <Body
             bold

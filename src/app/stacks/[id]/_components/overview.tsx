@@ -117,6 +117,7 @@ const Overview = ({
     formattedCircleStatus.status === "pending-start"
       ? expectedMembers || "-"
       : Number(circle.totalRounds);
+  const isExpired = formattedCircleStatus.status === "expired";
 
   let roundsCompleted = BigInt(0);
   let membersDeposited: bigint | number = BigInt(0);
@@ -211,17 +212,18 @@ const Overview = ({
           </span>
         </Body>
       </div>
-      <DaysLeft
-        key={circle.depositWindowEnd}
-        depositWindowEnd={circle.depositWindowEnd}
-        effectiveCircleStartTime={circle.circleInfo.effectiveCircleStartTime}
-        currentIndex={circle.circleInfo.currentIndex}
-        depositInterval={circle.circleInfo.depositInterval}
-        isActive={
-          status.isActive &&
-          !failedStatuses.includes(formattedCircleStatus.status)
-        }
-      />
+      {!isExpired && (
+        <DaysLeft
+          key={circle.depositWindowEnd}
+          depositWindowEnd={circle.depositWindowEnd}
+          effectiveCircleStartTime={circle.circleInfo.effectiveCircleStartTime}
+          currentIndex={circle.circleInfo.currentIndex}
+          depositInterval={circle.circleInfo.depositInterval}
+          isActive={status.isActive}
+          circleEnd={circle.circleInfo.circleEnd}
+          status={formattedCircleStatus.status}
+        />
+      )}
       <div className="mt-4">
         {formattedCircleStatus.status === "pending-start" ? (
           <>
