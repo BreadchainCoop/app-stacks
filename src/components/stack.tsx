@@ -62,10 +62,7 @@ const Stack = ({
 
   const statusMode = !stack.status
     ? undefined
-    : stack.status === "expired" ||
-        stack.status === "finished" ||
-        stack.status === "failed" ||
-        stack.status === "decommissioned"
+    : stack.status === "expired" || stack.status === "finished"
       ? ""
       : stack.status;
 
