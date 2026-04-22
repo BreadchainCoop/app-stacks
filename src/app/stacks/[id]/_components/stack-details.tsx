@@ -199,7 +199,9 @@ const StackDetails = ({
     BigInt(Math.floor(blockTimestamp / 1000))
   );
   const roundsLeft =
-    circleStatus.status === "finished" ? 0 : members - circle.currentIndex;
+    circleStatus.status === "finished"
+      ? 0
+      : Math.max(0, Number(members - circle.currentIndex));
 
   return (
     <section className="bg-paper-0 flex flex-col gap-6 p-4">

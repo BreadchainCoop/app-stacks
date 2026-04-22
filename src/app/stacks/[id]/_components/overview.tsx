@@ -142,9 +142,9 @@ const Overview = ({
         <Body bold className="text-xs shrink-0">
           <span className="font-normal">Stack status: </span>
           <span>
-            {isExpired ? null : failedStatuses.includes(
-                formattedCircleStatus.status
-              ) ? (
+            {isExpired ? (
+              "Expired"
+            ) : failedStatuses.includes(formattedCircleStatus.status) ? (
               <>{formattedCircleStatus.status}</>
             ) : totalMembers === "-" ? (
               "-"
