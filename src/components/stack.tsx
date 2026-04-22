@@ -99,6 +99,10 @@ const Stack = ({
               <Body className="text-xs sm:text-sm text-surface-grey">
                 Not started
               </Body>
+            ) : stack.status === "expired" ? (
+              <Body className="text-xs sm:text-sm text-surface-grey">
+                Expired
+              </Body>
             ) : (
               <Body bold className="text-xs sm:text-base">
                 {Math.round(percentageDone * 100) / 100}%
