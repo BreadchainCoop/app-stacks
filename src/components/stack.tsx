@@ -100,21 +100,9 @@ const Stack = ({
                 Not started
               </Body>
             ) : (
-              <div className="flex items-center gap-2">
-                <Body className="text-xs sm:text-sm text-surface-grey">
-                  Round{" "}
-                  {stack.status === "finished"
-                    ? stack.totalMember
-                    : Math.min(
-                        Number(stack.currentIndex) + 1,
-                        stack.totalMember
-                      )}
-                  /{stack.totalMember}
-                </Body>
-                <Body bold className="text-xs sm:text-base">
-                  {Math.round(percentageDone * 100) / 100}%
-                </Body>
-              </div>
+              <Body bold className="text-xs sm:text-base">
+                {Math.round(percentageDone * 100) / 100}%
+              </Body>
             )}
           </div>
           <div className="w-full h-3.5 p-0.75 bg-paper-main">
