@@ -129,7 +129,8 @@ const Overview = ({
   } else {
     roundsCompleted = circle.completedRounds;
     membersDeposited =
-      circle.totalPoolBalance / circle.circleInfo.depositAmount;
+      circle.totalPoolBalance /
+      BigInt(Math.max(1, +circle.circleInfo.depositAmount.toString()));
     poolBalance = circle.totalPoolBalance;
   }
 
