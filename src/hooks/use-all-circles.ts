@@ -5,11 +5,13 @@ import { ICircleList } from "@/interfaces/circle";
 import { useTotalCircles } from "./use-total-circles";
 import { Address } from "viem";
 import { getDefaultChainId } from "@/utils/chain";
+import { useBlockTimestamp } from "./use-block-timestamp";
 
 const PAGE_SIZE = 40;
 
 export function useAllCircles(page: number = 0) {
   const skip = page * PAGE_SIZE;
+  const blockTimestamp = useBlockTimestamp();
 
   const { total: totalCircles, isLoading: loadingTotal } = useTotalCircles();
 
@@ -77,6 +79,13 @@ export function useAllCircles(page: number = 0) {
       ] = circleData;
 
       const memberCount = (membersResult.result as unknown as Address[]).length;
+      const now = BigInt(Math.floor(blockTimestamp / 1000));
+      const status =
+        effectiveCircleStartTime === BigInt(0)
+          ? "pending-start"
+          : circleEnd > BigInt(0) && now >= circleEnd
+            ? "expired"
+            : undefined;
 
       circles.push({
         id: circleIds[i],
@@ -88,6 +97,7 @@ export function useAllCircles(page: number = 0) {
         effectiveCircleStartTime,
         circleEnd,
         totalMember: memberCount,
+        status,
       });
     }
   }
