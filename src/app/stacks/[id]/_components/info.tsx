@@ -1,4 +1,5 @@
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
+import { activeExplorerAddressUrl } from "@/lib/network";
 import { formatAddress } from "@/utils/address";
 import { Body, CopyButtonIcon } from "@breadcoop/ui";
 import { ArrowUpRightIcon } from "@phosphor-icons/react/ssr";
@@ -24,15 +25,22 @@ const StackInfo = ({ owner }: { owner: Address }) => {
   return (
     <div className="mt-6.5">
       <StackInfoRow label="Contract:">
-        <a
-          href={`https://gnosisscan.io/address/${SAVING_CIRCLES_CONTRACT_ADDRESS}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-end gap-1"
-        >
-          {formatAddress(SAVING_CIRCLES_CONTRACT_ADDRESS)}
-          <ArrowUpRightIcon size={24} className="fill-blue-2" />
-        </a>
+        {activeExplorerAddressUrl ? (
+          <a
+            href={`${activeExplorerAddressUrl}/${SAVING_CIRCLES_CONTRACT_ADDRESS}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-end gap-1"
+          >
+            {formatAddress(SAVING_CIRCLES_CONTRACT_ADDRESS)}
+            <ArrowUpRightIcon size={24} className="fill-blue-2" />
+          </a>
+        ) : (
+          <Body className="flex items-center justify-end gap-1">
+            {formatAddress(SAVING_CIRCLES_CONTRACT_ADDRESS)}
+            <CopyButtonIcon textToCopy={SAVING_CIRCLES_CONTRACT_ADDRESS} />
+          </Body>
+        )}
       </StackInfoRow>
       <StackInfoRow label="Created by:">
         <Body className="flex items-center justify-end gap-1">

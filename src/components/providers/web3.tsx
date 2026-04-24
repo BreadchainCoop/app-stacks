@@ -16,10 +16,9 @@ import {
   // walletConnectWallet,
 } from "@rainbow-me/rainbowkit/wallets";
 import { http } from "wagmi";
-import { gnosis } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { foundryChain } from "@/lib/wagmi";
 import { WagmiProvider, createConfig } from "@privy-io/wagmi";
+import { activeChain } from "@/lib/network";
 
 // https://github.com/rainbow-me/rainbowkit/issues/2476#issuecomment-3117608183
 export function getWallets() {
@@ -55,17 +54,9 @@ const connectors = connectorsForWallets(
 
 export const wagmiConfig = createConfig({
   connectors,
-  // @ts-expect-error Correct
-  chains: (() => {
-    const _chains = [gnosis];
-    // @ts-expect-error Correct
-    if (process.env.NODE_ENV === "development") _chains.push(foundryChain);
-
-    return _chains;
-  })(),
+  chains: [activeChain],
   transports: {
-    [gnosis.id]: http(),
-    [foundryChain.id]: http(),
+    [activeChain.id]: http(activeChain.rpcUrls.default.http[0]),
   },
   ssr: true,
 });

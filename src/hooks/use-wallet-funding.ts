@@ -1,3 +1,4 @@
+import { activeBreadTokenAddress, activeChainId } from "@/lib/network";
 import { clientEnv } from "@/lib/env";
 import {
   getEmbeddedConnectedWallet,
@@ -11,17 +12,12 @@ import { useState } from "react";
 import { Address, getAddress, isAddress } from "viem";
 import { useBalance } from "wagmi";
 
-const DEFAULT_CHAIN_ID = 100;
-const SUPPORTED_CHAIN_IDS = [100] as const;
-const chainIdFromEnv = Number(clientEnv.NEXT_PUBLIC_CHAIN_ID);
-const APP_CHAIN_ID = Number.isInteger(chainIdFromEnv)
-  ? chainIdFromEnv
-  : DEFAULT_CHAIN_ID;
+const SUPPORTED_CHAIN_IDS = [100, 11155111] as const;
+const APP_CHAIN_ID = activeChainId;
 const IS_SUPPORTED_CHAIN_ID = SUPPORTED_CHAIN_IDS.includes(
   APP_CHAIN_ID as (typeof SUPPORTED_CHAIN_IDS)[number]
 );
-const BREAD_TOKEN_ADDRESS =
-  clientEnv.NEXT_PUBLIC_BREAD_TOKEN_ADDRESS as Address;
+const BREAD_TOKEN_ADDRESS = activeBreadTokenAddress as Address;
 const ZERO = BigInt(0);
 const IS_DEBUG_ENV =
   clientEnv.NEXT_PUBLIC_NODE_ENV === "development" ||
@@ -158,7 +154,7 @@ export function useWalletFunding() {
     }
     if (!IS_SUPPORTED_CHAIN_ID) {
       console.error(
-        `[Privy] Fund wallet blocked: unsupported NEXT_PUBLIC_CHAIN_ID (${clientEnv.NEXT_PUBLIC_CHAIN_ID}). Supported values: ${SUPPORTED_CHAIN_IDS.join(", ")}`
+        `[Privy] Fund wallet blocked: unsupported active chain id (${APP_CHAIN_ID}). Supported values: ${SUPPORTED_CHAIN_IDS.join(", ")}`
       );
       return false;
     }
