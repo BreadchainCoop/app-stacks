@@ -5,6 +5,9 @@ import { gnosis, sepolia } from "viem/chains";
 
 export type AppTargetNetwork = "gnosis" | "sepolia" | "local";
 
+const HARD_CODED_SEPOLIA_BREAD_TOKEN_ADDRESS =
+  "0x30142762922fa1594eA0b9e2e9a3b167F5FF31B0";
+
 function withRpcOverride(chain: Chain, rpcUrl?: string): Chain {
   if (!rpcUrl) return chain;
 
@@ -74,7 +77,7 @@ const networks = {
     ),
     breadTokenAddress: valueOrFallback(
       clientEnv.NEXT_PUBLIC_SEPOLIA_BREAD_TOKEN_ADDRESS,
-      clientEnv.NEXT_PUBLIC_BREAD_TOKEN_ADDRESS
+      HARD_CODED_SEPOLIA_BREAD_TOKEN_ADDRESS
     ),
     savingCirclesCreationBlock: valueOrFallback(
       clientEnv.NEXT_PUBLIC_SEPOLIA_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK,

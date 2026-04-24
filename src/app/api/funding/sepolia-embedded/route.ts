@@ -19,6 +19,8 @@ type FundRequestBody = {
 };
 
 const FUNDER_CHAIN_ID = 11155111;
+const HARD_CODED_SEPOLIA_BREAD_TOKEN_ADDRESS =
+  "0x30142762922fa1594eA0b9e2e9a3b167F5FF31B0";
 const MIN_BALANCE_TO_SKIP_WEI = BigInt("20000000000000000000");
 const FUND_AMOUNT_WEI = parseEther("50");
 const NATIVE_TOP_UP_WEI = parseEther("0.0005");
@@ -28,7 +30,9 @@ function getConfig() {
   return {
     rpcUrl: serverEnv.SEPOLIA_RPC_URL,
     privateKey: serverEnv.SEPOLIA_FUNDER_PRIVATE_KEY,
-    tokenAddress: serverEnv.NEXT_PUBLIC_SEPOLIA_BREAD_TOKEN_ADDRESS,
+    tokenAddress:
+      serverEnv.NEXT_PUBLIC_SEPOLIA_BREAD_TOKEN_ADDRESS ??
+      HARD_CODED_SEPOLIA_BREAD_TOKEN_ADDRESS,
   };
 }
 
