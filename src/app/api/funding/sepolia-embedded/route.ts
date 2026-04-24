@@ -20,16 +20,15 @@ type FundRequestBody = {
 
 const FUNDER_CHAIN_ID = 11155111;
 const MIN_BALANCE_TO_SKIP_WEI = BigInt("20000000000000000000");
+const FUND_AMOUNT_WEI = parseEther("50");
 const NATIVE_TOP_UP_WEI = parseEther("0.0005");
 const NATIVE_MIN_BALANCE_WEI = parseEther("0.0002");
 
 function getConfig() {
   return {
-    enabled: serverEnv.SEPOLIA_AUTO_FUND_ENABLED === "true",
     rpcUrl: serverEnv.SEPOLIA_RPC_URL,
     privateKey: serverEnv.SEPOLIA_FUNDER_PRIVATE_KEY,
     tokenAddress: serverEnv.NEXT_PUBLIC_SEPOLIA_BREAD_TOKEN_ADDRESS,
-    amountWei: serverEnv.SEPOLIA_AUTO_FUND_AMOUNT_WEI,
   };
 }
 
@@ -46,13 +45,9 @@ function normalizePrivateKey(privateKey: string): Hex | null {
 export async function POST(request: NextRequest) {
   const cfg = getConfig();
 
-  if (!cfg.enabled) {
-    return badRequest("Sepolia auto-funding is disabled", 403);
-  }
-
-  if (!cfg.rpcUrl || !cfg.privateKey || !cfg.tokenAddress || !cfg.amountWei) {
+  if (!cfg.rpcUrl || !cfg.privateKey || !cfg.tokenAddress) {
     return badRequest(
-      "Missing server funding configuration (RPC, key, token, amount)",
+      "Missing server funding configuration (RPC, key, token)",
       500
     );
   }
@@ -77,12 +72,8 @@ export async function POST(request: NextRequest) {
 
   const walletAddress = getAddress(walletAddressInput);
   const tokenAddress = getAddress(cfg.tokenAddress);
-  const amountWei = BigInt(cfg.amountWei);
+  const amountWei = FUND_AMOUNT_WEI;
   const normalizedPrivateKey = normalizePrivateKey(cfg.privateKey);
-
-  if (amountWei <= BigInt(0)) {
-    return badRequest("SEPOLIA_AUTO_FUND_AMOUNT_WEI must be > 0", 500);
-  }
   if (!normalizedPrivateKey) {
     return badRequest(
       "SEPOLIA_FUNDER_PRIVATE_KEY must be 64 hex chars (with or without 0x)",
