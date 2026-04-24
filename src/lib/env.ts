@@ -15,11 +15,12 @@ const depositIntervalSchema = z
   .min(2, "At least two deposit intervals are required");
 
 const envSchema = z.object({
-  NEXT_PUBLIC_CHAIN_ID: z.coerce.number().default(100),
+  NEXT_PUBLIC_CHAIN_ID: z.coerce.number(),
   NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS: z.string(),
   NEXT_PUBLIC_SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS: z.string(),
   NEXT_PUBLIC_BREAD_TOKEN_ADDRESS: z.string(),
   NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK: z.string(),
+  NEXT_PUBLIC_SEPOLIA_RPC_URL: z.string().optional().default(""),
   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: z.string(),
   NEXT_PUBLIC_NODE_ENV: z
     .enum(["development", "production", "local"])
@@ -54,6 +55,7 @@ const parsedSchema = envSchema.safeParse({
   NEXT_PUBLIC_BREAD_TOKEN_ADDRESS: process.env.NEXT_PUBLIC_BREAD_TOKEN_ADDRESS,
   NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK:
     process.env.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK,
+  NEXT_PUBLIC_SEPOLIA_RPC_URL: process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL,
   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID:
     process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
   NEXT_PUBLIC_NODE_ENV: process.env.NEXT_PUBLIC_NODE_ENV,

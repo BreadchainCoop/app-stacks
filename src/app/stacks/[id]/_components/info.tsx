@@ -1,5 +1,7 @@
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
+import { clientEnv } from "@/lib/env";
 import { formatAddress } from "@/utils/address";
+import { networks } from "@/utils/network";
 import { Body, CopyButtonIcon } from "@breadcoop/ui";
 import { ArrowUpRightIcon } from "@phosphor-icons/react/ssr";
 import { ReactNode } from "react";
@@ -25,7 +27,7 @@ const StackInfo = ({ owner }: { owner: Address }) => {
     <div className="mt-6.5">
       <StackInfoRow label="Contract:">
         <a
-          href={`https://gnosisscan.io/address/${SAVING_CIRCLES_CONTRACT_ADDRESS}`}
+          href={`${networks[clientEnv.NEXT_PUBLIC_CHAIN_ID as keyof typeof networks].explorerUrl}/${SAVING_CIRCLES_CONTRACT_ADDRESS}`}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-end gap-1"

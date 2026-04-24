@@ -6,6 +6,10 @@ const envSchema = z.object({
   UPSTASH_REDIS_REST_TOKEN: z.string(),
   NEXT_PUBLIC_SUPABASE_URL: z.string(),
   SUPABASE_SERVICE_ROLE_KEY: z.string(),
+  SEPOLIA_RPC_URL: z.string().optional(),
+  AUTOMATIC_FUNDING_PRIVATE_KEY: z.string(),
+  NEXT_PUBLIC_CHAIN_ID: z.coerce.number(),
+  NEXT_PUBLIC_BREAD_TOKEN_ADDRESS: z.string(),
 });
 
 const parsedSchema = envSchema.safeParse(process.env);
