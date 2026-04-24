@@ -11,7 +11,7 @@ export const useSponsoredTx = () => {
   ) => {
     return sendTransaction(
       { ...input, chainId: getDefaultChainId() },
-      { ...options, sponsor: clientEnv.NEXT_PUBLIC_NODE_ENV === "production" }
+      { ...options, sponsor: clientEnv.NEXT_PUBLIC_CHAIN_ID === 100 }
     );
   };
 

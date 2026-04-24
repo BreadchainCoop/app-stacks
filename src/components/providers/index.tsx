@@ -9,8 +9,8 @@ import { BreadUIKitProvider, ConnectedUserProvider } from "@breadcoop/ui";
 import { clientEnv } from "@/lib/env";
 import { Address, erc20Abi } from "viem";
 import { PrivyClientConfig, PrivyProvider } from "@privy-io/react-auth";
-import { gnosis } from "viem/chains";
-import { foundryChain } from "@/lib/wagmi";
+import SepoliaAutoFund from "./sepolia-auto-fund";
+import { networks } from "@/utils/network";
 
 const tokenConfig: ComponentProps<typeof BreadUIKitProvider>["tokenConfig"] = {
   BREAD: {
@@ -19,11 +19,11 @@ const tokenConfig: ComponentProps<typeof BreadUIKitProvider>["tokenConfig"] = {
   },
 };
 
-// TODO: Provide our RPC_URL
+// TODO: Provide our RPC_URL -> gnosis / sepolia / depending on the NEXT_PUBLIC_CHAIN_ID
 // const gnosisOverride = addRpcUrlOverrideToChain(gnosis, "")
 
 const _chain =
-  clientEnv.NEXT_PUBLIC_NODE_ENV === "production" ? gnosis : foundryChain;
+  networks[clientEnv.NEXT_PUBLIC_CHAIN_ID as keyof typeof networks].chain;
 
 const privyConfig: PrivyClientConfig = {
   defaultChain: _chain,
@@ -52,6 +52,7 @@ const Providers = ({ children }: { children: ReactNode }) => {
               authProvider="privy"
             >
               <ConnectedUserProvider>
+                <SepoliaAutoFund />
                 <ModalProvider>{children}</ModalProvider>
               </ConnectedUserProvider>
             </BreadUIKitProvider>
