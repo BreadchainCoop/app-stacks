@@ -14,3 +14,7 @@ allowBuilds:
   sharp: true
   unrs-resolver: true
   utf-8-validate: true
+
+overrides:
+  "@noble/curves@1.8.0": "^1.9.7"
+  "semver@6.3.1": "^7.7.4"
