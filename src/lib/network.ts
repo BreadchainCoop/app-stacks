@@ -67,22 +67,18 @@ const networks = {
   sepolia: {
     chain: sepoliaChain,
     explorerAddressUrl: "https://sepolia.etherscan.io/address",
-    savingCirclesAddress: valueOrFallback(
-      clientEnv.NEXT_PUBLIC_SEPOLIA_SAVING_CIRCLES_CONTRACT_ADDRESS,
-      clientEnv.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS
-    ),
-    savingCirclesViewerAddress: valueOrFallback(
-      clientEnv.NEXT_PUBLIC_SEPOLIA_SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS,
-      clientEnv.NEXT_PUBLIC_SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS
-    ),
+    savingCirclesAddress:
+      clientEnv.NEXT_PUBLIC_SEPOLIA_SAVING_CIRCLES_CONTRACT_ADDRESS ?? "",
+    savingCirclesViewerAddress:
+      clientEnv.NEXT_PUBLIC_SEPOLIA_SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS ??
+      "",
     breadTokenAddress: valueOrFallback(
       clientEnv.NEXT_PUBLIC_SEPOLIA_BREAD_TOKEN_ADDRESS,
       HARD_CODED_SEPOLIA_BREAD_TOKEN_ADDRESS
     ),
-    savingCirclesCreationBlock: valueOrFallback(
-      clientEnv.NEXT_PUBLIC_SEPOLIA_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK,
-      clientEnv.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK
-    ),
+    savingCirclesCreationBlock:
+      clientEnv.NEXT_PUBLIC_SEPOLIA_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK ??
+      "",
   },
   local: {
     chain: localChain,
