@@ -29,7 +29,7 @@ const NATIVE_MIN_BALANCE_WEI = parseEther("0.0002");
 function getConfig() {
   return {
     rpcUrl: serverEnv.SEPOLIA_RPC_URL,
-    privateKey: serverEnv.SEPOLIA_FUNDER_PRIVATE_KEY,
+    privateKey: serverEnv.AUTOMATIC_FUNDING_PRIVATE_KEY,
     tokenAddress:
       serverEnv.NEXT_PUBLIC_SEPOLIA_BREAD_TOKEN_ADDRESS ??
       HARD_CODED_SEPOLIA_BREAD_TOKEN_ADDRESS,
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
   const normalizedPrivateKey = normalizePrivateKey(cfg.privateKey);
   if (!normalizedPrivateKey) {
     return badRequest(
-      "SEPOLIA_FUNDER_PRIVATE_KEY must be 64 hex chars (with or without 0x)",
+      "AUTOMATIC_FUNDING_PRIVATE_KEY must be 64 hex chars (with or without 0x)",
       500
     );
   }

@@ -7,7 +7,7 @@ const envSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string(),
   SUPABASE_SERVICE_ROLE_KEY: z.string(),
   SEPOLIA_RPC_URL: z.string().optional(),
-  SEPOLIA_FUNDER_PRIVATE_KEY: z.string().optional(),
+  AUTOMATIC_FUNDING_PRIVATE_KEY: z.string().optional(),
   NEXT_PUBLIC_SEPOLIA_BREAD_TOKEN_ADDRESS: z.string().optional(),
 });
 
