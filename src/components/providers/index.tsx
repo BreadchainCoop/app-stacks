@@ -72,6 +72,19 @@ function SepoliaEmbeddedAutoFund() {
         });
 
         if (!response.ok) {
+          let errorBody: unknown = null;
+          try {
+            errorBody = await response.json();
+          } catch {
+            errorBody = await response.text().catch(() => null);
+          }
+
+          console.error("Sepolia embedded auto-funding failed", {
+            status: response.status,
+            statusText: response.statusText,
+            errorBody,
+            walletAddress,
+          });
           requestedFor.current = null;
           return;
         }
