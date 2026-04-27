@@ -17,7 +17,7 @@ const depositIntervalSchema = z
 const envSchema = z.object({
   NEXT_PUBLIC_TARGET_NETWORK: z
     .enum(["gnosis", "sepolia", "local"])
-    .default("gnosis"),
+    .default("sepolia"),
   NEXT_PUBLIC_CHAIN_ID: z.coerce.number().default(100),
   NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS: z.string(),
   NEXT_PUBLIC_SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS: z.string(),
