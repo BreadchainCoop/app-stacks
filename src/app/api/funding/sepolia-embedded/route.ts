@@ -2,205 +2,160 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   createPublicClient,
   createWalletClient,
-  erc20Abi,
-  getAddress,
-  Hex,
   http,
   isAddress,
   parseEther,
+  formatEther,
+  type Address,
+  type Hash,
+  erc20Abi,
+  fallback,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
+import { createErrorResponse } from "../../utils";
 import { serverEnv } from "@/lib/envs/server";
 
-type FundRequestBody = {
-  walletAddress?: string;
-  chainId?: number;
-};
+const SEPOLIA_CHAIN_ID = 11155111;
+const BREAD_TOKEN_ADDRESS =
+  serverEnv.NEXT_PUBLIC_BREAD_TOKEN_ADDRESS as Address;
 
-const FUNDER_CHAIN_ID = 11155111;
-const HARD_CODED_SEPOLIA_BREAD_TOKEN_ADDRESS =
-  "0x30142762922fa1594eA0b9e2e9a3b167F5FF31B0";
-const MIN_BALANCE_TO_SKIP_WEI = BigInt("20000000000000000000");
-const FUND_AMOUNT_WEI = parseEther("50");
-const NATIVE_TOP_UP_WEI = parseEther("0.0005");
-const NATIVE_MIN_BALANCE_WEI = parseEther("0.0002");
+const BREAD_FUND_AMOUNT = parseEther("50");
+const BREAD_MINIMUM_THRESHOLD = parseEther("20");
 
-function getConfig() {
-  return {
-    rpcUrl: serverEnv.SEPOLIA_RPC_URL,
-    privateKey: serverEnv.AUTOMATIC_FUNDING_PRIVATE_KEY,
-    tokenAddress:
-      serverEnv.NEXT_PUBLIC_SEPOLIA_BREAD_TOKEN_ADDRESS ??
-      HARD_CODED_SEPOLIA_BREAD_TOKEN_ADDRESS,
+const ETH_TOP_UP_AMOUNT = parseEther("0.0005");
+const ETH_MINIMUM_THRESHOLD = parseEther("0.0002");
+
+interface FaucetResult {
+  address: Address;
+  eth: {
+    balanceBefore: string;
+    topped_up: boolean;
+    txHash?: Hash;
+    amountSent?: string;
+    error?: string;
+  };
+  bread: {
+    balanceBefore: string;
+    topped_up: boolean;
+    txHash?: Hash;
+    amountSent?: string;
+    error?: string;
   };
 }
 
-function badRequest(message: string, status = 400) {
-  return NextResponse.json({ success: false, error: message }, { status });
-}
-
-function normalizePrivateKey(privateKey: string): Hex | null {
-  const trimmed = privateKey.trim();
-  const withPrefix = trimmed.startsWith("0x") ? trimmed : `0x${trimmed}`;
-  return /^0x[0-9a-fA-F]{64}$/.test(withPrefix) ? (withPrefix as Hex) : null;
-}
-
-export async function POST(request: NextRequest) {
-  const cfg = getConfig();
-
-  if (!cfg.rpcUrl || !cfg.privateKey || !cfg.tokenAddress) {
-    return badRequest(
-      "Missing server funding configuration (RPC, key, token)",
-      500
-    );
+export async function POST(req: NextRequest) {
+  if (serverEnv.NEXT_PUBLIC_CHAIN_ID !== SEPOLIA_CHAIN_ID) {
+    return createErrorResponse("This is not demo chain", 500);
   }
 
-  let body: FundRequestBody | null = null;
+  let body: { address?: string };
+
   try {
-    body = (await request.json()) as FundRequestBody;
+    body = await req.json();
   } catch {
-    return badRequest("Invalid JSON body");
+    return createErrorResponse("Invalid JSON body");
   }
 
-  const walletAddressInput = body?.walletAddress;
-  const chainIdInput = body?.chainId ?? FUNDER_CHAIN_ID;
+  const { address } = body;
 
-  if (!walletAddressInput || !isAddress(walletAddressInput)) {
-    return badRequest("walletAddress is required and must be a valid address");
+  if (!address || !isAddress(address)) {
+    return createErrorResponse("A valid EVM address is required.");
   }
 
-  if (chainIdInput !== FUNDER_CHAIN_ID) {
-    return badRequest("Only Sepolia chainId 11155111 is supported");
+  const recipient = address as Address;
+
+  const privateKey = serverEnv.AUTOMATIC_FUNDING_PRIVATE_KEY;
+  if (!privateKey) {
+    console.error("AUTOMATIC_FUNDING_PRIVATE_KEY is not configured");
+    return createErrorResponse("Server error: Funder not configured", 500);
   }
 
-  const walletAddress = getAddress(walletAddressInput);
-  const tokenAddress = getAddress(cfg.tokenAddress);
-  const amountWei = FUND_AMOUNT_WEI;
-  const normalizedPrivateKey = normalizePrivateKey(cfg.privateKey);
-  if (!normalizedPrivateKey) {
-    return badRequest(
-      "AUTOMATIC_FUNDING_PRIVATE_KEY must be 64 hex chars (with or without 0x)",
-      500
-    );
-  }
+  const funderAccount = privateKeyToAccount(privateKey as `0x${string}`);
 
-  try {
-    const account = privateKeyToAccount(normalizedPrivateKey);
-    const walletClient = createWalletClient({
-      account,
-      chain: sepolia,
-      transport: http(cfg.rpcUrl),
-    });
+  const transport = http();
+  const publicClient = createPublicClient({ chain: sepolia, transport });
+  const walletClient = createWalletClient({
+    account: funderAccount,
+    chain: sepolia,
+    transport: fallback([http(serverEnv.SEPOLIA_RPC_URL), http()]),
+  });
 
-    const publicClient = createPublicClient({
-      chain: sepolia,
-      transport: http(cfg.rpcUrl),
-    });
+  const result: FaucetResult = {
+    address: recipient,
+    eth: { balanceBefore: "", topped_up: false },
+    bread: { balanceBefore: "", topped_up: false },
+  };
 
-    const nativeBalance = await publicClient.getBalance({
-      address: walletAddress,
-    });
-
-    let nativeFunding: {
-      funded: boolean;
-      beforeWei: string;
-      thresholdWei: string;
-      amountWei: string;
-      txHash?: string;
-      blockNumber?: string;
-    } = {
-      funded: false,
-      beforeWei: nativeBalance.toString(),
-      thresholdWei: NATIVE_MIN_BALANCE_WEI.toString(),
-      amountWei: NATIVE_TOP_UP_WEI.toString(),
-    };
-
-    if (nativeBalance < NATIVE_MIN_BALANCE_WEI) {
-      const nativeTxHash = await walletClient.sendTransaction({
-        to: walletAddress,
-        value: NATIVE_TOP_UP_WEI,
-        chain: sepolia,
-        account,
-      });
-
-      const nativeReceipt = await publicClient.waitForTransactionReceipt({
-        hash: nativeTxHash,
-      });
-
-      nativeFunding = {
-        ...nativeFunding,
-        funded: true,
-        txHash: nativeTxHash,
-        blockNumber: nativeReceipt.blockNumber.toString(),
-      };
-    }
-
-    const currentBalance = (await publicClient.readContract({
-      address: tokenAddress,
+  const [ethBalance, breadBalance, currentNonce] = await Promise.all([
+    publicClient.getBalance({ address: recipient }),
+    publicClient.readContract({
+      address: BREAD_TOKEN_ADDRESS,
       abi: erc20Abi,
       functionName: "balanceOf",
-      args: [walletAddress],
-    })) as bigint;
+      args: [recipient],
+    }),
+    publicClient.getTransactionCount({
+      address: funderAccount.address,
+      blockTag: "pending",
+    }),
+  ]);
 
-    if (currentBalance >= amountWei) {
-      return NextResponse.json({
-        success: true,
-        alreadyFunded: true,
-        nativeFunding,
-        walletAddress,
-        chainId: FUNDER_CHAIN_ID,
-        tokenAddress,
-        amountWei: amountWei.toString(),
-        reason: "already_has_funding_amount",
-      });
-    }
+  result.eth.balanceBefore = `${formatEther(ethBalance)} ETH`;
+  result.bread.balanceBefore = `${formatEther(breadBalance)} BREAD`;
 
-    if (currentBalance >= MIN_BALANCE_TO_SKIP_WEI) {
-      return NextResponse.json({
-        success: true,
-        alreadyFunded: true,
-        nativeFunding,
-        walletAddress,
-        chainId: FUNDER_CHAIN_ID,
-        tokenAddress,
-        amountWei: amountWei.toString(),
-        reason: "balance_above_threshold",
-        minBalanceToSkipWei: MIN_BALANCE_TO_SKIP_WEI.toString(),
-      });
-    }
+  const topUpPromises: Promise<void>[] = [];
+  let nextNonce = currentNonce;
 
-    const txHash = await walletClient.writeContract({
-      address: tokenAddress,
-      abi: erc20Abi,
-      functionName: "transfer",
-      args: [walletAddress, amountWei],
-      chain: sepolia,
-      account,
-    });
+  if (ethBalance < ETH_MINIMUM_THRESHOLD) {
+    const ethPromise = (async () => {
+      try {
+        const txHash = await walletClient.sendTransaction({
+          to: recipient,
+          value: ETH_TOP_UP_AMOUNT,
+          nonce: nextNonce++,
+        });
 
-    const receipt = await publicClient.waitForTransactionReceipt({
-      hash: txHash,
-    });
+        await publicClient.waitForTransactionReceipt({ hash: txHash });
 
-    return NextResponse.json({
-      success: true,
-      alreadyFunded: false,
-      nativeFunding,
-      walletAddress,
-      chainId: FUNDER_CHAIN_ID,
-      tokenAddress,
-      amountWei: amountWei.toString(),
-      txHash,
-      blockNumber: receipt.blockNumber.toString(),
-    });
-  } catch (error) {
-    console.error("Sepolia embedded wallet funding failed:", error);
-    return badRequest(
-      error instanceof Error
-        ? `Funding failed: ${error.message}`
-        : "Funding failed",
-      500
-    );
+        result.eth.topped_up = true;
+        result.eth.txHash = txHash;
+        result.eth.amountSent = `${formatEther(ETH_TOP_UP_AMOUNT)} ETH`;
+      } catch (err) {
+        console.error("ETH top-up failed:", err);
+        result.eth.error = String(err);
+      }
+    })();
+
+    topUpPromises.push(ethPromise);
   }
+
+  if (breadBalance < BREAD_MINIMUM_THRESHOLD) {
+    const breadPromise = (async () => {
+      try {
+        const txHash = await walletClient.writeContract({
+          address: BREAD_TOKEN_ADDRESS,
+          abi: erc20Abi,
+          functionName: "transfer",
+          args: [recipient, BREAD_FUND_AMOUNT],
+          nonce: nextNonce++,
+        });
+
+        await publicClient.waitForTransactionReceipt({ hash: txHash });
+
+        result.bread.topped_up = true;
+        result.bread.txHash = txHash;
+        result.bread.amountSent = `${formatEther(BREAD_FUND_AMOUNT)} BREAD`;
+      } catch (err) {
+        console.error("BREAD transfer failed:", err);
+        result.bread.error = String(err);
+      }
+    })();
+
+    topUpPromises.push(breadPromise);
+  }
+
+  if (topUpPromises.length > 0) await Promise.all(topUpPromises);
+
+  return NextResponse.json(result, { status: 200 });
 }

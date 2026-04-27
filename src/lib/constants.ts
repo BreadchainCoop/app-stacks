@@ -1,13 +1,11 @@
-import {
-  activeBreadTokenAddress,
-  activeSavingCirclesContractAddress,
-  activeSavingCirclesViewerContractAddress,
-} from "./network";
+import { Address } from "viem";
+import { clientEnv } from "./env";
 
 export const SAVING_CIRCLES_CONTRACT_ADDRESS =
-  activeSavingCirclesContractAddress;
+  clientEnv.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS as Address;
 
 export const SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS =
-  activeSavingCirclesViewerContractAddress;
+  clientEnv.NEXT_PUBLIC_SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS as Address;
 
-export const BREAD_TOKEN_ADDRESS = activeBreadTokenAddress;
+export const BREAD_TOKEN_ADDRESS =
+  clientEnv.NEXT_PUBLIC_BREAD_TOKEN_ADDRESS as Address;

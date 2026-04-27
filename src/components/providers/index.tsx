@@ -1,6 +1,6 @@
 "use client";
 
-import { ComponentProps, ReactNode, useEffect, useRef } from "react";
+import { ComponentProps, ReactNode } from "react";
 import ToolsProviders from "./tools";
 import { Web3Provider } from "./web3";
 import { SupabaseProvider } from "./supabase";
@@ -8,96 +8,32 @@ import { ModalProvider } from "../modal/context";
 import { BreadUIKitProvider, ConnectedUserProvider } from "@breadcoop/ui";
 import { clientEnv } from "@/lib/env";
 import { Address, erc20Abi } from "viem";
-import {
-  PrivyClientConfig,
-  PrivyProvider,
-  usePrivy,
-  useWallets,
-} from "@privy-io/react-auth";
-import {
-  activeBreadTokenAddress,
-  activeChain,
-  activeChainId,
-} from "@/lib/network";
+import { PrivyClientConfig, PrivyProvider } from "@privy-io/react-auth";
+import SepoliaAutoFund from "./sepolia-auto-fund";
+import { networks } from "@/utils/network";
 
 const tokenConfig: ComponentProps<typeof BreadUIKitProvider>["tokenConfig"] = {
   BREAD: {
-    address: activeBreadTokenAddress as Address,
+    address: clientEnv.NEXT_PUBLIC_BREAD_TOKEN_ADDRESS as Address,
     abi: erc20Abi,
   },
 };
 
+// TODO: Provide our RPC_URL -> gnosis / sepolia / depending on the NEXT_PUBLIC_CHAIN_ID
+// const gnosisOverride = addRpcUrlOverrideToChain(gnosis, "")
+
+const _chain =
+  networks[clientEnv.NEXT_PUBLIC_CHAIN_ID as keyof typeof networks].chain;
+
 const privyConfig: PrivyClientConfig = {
-  defaultChain: activeChain,
-  supportedChains: [activeChain],
+  defaultChain: _chain,
+  supportedChains: [_chain],
   embeddedWallets: {
     ethereum: {
       createOnLogin: "all-users",
     },
   },
 };
-
-const SEPOLIA_CHAIN_ID = 11155111;
-
-function SepoliaEmbeddedAutoFund() {
-  const { ready } = usePrivy();
-  const { wallets } = useWallets();
-  const requestedFor = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (!ready) return;
-
-    const embeddedWallet = wallets.find((wallet) => {
-      const walletType = wallet.walletClientType?.toLowerCase() ?? "";
-      return (
-        walletType === "privy" ||
-        walletType === "embedded_wallet" ||
-        walletType.includes("embedded")
-      );
-    });
-
-    const walletAddress = embeddedWallet?.address;
-    if (!walletAddress) return;
-    if (requestedFor.current === walletAddress) return;
-
-    void (async () => {
-      try {
-        const response = await fetch("/api/funding/sepolia-embedded", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            walletAddress,
-            chainId: SEPOLIA_CHAIN_ID,
-          }),
-        });
-
-        if (!response.ok) {
-          let errorBody: unknown = null;
-          try {
-            errorBody = await response.json();
-          } catch {
-            errorBody = await response.text().catch(() => null);
-          }
-
-          console.error("Sepolia embedded auto-funding failed", {
-            status: response.status,
-            statusText: response.statusText,
-            errorBody,
-            walletAddress,
-          });
-          requestedFor.current = null;
-          return;
-        }
-
-        requestedFor.current = walletAddress;
-      } catch {
-        requestedFor.current = null;
-      }
-    })();
-  }, [ready, wallets]);
-
-  return null;
-}
 
 const Providers = ({ children }: { children: ReactNode }) => {
   return (
@@ -107,16 +43,16 @@ const Providers = ({ children }: { children: ReactNode }) => {
         clientId={clientEnv.NEXT_PUBLIC_PRIVY_CLIENT_ID}
         config={privyConfig}
       >
-        <SepoliaEmbeddedAutoFund />
         <SupabaseProvider>
           <Web3Provider>
             <BreadUIKitProvider
               app="stacks"
-              chainId={activeChainId}
+              chainId={clientEnv.NEXT_PUBLIC_CHAIN_ID}
               tokenConfig={tokenConfig}
               authProvider="privy"
             >
               <ConnectedUserProvider>
+                <SepoliaAutoFund />
                 <ModalProvider>{children}</ModalProvider>
               </ConnectedUserProvider>
             </BreadUIKitProvider>

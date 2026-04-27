@@ -18,7 +18,8 @@ import {
 import { http } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider, createConfig } from "@privy-io/wagmi";
-import { activeChain } from "@/lib/network";
+import { clientEnv } from "@/lib/env";
+import { networks } from "@/utils/network";
 
 // https://github.com/rainbow-me/rainbowkit/issues/2476#issuecomment-3117608183
 export function getWallets() {
@@ -52,11 +53,15 @@ const connectors = connectorsForWallets(
   }
 );
 
+const network =
+  networks[clientEnv.NEXT_PUBLIC_CHAIN_ID as keyof typeof networks];
+
 export const wagmiConfig = createConfig({
   connectors,
-  chains: [activeChain],
+  chains: [network.chain],
+  // @ts-expect-error Use the chain-id and public transport
   transports: {
-    [activeChain.id]: http(activeChain.rpcUrls.default.http[0]),
+    [clientEnv.NEXT_PUBLIC_CHAIN_ID]: http(),
   },
   ssr: true,
 });

@@ -1,4 +1,4 @@
-import { activeBreadTokenAddress, activeChainId } from "@/lib/network";
+// import { activeBreadTokenAddress, activeChainId } from "@/lib/network";
 import { clientEnv } from "@/lib/env";
 import {
   getEmbeddedConnectedWallet,
@@ -11,13 +11,14 @@ import { usePostNativeFundingBake } from "./use-post-native-funding-bake";
 import { useState } from "react";
 import { Address, getAddress, isAddress } from "viem";
 import { useBalance } from "wagmi";
+import { BREAD_TOKEN_ADDRESS } from "@/lib/constants";
 
 const SUPPORTED_CHAIN_IDS = [100, 11155111] as const;
-const APP_CHAIN_ID = activeChainId;
+const APP_CHAIN_ID = clientEnv.NEXT_PUBLIC_CHAIN_ID;
 const IS_SUPPORTED_CHAIN_ID = SUPPORTED_CHAIN_IDS.includes(
   APP_CHAIN_ID as (typeof SUPPORTED_CHAIN_IDS)[number]
 );
-const BREAD_TOKEN_ADDRESS = activeBreadTokenAddress as Address;
+// const BREAD_TOKEN_ADDRESS = SAVING_CIRCLES_CONTRACT_ADDRESS;
 const ZERO = BigInt(0);
 const IS_DEBUG_ENV =
   clientEnv.NEXT_PUBLIC_NODE_ENV === "development" ||
