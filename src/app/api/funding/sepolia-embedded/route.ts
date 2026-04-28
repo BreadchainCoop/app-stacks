@@ -10,6 +10,7 @@ import {
   type Hash,
   erc20Abi,
   fallback,
+  Hex,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
@@ -44,6 +45,14 @@ interface FaucetResult {
   };
 }
 
+function normalizePrivateKey(privateKey: string): Hex | null {
+  const trimmed = privateKey.trim();
+  const withPrefix = trimmed.startsWith("0x") ? trimmed : `0x${trimmed}`;
+  return /^0x[0-9a-fA-F]{64}$/.test(withPrefix) ? (withPrefix as Hex) : null;
+}
+
+const transport = fallback([http(serverEnv.SEPOLIA_RPC_URL), http()]);
+
 export async function POST(req: NextRequest) {
   if (serverEnv.NEXT_PUBLIC_CHAIN_ID !== SEPOLIA_CHAIN_ID) {
     return createErrorResponse("This is not demo chain", 500);
@@ -65,7 +74,10 @@ export async function POST(req: NextRequest) {
 
   const recipient = address as Address;
 
-  const privateKey = serverEnv.AUTOMATIC_FUNDING_PRIVATE_KEY;
+  // const privateKey = serverEnv.AUTOMATIC_FUNDING_PRIVATE_KEY;
+  const privateKey = normalizePrivateKey(
+    serverEnv.AUTOMATIC_FUNDING_PRIVATE_KEY
+  );
   if (!privateKey) {
     console.error("AUTOMATIC_FUNDING_PRIVATE_KEY is not configured");
     return createErrorResponse("Server error: Funder not configured", 500);
@@ -73,12 +85,11 @@ export async function POST(req: NextRequest) {
 
   const funderAccount = privateKeyToAccount(privateKey as `0x${string}`);
 
-  const transport = http();
   const publicClient = createPublicClient({ chain: sepolia, transport });
   const walletClient = createWalletClient({
     account: funderAccount,
     chain: sepolia,
-    transport: fallback([http(serverEnv.SEPOLIA_RPC_URL), http()]),
+    transport,
   });
 
   const result: FaucetResult = {
