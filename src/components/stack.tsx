@@ -60,12 +60,6 @@ const Stack = ({
     },
   ];
 
-  const statusMode = !stack.status
-    ? undefined
-    : stack.status === "expired" || stack.status === "finished"
-      ? ""
-      : stack.status;
-
   return (
     <li className="border border-paper-1 p-6 flex flex-col gap-6 bg-paper-0 shadow-[0px_4px_12px_0px_#1B201A26] xl:max-w-94">
       <div className="flex flex-col gap-2">
@@ -167,7 +161,7 @@ const Stack = ({
             <CheckCircleIcon size={20} />
             Completed
           </Body>
-        ) : statusMode === "" ? (
+        ) : stack.status === "expired" ? (
           <Body
             bold
             className="flex items-center justify-center gap-2 bg-surface-grey text-surface-ink opacity-50 py-4 px-8"
