@@ -13,9 +13,11 @@ import { useState } from "react";
 import { Address, getAddress, isAddress } from "viem";
 import { useBalance } from "wagmi";
 import { BREAD_TOKEN_ADDRESS } from "@/lib/constants";
+import { networks } from "@/utils/network";
 
 const SUPPORTED_CHAIN_IDS = [100, 11155111] as const;
 const APP_CHAIN_ID = clientEnv.NEXT_PUBLIC_CHAIN_ID;
+const APP_CHAIN = networks[APP_CHAIN_ID as keyof typeof networks]?.chain;
 const IS_SUPPORTED_CHAIN_ID = SUPPORTED_CHAIN_IDS.includes(
   APP_CHAIN_ID as (typeof SUPPORTED_CHAIN_IDS)[number]
 );
@@ -154,7 +156,7 @@ export function useWalletFunding() {
       debugWarn("[Privy] Fund wallet blocked: user not authenticated/ready");
       return false;
     }
-    if (!IS_SUPPORTED_CHAIN_ID) {
+    if (!IS_SUPPORTED_CHAIN_ID || !APP_CHAIN) {
       console.error(
         `[Privy] Fund wallet blocked: unsupported active chain id (${APP_CHAIN_ID}). Supported values: ${SUPPORTED_CHAIN_IDS.join(", ")}`
       );
@@ -185,7 +187,7 @@ export function useWalletFunding() {
 
       const openFunding = async () => {
         const options: FundWalletConfig = {
-          chain: { id: APP_CHAIN_ID },
+          chain: APP_CHAIN,
           defaultFundingMethod: "manual",
           uiConfig: {
             receiveFundsTitle: "Receive xDAI",
