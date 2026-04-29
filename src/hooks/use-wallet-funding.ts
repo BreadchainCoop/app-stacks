@@ -20,7 +20,6 @@ const IS_SUPPORTED_CHAIN_ID = SUPPORTED_CHAIN_IDS.includes(
 );
 // const BREAD_TOKEN_ADDRESS = SAVING_CIRCLES_CONTRACT_ADDRESS;
 const ZERO = BigInt(0);
-const PRIVY_FUNDING_AMOUNT = "10";
 const IS_DEBUG_ENV =
   clientEnv.NEXT_PUBLIC_NODE_ENV === "development" ||
   clientEnv.NEXT_PUBLIC_NODE_ENV === "local";
@@ -186,8 +185,6 @@ export function useWalletFunding() {
       const openFunding = async () => {
         const options = {
           chain: { id: APP_CHAIN_ID },
-          asset: "native-currency" as const,
-          amount: PRIVY_FUNDING_AMOUNT,
         };
 
         debugInfo("[Privy] Opening native funding modal", {
