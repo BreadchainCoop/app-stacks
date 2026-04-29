@@ -2,6 +2,7 @@
 import { clientEnv } from "@/lib/env";
 import {
   getEmbeddedConnectedWallet,
+  type FundWalletConfig,
   useCreateWallet,
   useFundWallet,
   usePrivy,
@@ -183,8 +184,13 @@ export function useWalletFunding() {
       }
 
       const openFunding = async () => {
-        const options = {
+        const options: FundWalletConfig = {
           chain: { id: APP_CHAIN_ID },
+          defaultFundingMethod: "wallet",
+          uiConfig: {
+            receiveFundsTitle: "Receive xDAI",
+            receiveFundsSubtitle: "Send any amount on Gnosis.",
+          },
         };
 
         debugInfo("[Privy] Opening native funding modal", {
