@@ -76,15 +76,9 @@ const Stack = ({
           <Body bold className="text-surface-grey">
             ID: {stack.id}
           </Body>
-          {statusMode && (
-            <Chip
-              className={`font-bold border-current! ${
-                stack.status === "payment_due"
-                  ? "text-system-warning"
-                  : "text-system-green"
-              }`}
-            >
-              {stack.status === "payment_due" ? "Payment due" : "Member"}
+          {stack.status === "payment_due" && (
+            <Chip className="font-bold border-current! text-system-warning">
+              Payment due
             </Chip>
           )}
         </div>
