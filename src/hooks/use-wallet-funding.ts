@@ -186,7 +186,7 @@ export function useWalletFunding() {
       const openFunding = async () => {
         const options: FundWalletConfig = {
           chain: { id: APP_CHAIN_ID },
-          defaultFundingMethod: "wallet",
+          defaultFundingMethod: "manual",
           uiConfig: {
             receiveFundsTitle: "Receive xDAI",
             receiveFundsSubtitle: "Send any amount on Gnosis.",
