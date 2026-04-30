@@ -79,11 +79,7 @@ export const getUserCircleStatus = (
     };
   }
 
-  // Failed: decommissionable (past window with incomplete deposits), either non-zero index or pool balance >0 (funds locked)
-  if (
-    circle.isDecommissionable &&
-    (completedRounds > BigInt(0) || circle.totalPoolBalance > BigInt(0))
-  ) {
+  if (circle.isDecommissionable) {
     return {
       status: "failed",
       statusLabel: "Failed",

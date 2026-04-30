@@ -145,7 +145,7 @@ const Overview = ({
             {isExpired ? (
               "Expired"
             ) : failedStatuses.includes(formattedCircleStatus.status) ? (
-              <>{formattedCircleStatus.status}</>
+              <>{formattedCircleStatus.statusLabel}</>
             ) : totalMembers === "-" ? (
               "-"
             ) : (
@@ -203,6 +203,8 @@ const Overview = ({
                 formattedCircleStatus.status
               ) && "text-system-warning",
               formattedCircleStatus.status === "failed" && "text-system-red",
+              formattedCircleStatus.status === "decommissioned" &&
+                "text-surface-grey",
               ["finished", "claimable", "deposit-completed"].includes(
                 formattedCircleStatus.status
               ) && "text-system-green"

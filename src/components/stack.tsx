@@ -34,6 +34,14 @@ const Stack = ({
       Number(stack.totalMember) +
     Number(formatEther(stack.totalPoolBalance || BigInt(0)));
   const percentageDone = totalGoal > 0 ? (totalDeposited / totalGoal) * 100 : 0;
+  const terminalStatusLabel =
+    stack.status === "failed"
+      ? "Failed"
+      : stack.status === "decommissioned"
+        ? "Decommissioned"
+        : stack.status === "expired"
+          ? "Expired"
+          : null;
 
   const items = [
     {
@@ -87,9 +95,9 @@ const Stack = ({
               <Body className="text-xs sm:text-sm text-surface-grey">
                 Not started
               </Body>
-            ) : stack.status === "expired" ? (
+            ) : terminalStatusLabel ? (
               <Body className="text-xs sm:text-sm text-surface-grey">
-                Expired
+                {terminalStatusLabel}
               </Body>
             ) : (
               <Body bold className="text-xs sm:text-base">
@@ -160,6 +168,20 @@ const Stack = ({
           >
             <CheckCircleIcon size={20} />
             Completed
+          </Body>
+        ) : stack.status === "failed" ? (
+          <Body
+            bold
+            className="flex items-center justify-center gap-2 bg-red-0 text-system-red py-4 px-8"
+          >
+            Failed
+          </Body>
+        ) : stack.status === "decommissioned" ? (
+          <Body
+            bold
+            className="flex items-center justify-center gap-2 bg-surface-grey text-surface-ink opacity-50 py-4 px-8"
+          >
+            Decommissioned
           </Body>
         ) : stack.status === "expired" ? (
           <Body
