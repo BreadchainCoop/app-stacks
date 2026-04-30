@@ -7,6 +7,7 @@ import { zeroAddress } from "viem";
 import { getDefaultChainId } from "@/utils/chain";
 import { useBlockTimestamp } from "./use-block-timestamp";
 import { getUserCircleStatus } from "@/lib/get-user-circle-status";
+import { useConnectedUser } from "@breadcoop/ui";
 
 const PAGE_SIZE = 9;
 type UserCircleData = Parameters<typeof getUserCircleStatus>[0];
@@ -14,6 +15,11 @@ type UserCircleData = Parameters<typeof getUserCircleStatus>[0];
 export function useAllCircles(page: number = 0) {
   const skip = page * PAGE_SIZE;
   const blockTimestamp = useBlockTimestamp();
+  const { user } = useConnectedUser();
+  const memberAddress =
+    user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
+      ? user.address
+      : zeroAddress;
 
   const { total: totalCircles, isLoading: loadingTotal } = useTotalCircles();
 
@@ -29,7 +35,7 @@ export function useAllCircles(page: number = 0) {
       address: SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS,
       abi: savingCirclesViewerAbi,
       functionName: "getUserCircleData",
-      args: [zeroAddress, id],
+      args: [memberAddress, id],
       chainId: getDefaultChainId(),
     })),
     query: {
@@ -52,7 +58,7 @@ export function useAllCircles(page: number = 0) {
       const circleData = circleResult.result as unknown as UserCircleData;
       const status = getUserCircleStatus(
         circleData,
-        zeroAddress,
+        memberAddress,
         {},
         now
       ).status;
@@ -63,6 +69,7 @@ export function useAllCircles(page: number = 0) {
         totalMember: Number(circleData.totalRounds),
         status,
         totalPoolBalance: circleData.totalPoolBalance,
+        isMember: circleData.isMember,
       });
     }
   }

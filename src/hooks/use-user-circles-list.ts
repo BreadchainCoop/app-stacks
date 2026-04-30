@@ -41,6 +41,7 @@ export function useUserCirclesList(address: Address) {
         id: c.circleId,
         status,
         totalPoolBalance: c.totalPoolBalance,
+        isMember: c.isMember,
         canWithdraw,
         ...(canWithdraw && {
           withdrawAmount:

@@ -78,11 +78,18 @@ const Stack = ({
           <Body bold className="text-surface-grey">
             ID: {stack.id}
           </Body>
-          {stack.status === "payment_due" && (
-            <Chip className="font-bold border-current! text-system-warning">
-              Payment due
-            </Chip>
-          )}
+          <div className="flex items-center justify-end gap-2">
+            {stack.isMember && (
+              <Chip className="border-system-green text-system-green bg-paper-main max-w-max hover:border-current">
+                Member
+              </Chip>
+            )}
+            {stack.status === "payment_due" && (
+              <Chip className="font-bold border-current! text-system-warning">
+                Payment due
+              </Chip>
+            )}
+          </div>
         </div>
       </div>
       <div className="flex items-center justify-between gap-6">

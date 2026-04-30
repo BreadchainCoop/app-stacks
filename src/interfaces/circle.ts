@@ -24,6 +24,7 @@ interface ICircleBaseList {
   owner: Address;
   token: Address;
   totalPoolBalance?: bigint;
+  isMember?: boolean;
 }
 
 type ICircleWithdraw = {
