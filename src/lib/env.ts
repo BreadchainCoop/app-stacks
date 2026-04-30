@@ -23,7 +23,7 @@ const envSchema = z.object({
   NEXT_PUBLIC_SEPOLIA_RPC_URL: z.string().optional().default(""),
   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: z.string(),
   NEXT_PUBLIC_NODE_ENV: z
-    .enum(["development", "production", "local"])
+    .enum(["development", "production", "local", "sepolia"])
     .default("production"),
   NEXT_PUBLIC_PRIVY_APP_ID: z.string(),
   NEXT_PUBLIC_PRIVY_CLIENT_ID: z.string(),
