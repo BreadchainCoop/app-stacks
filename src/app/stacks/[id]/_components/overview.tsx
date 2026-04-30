@@ -267,13 +267,6 @@ const Overview = ({
               <LoginButton app="stacks" status={connectedUser.user.status} />
             )}
           </>
-        ) : formattedCircleStatus.status === "deposit-completed" ? (
-          <Body
-            bold
-            className="py-4 px-8 text-paper-main bg-surface-grey text-center opacity-50"
-          >
-            Awaiting current withdrawer to claim
-          </Body>
         ) : formattedCircleStatus.status === "failed" &&
           circle.isDecommissionable &&
           !circle.isDecommissioned &&
