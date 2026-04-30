@@ -49,7 +49,7 @@ export function useAllCircles(page: number = 0) {
         continue;
       }
 
-      const circleData = circleResult.result as UserCircleData;
+      const circleData = circleResult.result as unknown as UserCircleData;
       const status = getUserCircleStatus(
         circleData,
         zeroAddress,
