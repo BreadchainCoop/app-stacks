@@ -127,6 +127,7 @@ const StackDetailsBreakdown = ({
   let _roundsLeft = "-";
 
   const parsedInterval = splitIntervalId(intervalId);
+  const hasNoTimeLeft = failedStatuses.includes(status.status);
 
   if (status.status !== "pending-start") {
     _roundsLeft = `${+roundsLeft * parsedInterval[0]}`;
@@ -157,9 +158,11 @@ const StackDetailsBreakdown = ({
         <>
           <p className="text-h2 leading-6 tracking-[-2%] text-2xl">
             {/* {status.status === "finished" ? "0" : _roundsLeft} */}
-            {failedStatuses.includes(status.status) ? "0" : _roundsLeft}
+            {hasNoTimeLeft ? "0" : _roundsLeft}
           </p>
-          {status.status !== "pending-start" && <p>{parsedInterval[1]}</p>}
+          {status.status !== "pending-start" && !hasNoTimeLeft && (
+            <p>{parsedInterval[1]}</p>
+          )}
         </>
       </StackDetailsBreakdownRow>
     </div>

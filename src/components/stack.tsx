@@ -42,6 +42,12 @@ const Stack = ({
         : stack.status === "expired"
           ? "Expired"
           : null;
+  const hasInactiveProgress = [
+    "pending-start",
+    "failed",
+    "decommissioned",
+    "expired",
+  ].includes(stack.status);
 
   const items = [
     {
@@ -112,11 +118,21 @@ const Stack = ({
               </Body>
             )}
           </div>
-          <div className="w-full h-3.5 p-0.75 bg-paper-main">
+          <div
+            className={`w-full h-3.5 p-0.75 ${
+              hasInactiveProgress ? "bg-paper-2" : "bg-paper-main"
+            }`}
+          >
             <div
-              className={`h-full ${stack.status === "finished" ? "bg-system-green" : "bg-primary-blue"}`}
+              className={`h-full ${
+                stack.status === "finished"
+                  ? "bg-system-green"
+                  : hasInactiveProgress
+                    ? "bg-surface-grey"
+                    : "bg-primary-blue"
+              }`}
               style={{
-                width: `${stack.status === "pending-start" ? 0 : percentageDone}%`,
+                width: `${hasInactiveProgress ? 0 : percentageDone}%`,
               }}
             />
           </div>

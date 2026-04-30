@@ -32,10 +32,12 @@ const DaysLeft = ({
   let progressPercent = 0;
   const isCompleted = status === "finished";
   const isPendingStart = status === "pending-start";
+  const isStopped = status === "failed" || status === "decommissioned";
 
   if (isCompleted) {
     progressPercent = 100;
   } else if (
+    !isStopped &&
     depositWindowEnd &&
     isActive &&
     effectiveCircleStartTime &&
@@ -80,20 +82,28 @@ const DaysLeft = ({
         <div className="flex items-center justify-start gap-0.5">
           {isCompleted ? (
             <CalendarCheckIcon size={24} className="fill-system-green" />
-          ) : isPendingStart ? (
+          ) : isPendingStart || isStopped ? (
             <CalendarDotIcon size={24} className="fill-surface-grey" />
           ) : (
             <CalendarStarIcon size={24} className="fill-blue-2" />
           )}
-          <Body className={isPendingStart ? "text-surface-grey" : undefined}>
+          <Body
+            className={
+              isPendingStart || isStopped ? "text-surface-grey" : undefined
+            }
+          >
             {isCompleted
               ? "Circle completed"
               : isPendingStart
                 ? "Waiting for circle to start"
-                : "Days left until current round ends"}
+                : isStopped
+                  ? status === "failed"
+                    ? "Stack failed"
+                    : "Stack decommissioned"
+                  : "Days left until current round ends"}
           </Body>
         </div>
-        {!isCompleted && !isPendingStart && (
+        {!isCompleted && !isPendingStart && !isStopped && (
           <p className="text-h2 text-2xl leading-6 mt-2">{daysLeft}</p>
         )}
       </div>
@@ -102,7 +112,7 @@ const DaysLeft = ({
           className={`h-full ${
             isCompleted
               ? "bg-system-green"
-              : isPendingStart
+              : isPendingStart || isStopped
                 ? "bg-surface-grey"
                 : "bg-primary-blue"
           }`}
@@ -113,7 +123,7 @@ const DaysLeft = ({
         <Body className="text-system-green">
           {completedDate ? `Completed on ${completedDate}` : "Circle completed"}
         </Body>
-      ) : isPendingStart ? null : (
+      ) : isPendingStart || isStopped ? null : (
         isActive && (
           <Countdown
             targetSeconds={Number(depositWindowEnd)}
