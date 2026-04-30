@@ -47,7 +47,7 @@ const Stack = ({
     "failed",
     "decommissioned",
     "expired",
-  ].includes(stack.status);
+  ].includes(stack.status ?? "");
 
   const items = [
     {
