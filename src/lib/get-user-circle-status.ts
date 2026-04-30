@@ -39,6 +39,11 @@ export const getUserCircleStatus = (
     depositWindowOpen &&
     !hasDepositedThisRound;
   const completedRounds = circle.completedRounds;
+  const hasStarted = circle.circleInfo.effectiveCircleStartTime > BigInt(0);
+  const isCompleted =
+    hasStarted &&
+    completedRounds >= circle.totalRounds &&
+    circle.totalPoolBalance === BigInt(0);
 
   if (circle.isDecommissioned) {
     return {
@@ -50,7 +55,7 @@ export const getUserCircleStatus = (
     };
   }
 
-  if (circle.circleInfo.effectiveCircleStartTime === BigInt(0)) {
+  if (!hasStarted) {
     return {
       status: "pending-start",
       statusLabel: "Not started",
@@ -64,13 +69,7 @@ export const getUserCircleStatus = (
     };
   }
 
-  // Finished: currentIndex (completedRounds) reset to 0 after full cycle, started, decommissionable, and no pool balance (balances cleared)
-  if (
-    completedRounds === BigInt(0) &&
-    circle.circleInfo.effectiveCircleStartTime > BigInt(0) &&
-    circle.isDecommissionable &&
-    circle.totalPoolBalance === BigInt(0)
-  ) {
+  if (isCompleted) {
     return {
       status: "finished",
       statusLabel: "Finished",
