@@ -25,7 +25,7 @@ export const CopyStackLink = () => {
   return (
     <LiftedButton
       preset="stroke"
-      className={`h-8 border pt-1.5 pb-1.5 px-4 ${copied ? "text-system-green" : ""}`}
+      className={`h-8 border px-4 ${copied ? "text-system-green" : ""}`}
       leftIcon={
         copied ? (
           <CheckIcon className="fill-system-green" />

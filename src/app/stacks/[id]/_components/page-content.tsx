@@ -49,10 +49,21 @@ const PageContent = ({ id }: { id: string }) => {
     }
   }, [userCircleData.circleData, member]);
 
+  console.log("__ CIRCLE DATA __", userCircleData.circleData);
+
   return (
     <>
-      <BackMeta className="mb-4! -mt-3 md:hidden" />
-      <StackHeader id={id} isMember={userCircleData.circleData?.isMember} />
+      <BackMeta
+        className="mb-4! -mt-3 md:hidden"
+        isLoadingCircleData={userCircleData.isLoading}
+        circle={userCircleData.circleData}
+      />
+      <StackHeader
+        id={id}
+        isMember={userCircleData.circleData?.isMember}
+        isLoadingCircleData={userCircleData.isLoading}
+        circle={userCircleData.circleData}
+      />
       {userCircleData.circleData ? (
         <>
           <div className="*:mb-4 last:mb-0 md:mb-6 md:last:mb-0">
@@ -84,3 +95,59 @@ const PageContent = ({ id }: { id: string }) => {
 };
 
 export default PageContent;
+
+// const before = {
+//   canWithdraw: false,
+//   circleId: 1n,
+//   circleInfo: {
+//     circleEnd: 0n,
+//     currentIndex: 0n,
+//     depositAmount: 3400000000000000000n,
+//     depositInterval: 259200n,
+//     effectiveCircleStartTime: 0n,
+//     owner: "0xa90Bb4F04725688b792908105AA0F37a55004Bbc",
+//     token: "0x906B067e392e2c5f9E4f101f36C0b8CdA4885EBf",
+//   },
+//   completedRounds: 0n,
+//   currentWithdrawer: "0x0000000000000000000000000000000000000000",
+//   depositWindowEnd: 259200n,
+//   isCurrentWithdrawer: false,
+//   isDecommissionable: false,
+//   isDecommissioned: false,
+//   isExpired: true,
+//   isMember: true,
+//   isOwner: true,
+//   nextWithdrawTime: 0n,
+//   remainingDepositsNeeded: 3n,
+//   totalPoolBalance: 0n,
+//   totalRounds: 3n,
+//   userBalance: 0n,
+// };
+
+// const after = {
+//   canWithdraw: false,
+//   circleId: 1n,
+//   circleInfo: {
+//     circleEnd: 1778482171n,
+//     currentIndex: 0n,
+//     depositAmount: 3400000000000000000n,
+//     depositInterval: 259200n,
+//     effectiveCircleStartTime: 1777704571n,
+//     owner: "0xa90Bb4F04725688b792908105AA0F37a55004Bbc",
+//     token: "0x906B067e392e2c5f9E4f101f36C0b8CdA4885EBf",
+//   },
+//   completedRounds: 0n,
+//   currentWithdrawer: "0xa90Bb4F04725688b792908105AA0F37a55004Bbc",
+//   depositWindowEnd: 1777963771n,
+//   isCurrentWithdrawer: true,
+//   isDecommissionable: false,
+//   isDecommissioned: false,
+//   isExpired: false,
+//   isMember: true,
+//   isOwner: true,
+//   nextWithdrawTime: 1777704571n,
+//   remainingDepositsNeeded: 3n,
+//   totalPoolBalance: 0n,
+//   totalRounds: 3n,
+//   userBalance: 0n,
+// };

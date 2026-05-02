@@ -8,7 +8,7 @@ import {TransparentUpgradeableProxy} from "@openzeppelin/proxy/transparent/Trans
 import {ProxyAdmin} from "@openzeppelin/proxy/transparent/ProxyAdmin.sol";
 
 import {SavingCircles} from "saving-circles/src/contracts/SavingCircles.sol";
-import {DelegatedSavingCircles} from "saving-circles/src/contracts/DelegatedSavingCircles.sol";
+import {AutomaticSavingCircles} from "saving-circles/src/contracts/AutomaticSavingCircles.sol";
 import {SavingCirclesViewer} from "saving-circles/src/contracts/SavingCirclesViewer.sol";
 
 import {MockBread} from "./MockBread.sol";
@@ -24,11 +24,9 @@ contract Deploy is Script {
 
         MockBread bread = new MockBread(admin, admin, initialBreadSupply);
 
-        // 1. Implementation + ProxyAdmin
         SavingCircles implementation = new SavingCircles();
         ProxyAdmin proxyAdmin = new ProxyAdmin(admin);
 
-        // 2. Proxy with initializer
         bytes memory initData =
             abi.encodeWithSelector(SavingCircles.initialize.selector, admin);
 
@@ -41,9 +39,8 @@ contract Deploy is Script {
 
         SavingCircles savingCircles = SavingCircles(address(proxy));
 
-        // 3. Helper contracts
-        DelegatedSavingCircles delegatedSavingCircles =
-            new DelegatedSavingCircles(address(savingCircles));
+        AutomaticSavingCircles automaticSavingCircles =
+            new AutomaticSavingCircles(address(savingCircles), admin);
 
         SavingCirclesViewer viewer =
             new SavingCirclesViewer(address(savingCircles));
@@ -52,33 +49,22 @@ contract Deploy is Script {
 
         require(savingCircles.owner() == admin, "SavingCircles owner != admin");
         require(savingCircles.allowedTokens(address(bread)) == true, "BREAD not allowed");
-        require(address(delegatedSavingCircles.SAVING_CIRCLES()) == address(savingCircles), "Bad delegated SAVING_CIRCLES");
 
-        // Logs
         console2.log("MockBread (BREAD):", address(bread));
         console2.log("SavingCircles implementation:", address(implementation));
         console2.log("SavingCircles proxy:", address(savingCircles));
         console2.log("ProxyAdmin:", address(proxyAdmin));
-        console2.log("DelegatedSavingCircles:", address(delegatedSavingCircles));
+        console2.log("AutomaticSavingCircles:", address(automaticSavingCircles));
         console2.log("SavingCirclesViewer:", address(viewer));
 
         vm.stopBroadcast();
 
-        // Persist to JSON under ./out
         string memory key = "deployment";
         vm.serializeAddress(key, "breadToken", address(bread));
         vm.serializeAddress(key, "savingCirclesProxy", address(savingCircles));
-        vm.serializeAddress(
-            key,
-            "savingCirclesImplementation",
-            address(implementation)
-        );
+        vm.serializeAddress(key, "savingCirclesImplementation", address(implementation));
         vm.serializeAddress(key, "proxyAdmin", address(proxyAdmin));
-        vm.serializeAddress(
-            key,
-            "delegatedSavingCircles",
-            address(delegatedSavingCircles)
-        );
+        vm.serializeAddress(key, "automaticSavingCircles", address(automaticSavingCircles));
         string memory json =
             vm.serializeAddress(key, "savingCirclesViewer", address(viewer));
 
