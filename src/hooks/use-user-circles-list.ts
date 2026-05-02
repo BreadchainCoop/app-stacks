@@ -42,6 +42,8 @@ export function useUserCirclesList(address: Address) {
         status,
         totalPoolBalance: c.totalPoolBalance,
         isMember: c.isMember,
+        isDecommissionable: c.isDecommissionable,
+        userBalance: c.userBalance,
         canWithdraw,
         ...(canWithdraw && {
           withdrawAmount:
@@ -52,7 +54,7 @@ export function useUserCirclesList(address: Address) {
     });
 
     return parsedCircle;
-  }, [data]);
+  }, [address, blockTimestamp, data]);
 
   return { circles, isLoading, error };
 }

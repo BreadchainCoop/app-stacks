@@ -70,6 +70,8 @@ export function useAllCircles(page: number = 0) {
         status,
         totalPoolBalance: circleData.totalPoolBalance,
         isMember: circleData.isMember,
+        isDecommissionable: circleData.isDecommissionable,
+        userBalance: circleData.userBalance,
       });
     }
   }
