@@ -15,6 +15,7 @@ import StackFailed from "./modals/stack-failed";
 import WithdrawBreadModal from "./modals/withdraw-bread";
 import WalletFundingModal from "./modals/wallet-funding";
 import WalletFundingStatusModal from "./modals/wallet-funding-status";
+import ReminderModal from "@/components/reminder/modal";
 
 const ModalPresenter = () => {
   const { modalState, setModal } = useModal();
@@ -61,6 +62,9 @@ const ModalPresenter = () => {
               )}
               {modalState.type === "WALLET_FUNDING_STATUS" && (
                 <WalletFundingStatusModal modalState={modalState} />
+              )}
+              {modalState.type === "REMINDER" && (
+                <ReminderModal modalState={modalState} />
               )}
             </Dialog.Content>
           </>

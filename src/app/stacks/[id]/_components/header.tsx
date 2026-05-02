@@ -5,20 +5,24 @@ import { Heading2 } from "@breadcoop/ui";
 import StackMember from "./member";
 import BackMeta from "./back-meta";
 import { useStackSupabase } from "@/hooks/use-stack-supabase";
+import { useUserCircleData } from "@/hooks/use-user-circle-data";
+
+type CircleData = Exclude<
+  ReturnType<typeof useUserCircleData>["circleData"],
+  undefined
+>;
 
 const StackHeader = ({
   id,
   isMember,
+  isLoadingCircleData,
+  circle,
 }: {
   id: string;
   isMember: boolean | undefined;
+  isLoadingCircleData: boolean;
+  circle?: CircleData;
 }) => {
-  // const [localCircles, setLocalCircles] = useState<LocalStorageCircles>({});
-
-  // useEffect(() => {
-  //   setLocalCircles(JSON.parse(localStorage.getItem("circles") || "{}"));
-  // }, []);
-
   const { data: stackMetadata } = useStackSupabase(id, !!isMember);
 
   const stackName = isMember
@@ -33,7 +37,11 @@ const StackHeader = ({
         </Heading2>
         <StackMember isMember={isMember} />
       </div>
-      <BackMeta className="hidden md:flex md:mt-2 md:mb-6" />
+      <BackMeta
+        className="hidden md:flex md:mt-2 md:mb-6"
+        isLoadingCircleData={isLoadingCircleData}
+        circle={circle}
+      />
       <Alert
         closeAble={false}
         variant="warning"

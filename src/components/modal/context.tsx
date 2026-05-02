@@ -1,5 +1,6 @@
 "use client";
 
+import { CalendarEvent } from "@/components/reminder/interfaces";
 import { type ReactNode, createContext, useContext, useState } from "react";
 import { Address } from "viem";
 
@@ -86,6 +87,11 @@ export type WalletFundingStatusModalState = {
   onRetry?: () => Promise<void>;
 };
 
+export type ReminderModalState = {
+  type: "REMINDER";
+  calendar: CalendarEvent;
+};
+
 export type ModalState =
   | DepositInitModalState
   | DepositLoadingModalState
@@ -99,6 +105,7 @@ export type ModalState =
   | WithdrawBreadModalState
   | WalletFundingModalState
   | WalletFundingStatusModalState
+  | ReminderModalState
   | null;
 
 export type ModalContext = {
