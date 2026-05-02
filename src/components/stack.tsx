@@ -12,6 +12,7 @@ import DepositButton from "./deposit-button";
 import { CheckCircleIcon, HandWithdrawIcon } from "@phosphor-icons/react";
 import { parseCircleIntervalToDate } from "@/utils/stacks";
 import { Database } from "@/lib/supabase";
+import { useModal } from "./modal/context";
 
 type StackMetadata = Database["public"]["Tables"]["stacks_metadata"]["Row"];
 
@@ -22,6 +23,7 @@ const Stack = ({
   stack: ICircleList;
   stacksMap: Record<string, StackMetadata>;
 }) => {
+  const { setModal } = useModal();
   const stackMeta = stacksMap[String(stack.id)];
   const depositAmount = formatEther(stack.depositAmount);
   const totalGoal =
@@ -93,6 +95,11 @@ const Stack = ({
             {stack.status === "payment_due" && (
               <Chip className="font-bold border-current! text-system-warning">
                 Payment due
+              </Chip>
+            )}
+            {stack.status === "failed" && (
+              <Chip className="font-bold border-current! text-system-red">
+                Failed
               </Chip>
             )}
           </div>
@@ -193,12 +200,13 @@ const Stack = ({
             Completed
           </Body>
         ) : stack.status === "failed" ? (
-          <Body
-            bold
-            className="flex items-center justify-center gap-2 bg-red-0 text-system-red py-4 px-8"
+          <LocalLiftedButton
+            className="font-bold"
+            preset="destructive"
+            onClick={() => setModal({ type: "STACK_FAILED", id: stack.id })}
           >
-            Failed
-          </Body>
+            Claim last deposits
+          </LocalLiftedButton>
         ) : stack.status === "decommissioned" ? (
           <Body
             bold
