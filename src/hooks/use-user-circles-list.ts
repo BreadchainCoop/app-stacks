@@ -1,4 +1,4 @@
-import { useReadContract } from "wagmi";
+import { useReadContracts } from "wagmi";
 import { SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS } from "@/lib/constants";
 import { savingCirclesViewerAbi } from "@/lib/abis/saving-circles-viewers";
 import { Address, formatEther } from "viem";
@@ -7,24 +7,44 @@ import { useMemo } from "react";
 import { getDefaultChainId } from "@/utils/chain";
 import { getUserCircleStatus } from "@/lib/get-user-circle-status";
 import { useBlockTimestamp } from "./use-block-timestamp";
+import { useTotalCircles } from "./use-total-circles";
+
+type UserCircleData = Parameters<typeof getUserCircleStatus>[0];
 
 export function useUserCirclesList(address: Address) {
   const blockTimestamp = useBlockTimestamp();
-  const { data, isLoading, error } = useReadContract({
-    address: SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS,
-    abi: savingCirclesViewerAbi,
-    functionName: "getComprehensiveUserData",
-    args: address ? [address] : undefined,
-    chainId: getDefaultChainId(),
+  const { total: totalCircles, isLoading: loadingTotal } = useTotalCircles();
+  const circleIds = Array.from({ length: totalCircles }, (_, i) => BigInt(i));
+
+  const {
+    data: rawResults,
+    isLoading: loadingCircles,
+    error,
+  } = useReadContracts({
+    contracts: circleIds.map((id) => ({
+      address: SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS,
+      abi: savingCirclesViewerAbi,
+      functionName: "getUserCircleData",
+      args: [address, id],
+      chainId: getDefaultChainId(),
+    })),
+    query: {
+      enabled: Boolean(address) && circleIds.length > 0,
+    },
   });
 
   const circles = useMemo(() => {
-    if (!data) return [];
+    if (!rawResults) return [];
 
     const now = BigInt(Math.floor(blockTimestamp / 1000));
+    const parsedCircles: ICircleList[] = [];
 
-    // @ts-expect-error Correct
-    const parsedCircle: ICircleList[] = data.circleData.map((c) => {
+    for (const result of rawResults) {
+      if (result.status === "failure") continue;
+
+      const c = result.result as unknown as UserCircleData;
+      if (!c.isMember && !c.isOwner) continue;
+
       const totalRounds = c.totalRounds;
 
       const status = getUserCircleStatus(
@@ -33,9 +53,8 @@ export function useUserCirclesList(address: Address) {
         { includeClaimable: true },
         now
       ).status;
-      const canWithdraw = c.canWithdraw;
 
-      return {
+      const circle = {
         ...c.circleInfo,
         totalMember: Number(totalRounds),
         id: c.circleId,
@@ -44,17 +63,26 @@ export function useUserCirclesList(address: Address) {
         isMember: c.isMember,
         isDecommissionable: c.isDecommissionable,
         userBalance: c.userBalance,
-        canWithdraw,
-        ...(canWithdraw && {
+      };
+
+      if (c.canWithdraw) {
+        parsedCircles.push({
+          ...circle,
+          canWithdraw: true,
           withdrawAmount:
             Number(formatEther(c.circleInfo.depositAmount)) *
             Number(totalRounds),
-        }),
-      };
-    });
+        });
+      } else {
+        parsedCircles.push({
+          ...circle,
+          canWithdraw: false,
+        });
+      }
+    }
 
-    return parsedCircle;
-  }, [address, blockTimestamp, data]);
+    return parsedCircles;
+  }, [address, blockTimestamp, rawResults]);
 
-  return { circles, isLoading, error };
+  return { circles, isLoading: loadingTotal || loadingCircles, error };
 }
