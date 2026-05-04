@@ -41,7 +41,7 @@ const DaysLeft = ({
     const timeLeft = currentRoundEnd - now;
 
     if (timeLeft > 0) {
-      const _daysLeft = Math.ceil(timeLeft / (60 * 60 * 24));
+      const _daysLeft = Math.floor(timeLeft / (60 * 60 * 24));
       daysLeft = `${_daysLeft} ${_daysLeft === 1 ? "day" : "days"}`;
 
       const timePassed = now - currentRoundStart;

@@ -6,7 +6,7 @@ import LocalLiftedButton from "./lifted-button";
 import Link from "next/link";
 import { QuestionIcon } from "@phosphor-icons/react/ssr";
 import ClaimButton from "./claim-button";
-import { ICircleList } from "@/interfaces/circle";
+import { ICircleList, ICircleStatus } from "@/interfaces/circle";
 import { formatEther } from "viem";
 import DepositButton from "./deposit-button";
 import { HandWithdrawIcon } from "@phosphor-icons/react";
@@ -14,6 +14,12 @@ import { parseCircleIntervalToDate } from "@/utils/stacks";
 import { Database } from "@/lib/supabase";
 
 type StackMetadata = Database["public"]["Tables"]["stacks_metadata"]["Row"];
+
+const IS_MEMBER_STATUSES: ICircleStatus[] = [
+  "claimable",
+  "deposit-completed",
+  "deposited",
+];
 
 const Stack = ({
   stack,
@@ -28,12 +34,18 @@ const Stack = ({
     Number(depositAmount) * stack.totalMember * stack.totalMember;
   const totalDeposited =
     Number(
-      stack.status === "finished" ? stack.totalMember : stack.currentIndex
+      stack.status === "finished" || stack.status === "expired"
+        ? stack.totalMember
+        : stack.currentIndex
     ) *
       Number(depositAmount) *
       Number(stack.totalMember) +
     Number(formatEther(stack.totalPoolBalance || BigInt(0)));
-  const percentageDone = (totalDeposited / totalGoal) * 100;
+
+  let percentageDone = 0;
+  if (totalDeposited !== 0 && totalGoal !== 0) {
+    percentageDone = (totalDeposited / totalGoal) * 100;
+  }
 
   const items = [
     {
@@ -76,7 +88,7 @@ const Stack = ({
           <Body bold className="text-surface-grey">
             ID: {stack.id}
           </Body>
-          {statusMode && (
+          {/* {statusMode && (
             <Chip
               className={`font-bold border-current! ${
                 stack.status === "payment_due"
@@ -86,7 +98,16 @@ const Stack = ({
             >
               {stack.status === "payment_due" ? "Payment due" : "Member"}
             </Chip>
-          )}
+          )} */}
+          {stack.status === "payment_due" ? (
+            <Chip className="font-bold border-current! text-system-warning">
+              Payment due
+            </Chip>
+          ) : IS_MEMBER_STATUSES.includes(stack.status || "failed") ? (
+            <Chip className="font-bold border-current! text-system-green">
+              Member
+            </Chip>
+          ) : null}
         </div>
       </div>
       <div className="flex items-center justify-between gap-6">
