@@ -47,6 +47,7 @@ const StackFailed = ({ modalState }: { modalState: StackFailedModalState }) => {
         args: [modalState.id],
       });
       queryClient.invalidateQueries({ queryKey: ["readContract"] });
+      queryClient.invalidateQueries({ queryKey: ["readContracts"] });
 
       setFeedback({
         type: "success",
