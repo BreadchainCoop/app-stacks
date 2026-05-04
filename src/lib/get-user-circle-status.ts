@@ -69,16 +69,6 @@ export const getUserCircleStatus = (
     };
   }
 
-  if (isCompleted) {
-    return {
-      status: "finished",
-      statusLabel: "Finished",
-      variant: "success",
-      title: "Circle completed successfully",
-      desc: "Everyone has deposited and withdrawn their funds. No more actions can be taken.",
-    };
-  }
-
   if (circle.isDecommissionable) {
     return {
       status: "failed",
@@ -86,6 +76,16 @@ export const getUserCircleStatus = (
       variant: "stop",
       title: "Circle has failed",
       desc: "A user didn't deposit before the round ended. The circle can now be decommissioned to return funds.",
+    };
+  }
+
+  if (isCompleted) {
+    return {
+      status: "finished",
+      statusLabel: "Finished",
+      variant: "success",
+      title: "Circle completed successfully",
+      desc: "Everyone has deposited and withdrawn their funds. No more actions can be taken.",
     };
   }
 
