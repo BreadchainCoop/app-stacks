@@ -128,6 +128,7 @@ export function useUserCirclesList(address: Address) {
       []) as unknown as UserCircleData[]) {
       const id = c.circleId.toString();
       if (parsedCircleIds.has(id)) continue;
+      if (!c.isDecommissioned || (!c.isMember && !c.isOwner)) continue;
 
       parsedCircles.push(parseCircleData(c, address, now));
       parsedCircleIds.add(id);
