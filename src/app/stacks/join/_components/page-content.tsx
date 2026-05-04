@@ -133,7 +133,7 @@ export default function PageContent() {
   }, []);
 
   return (
-    <div className="*:mb-6 last:mb-0 page-layout py-6 w-full max-w-142 mx-auto sm:shadow-[0px_4px_12px_0px_#1B201A26]">
+    <div className="*:mb-6 last:mb-0 page-layout py-6 w-full max-w-142 mx-auto card-shadow-bg">
       <div className="flex flex-col text-center items-center justify-center gap-3">
         <ConfettiIcon className="size-20 fill-primary-blue" />
         <Heading1 className="text-2xl leading-6">You are invited!</Heading1>
