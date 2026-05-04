@@ -1,5 +1,8 @@
-import { useReadContracts } from "wagmi";
-import { SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS } from "@/lib/constants";
+import { useReadContract, useReadContracts } from "wagmi";
+import {
+  SAVING_CIRCLES_CONTRACT_ADDRESS,
+  SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS,
+} from "@/lib/constants";
 import { savingCirclesViewerAbi } from "@/lib/abis/saving-circles-viewers";
 import { Address, formatEther } from "viem";
 import { ICircleList } from "@/interfaces/circle";
@@ -7,19 +10,33 @@ import { useMemo } from "react";
 import { getDefaultChainId } from "@/utils/chain";
 import { getUserCircleStatus } from "@/lib/get-user-circle-status";
 import { useBlockTimestamp } from "./use-block-timestamp";
-import { useTotalCircles } from "./use-total-circles";
+import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 
 type UserCircleData = Parameters<typeof getUserCircleStatus>[0];
 
 export function useUserCirclesList(address: Address) {
   const blockTimestamp = useBlockTimestamp();
-  const { total: totalCircles, isLoading: loadingTotal } = useTotalCircles();
-  const circleIds = Array.from({ length: totalCircles }, (_, i) => BigInt(i));
+  const {
+    data: userCircleIds,
+    isLoading: loadingUserCircleIds,
+    error,
+  } = useReadContract({
+    address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+    abi: savingCirclesAbi,
+    functionName: "getMemberCircles",
+    args: [address],
+    chainId: getDefaultChainId(),
+    query: {
+      enabled: Boolean(address),
+    },
+  });
+
+  const circleIds = useMemo(() => userCircleIds ?? [], [userCircleIds]);
 
   const {
     data: rawResults,
     isLoading: loadingCircles,
-    error,
+    error: circlesError,
   } = useReadContracts({
     contracts: circleIds.map((id) => ({
       address: SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS,
@@ -43,8 +60,6 @@ export function useUserCirclesList(address: Address) {
       if (result.status === "failure") continue;
 
       const c = result.result as unknown as UserCircleData;
-      if (!c.isMember && !c.isOwner) continue;
-
       const totalRounds = c.totalRounds;
 
       const status = getUserCircleStatus(
@@ -84,5 +99,9 @@ export function useUserCirclesList(address: Address) {
     return parsedCircles;
   }, [address, blockTimestamp, rawResults]);
 
-  return { circles, isLoading: loadingTotal || loadingCircles, error };
+  return {
+    circles,
+    isLoading: loadingUserCircleIds || loadingCircles,
+    error: error || circlesError,
+  };
 }
