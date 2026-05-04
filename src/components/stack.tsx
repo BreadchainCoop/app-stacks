@@ -203,6 +203,7 @@ const Stack = ({
           <LocalLiftedButton
             className="font-bold"
             preset="destructive"
+            width="full"
             onClick={() => setModal({ type: "STACK_FAILED", id: stack.id })}
           >
             Claim last deposits
