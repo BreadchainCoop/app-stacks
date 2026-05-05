@@ -28,7 +28,6 @@ const parseCircleData = (
     totalMember: Number(totalRounds),
     id: c.circleId,
     status: formattedStatus.status,
-    roundState: formattedStatus.roundState,
     totalPoolBalance: c.totalPoolBalance,
     isMember: c.isMember,
     isDecommissionable: c.isDecommissionable,
