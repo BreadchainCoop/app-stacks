@@ -12,6 +12,17 @@ import { useUserStacksMetadata } from "@/hooks/use-user-stacks-metadata";
 
 type Tab = "due" | "claim" | "past" | "all";
 
+const pastRoundStates = ["finished", "failed"];
+
+const hasFailedClaim = (circle: {
+  status?: string;
+  isDecommissionable?: boolean;
+  userBalance?: bigint;
+}) =>
+  circle.status === "failed" &&
+  circle.isDecommissionable &&
+  Boolean(circle.userBalance && circle.userBalance > BigInt(0));
+
 const HomeUserStacks = ({ address }: { address: Address }) => {
   const userCirclesList = useUserCirclesList(address);
   const { user } = usePrivy();
@@ -24,21 +35,17 @@ const HomeUserStacks = ({ address }: { address: Address }) => {
     circles = [...circles].filter((c) => {
       if (tab === "due") return c.status === "payment_due";
 
-      if (tab === "claim") return c.status === "claimable";
+      if (tab === "claim") return c.status === "claimable" || hasFailedClaim(c);
 
       if (tab === "past") {
-        if (!c.status) return false;
+        if (!c.roundState) return false;
 
-        return ["decommissioned", "finished", "failed", "expired"].includes(
-          c.status
-        );
+        return pastRoundStates.includes(c.roundState);
       }
 
       return true;
     });
   }
-
-  console.log("_ CIRCLES __", circles);
 
   return (
     <div>

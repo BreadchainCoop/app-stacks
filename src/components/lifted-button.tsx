@@ -8,7 +8,7 @@ export const localButtonClassNames = {
   secondary: "bg-[#B9D5FF] text-primary-blue",
   stroke: "bg-paper-main text-system-green",
   positive: "",
-  destructive: "",
+  destructive: "bg-red-0 text-system-red",
 };
 
 const LocalLiftedButton = ({
