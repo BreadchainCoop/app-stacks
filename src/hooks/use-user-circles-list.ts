@@ -34,10 +34,6 @@ const fallbackSavingCirclesAbi = parseAbi([
   "function isDecommissionable(uint256 id) view returns (bool decommissionable)",
 ]);
 
-const fallbackViewerAbi = parseAbi([
-  "function getCirclesState(uint256[] circleIds) view returns ((uint256 circleId,uint8 circleState,uint8 roundState)[] states)",
-]);
-
 const CIRCLE_STATE_DECOMMISSIONED = 5;
 
 const parseCircleData = (
@@ -285,7 +281,7 @@ export function useUserCirclesList(address: Address) {
     error: fallbackCircleStatesError,
   } = useReadContract({
     address: SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS,
-    abi: fallbackViewerAbi,
+    abi: savingCirclesViewerAbi,
     functionName: "getCirclesState",
     args: [fallbackCircleIds],
     chainId: getDefaultChainId(),

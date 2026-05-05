@@ -735,6 +735,42 @@ export const savingCirclesViewerAbi = [
   },
   {
     type: "function",
+    name: "getCirclesState",
+    inputs: [
+      {
+        name: "_circleIds",
+        type: "uint256[]",
+        internalType: "uint256[]",
+      },
+    ],
+    outputs: [
+      {
+        name: "states",
+        type: "tuple[]",
+        internalType: "struct ISavingCirclesViewer.CircleState[]",
+        components: [
+          {
+            name: "circleId",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "circleState",
+            type: "uint8",
+            internalType: "enum ISavingCircles.CircleState",
+          },
+          {
+            name: "roundState",
+            type: "uint8",
+            internalType: "enum ISavingCircles.RoundState",
+          },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "isTokenAllowed",
     inputs: [
       {
