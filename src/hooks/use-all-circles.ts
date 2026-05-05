@@ -1,15 +1,25 @@
 import { useReadContracts } from "wagmi";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../lib/constants";
-import { savingCirclesAbi } from "../lib/abis/saving-circles";
+import { SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS } from "../lib/constants";
+import { savingCirclesViewerAbi } from "../lib/abis/saving-circles-viewers";
 import { ICircleList } from "@/interfaces/circle";
 import { useTotalCircles } from "./use-total-circles";
-import { Address } from "viem";
+import { zeroAddress } from "viem";
 import { getDefaultChainId } from "@/utils/chain";
+import { useBlockTimestamp } from "./use-block-timestamp";
+import { getUserCircleStatus } from "@/lib/get-user-circle-status";
+import { useConnectedUser } from "@breadcoop/ui";
 
-const PAGE_SIZE = 40;
+const PAGE_SIZE = 9;
+type UserCircleData = Parameters<typeof getUserCircleStatus>[0];
 
 export function useAllCircles(page: number = 0) {
   const skip = page * PAGE_SIZE;
+  const blockTimestamp = useBlockTimestamp();
+  const { user } = useConnectedUser();
+  const memberAddress =
+    user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
+      ? user.address
+      : zeroAddress;
 
   const { total: totalCircles, isLoading: loadingTotal } = useTotalCircles();
 
@@ -21,22 +31,13 @@ export function useAllCircles(page: number = 0) {
   );
 
   const { data: rawResults, isLoading: loadingCircles } = useReadContracts({
-    contracts: circleIds.flatMap((id) => [
-      {
-        address: SAVING_CIRCLES_CONTRACT_ADDRESS,
-        abi: savingCirclesAbi,
-        functionName: "circles",
-        args: [id],
-        chainId: getDefaultChainId(),
-      },
-      {
-        address: SAVING_CIRCLES_CONTRACT_ADDRESS,
-        abi: savingCirclesAbi,
-        functionName: "getCircleMembers",
-        args: [id],
-        chainId: getDefaultChainId(),
-      },
-    ]),
+    contracts: circleIds.map((id) => ({
+      address: SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS,
+      abi: savingCirclesViewerAbi,
+      functionName: "getUserCircleData",
+      args: [memberAddress, id],
+      chainId: getDefaultChainId(),
+    })),
     query: {
       enabled: circleIds.length > 0,
     },
@@ -45,49 +46,33 @@ export function useAllCircles(page: number = 0) {
   const circles: ICircleList[] = [];
 
   if (rawResults) {
-    for (let i = 0; i < circleIds.length; i++) {
-      const circleResult = rawResults[i * 2];
-      const membersResult = rawResults[i * 2 + 1];
+    const now = BigInt(Math.floor(blockTimestamp / 1000));
 
-      if (
-        circleResult.status === "failure" ||
-        membersResult.status === "failure"
-      ) {
+    for (let i = 0; i < circleIds.length; i++) {
+      const circleResult = rawResults[i];
+
+      if (circleResult.status === "failure") {
         continue;
       }
 
-      const circleData = circleResult.result as unknown as readonly [
-        owner: `0x${string}`,
-        currentIndex: bigint,
-        depositAmount: bigint,
-        token: `0x${string}`,
-        depositInterval: bigint,
-        effectiveCircleStartTime: bigint,
-        circleEnd: bigint,
-      ];
-
-      const [
-        owner,
-        currentIndex,
-        depositAmount,
-        token,
-        depositInterval,
-        effectiveCircleStartTime,
-        circleEnd,
-      ] = circleData;
-
-      const memberCount = (membersResult.result as unknown as Address[]).length;
+      const circleData = circleResult.result as unknown as UserCircleData;
+      const formattedStatus = getUserCircleStatus(
+        circleData,
+        memberAddress,
+        {},
+        now
+      );
 
       circles.push({
-        id: circleIds[i],
-        owner,
-        currentIndex,
-        depositAmount,
-        token,
-        depositInterval,
-        effectiveCircleStartTime,
-        circleEnd,
-        totalMember: memberCount,
+        ...circleData.circleInfo,
+        id: circleData.circleId,
+        totalMember: Number(circleData.totalRounds),
+        status: formattedStatus.status,
+        roundState: formattedStatus.roundState,
+        totalPoolBalance: circleData.totalPoolBalance,
+        isMember: circleData.isMember,
+        isDecommissionable: circleData.isDecommissionable,
+        userBalance: circleData.userBalance,
       });
     }
   }
