@@ -39,6 +39,11 @@ export const getUserCircleStatus = (
     depositWindowOpen &&
     !hasDepositedThisRound;
   const completedRounds = circle.completedRounds;
+  const hasStarted = circle.circleInfo.effectiveCircleStartTime > BigInt(0);
+  const isCompleted =
+    hasStarted &&
+    completedRounds >= circle.totalRounds &&
+    circle.totalPoolBalance === BigInt(0);
 
   if (circle.isDecommissioned) {
     return {
@@ -50,7 +55,7 @@ export const getUserCircleStatus = (
     };
   }
 
-  if (circle.circleInfo.effectiveCircleStartTime === BigInt(0)) {
+  if (!hasStarted) {
     return {
       status: "pending-start",
       statusLabel: "Not started",
@@ -64,33 +69,23 @@ export const getUserCircleStatus = (
     };
   }
 
-  // Finished: currentIndex (completedRounds) reset to 0 after full cycle, started, decommissionable, and no pool balance (balances cleared)
-  if (
-    completedRounds === BigInt(0) &&
-    circle.circleInfo.effectiveCircleStartTime > BigInt(0) &&
-    circle.isDecommissionable &&
-    circle.totalPoolBalance === BigInt(0)
-  ) {
-    return {
-      status: "finished",
-      statusLabel: "Finished",
-      variant: "success",
-      title: "Circle completed successfully",
-      desc: "Everyone has deposited and withdrawn their funds. No more actions can be taken.",
-    };
-  }
-
-  // Failed: decommissionable (past window with incomplete deposits), either non-zero index or pool balance >0 (funds locked)
-  if (
-    circle.isDecommissionable &&
-    (completedRounds > BigInt(0) || circle.totalPoolBalance > BigInt(0))
-  ) {
+  if (circle.isDecommissionable) {
     return {
       status: "failed",
       statusLabel: "Failed",
       variant: "stop",
       title: "Circle has failed",
       desc: "A user didn't deposit before the round ended. The circle can now be decommissioned to return funds.",
+    };
+  }
+
+  if (isCompleted) {
+    return {
+      status: "finished",
+      statusLabel: "Finished",
+      variant: "success",
+      title: "Circle completed successfully",
+      desc: "Everyone has deposited and withdrawn their funds. No more actions can be taken.",
     };
   }
 

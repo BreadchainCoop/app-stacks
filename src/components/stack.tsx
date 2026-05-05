@@ -6,14 +6,21 @@ import LocalLiftedButton from "./lifted-button";
 import Link from "next/link";
 import { QuestionIcon } from "@phosphor-icons/react/ssr";
 import ClaimButton from "./claim-button";
-import { ICircleList } from "@/interfaces/circle";
+import { ICircleList, ICircleStatus } from "@/interfaces/circle";
 import { formatEther } from "viem";
 import DepositButton from "./deposit-button";
 import { HandWithdrawIcon } from "@phosphor-icons/react";
 import { parseCircleIntervalToDate } from "@/utils/stacks";
 import { Database } from "@/lib/supabase";
+import { useModal } from "./modal/context";
 
 type StackMetadata = Database["public"]["Tables"]["stacks_metadata"]["Row"];
+
+const completedStatuses: ICircleStatus[] = [
+  "expired",
+  "decommissioned",
+  "finished",
+];
 
 const Stack = ({
   stack,
@@ -22,6 +29,7 @@ const Stack = ({
   stack: ICircleList;
   stacksMap: Record<string, StackMetadata>;
 }) => {
+  const { setModal } = useModal();
   const stackMeta = stacksMap[String(stack.id)];
   const depositAmount = formatEther(stack.depositAmount);
   const totalGoal =
@@ -33,7 +41,29 @@ const Stack = ({
       Number(depositAmount) *
       Number(stack.totalMember) +
     Number(formatEther(stack.totalPoolBalance || BigInt(0)));
-  const percentageDone = (totalDeposited / totalGoal) * 100;
+  // const percentageDone = totalGoal > 0 ? (totalDeposited / totalGoal) * 100 : 0;
+  let percentageDone = 0;
+  if (
+    totalDeposited !== 0 &&
+    totalGoal !== 0 &&
+    (stack.status === "in-progress" || stack.status === "finished")
+  ) {
+    percentageDone = (totalDeposited / totalGoal) * 100;
+  }
+  const terminalStatusLabel =
+    stack.status === "failed"
+      ? "Failed"
+      : stack.status === "decommissioned"
+        ? "Decommissioned"
+        : stack.status === "expired"
+          ? "Expired"
+          : null;
+  // const hasInactiveProgress = [
+  //   "pending-start",
+  //   "failed",
+  //   "decommissioned",
+  //   "expired",
+  // ].includes(stack.status ?? "");
 
   const items = [
     {
@@ -62,9 +92,13 @@ const Stack = ({
 
   const statusMode = !stack.status
     ? undefined
-    : stack.status === "expired" || stack.status === "finished"
+    : stack.status === "expired" ||
+        stack.status === "finished" ||
+        stack.status === "decommissioned"
       ? ""
       : stack.status;
+
+  console.log("__ STACK DETAILS __", stack.id, stack.status);
 
   return (
     <li className="border border-paper-1 p-6 flex flex-col gap-6 bg-paper-0 shadow-[0px_4px_12px_0px_#1B201A26] xl:max-w-94">
@@ -76,17 +110,36 @@ const Stack = ({
           <Body bold className="text-surface-grey">
             ID: {stack.id}
           </Body>
-          {statusMode && (
-            <Chip
-              className={`font-bold border-current! ${
-                stack.status === "payment_due"
-                  ? "text-system-warning"
-                  : "text-system-green"
-              }`}
-            >
-              {stack.status === "payment_due" ? "Payment due" : "Member"}
-            </Chip>
-          )}
+          <div className="flex items-center justify-end gap-2">
+            {stack.status === "payment_due" ? (
+              <Chip className="font-bold border-current! text-system-warning">
+                Payment due
+              </Chip>
+            ) : stack.status === "failed" ? (
+              <Chip className="font-bold border-current! text-system-red">
+                Failed
+              </Chip>
+            ) : stack.isMember && !completedStatuses.includes(stack.status!) ? (
+              <Chip className="border-system-green text-system-green bg-paper-main max-w-max hover:border-current">
+                Member
+              </Chip>
+            ) : null}
+            {/* {stack.isMember && (
+              <Chip className="border-system-green text-system-green bg-paper-main max-w-max hover:border-current">
+                Member
+              </Chip>
+            )}
+            {stack.status === "payment_due" && (
+              <Chip className="font-bold border-current! text-system-warning">
+                Payment due
+              </Chip>
+            )}
+            {stack.status === "failed" && (
+              <Chip className="font-bold border-current! text-system-red">
+                Failed
+              </Chip>
+            )} */}
+          </div>
         </div>
       </div>
       <div className="flex items-center justify-between gap-6">
@@ -95,9 +148,19 @@ const Stack = ({
             <Body bold className="text-xs sm:text-base">
               Stack progress
             </Body>
-            <Body bold className="text-xs sm:text-base">
-              {Math.round(percentageDone * 100) / 100}%
-            </Body>
+            {stack.status === "pending-start" ? (
+              <Body className="text-xs sm:text-sm text-surface-grey">
+                Not started
+              </Body>
+            ) : terminalStatusLabel ? (
+              <Body className="text-xs sm:text-sm text-surface-grey">
+                {terminalStatusLabel}
+              </Body>
+            ) : (
+              <Body bold className="text-xs sm:text-base">
+                {Math.round(percentageDone * 100) / 100}%
+              </Body>
+            )}
           </div>
           <div className="w-full h-3.5 p-0.75 bg-paper-main">
             <div
@@ -105,6 +168,24 @@ const Stack = ({
               style={{ width: `${percentageDone}%` }}
             />
           </div>
+          {/* <div
+            className={`w-full h-3.5 p-0.75 ${
+              hasInactiveProgress ? "bg-paper-2" : "bg-paper-main"
+            }`}
+          >
+            <div
+              className={`h-full ${
+                stack.status === "finished"
+                  ? "bg-system-green"
+                  : hasInactiveProgress
+                    ? "bg-surface-grey"
+                    : "bg-primary-blue"
+              }`}
+              style={{
+                width: `${hasInactiveProgress ? 0 : percentageDone}%`,
+              }}
+            />
+          </div> */}
         </div>
         <div className="w-full max-w-max flex flex-col xl:hidden">
           <p className="text-h2 m-0 text-2xl leading-6 text-surface-grey-2">
@@ -153,6 +234,15 @@ const Stack = ({
             leftIcon={<HandWithdrawIcon />}
             amount={stack.depositAmount}
           />
+        ) : stack.status === "failed" && stack.isMember ? (
+          <LocalLiftedButton
+            className="font-bold"
+            preset="destructive"
+            width="full"
+            onClick={() => setModal({ type: "STACK_FAILED", id: stack.id })}
+          >
+            Claim last deposits
+          </LocalLiftedButton>
         ) : statusMode === "" ? (
           <Body
             bold

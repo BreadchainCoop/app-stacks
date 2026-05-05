@@ -43,6 +43,7 @@ const StartCircleButton = ({
       await sendSavingCirclesTx({ functionName: "start", args: [circleId] });
 
       queryClient.invalidateQueries({ queryKey: ["readContract"] });
+      queryClient.invalidateQueries({ queryKey: ["readContracts"] });
     } catch (err) {
       console.error("___ START CIRCLE ERROR ___", err);
       alert(parseStartError(err));

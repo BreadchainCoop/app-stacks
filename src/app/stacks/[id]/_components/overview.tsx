@@ -297,21 +297,3 @@ const Overview = ({
 };
 
 export default Overview;
-
-/*
- formattedCircleStatus.status === "failed" &&
-				  circle.isDecommissionable && circle.isMember ? (
-					<>
-						{connectedUser.user.status === "CONNECTED" ? (
-							<LiftedButton preset="secondary" width="full" className="bg-red-0 text-system-red">
-								Stack Failed - Claim your deposits
-							</LiftedButton>
-						) : (
-							<LoginButton
-								app="stacks"
-								status={connectedUser.user.status}
-							/>
-						)}
-					</>
-				) :
-*/
