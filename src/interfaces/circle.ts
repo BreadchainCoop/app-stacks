@@ -13,6 +13,13 @@ export type ICircleStatus =
   | "payment_due"
   | "in-progress";
 
+export type ICircleRoundState =
+  | "not-started"
+  | "in-progress"
+  | "deposits-complete"
+  | "finished"
+  | "failed";
+
 interface ICircleBaseList {
   circleEnd: bigint;
   currentIndex: bigint;
@@ -24,6 +31,7 @@ interface ICircleBaseList {
   owner: Address;
   token: Address;
   totalPoolBalance?: bigint;
+  roundState?: ICircleRoundState;
 }
 
 type ICircleWithdraw = {

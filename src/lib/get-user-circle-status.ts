@@ -1,11 +1,13 @@
 import { AlertProps } from "@/components/alert";
 import { useUserCircleData } from "@/hooks/use-user-circle-data";
-import { ICircleStatus } from "@/interfaces/circle";
+import { ICircleRoundState, ICircleStatus } from "@/interfaces/circle";
 import { HandDepositIcon, Icon } from "@phosphor-icons/react";
 import { Address } from "viem";
 
 export interface IFormattedUserCircleStatusResult {
   status: ICircleStatus;
+  roundState: ICircleRoundState;
+  roundStateLabel: string;
   statusLabel: string;
   variant: AlertProps["variant"];
   title: string;
@@ -17,6 +19,14 @@ interface GetUserCircleStatusConfig {
   includeDeposited?: boolean;
   includeClaimable?: boolean;
 }
+
+const roundStateLabels: Record<ICircleRoundState, string> = {
+  "not-started": "Not started",
+  "in-progress": "In progress",
+  "deposits-complete": "Deposits complete",
+  finished: "Finished",
+  failed: "Failed",
+};
 
 export const getUserCircleStatus = (
   circle: Exclude<
@@ -39,10 +49,17 @@ export const getUserCircleStatus = (
     depositWindowOpen &&
     !hasDepositedThisRound;
   const completedRounds = circle.completedRounds;
+  const hasStarted = circle.circleInfo.effectiveCircleStartTime > BigInt(0);
+  const isCompleted =
+    hasStarted &&
+    completedRounds >= circle.totalRounds &&
+    circle.totalPoolBalance === BigInt(0);
 
   if (circle.isDecommissioned) {
     return {
       status: "decommissioned",
+      roundState: "failed",
+      roundStateLabel: roundStateLabels.failed,
       statusLabel: "Decommissioned",
       variant: "stop",
       title: "Circle has been decommissioned",
@@ -50,9 +67,11 @@ export const getUserCircleStatus = (
     };
   }
 
-  if (circle.circleInfo.effectiveCircleStartTime === BigInt(0)) {
+  if (!hasStarted) {
     return {
       status: "pending-start",
+      roundState: "not-started",
+      roundStateLabel: roundStateLabels["not-started"],
       statusLabel: "Not started",
       variant: "warning",
       title: isOwner
@@ -64,29 +83,11 @@ export const getUserCircleStatus = (
     };
   }
 
-  // Finished: currentIndex (completedRounds) reset to 0 after full cycle, started, decommissionable, and no pool balance (balances cleared)
-  if (
-    completedRounds === BigInt(0) &&
-    circle.circleInfo.effectiveCircleStartTime > BigInt(0) &&
-    circle.isDecommissionable &&
-    circle.totalPoolBalance === BigInt(0)
-  ) {
-    return {
-      status: "finished",
-      statusLabel: "Finished",
-      variant: "success",
-      title: "Circle completed successfully",
-      desc: "Everyone has deposited and withdrawn their funds. No more actions can be taken.",
-    };
-  }
-
-  // Failed: decommissionable (past window with incomplete deposits), either non-zero index or pool balance >0 (funds locked)
-  if (
-    circle.isDecommissionable &&
-    (completedRounds > BigInt(0) || circle.totalPoolBalance > BigInt(0))
-  ) {
+  if (circle.isDecommissionable) {
     return {
       status: "failed",
+      roundState: "failed",
+      roundStateLabel: roundStateLabels.failed,
       statusLabel: "Failed",
       variant: "stop",
       title: "Circle has failed",
@@ -94,10 +95,23 @@ export const getUserCircleStatus = (
     };
   }
 
-  // Expired but still actionable (e.g., final claim possible)
+  if (isCompleted) {
+    return {
+      status: "finished",
+      roundState: "finished",
+      roundStateLabel: roundStateLabels.finished,
+      statusLabel: "Finished",
+      variant: "success",
+      title: "Circle completed successfully",
+      desc: "Everyone has deposited and withdrawn their funds. No more actions can be taken.",
+    };
+  }
+
   if (circle.isExpired) {
     return {
       status: "expired",
+      roundState: "failed",
+      roundStateLabel: roundStateLabels.failed,
       statusLabel: "Expired",
       variant: "warning",
       title: "Circle has expired",
@@ -108,6 +122,8 @@ export const getUserCircleStatus = (
   if (config.includeClaimable && circle.canWithdraw) {
     return {
       status: "claimable",
+      roundState: "deposits-complete",
+      roundStateLabel: roundStateLabels["deposits-complete"],
       statusLabel: "Claimable",
       variant: "success",
       title: "It's your turn to claim",
@@ -122,7 +138,9 @@ export const getUserCircleStatus = (
   ) {
     return {
       status: "deposit-completed",
-      statusLabel: "Deposits Completed",
+      roundState: "deposits-complete",
+      roundStateLabel: roundStateLabels["deposits-complete"],
+      statusLabel: "Deposits complete",
       variant: "success",
       title: "Round deposits complete",
       desc: "Waiting for the eligible member to claim this round's payout.",
@@ -132,6 +150,8 @@ export const getUserCircleStatus = (
   if (config.includeDeposited && hasDepositedThisRound) {
     return {
       status: "deposited",
+      roundState: "in-progress",
+      roundStateLabel: roundStateLabels["in-progress"],
       statusLabel: "Deposited",
       variant: "success",
       title: "Your deposit is complete",
@@ -143,6 +163,8 @@ export const getUserCircleStatus = (
   if (canDeposit) {
     return {
       status: "payment_due",
+      roundState: "in-progress",
+      roundStateLabel: roundStateLabels["in-progress"],
       statusLabel: "Payment Due",
       variant: "warning",
       title: "Deposit required",
@@ -152,6 +174,8 @@ export const getUserCircleStatus = (
 
   return {
     status: "in-progress",
+    roundState: "in-progress",
+    roundStateLabel: roundStateLabels["in-progress"],
     statusLabel: "In Progress",
     variant: "success",
     title: "Circle is in progress",
