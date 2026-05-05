@@ -1,7 +1,7 @@
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useGetCircleCreated } from "@/hooks/use-get-cricle-created";
 import { useUserCircleData } from "@/hooks/use-user-circle-data";
-import { ICircleStatus, MemberCircleInfo } from "@/interfaces/circle";
+import { MemberCircleInfo } from "@/interfaces/circle";
 import {
   getUserCircleStatus,
   IFormattedUserCircleStatusResult,
@@ -22,13 +22,6 @@ import {
 import { CalendarDotsIcon } from "@phosphor-icons/react/ssr";
 import { ReactNode } from "react";
 import { formatEther, zeroAddress } from "viem";
-
-const failedStatuses: ICircleStatus[] = [
-  "decommissioned",
-  "expired",
-  "failed",
-  "finished",
-];
 
 const StackDetailsTotal = ({
   intervalLabel,
@@ -127,6 +120,8 @@ const StackDetailsBreakdown = ({
   let _roundsLeft = "-";
 
   const parsedInterval = splitIntervalId(intervalId);
+  const hasNoTimeLeft =
+    status.roundState === "failed" || status.roundState === "finished";
 
   if (status.status !== "pending-start") {
     _roundsLeft = `${+roundsLeft * parsedInterval[0]}`;
@@ -157,9 +152,11 @@ const StackDetailsBreakdown = ({
         <>
           <p className="text-h2 leading-6 tracking-[-2%] text-2xl">
             {/* {status.status === "finished" ? "0" : _roundsLeft} */}
-            {failedStatuses.includes(status.status) ? "0" : _roundsLeft}
+            {hasNoTimeLeft ? "0" : _roundsLeft}
           </p>
-          {status.status !== "pending-start" && <p>{parsedInterval[1]}</p>}
+          {status.status !== "pending-start" && !hasNoTimeLeft && (
+            <p>{parsedInterval[1]}</p>
+          )}
         </>
       </StackDetailsBreakdownRow>
     </div>
@@ -199,7 +196,9 @@ const StackDetails = ({
     BigInt(Math.floor(blockTimestamp / 1000))
   );
   const roundsLeft =
-    circleStatus.status === "finished" ? 0 : members - circle.currentIndex;
+    circleStatus.roundState === "finished"
+      ? 0
+      : Math.max(0, Number(members - circle.currentIndex));
 
   return (
     <section className="bg-paper-0 flex flex-col gap-6 p-4">

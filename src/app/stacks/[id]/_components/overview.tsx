@@ -33,6 +33,14 @@ const failedStatuses: ICircleStatus[] = [
   "finished",
 ];
 
+const roundStateClassNames = {
+  "not-started": "text-primary-blue",
+  "in-progress": "text-system-warning",
+  "deposits-complete": "text-system-green",
+  finished: "text-system-green",
+  failed: "text-system-red",
+} as const;
+
 const Overview = ({
   circle,
   member,
@@ -117,6 +125,7 @@ const Overview = ({
     formattedCircleStatus.status === "pending-start"
       ? expectedMembers || "-"
       : Number(circle.totalRounds);
+  const roundState = formattedCircleStatus.roundState;
 
   let roundsCompleted = BigInt(0);
   let membersDeposited: bigint | number = BigInt(0);
@@ -142,7 +151,7 @@ const Overview = ({
           <span className="font-normal">Stack status: </span>
           <span>
             {failedStatuses.includes(formattedCircleStatus.status) ? (
-              <>{formattedCircleStatus.status}</>
+              <>{formattedCircleStatus.roundStateLabel}</>
             ) : totalMembers === "-" ? (
               "-"
             ) : (
@@ -194,20 +203,10 @@ const Overview = ({
           <span
             className={cn(
               "font-bold",
-              formattedCircleStatus.status === "pending-start" &&
-                "text-primary-blue",
-              ["payment_due", "in-progress"].includes(
-                formattedCircleStatus.status
-              ) && "text-system-warning",
-              formattedCircleStatus.status === "failed" && "text-system-red",
-              ["finished", "claimable", "deposit-completed"].includes(
-                formattedCircleStatus.status
-              ) && "text-system-green"
+              roundStateClassNames[formattedCircleStatus.roundState]
             )}
           >
-            {formattedCircleStatus.status === "payment_due"
-              ? "In Progress"
-              : formattedCircleStatus.statusLabel}
+            {formattedCircleStatus.roundStateLabel}
           </span>
         </Body>
       </div>
@@ -217,10 +216,9 @@ const Overview = ({
         effectiveCircleStartTime={circle.circleInfo.effectiveCircleStartTime}
         currentIndex={circle.circleInfo.currentIndex}
         depositInterval={circle.circleInfo.depositInterval}
-        isActive={
-          status.isActive &&
-          !failedStatuses.includes(formattedCircleStatus.status)
-        }
+        isActive={status.isActive}
+        circleEnd={circle.circleInfo.circleEnd}
+        roundState={roundState}
       />
       <div className="mt-4">
         {formattedCircleStatus.status === "pending-start" ? (
@@ -263,13 +261,6 @@ const Overview = ({
               <LoginButton app="stacks" status={connectedUser.user.status} />
             )}
           </>
-        ) : formattedCircleStatus.status === "deposit-completed" ? (
-          <Body
-            bold
-            className="py-4 px-8 text-paper-main bg-surface-grey text-center opacity-50"
-          >
-            Awaiting current withdrawer to claim
-          </Body>
         ) : formattedCircleStatus.status === "failed" &&
           circle.isDecommissionable &&
           !circle.isDecommissioned &&
