@@ -55,6 +55,7 @@ const ClaimButton = ({
       });
 
       queryClient.invalidateQueries({ queryKey: ["readContract"] });
+      queryClient.invalidateQueries({ queryKey: ["readContracts"] });
 
       setModal({
         type: "CLAIM_RESULT",
