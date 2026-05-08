@@ -43,7 +43,7 @@ const FundWallet = ({ modalState }: { modalState: FundWalletModalState }) => {
       <StacksBalance address={modalState.address} />
       <FundWithConnectedWallet handleListerForXDai={handleListerForXDai} />
       <div className="*:not-last:mb-2">
-        <FundWithLifi />
+        <FundWithLifi address={modalState.address} />
         <FundWithPeer />
       </div>
       <Alert

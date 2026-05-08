@@ -97,6 +97,11 @@ export type ReminderModalState = {
   calendar: CalendarEvent;
 };
 
+export type LiFiBridgeSwapModalState = {
+  type: "LIFI_BRIDGE_SWAP";
+  address: Address;
+};
+
 export type ModalState =
   | DepositInitModalState
   | DepositLoadingModalState
@@ -112,6 +117,7 @@ export type ModalState =
   | ReminderModalState
   | NewUserOnboardingModalState
   | FundWalletModalState
+  | LiFiBridgeSwapModalState
   | FundWithConnectedWalletModalAmountModalState
   | null;
 
