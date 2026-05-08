@@ -17,6 +17,7 @@ import WalletFundingStatusModal from "./modals/wallet-funding-status";
 import ReminderModal from "@/components/reminder/modal";
 import NewUserOnboarding from "./modals/new-user-onboarding";
 import FundWallet from "./modals/fund-wallet/fund-wallet";
+import LiFiSwapModal from "../lifi/swap-modal";
 import FundWithConnectedWalletModalAmount from "./modals/fund-wallet/fund-with-connected-wallet-modal-amount";
 
 const ModalPresenter = () => {
@@ -66,7 +67,10 @@ const ModalPresenter = () => {
                 <FundWallet modalState={modalState} />
               )}
               {modalState.type === "WALLET_FUNDING_STATUS" && (
-                <WalletFundingStatusModal modalState={modalState} />
+                <WalletFundingStatusModal
+                  modalState={modalState}
+                  key={modalState.status}
+                />
               )}
               {modalState.type === "REMINDER" && (
                 <ReminderModal modalState={modalState} />
@@ -74,6 +78,9 @@ const ModalPresenter = () => {
               {modalState.type ===
                 "FUND_WITH_CONNECTED_WALLET_MODAL_AMOUNT" && (
                 <FundWithConnectedWalletModalAmount modalState={modalState} />
+              )}
+              {modalState.type === "LIFI_BRIDGE_SWAP" && (
+                <LiFiSwapModal modalState={modalState} />
               )}
             </Dialog.Content>
           </>
