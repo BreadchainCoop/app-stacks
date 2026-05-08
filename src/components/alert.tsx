@@ -18,6 +18,7 @@ export interface AlertProps {
   description: ReactNode;
   className?: string;
   closeAble?: boolean;
+  descClassName?: string;
 }
 
 const configs: Record<Varaint, { cont: string; body: string; Icon: Icon }> = {
@@ -43,6 +44,7 @@ const Alert = ({
   description,
   variant,
   // className,
+  descClassName = "",
   closeAble = true,
 }: AlertProps) => {
   const [show, setShow] = useState(true);
@@ -64,7 +66,7 @@ const Alert = ({
             {title}
           </Body>
         </div>
-        <Body>{description}</Body>
+        <Body className={descClassName}>{description}</Body>
       </div>
       {closeAble && (
         <button onClick={() => setShow(false)} className={config.body}>
