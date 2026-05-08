@@ -11,6 +11,7 @@ import { CircularProgressIcon } from "../icons/circular-progress";
 
 interface ModalHeaderProps {
   title: string;
+  showCloseIcon?: boolean;
 }
 
 export const ModalHeader = (props: ModalHeaderProps) => {
@@ -18,9 +19,11 @@ export const ModalHeader = (props: ModalHeaderProps) => {
   return (
     <header className="flex items-center justify-between">
       <Heading2 className="text-2xl leading-6">{props.title}</Heading2>
-      <button type="button" onClick={() => modal.setModal(null)}>
-        <CloseIcon />
-      </button>
+      {(props.showCloseIcon ?? true) && (
+        <button type="button" onClick={() => modal.setModal(null)}>
+          <CloseIcon />
+        </button>
+      )}
     </header>
   );
 };

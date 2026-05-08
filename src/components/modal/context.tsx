@@ -1,7 +1,14 @@
 "use client";
 
 import { CalendarEvent } from "@/components/reminder/interfaces";
-import { type ReactNode, createContext, useContext, useState } from "react";
+import {
+  type ReactNode,
+  RefObject,
+  createContext,
+  useContext,
+  useState,
+} from "react";
+import { PeerExtensionSdk } from "@zkp2p/sdk";
 import { Address } from "viem";
 import { FundWithConnectedWalletModalAmountModalState } from "./modals/fund-wallet/fund-with-connected-wallet-modal-amount";
 
@@ -106,6 +113,12 @@ export type LiFiBridgeSwapModalState = {
   address: Address;
 };
 
+export type PeerOnRampInstallModalState = {
+  type: "PEER_ONRAMP_INSTALL";
+  peerSdkRef: RefObject<PeerExtensionSdk | null>;
+  fundWalletModalState: Omit<FundWalletModalState, "type">;
+};
+
 export type ModalState =
   | DepositInitModalState
   | DepositLoadingModalState
@@ -122,6 +135,7 @@ export type ModalState =
   | NewUserOnboardingModalState
   | FundWalletModalState
   | LiFiBridgeSwapModalState
+  | PeerOnRampInstallModalState
   | FundWithConnectedWalletModalAmountModalState
   | null;
 

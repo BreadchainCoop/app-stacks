@@ -18,6 +18,7 @@ import ReminderModal from "@/components/reminder/modal";
 import NewUserOnboarding from "./modals/new-user-onboarding";
 import FundWallet from "./modals/fund-wallet/fund-wallet";
 import LiFiSwapModal from "../lifi/swap-modal";
+import InstallPeerModal from "../peer/install-modal";
 import FundWithConnectedWalletModalAmount from "./modals/fund-wallet/fund-with-connected-wallet-modal-amount";
 
 const ModalPresenter = () => {
@@ -81,6 +82,9 @@ const ModalPresenter = () => {
               )}
               {modalState.type === "LIFI_BRIDGE_SWAP" && (
                 <LiFiSwapModal modalState={modalState} />
+              )}
+              {modalState.type === "PEER_ONRAMP_INSTALL" && (
+                <InstallPeerModal modalState={modalState} />
               )}
             </Dialog.Content>
           </>
