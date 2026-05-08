@@ -1,11 +1,15 @@
 "use client";
 
-import { Navbar as LibNavbar, LiftedButton } from "@breadcoop/ui";
+import {
+  Navbar as LibNavbar,
+  LiftedButton,
+  useConnectedUser,
+} from "@breadcoop/ui";
 import Link from "next/link";
 import ClaimableWidget from "./claimable-widget";
 import { CoinsIcon, HandWithdrawIcon } from "@phosphor-icons/react";
 import { useModal } from "../modal/context";
-import { useWalletFunding } from "@/hooks/use-wallet-funding";
+import { BreadText } from "./bread-text";
 
 function WidgetItems() {
   return (
@@ -16,26 +20,21 @@ function WidgetItems() {
 }
 
 function ActionItems() {
+  const { user } = useConnectedUser();
   const { setModal } = useModal();
-  const {
-    helperCopy,
-    isFunding,
-    handleFundWallet,
-    privyReady,
-    authenticated,
-    walletsReady,
-  } = useWalletFunding();
-  const handleFundWithStatus = async () => {
-    setModal({
-      type: "WALLET_FUNDING_STATUS",
-      status: "loading",
-    });
-    const didFund = await handleFundWallet();
-    setModal({
-      type: "WALLET_FUNDING_STATUS",
-      status: didFund ? "success" : "error",
-      onRetry: handleFundWithStatus,
-    });
+  const handleFund = async () => {
+    if (user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN") {
+      setModal({
+        type: "FUND_WALLET",
+        address: user.address,
+        onFunded: () => {
+          setModal({
+            type: "WALLET_FUNDING_STATUS",
+            status: "success",
+          });
+        },
+      });
+    }
   };
 
   return (
@@ -44,12 +43,17 @@ function ActionItems() {
         rightIcon={<CoinsIcon />}
         width="full"
         className="bg-[#DDF7D0]! text-[#155D2A]! font-bold"
-        onClick={handleFundWithStatus}
-        disabled={!privyReady || !authenticated || !walletsReady || isFunding}
+        onClick={handleFund}
       >
-        {isFunding ? "Opening..." : "Fund Stacks wallet"}
+        Fund Stacks wallet
       </LiftedButton>
-      <p className="px-1 text-xs leading-4 text-[#155D2A]">{helperCopy}</p>
+      <BreadText
+        address={
+          user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
+            ? user.address
+            : undefined
+        }
+      />
       <LiftedButton
         rightIcon={<HandWithdrawIcon />}
         width="full"

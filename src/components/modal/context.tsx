@@ -3,6 +3,7 @@
 import { CalendarEvent } from "@/components/reminder/interfaces";
 import { type ReactNode, createContext, useContext, useState } from "react";
 import { Address } from "viem";
+import { FundWithConnectedWalletModalAmountModalState } from "./modals/fund-wallet/fund-with-connected-wallet-modal-amount";
 
 export type TModalStatus = "loading" | "success" | "error";
 
@@ -73,12 +74,16 @@ export type WithdrawBreadModalState = {
   type: "WITHDRAW_BREAD";
 };
 
-export type WalletFundingModalState = {
-  type: "WALLET_FUNDING";
-  walletAddress?: Address;
-  breadBalance?: string;
-  onFund: () => Promise<boolean>;
-  onSkip?: () => void;
+export type NewUserOnboardingModalState = {
+  type: "NEW_USER_ONBOARDING";
+  fundingStatus: "idle" | "loading" | "success" | "error";
+};
+
+export type FundWalletModalState = {
+  type: "FUND_WALLET";
+  address: Address;
+  onFunded?: (newBalance: bigint, prevBalance: bigint) => Promise<void> | void;
+  showSkipProcess?: boolean;
 };
 
 export type WalletFundingStatusModalState = {
@@ -103,9 +108,11 @@ export type ModalState =
   | StackInitFailedModalState
   | StackFailedModalState
   | WithdrawBreadModalState
-  | WalletFundingModalState
   | WalletFundingStatusModalState
   | ReminderModalState
+  | NewUserOnboardingModalState
+  | FundWalletModalState
+  | FundWithConnectedWalletModalAmountModalState
   | null;
 
 export type ModalContext = {

@@ -13,9 +13,11 @@ import {
 } from "./modals/stack-result";
 import StackFailed from "./modals/stack-failed";
 import WithdrawBreadModal from "./modals/withdraw-bread";
-import WalletFundingModal from "./modals/wallet-funding";
 import WalletFundingStatusModal from "./modals/wallet-funding-status";
 import ReminderModal from "@/components/reminder/modal";
+import NewUserOnboarding from "./modals/new-user-onboarding";
+import FundWallet from "./modals/fund-wallet/fund-wallet";
+import FundWithConnectedWalletModalAmount from "./modals/fund-wallet/fund-with-connected-wallet-modal-amount";
 
 const ModalPresenter = () => {
   const { modalState, setModal } = useModal();
@@ -57,14 +59,21 @@ const ModalPresenter = () => {
                 <StackFailed modalState={modalState} />
               )}
               {modalState.type === "WITHDRAW_BREAD" && <WithdrawBreadModal />}
-              {modalState.type === "WALLET_FUNDING" && (
-                <WalletFundingModal modalState={modalState} />
+              {modalState.type === "NEW_USER_ONBOARDING" && (
+                <NewUserOnboarding modalState={modalState} />
+              )}
+              {modalState.type === "FUND_WALLET" && (
+                <FundWallet modalState={modalState} />
               )}
               {modalState.type === "WALLET_FUNDING_STATUS" && (
                 <WalletFundingStatusModal modalState={modalState} />
               )}
               {modalState.type === "REMINDER" && (
                 <ReminderModal modalState={modalState} />
+              )}
+              {modalState.type ===
+                "FUND_WITH_CONNECTED_WALLET_MODAL_AMOUNT" && (
+                <FundWithConnectedWalletModalAmount modalState={modalState} />
               )}
             </Dialog.Content>
           </>
