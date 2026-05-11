@@ -1,0 +1,16 @@
+packages:
+  - "."
+
+minimumReleaseAge: 864000 # 10 days
+blockExoticSubdeps: true
+strictDepBuilds: true
+trustPolicy: no-downgrade
+
+# === Explicitly allowed build scripts (required when strictDepBuilds is true) ===
+onlyBuiltDependencies:
+  - sharp
+  - "@reown/appkit"
+  - bufferutil
+  - utf-8-validate
+  - keccak
+  - unrs-resolver
