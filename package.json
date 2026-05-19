@@ -60,5 +60,6 @@
     "tailwindcss": "^4",
     "ts-prune": "^0.10.3",
     "typescript": "^5"
-  }
+  },
+  "packageManager": "pnpm@11.0.0"
 }
