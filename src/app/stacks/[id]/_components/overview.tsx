@@ -61,10 +61,8 @@ const Overview = ({
     { includeDeposited: true },
     nowSeconds
   );
-  const { data: stackMetadata } = useStackSupabase(
-    circle.circleId.toString(),
-    circle.isMember
-  );
+  const { data: stackMetadata, isLoading: isStackMetadataLoading } =
+    useStackSupabase(circle.circleId.toString(), circle.isMember);
 
   const nonceChecks = (stackMetadata?.invite_links ?? [])
     .map((link) => {
@@ -97,6 +95,7 @@ const Overview = ({
   const expectedMembers = stackMetadata?.expected_members ?? 0;
   const acceptedMembers = Number(circle.totalRounds);
   const hasEnoughMembersToStart = acceptedMembers >= 2;
+  const membersNeededToStart = Math.max(2 - acceptedMembers, 0);
   const hasInviteMetadata = expectedMembers > 0 || nonceChecks.length > 0;
   const inviteStatusReady =
     nonceChecks.length === 0 || nonceResults?.length === nonceChecks.length;
@@ -108,10 +107,23 @@ const Overview = ({
         return result.result === false;
       }).length
     : nonceChecks.length;
+  const expectedPendingMembers = Math.max(expectedMembers - acceptedMembers, 0);
+  const pendingMembersToJoin = Math.max(
+    pendingInvites,
+    expectedPendingMembers,
+    membersNeededToStart
+  );
+  const missingExpectedOrInvitedMembers = Math.max(
+    pendingInvites,
+    expectedPendingMembers
+  );
 
   const invitesComplete = hasInviteMetadata
-    ? hasEnoughMembersToStart && inviteStatusReady && pendingInvites === 0
+    ? hasEnoughMembersToStart && inviteStatusReady && pendingMembersToJoin === 0
     : hasEnoughMembersToStart;
+  const canResolveMissingMembers = !isStackMetadataLoading && inviteStatusReady;
+  const shouldWarnBeforeStart =
+    hasInviteMetadata && missingExpectedOrInvitedMembers > 0;
 
   const totalMembers =
     formattedCircleStatus.status === "pending-start"
@@ -225,21 +237,28 @@ const Overview = ({
       <div className="mt-4">
         {formattedCircleStatus.status === "pending-start" ? (
           <>
-            {!invitesComplete && circle.isMember ? (
-              <Body className="text-center text-surface-grey">
-                Waiting for{" "}
-                <span className="font-bold text-surface-ink">
-                  {pendingInvites}
-                </span>{" "}
-                {pendingInvites === 1 ? "invite" : "invites"} to be accepted
-                before the stack can start.
-              </Body>
-            ) : member === circle.circleInfo.owner ? (
+            {member === circle.circleInfo.owner &&
+            hasEnoughMembersToStart &&
+            canResolveMissingMembers ? (
               <StartCircleButton
                 circleId={BigInt(circle.circleId)}
                 amount={circle.circleInfo.depositAmount}
+                pendingMembers={
+                  shouldWarnBeforeStart ? missingExpectedOrInvitedMembers : 0
+                }
                 width="full"
               />
+            ) : member === circle.circleInfo.owner &&
+              hasEnoughMembersToStart ? (
+              <LiftedButton width="full" className="text-paper-main" disabled>
+                Checking members...
+              </LiftedButton>
+            ) : !invitesComplete && circle.isMember ? (
+              <Body className="text-center text-surface-grey">
+                {pendingMembersToJoin} invited{" "}
+                {pendingMembersToJoin === 1 ? "member has" : "members have"} not
+                joined yet.
+              </Body>
             ) : (
               <LiftedButton width="full" className="text-paper-main" disabled>
                 Stack creator needs to start stack
