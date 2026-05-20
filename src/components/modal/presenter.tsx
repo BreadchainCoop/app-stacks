@@ -20,6 +20,7 @@ import FundWallet from "./modals/fund-wallet/fund-wallet";
 import LiFiSwapModal from "../lifi/swap-modal";
 import InstallPeerModal from "../peer/install-modal";
 import FundWithConnectedWalletModalAmount from "./modals/fund-wallet/fund-with-connected-wallet-modal-amount";
+import StartStackWarningModal from "./modals/start-stack-warning";
 
 const ModalPresenter = () => {
   const { modalState, setModal } = useModal();
@@ -59,6 +60,9 @@ const ModalPresenter = () => {
               )}
               {modalState.type === "STACK_FAILED" && (
                 <StackFailed modalState={modalState} />
+              )}
+              {modalState.type === "START_STACK_WARNING" && (
+                <StartStackWarningModal modalState={modalState} />
               )}
               {modalState.type === "WITHDRAW_BREAD" && <WithdrawBreadModal />}
               {modalState.type === "NEW_USER_ONBOARDING" && (

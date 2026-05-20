@@ -77,6 +77,12 @@ export type StackFailedModalState = {
   id: bigint;
 };
 
+export type StartStackWarningModalState = {
+  type: "START_STACK_WARNING";
+  pendingMembers: number;
+  onConfirm: () => void;
+};
+
 export type WithdrawBreadModalState = {
   type: "WITHDRAW_BREAD";
 };
@@ -129,6 +135,7 @@ export type ModalState =
   | StackInitSuccessModalState
   | StackInitFailedModalState
   | StackFailedModalState
+  | StartStackWarningModalState
   | WithdrawBreadModalState
   | WalletFundingStatusModalState
   | ReminderModalState
