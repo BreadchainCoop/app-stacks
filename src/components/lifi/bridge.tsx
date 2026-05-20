@@ -11,7 +11,7 @@ import {
 import { useEffect } from "react";
 import { LiFiWrapper } from "./wrapper";
 import { lifiConfig } from "./config";
-import { Address, encodeFunctionData } from "viem";
+import { Address, encodeFunctionData, formatEther } from "viem";
 import { useModal } from "../modal/context";
 import { breadAbi } from "@/lib/abis/bread-abi";
 import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
@@ -55,7 +55,11 @@ export default function Bridge({ userAddress }: { userAddress: Address }) {
           { uiOptions: { showWalletUIs: false } }
         );
 
-        setModal({ type: "WALLET_FUNDING_STATUS", status: "success" });
+        setModal({
+          type: "WALLET_FUNDING_STATUS",
+          status: "success",
+          breadAmount: formatEther(BigInt(route.toAmountMin)),
+        });
 
         void (await waitForTxReceipt(hash));
       } catch (error) {

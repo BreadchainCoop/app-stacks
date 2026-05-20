@@ -110,7 +110,7 @@ export const ModalStatus = ({
           <CheckCircleIcon size={48} className="fill-system-green" />
           <Body bold className="text-system-green">
             {/* Transaction successful */}
-            {statusMsg || "Complete"}
+            {statusMsg ?? "Complete"}
           </Body>
           {/* <Body bold className="text-surface-grey">
 						{msg}

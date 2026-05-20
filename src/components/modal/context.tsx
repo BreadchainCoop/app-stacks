@@ -88,9 +88,13 @@ export type FundWalletModalState = {
 
 export type WalletFundingStatusModalState = {
   type: "WALLET_FUNDING_STATUS";
-  status: TModalStatus;
-  onRetry?: () => Promise<void>;
-};
+} & (
+  | {
+      status: "loading";
+    }
+  | { status: "error"; onRetry?: () => Promise<void> }
+  | { status: "success"; breadAmount: string }
+);
 
 export type ReminderModalState = {
   type: "REMINDER";

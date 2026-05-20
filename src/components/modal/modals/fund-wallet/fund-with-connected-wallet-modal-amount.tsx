@@ -151,7 +151,11 @@ const FundWithConnectedWalletModalAmount = ({
         },
       });
 
-      setModal({ type: "WALLET_FUNDING_STATUS", status: "success" });
+      setModal({
+        type: "WALLET_FUNDING_STATUS",
+        status: "success",
+        breadAmount: amount,
+      });
     } catch (error) {
       console.error(
         "[FundWithConnectedWalletContent]: Transaction failed",
