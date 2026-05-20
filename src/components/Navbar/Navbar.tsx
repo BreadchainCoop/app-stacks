@@ -24,15 +24,17 @@ function ActionItems() {
   const { setModal } = useModal();
   const handleFund = async () => {
     if (user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN") {
+      console.log("HANDLE FUND");
       setModal({
         type: "FUND_WALLET",
         address: user.address,
-        onFunded: () => {
-          setModal({
-            type: "WALLET_FUNDING_STATUS",
-            status: "success",
-          });
-        },
+        // onFunded: () => {
+        //   setModal({
+        //     type: "WALLET_FUNDING_STATUS",
+        //     status: "success",
+        //     breadAmount: "0",
+        //   });
+        // },
       });
     }
   };
