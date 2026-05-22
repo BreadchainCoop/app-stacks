@@ -16,7 +16,15 @@ import {
   // walletConnectWallet,
 } from "@rainbow-me/rainbowkit/wallets";
 import { http } from "wagmi";
-import { arbitrum, base, bsc, gnosis, mainnet, optimism } from "wagmi/chains";
+import {
+  arbitrum,
+  base,
+  bsc,
+  gnosis,
+  mainnet,
+  optimism,
+  sepolia,
+} from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { foundryChain } from "@/lib/wagmi";
 import { WagmiProvider, createConfig } from "@privy-io/wagmi";
@@ -57,7 +65,7 @@ export const wagmiConfig = createConfig({
   connectors,
   // @ts-expect-error Correct
   chains: (() => {
-    const _chains = [gnosis, mainnet, arbitrum, base, bsc, optimism];
+    const _chains = [gnosis, sepolia, mainnet, arbitrum, base, bsc, optimism];
     // @ts-expect-error Correct
     if (process.env.NODE_ENV === "development") _chains.push(foundryChain);
 
@@ -66,6 +74,7 @@ export const wagmiConfig = createConfig({
   transports: {
     [gnosis.id]: http(),
     [foundryChain.id]: http(),
+    [sepolia.id]: http(),
     // for lifi
     [mainnet.id]: http(),
     [arbitrum.id]: http(),
