@@ -65,6 +65,23 @@ export type Database = {
         // };
         Update: Pick<SupabaseStackMetadata, "invite_links">;
       };
+      user_stacks: {
+        Row: {
+          user_id: string;
+          stack_id: string;
+          joined_at: string;
+          automatic_claims: boolean;
+        };
+        Insert: {
+          user_id: string;
+          stack_id: string;
+          joined_at?: string;
+          automatic_claims?: boolean;
+        };
+        Update: {
+          automatic_claims?: boolean;
+        };
+      };
     };
   };
 };

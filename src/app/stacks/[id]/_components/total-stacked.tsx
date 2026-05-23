@@ -18,26 +18,7 @@ import ClaimButton from "@/components/claim-button";
 import { useGetLastClaimed } from "@/hooks/use-get-last-claimed";
 import { formatRelativeTime } from "@/utils/time";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
-import { Label } from "@/components/label";
-import { HandWithdrawIcon } from "@phosphor-icons/react";
-import { Switch } from "@/components/switch";
-import { useModal } from "@/components/modal/context";
-
-function AutomaticClaim() {
-  const { setModal } = useModal();
-  return (
-    <div className="mt-2">
-      <Label className="flex items-center justify-start flex-wrap gap-1">
-        <HandWithdrawIcon size={24} />
-        <span className="mr-auto">Activate automatic claims</span>
-        <Switch
-          id="automatic-claims"
-          onCheckedChange={() => setModal({ type: "AUTOMATIC_CLAIMS" })}
-        />
-      </Label>
-    </div>
-  );
-}
+import { AutomaticClaim } from "./automatic-claim";
 
 const TotalStacked = ({
   id,
@@ -165,7 +146,9 @@ const TotalStacked = ({
               ) : (
                 <LastClaimStatus address={address} circleId={id} />
               )}
-              {userCircleData.circleData?.isMember && <AutomaticClaim />}
+              {userCircleData.circleData?.isMember && (
+                <AutomaticClaim stackId={id} />
+              )}
             </>
           )}
         </>

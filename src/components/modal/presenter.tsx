@@ -92,7 +92,7 @@ const ModalPresenter = () => {
                 <InstallPeerModal modalState={modalState} />
               )}
               {modalState.type === "AUTOMATIC_CLAIMS" && (
-                <AutomaticClaimsModal />
+                <AutomaticClaimsModal modalState={modalState} />
               )}
             </Dialog.Content>
           </>

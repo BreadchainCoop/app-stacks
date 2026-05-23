@@ -1,17 +1,17 @@
 {
+  "lib/forge-std": {
+    "rev": "0844d7e1fc5e60d77b68e469bff60265f236c398"
+  },
+  "lib/openzeppelin-contracts-upgradeable": {
+    "rev": "b933412726bccd822a871116f1427111e649ff54"
+  },
+  "lib/openzeppelin-contracts": {
+    "rev": "8ff78ffb6e78463f070eab59487b4ba30481b53c"
+  },
   "lib/saving-circles": {
     "branch": {
       "name": "dev",
       "rev": "8be323992bc8755e77f27839b327422a07cfa37f"
     }
-  },
-  "lib/forge-std": {
-    "rev": "0844d7e1fc5e60d77b68e469bff60265f236c398"
-  },
-  "lib/openzeppelin-contracts": {
-    "rev": "8ff78ffb6e78463f070eab59487b4ba30481b53c"
-  },
-  "lib/openzeppelin-contracts-upgradeable": {
-    "rev": "b933412726bccd822a871116f1427111e649ff54"
   }
 }
