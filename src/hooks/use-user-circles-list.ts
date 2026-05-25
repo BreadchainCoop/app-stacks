@@ -25,6 +25,7 @@ const parseCircleData = (
 
   const circle = {
     ...c.circleInfo,
+    completedRounds: c.completedRounds,
     totalMember: Number(totalRounds),
     id: c.circleId,
     status: formattedStatus.status,
