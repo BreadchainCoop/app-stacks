@@ -32,14 +32,14 @@ const Stack = ({
   const { setModal } = useModal();
   const stackMeta = stacksMap[String(stack.id)];
   const depositAmount = formatEther(stack.depositAmount);
+  const completedRounds =
+    stack.status === "finished"
+      ? stack.totalMember
+      : Number(stack.completedRounds);
   const totalGoal =
     Number(depositAmount) * stack.totalMember * stack.totalMember;
   const totalDeposited =
-    Number(
-      stack.status === "finished" ? stack.totalMember : stack.currentIndex
-    ) *
-      Number(depositAmount) *
-      Number(stack.totalMember) +
+    completedRounds * Number(depositAmount) * Number(stack.totalMember) +
     Number(formatEther(stack.totalPoolBalance || BigInt(0)));
   // const percentageDone = totalGoal > 0 ? (totalDeposited / totalGoal) * 100 : 0;
   let percentageDone = 0;

@@ -16,6 +16,7 @@ export type ICircleStatus =
 interface ICircleBaseList {
   circleEnd: bigint;
   currentIndex: bigint;
+  completedRounds: bigint;
   depositAmount: bigint;
   depositInterval: bigint;
   effectiveCircleStartTime: bigint;
