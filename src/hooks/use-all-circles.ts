@@ -65,7 +65,6 @@ export function useAllCircles(page: number = 0) {
 
       circles.push({
         ...circleData.circleInfo,
-        completedRounds: circleData.completedRounds,
         id: circleData.circleId,
         totalMember: Number(circleData.totalRounds),
         status,
