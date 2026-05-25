@@ -13,7 +13,6 @@ import { HandWithdrawIcon } from "@phosphor-icons/react";
 import { parseCircleIntervalToDate } from "@/utils/stacks";
 import { Database } from "@/lib/supabase";
 import { useModal } from "./modal/context";
-import { useTotalBreadStacked } from "@/hooks/use-total-bread-stacked";
 
 type StackMetadata = Database["public"]["Tables"]["stacks_metadata"]["Row"];
 
@@ -26,17 +25,15 @@ const completedStatuses: ICircleStatus[] = [
 const Stack = ({
   stack,
   stacksMap,
+  totalBreadStacked,
 }: {
   stack: ICircleList;
   stacksMap: Record<string, StackMetadata>;
+  totalBreadStacked: bigint;
 }) => {
   const { setModal } = useModal();
   const stackMeta = stacksMap[String(stack.id)];
   const depositAmount = formatEther(stack.depositAmount);
-  const { data: totalBreadStacked = BigInt(0) } = useTotalBreadStacked({
-    circleId: stack.id,
-    isDecommissioned: stack.status === "decommissioned",
-  });
   const totalGoal =
     Number(depositAmount) * stack.totalMember * stack.totalMember;
   const totalDeposited = Number(formatEther(totalBreadStacked));
