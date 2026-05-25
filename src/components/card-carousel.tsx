@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Stack from "./stack";
 import { ICircleList } from "@/interfaces/circle";
 import { Database } from "@/lib/supabase";
+import { useTotalBreadStackedByCircle } from "@/hooks/use-total-bread-stacked";
 
 type StackMetadata = Database["public"]["Tables"]["stacks_metadata"]["Row"];
 
@@ -21,6 +22,8 @@ export default function CardCarousel({
   const [cardsPerPage, setCardsPerPage] = useState(1);
   const [isAnimating, setIsAnimating] = useState(false);
   const [direction, setDirection] = useState("next");
+  const { data: totalBreadStackedByCircle = {} } =
+    useTotalBreadStackedByCircle(circles);
 
   const getCardsPerPage = () => {
     if (typeof window === "undefined") return 1;
@@ -90,7 +93,14 @@ export default function CardCarousel({
           }`}
         >
           {visibleCards.map((card) => (
-            <Stack stacksMap={stacksMap} stack={card} key={card.id} />
+            <Stack
+              stacksMap={stacksMap}
+              stack={card}
+              totalBreadStacked={
+                totalBreadStackedByCircle[card.id.toString()] ?? BigInt(0)
+              }
+              key={card.id}
+            />
           ))}
         </div>
       </div>
