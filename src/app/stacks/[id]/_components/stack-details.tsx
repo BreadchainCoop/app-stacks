@@ -22,6 +22,7 @@ import {
 import { CalendarDotsIcon } from "@phosphor-icons/react/ssr";
 import { ReactNode } from "react";
 import { formatEther, zeroAddress } from "viem";
+import { useTotalBreadStacked } from "@/hooks/use-total-bread-stacked";
 
 const failedStatuses: ICircleStatus[] = [
   "decommissioned",
@@ -33,28 +34,12 @@ const failedStatuses: ICircleStatus[] = [
 const StackDetailsTotal = ({
   intervalLabel,
   depositPerRound,
-  totalRounds,
-  circleStatus,
-  poolBalance,
-  completedRounds,
+  totalBreadStacked,
 }: {
   intervalLabel: string;
   depositPerRound: string;
-  totalRounds: bigint;
-  circleStatus: IFormattedUserCircleStatusResult;
-  poolBalance: string;
-  completedRounds: bigint;
+  totalBreadStacked: bigint;
 }) => {
-  let totalAmountStackedByMembers = "0.00";
-  if (circleStatus.status === "finished") {
-    totalAmountStackedByMembers = String(
-      +depositPerRound * Number(totalRounds)
-    );
-  } else if (circleStatus.status !== "pending-start") {
-    totalAmountStackedByMembers = String(
-      +depositPerRound * Number(completedRounds) + Number(poolBalance)
-    );
-  }
   return (
     <div className="flex flex-col gap-6 mb-3 md:mb-0 md:flex-1 md:justify-end">
       <div className="flex items-center justify-start gap-x-4 flex-wrap">
@@ -83,7 +68,7 @@ const StackDetailsTotal = ({
           <Logo
             variant="square"
             // text={Number(totalAmountSaved || "0").toFixed(2)}
-            text={formatBalance(+totalAmountStackedByMembers, 2)}
+            text={formatBalance(+formatEther(totalBreadStacked), 2)}
             size={24}
           />
           <Body className="mt-[0.2rem]">BREAD</Body>
@@ -201,6 +186,10 @@ const StackDetails = ({
     {},
     BigInt(Math.floor(blockTimestamp / 1000))
   );
+  const { data: totalBreadStacked = BigInt(0) } = useTotalBreadStacked({
+    circleId: BigInt(id),
+    isDecommissioned: circleStatus.status === "decommissioned",
+  });
   const roundsLeft =
     circleStatus.status === "finished"
       ? 0
@@ -246,10 +235,7 @@ const StackDetails = ({
               : intervalLabel
           }
           depositPerRound={formatEther(depositPerRound)}
-          poolBalance={formatEther(_circle.totalPoolBalance)}
-          completedRounds={_circle.completedRounds}
-          circleStatus={circleStatus}
-          totalRounds={members}
+          totalBreadStacked={totalBreadStacked}
         />
         <StackDetailsBreakdown
           circle={circle}

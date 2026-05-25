@@ -96,6 +96,9 @@ const DepositButton = ({
 
       queryClient.invalidateQueries({ queryKey: ["readContract"] });
       queryClient.invalidateQueries({ queryKey: ["readContracts"] });
+      queryClient.invalidateQueries({
+        queryKey: ["totalBreadStacked", circleId],
+      });
       modal.setModal({ type: "DEPOSIT_RESULT", result: "success" });
     } catch (error) {
       modal.setModal({
