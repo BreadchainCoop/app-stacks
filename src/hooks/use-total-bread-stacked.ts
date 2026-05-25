@@ -14,7 +14,7 @@ export const useTotalBreadStacked = ({
   const publicClient = usePublicClient();
 
   return useQuery({
-    queryKey: ["totalBreadStacked", circleId, isDecommissioned],
+    queryKey: ["totalBreadStacked", circleId.toString(), isDecommissioned],
     enabled: Boolean(publicClient),
     queryFn: async () => {
       if (!publicClient) return BigInt(0);
