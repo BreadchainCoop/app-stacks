@@ -11,11 +11,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
 import { parseContractError } from "@/utils/parse-contract-error";
-
-const DECOMMISSION_ERRORS: Record<string, string> = {
-  NotDecommissionable: "This stack cannot be retired yet.",
-  NotActive: "This stack is not active.",
-};
+import { DECOMMISSION_ERRORS } from "@/lib/contract-errors";
 
 const parseDecommissionError = (error: unknown) =>
   parseContractError(
@@ -98,13 +94,14 @@ const StackFailed = ({ modalState }: { modalState: StackFailedModalState }) => {
           )}
         </div>
 
-        {feedback.type !== "success" && (
-          <div className="mb-4">
-            <LocalLiftedButton width="full" onClick={handleDecommission}>
-              {buttonText}
-            </LocalLiftedButton>
-          </div>
-        )}
+        {feedback.type !== "success" &&
+          feedback?.message?.toLowerCase() !== "this circle is not active." && (
+            <div className="mb-4">
+              <LocalLiftedButton width="full" onClick={handleDecommission}>
+                {buttonText}
+              </LocalLiftedButton>
+            </div>
+          )}
 
         {!isDecommissioning && <ModalCloseBtn />}
       </div>

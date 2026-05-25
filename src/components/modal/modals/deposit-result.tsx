@@ -25,55 +25,17 @@ const DepositResult = ({
     msg =
       modalState.result === "success"
         ? "Successfully paid"
-        : "Something went wrong. Please try again!";
+        : modalState.msg || "Something went wrong. Please try again!";
   }
 
   return (
     <ModalContainer
-      // status={modalState.result}
       status={
         modalState.type === "DEPOSIT_LOADING" ? "loading" : modalState.result
       }
-      // className={`border ${
-      // 	modalState.result === "success"
-      // 		? "border-system-green"
-      // 		: "border-system-red"
-      // }`}
     >
       <ModalHeader title={title} />
       <ModalStatus status={status} msg={msg} />
-      {/* <div className="flex items-center justify-center flex-col gap-2">
-				{modalState.result === "success" ? (
-					<>
-						<CheckCircleIcon
-							size={48}
-							className="fill-system-green"
-						/>
-						<Body bold className="text-system-green">
-							Complete
-						</Body>
-						<Body bold className="text-surface-grey">
-							Successfully unlocked!
-						</Body>
-					</>
-				) : (
-					<>
-						<WarningCircleIcon
-							size={48}
-							className="fill-system-red"
-						/>
-						<Body bold className="text-system-red">
-							{modalState.msg}
-						</Body>
-						<Body bold className="text-surface-grey">
-							Something went wrong. Please try again!
-						</Body>
-					</>
-				)}
-			</div> */}
-      {/* {modalState.result === "error" && (
-				<DepositButton preset="burn" width="full" label="Try again" />
-			)} */}
     </ModalContainer>
   );
 };
