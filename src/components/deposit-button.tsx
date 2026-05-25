@@ -19,6 +19,7 @@ import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
 import { useWaitForTxReceipt } from "@/hooks/use-wait-for-tx-receipt";
 import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
 import { parseContractError } from "@/utils/parse-contract-error";
+import { DEPOSIT_ERRORS } from "@/lib/contract-errors";
 
 interface DepositButtonProps extends Omit<LiftedButtonProps, "children"> {
   label?: string;
@@ -27,21 +28,8 @@ interface DepositButtonProps extends Omit<LiftedButtonProps, "children"> {
   circleId: bigint;
 }
 
-const DEPOSIT_ERRORS: Record<string, string> = {
-  NotActive: "This circle is not active.",
-  NotMember: "You are not a member of this circle.",
-  CircleExpired: "This circle has expired.",
-  CircleTimedOut: "The deposit window has closed.",
-  ExceedsDepositAmount: "Amount exceeds the required deposit.",
-  DepositBeforeCircleStart: "The circle hasn't started yet.",
-};
-
 const parseDepositError = (error: unknown) =>
-  parseContractError(
-    error,
-    DEPOSIT_ERRORS,
-    "Transaction failed. You don't have enough BREAD."
-  );
+  parseContractError(error, DEPOSIT_ERRORS);
 
 const DepositButton = ({
   label = "Pay Deposit",
@@ -110,7 +98,6 @@ const DepositButton = ({
       queryClient.invalidateQueries({ queryKey: ["readContracts"] });
       modal.setModal({ type: "DEPOSIT_RESULT", result: "success" });
     } catch (error) {
-      console.error("__ ERROR __", error);
       modal.setModal({
         type: "DEPOSIT_RESULT",
         result: "error",

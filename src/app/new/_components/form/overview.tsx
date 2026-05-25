@@ -31,14 +31,7 @@ import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
 import { simulateContract } from "@wagmi/core";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { getIntervalById, splitIntervalId } from "@/utils/deposit-interval";
-
-const CREATE_ERRORS: Record<string, string> = {
-  TokenNotAllowed: "The token is not allowed for this circle.",
-  InvalidDepositInterval: "The deposit interval is invalid.",
-  InvalidDepositAmount: "The deposit amount is invalid.",
-  InvalidOwner: "Invalid owner address.",
-  AlreadyExists: "A circle with this ID already exists.",
-};
+import { CREATE_ERRORS } from "@/lib/contract-errors";
 
 const parseCreateError = (error: unknown) =>
   parseContractError(

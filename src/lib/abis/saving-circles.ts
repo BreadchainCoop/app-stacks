@@ -1071,6 +1071,11 @@ export const savingCirclesAbi = [
   },
   {
     type: "error",
+    name: "CircleTimedOut",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "ECDSAInvalidSignature",
     inputs: [],
   },

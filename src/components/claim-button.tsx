@@ -8,12 +8,7 @@ import { Address } from "viem";
 import { formatBalance } from "@breadcoop/ui";
 import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
 import { parseContractError } from "@/utils/parse-contract-error";
-
-const CLAIM_ERRORS: Record<string, string> = {
-  NotWithdrawable: "It's not your turn to claim yet.",
-  NotMember: "You are not a member of this circle.",
-  NotActive: "This circle is not active.",
-};
+import { CLAIM_ERRORS } from "@/lib/contract-errors";
 
 const parseClaimError = (error: unknown) =>
   parseContractError(error, CLAIM_ERRORS, "Failed to claim. Please try again.");
