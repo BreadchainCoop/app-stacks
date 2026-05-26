@@ -15,6 +15,8 @@ import { useModal } from "@/components/modal/context";
 import BackMeta from "./back-meta";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 
+const FINISHED_STATUSES = ["decommissioned", "expired", "failed", "finished"] as const;
+
 const PageContent = ({ id }: { id: string }) => {
   const now = useBlockTimestamp();
   const { setModal } = useModal();
@@ -29,6 +31,18 @@ const PageContent = ({ id }: { id: string }) => {
     member,
     enabled: Boolean(member),
   });
+
+  const circleStatus = userCircleData.circleData
+    ? getUserCircleStatus(
+        userCircleData.circleData,
+        member,
+        {},
+        BigInt(Math.floor(now / 1000))
+      )
+    : null;
+  const isFinishedStack =
+    circleStatus !== null &&
+    (FINISHED_STATUSES as readonly string[]).includes(circleStatus.status);
 
   useEffect(() => {
     if (!userCircleData.circleData?.isMember) return;
@@ -77,6 +91,7 @@ const PageContent = ({ id }: { id: string }) => {
               circle={userCircleData.circleData.circleInfo}
               member={member}
               isMember={userCircleData.circleData?.isMember}
+              isFinished={isFinishedStack}
             />
             <StackInfo owner={userCircleData.circleData.circleInfo.owner} />
           </div>

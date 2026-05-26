@@ -14,6 +14,7 @@ import { useGetLastDeposit } from "@/hooks/use-get-last-deposit";
 import { useInviteRedeemed } from "@/hooks/use-invite-redeemed";
 import { usePreferredEnsName } from "@/hooks/use-preferred-ens-name";
 import { useUserCircleData } from "@/hooks/use-user-circle-data";
+import { useMemberDepositsByCircle } from "@/hooks/use-total-bread-stacked";
 import { formatRelativeTime, formatShortDate } from "@/utils/time";
 import { Body, Chip } from "@breadcoop/ui";
 import { Address, formatEther } from "viem";
@@ -32,21 +33,34 @@ const MembersInfo = ({
   info,
   id,
   totalBaseDeposit,
+  isFinished,
   pendingInviteLinks,
 }: {
   owner: Address;
   id: string;
   info: ReturnType<typeof useCircleMembersWithBalances>;
   totalBaseDeposit: number;
+  isFinished: boolean;
   pendingInviteLinks?: string[];
 }) => {
+  const { data: memberDepositMap = {} } = useMemberDepositsByCircle({
+    circleId: id,
+    isFinished,
+  });
+
   return (
     <div>
       <Accordion>
         {info.members.map((member, index) => {
-          const totalDeposits = +formatEther(
-            info.memberBalances?.balances[index] || BigInt(0)
-          );
+          // For finished stacks, sum FundsDeposited events per member (currentIndex
+          // inflates post-finish). For active stacks, use contract balance + base.
+          const totalDeposits = isFinished
+            ? +formatEther(
+                memberDepositMap[member.toLowerCase()] ?? BigInt(0)
+              )
+            : +formatEther(
+                info.memberBalances?.balances[index] || BigInt(0)
+              ) + totalBaseDeposit;
 
           return (
             <AccordionItem key={member} value={member}>
@@ -70,7 +84,7 @@ const MembersInfo = ({
               </AccordionHeader>
               <AccordionContent>
                 <MemberInfoContent
-                  totalDeposits={String(totalDeposits + totalBaseDeposit)}
+                  totalDeposits={String(totalDeposits)}
                   member={member}
                   circleId={id}
                   isOWner={member.toLowerCase() === owner.toLowerCase()}

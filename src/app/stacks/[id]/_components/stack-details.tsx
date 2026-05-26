@@ -188,7 +188,11 @@ const StackDetails = ({
   );
   const { data: totalBreadStacked = BigInt(0) } = useTotalBreadStacked({
     circleId: BigInt(id),
-    isDecommissioned: circleStatus.status === "decommissioned",
+    circleStatus: circleStatus.status,
+    completedRounds: _circle.completedRounds,
+    depositAmount: circle.depositAmount,
+    totalRounds: members,
+    poolBalance: _circle.totalPoolBalance,
   });
   const roundsLeft =
     circleStatus.status === "finished"

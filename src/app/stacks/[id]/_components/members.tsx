@@ -44,11 +44,13 @@ const StackMembers = ({
   id,
   member,
   isMember,
+  isFinished,
 }: {
   id: string;
   member: Address;
   circle: MemberCircleInfo;
   isMember: boolean;
+  isFinished: boolean;
 }) => {
   const info = useCircleMembersWithBalances(BigInt(id));
   const isOwner = circle.owner === member;
@@ -132,6 +134,7 @@ const StackMembers = ({
         id={id}
         info={info}
         totalBaseDeposit={totalBaseDeposit}
+        isFinished={isFinished}
         pendingInviteLinks={isOwner ? pendingInviteLinks : []}
       />
     </section>
