@@ -25,6 +25,7 @@ import { getDefaultChainId } from "@/utils/chain";
 import { useReadContracts } from "wagmi";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { ICircleStatus } from "@/interfaces/circle";
+import { useFundsDeposited } from "@/hooks/use-funds-deposited";
 
 const failedStatuses: ICircleStatus[] = [
   "decommissioned",
@@ -63,6 +64,16 @@ const Overview = ({
   );
   const { data: stackMetadata, isLoading: isStackMetadataLoading } =
     useStackSupabase(circle.circleId.toString(), circle.isMember);
+
+  const isFailedStack = failedStatuses.includes(formattedCircleStatus.status);
+
+  const fundsDeposited = useFundsDeposited({
+    circleId: circle.circleId.toString(),
+    enabled: isFailedStack,
+    totalRounds: +circle.totalRounds.toString(),
+    circleStartsTimestamp: circle.circleInfo.effectiveCircleStartTime,
+    depositInterval: circle.circleInfo.depositInterval,
+  });
 
   const nonceChecks = (stackMetadata?.invite_links ?? [])
     .map((link) => {
@@ -134,10 +145,12 @@ const Overview = ({
   let membersDeposited: bigint | number = BigInt(0);
   let poolBalance = BigInt(0);
 
-  if (formattedCircleStatus.status === "finished") {
-    roundsCompleted = circle.totalRounds;
-    membersDeposited = totalMembers as number;
-    poolBalance = BigInt(totalMembers) * circle.circleInfo.depositAmount;
+  if (isFailedStack) {
+    if (fundsDeposited.data) {
+      roundsCompleted = BigInt(fundsDeposited.data.lastActiveRound ?? 0);
+      membersDeposited = fundsDeposited.data.membersDepositedInCurrentRound;
+      poolBalance = fundsDeposited.data.totalDepositInCurrentRound;
+    }
   } else {
     roundsCompleted = circle.completedRounds;
     membersDeposited =
@@ -153,10 +166,17 @@ const Overview = ({
         <Body bold className="text-xs shrink-0">
           <span className="font-normal">Stack status: </span>
           <span>
-            {failedStatuses.includes(formattedCircleStatus.status) ? (
-              <>{formattedCircleStatus.status}</>
-            ) : totalMembers === "-" ? (
-              "-"
+            {isFailedStack ? (
+              fundsDeposited.isLoading ? (
+                "loading..."
+              ) : fundsDeposited.isError ? (
+                "error"
+              ) : (
+                <>
+                  {fundsDeposited.data?.lastActiveRound || 0} out of{" "}
+                  {totalMembers} rounds complete
+                </>
+              )
             ) : (
               <>
                 {roundsCompleted} out of {totalMembers} rounds complete
@@ -169,8 +189,11 @@ const Overview = ({
         <Body className="flex flex-col justify-start md:items-start">
           <span className="text-surface-grey">Deposits made by</span>
           <span>
-            {totalMembers === "-" ||
-            failedStatuses.includes(formattedCircleStatus.status) ? (
+            {isFailedStack && fundsDeposited.isLoading ? (
+              "loading..."
+            ) : isFailedStack && fundsDeposited.isError ? (
+              "error"
+            ) : totalMembers === "-" ? (
               "-"
             ) : (
               <>
@@ -183,22 +206,12 @@ const Overview = ({
         <Body className="flex flex-col justify-start md:items-center md:justify-center">
           <span className="text-surface-grey">Total Deposit</span>
           <span className="inline-flex items-center justify-start">
-            {failedStatuses.includes(formattedCircleStatus.status) ? (
-              "-"
-            ) : (
-              <>
-                <Logo size={24} variant="square" className="mr-1" />
-                <span className="font-bold mt-[0.2rem]">
-                  {formatBalance(+formatEther(poolBalance), 2)} of{" "}
-                  {formatBalance(
-                    +formatEther(circle.circleInfo.depositAmount) *
-                      (typeof totalMembers === "string" ? 0 : totalMembers),
-                    2
-                  )}{" "}
-                  BREAD
-                </span>
-              </>
-            )}
+            <>
+              <Logo size={24} variant="square" className="mr-1" />
+              <span className="font-bold mt-[0.2rem]">
+                {formatBalance(+formatEther(poolBalance), 2)} BREAD
+              </span>
+            </>
           </span>
         </Body>
         <Body className="flex flex-col justify-start md:justify-end md:items-end">

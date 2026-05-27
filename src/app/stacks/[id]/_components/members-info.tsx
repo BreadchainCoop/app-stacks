@@ -14,9 +14,19 @@ import { useGetLastDeposit } from "@/hooks/use-get-last-deposit";
 import { useInviteRedeemed } from "@/hooks/use-invite-redeemed";
 import { usePreferredEnsName } from "@/hooks/use-preferred-ens-name";
 import { useUserCircleData } from "@/hooks/use-user-circle-data";
+import { useFundsDeposited } from "@/hooks/use-funds-deposited";
+import { ICircleStatus } from "@/interfaces/circle";
+import { getUserCircleStatus } from "@/lib/get-user-circle-status";
 import { formatRelativeTime, formatShortDate } from "@/utils/time";
-import { Body, Chip } from "@breadcoop/ui";
+import { Body, Chip, formatBalance } from "@breadcoop/ui";
 import { Address, formatEther } from "viem";
+
+const FAILED_STATUSES: ICircleStatus[] = [
+  "decommissioned",
+  "expired",
+  "failed",
+  "finished",
+];
 
 function DepositRow({ label, body }: { label: string; body: string }) {
   return (
@@ -33,12 +43,18 @@ const MembersInfo = ({
   id,
   totalBaseDeposit,
   pendingInviteLinks,
+  totalRounds,
+  circleStartsTimestamp,
+  depositInterval,
 }: {
   owner: Address;
   id: string;
   info: ReturnType<typeof useCircleMembersWithBalances>;
   totalBaseDeposit: number;
   pendingInviteLinks?: string[];
+  totalRounds: number;
+  circleStartsTimestamp: bigint;
+  depositInterval: bigint;
 }) => {
   return (
     <div>
@@ -74,6 +90,9 @@ const MembersInfo = ({
                   member={member}
                   circleId={id}
                   isOWner={member.toLowerCase() === owner.toLowerCase()}
+                  totalRounds={totalRounds}
+                  circleStartsTimestamp={circleStartsTimestamp}
+                  depositInterval={depositInterval}
                 />
               </AccordionContent>
             </AccordionItem>
@@ -103,11 +122,17 @@ function MemberInfoContent({
   member,
   isOWner,
   circleId,
+  totalRounds,
+  circleStartsTimestamp,
+  depositInterval,
 }: {
   totalDeposits: string;
   member: Address;
   isOWner: boolean;
   circleId: string;
+  totalRounds: number;
+  circleStartsTimestamp: bigint;
+  depositInterval: bigint;
 }) {
   const now = useBlockTimestamp();
   const { data: creationTimestamp } = useGetCircleCreated({
@@ -128,6 +153,42 @@ function MemberInfoContent({
     enabled: true,
     member,
   });
+
+  const nowSeconds = BigInt(Math.floor(now / 1000));
+  const formattedStatus = circleData.circleData
+    ? getUserCircleStatus(circleData.circleData, member, {}, nowSeconds)
+    : null;
+  const isFailedStack = formattedStatus
+    ? FAILED_STATUSES.includes(formattedStatus.status)
+    : false;
+
+  const fundsDeposited = useFundsDeposited({
+    circleId,
+    enabled: isFailedStack,
+    totalRounds,
+    circleStartsTimestamp,
+    depositInterval,
+  });
+
+  let memberTotal = "-";
+
+  if (isFailedStack) {
+    if (fundsDeposited.data) {
+      memberTotal = formatBalance(
+        +formatEther(
+          (
+            fundsDeposited.data.depositsByMember[
+              member.toLowerCase() as Address
+            ] ?? []
+          ).reduce((sum, d) => sum + d.amount, BigInt(0))
+        ),
+        2
+      );
+    }
+  } else {
+    memberTotal = totalDeposits;
+  }
+
   const joinedTimestamp = creationTimestamp || redeemedTimestamp;
 
   let daysNextDeposit: number | undefined;
@@ -158,9 +219,23 @@ function MemberInfoContent({
       />
       <DepositRow
         label="Last deposit"
-        body={`${lastDepositTime ? formatRelativeTime(lastDepositTime, new Date(now)) : "-"}`}
+        body={`${
+          lastDepositTime
+            ? formatRelativeTime(lastDepositTime, new Date(now))
+            : "-"
+        }`}
       />
-      <DepositRow label="Total deposits" body={`${totalDeposits} BREAD`} />
+      {/* <DepositRow label="Total deposits" body={`${memberTotal} BREAD`} /> */}
+      <DepositRow
+        label="Total deposits"
+        body={
+          isFailedStack && fundsDeposited.isLoading
+            ? "Loading"
+            : isFailedStack && fundsDeposited.error
+              ? "Error"
+              : `${memberTotal} BREAD`
+        }
+      />
       <DepositRow
         label="Joined"
         body={joinedTimestamp ? formatShortDate(joinedTimestamp) : "-"}

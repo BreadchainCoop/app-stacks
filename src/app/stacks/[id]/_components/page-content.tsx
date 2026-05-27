@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import StackHeader from "./header";
 import StackDetails from "./stack-details";
 import StackMembers from "./members";
@@ -30,18 +30,20 @@ const PageContent = ({ id }: { id: string }) => {
     enabled: Boolean(member),
   });
 
+  const nowSeconds = BigInt(Math.floor(now / 1000));
+
   useEffect(() => {
     if (!userCircleData.circleData?.isMember) return;
 
-    const circleStatus = getUserCircleStatus(
+    const status = getUserCircleStatus(
       userCircleData.circleData,
       member,
       {},
-      BigInt(Math.floor(now / 1000))
+      nowSeconds
     );
 
     if (
-      circleStatus.status === "failed" &&
+      status.status === "failed" &&
       !userCircleData.circleData.isDecommissioned
     ) {
       setModal({ type: "STACK_FAILED", id: BigInt(id) });
@@ -77,6 +79,7 @@ const PageContent = ({ id }: { id: string }) => {
               circle={userCircleData.circleData.circleInfo}
               member={member}
               isMember={userCircleData.circleData?.isMember}
+              totalRounds={+userCircleData.circleData.totalRounds.toString()}
             />
             <StackInfo owner={userCircleData.circleData.circleInfo.owner} />
           </div>
@@ -94,59 +97,3 @@ const PageContent = ({ id }: { id: string }) => {
 };
 
 export default PageContent;
-
-// const before = {
-//   canWithdraw: false,
-//   circleId: 1n,
-//   circleInfo: {
-//     circleEnd: 0n,
-//     currentIndex: 0n,
-//     depositAmount: 3400000000000000000n,
-//     depositInterval: 259200n,
-//     effectiveCircleStartTime: 0n,
-//     owner: "0xa90Bb4F04725688b792908105AA0F37a55004Bbc",
-//     token: "0x906B067e392e2c5f9E4f101f36C0b8CdA4885EBf",
-//   },
-//   completedRounds: 0n,
-//   currentWithdrawer: "0x0000000000000000000000000000000000000000",
-//   depositWindowEnd: 259200n,
-//   isCurrentWithdrawer: false,
-//   isDecommissionable: false,
-//   isDecommissioned: false,
-//   isExpired: true,
-//   isMember: true,
-//   isOwner: true,
-//   nextWithdrawTime: 0n,
-//   remainingDepositsNeeded: 3n,
-//   totalPoolBalance: 0n,
-//   totalRounds: 3n,
-//   userBalance: 0n,
-// };
-
-// const after = {
-//   canWithdraw: false,
-//   circleId: 1n,
-//   circleInfo: {
-//     circleEnd: 1778482171n,
-//     currentIndex: 0n,
-//     depositAmount: 3400000000000000000n,
-//     depositInterval: 259200n,
-//     effectiveCircleStartTime: 1777704571n,
-//     owner: "0xa90Bb4F04725688b792908105AA0F37a55004Bbc",
-//     token: "0x906B067e392e2c5f9E4f101f36C0b8CdA4885EBf",
-//   },
-//   completedRounds: 0n,
-//   currentWithdrawer: "0xa90Bb4F04725688b792908105AA0F37a55004Bbc",
-//   depositWindowEnd: 1777963771n,
-//   isCurrentWithdrawer: true,
-//   isDecommissionable: false,
-//   isDecommissioned: false,
-//   isExpired: false,
-//   isMember: true,
-//   isOwner: true,
-//   nextWithdrawTime: 1777704571n,
-//   remainingDepositsNeeded: 3n,
-//   totalPoolBalance: 0n,
-//   totalRounds: 3n,
-//   userBalance: 0n,
-// };

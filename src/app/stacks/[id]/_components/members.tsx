@@ -44,11 +44,13 @@ const StackMembers = ({
   id,
   member,
   isMember,
+  totalRounds,
 }: {
   id: string;
   member: Address;
   circle: MemberCircleInfo;
   isMember: boolean;
+  totalRounds: number;
 }) => {
   const info = useCircleMembersWithBalances(BigInt(id));
   const isOwner = circle.owner === member;
@@ -133,6 +135,9 @@ const StackMembers = ({
         info={info}
         totalBaseDeposit={totalBaseDeposit}
         pendingInviteLinks={isOwner ? pendingInviteLinks : []}
+        totalRounds={totalRounds}
+        circleStartsTimestamp={circle.effectiveCircleStartTime}
+        depositInterval={circle.depositInterval}
       />
     </section>
   );

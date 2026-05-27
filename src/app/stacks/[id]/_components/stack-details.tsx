@@ -22,6 +22,7 @@ import {
 import { CalendarDotsIcon } from "@phosphor-icons/react/ssr";
 import { ReactNode } from "react";
 import { formatEther, zeroAddress } from "viem";
+import OverallStacked from "./overall-stacked";
 
 const failedStatuses: ICircleStatus[] = [
   "decommissioned",
@@ -33,28 +34,32 @@ const failedStatuses: ICircleStatus[] = [
 const StackDetailsTotal = ({
   intervalLabel,
   depositPerRound,
-  totalRounds,
   circleStatus,
   poolBalance,
   completedRounds,
+  circleId,
+  totalRounds,
+  circleStartsTimestamp,
+  depositInterval,
 }: {
   intervalLabel: string;
   depositPerRound: string;
-  totalRounds: bigint;
   circleStatus: IFormattedUserCircleStatusResult;
   poolBalance: string;
   completedRounds: bigint;
+  circleId: string;
+  totalRounds: number;
+  circleStartsTimestamp: bigint;
+  depositInterval: bigint;
 }) => {
   let totalAmountStackedByMembers = "0.00";
-  if (circleStatus.status === "finished") {
-    totalAmountStackedByMembers = String(
-      +depositPerRound * Number(totalRounds)
-    );
-  } else if (circleStatus.status !== "pending-start") {
+
+  if (circleStatus.status !== "pending-start") {
     totalAmountStackedByMembers = String(
       +depositPerRound * Number(completedRounds) + Number(poolBalance)
     );
   }
+
   return (
     <div className="flex flex-col gap-6 mb-3 md:mb-0 md:flex-1 md:justify-end">
       <div className="flex items-center justify-start gap-x-4 flex-wrap">
@@ -80,15 +85,16 @@ const StackDetailsTotal = ({
           Overall stacked by members
         </Body>
         <div className="shrink-0 flex items-center justify-start flex-wrap gap-2">
-          <Logo
-            variant="square"
-            // text={Number(totalAmountSaved || "0").toFixed(2)}
-            text={formatBalance(+totalAmountStackedByMembers, 2)}
-            size={24}
+          <OverallStacked
+            circleId={circleId}
+            status={circleStatus}
+            totalAmountStackedByMembers={totalAmountStackedByMembers}
+            totalRounds={totalRounds}
+            circleStartsTimestamp={circleStartsTimestamp}
+            depositInterval={depositInterval}
           />
           <Body className="mt-[0.2rem]">BREAD</Body>
         </div>
-        {/* <TotalAmountStacked circleId={circleId} /> */}
       </div>
     </div>
   );
@@ -249,7 +255,10 @@ const StackDetails = ({
           poolBalance={formatEther(_circle.totalPoolBalance)}
           completedRounds={_circle.completedRounds}
           circleStatus={circleStatus}
-          totalRounds={members}
+          circleId={id}
+          totalRounds={+_circle.totalRounds.toString()}
+          circleStartsTimestamp={_circle.circleInfo.effectiveCircleStartTime}
+          depositInterval={_circle.circleInfo.depositInterval}
         />
         <StackDetailsBreakdown
           circle={circle}
