@@ -8647,12 +8647,6 @@ packages:
       }
     engines: { node: ^10 || ^12 || >=14 }
 
-  preact@10.24.1:
-    resolution:
-      {
-        integrity: sha512-PnBAwFI3Yjxxcxw75n6VId/5TFxNW/81zexzWD9jn1+eSrOP84NdsS38H5IkF/UH3frqRPT+MvuCoVHjTDTnDw==,
-      }
-
   preact@10.24.2:
     resolution:
       {
@@ -11210,7 +11204,7 @@ snapshots:
       eth-json-rpc-filters: 6.0.1
       eventemitter3: 5.0.1
       keccak: 3.0.4
-      preact: 10.24.1
+      preact: 10.24.2
       sha.js: 2.4.11
     transitivePeerDependencies:
       - supports-color
@@ -19123,8 +19117,6 @@ snapshots:
       nanoid: 3.3.11
       picocolors: 1.1.1
       source-map-js: 1.2.1
-
-  preact@10.24.1: {}
 
   preact@10.24.2: {}
 
