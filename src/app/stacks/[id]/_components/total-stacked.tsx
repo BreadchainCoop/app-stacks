@@ -15,6 +15,7 @@ import LastClaim from "./last-claim";
 import { ReactNode } from "react";
 import { Address, formatEther } from "viem";
 import ClaimButton from "@/components/claim-button";
+import AutomaticClaimsToggle from "./automatic-claims-toggle";
 import { useGetLastClaimed } from "@/hooks/use-get-last-claimed";
 import { formatRelativeTime } from "@/utils/time";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
@@ -145,6 +146,7 @@ const TotalStacked = ({
               ) : (
                 <LastClaimStatus address={address} circleId={id} />
               )}
+              <AutomaticClaimsToggle circleId={id} address={address} />
             </>
           )}
         </>
