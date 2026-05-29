@@ -71,7 +71,7 @@ const FundWallet = ({ modalState }: { modalState: FundWalletModalState }) => {
         {modalState.showSkipProcess && (
           <button
             type="button"
-            className="font-bold text-primary-blue mt-6"
+            className="font-bold text-primary-blue mt-6 transition-colors hover:text-blue-2 cursor-pointer"
             onClick={handleSkip}
           >
             Skip this process

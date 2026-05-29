@@ -20,7 +20,7 @@ const FundButton = ({
   return (
     <button
       type="button"
-      className="border border-paper-2 bg-paper-0 flex items-center justify-start gap-4 py-2.5 px-5 cursor-pointer w-full"
+      className="border border-paper-2 bg-paper-0 flex items-center justify-start gap-4 py-2.5 px-5 cursor-pointer w-full transition-colors hover:border-primary-blue hover:bg-blue-0"
       onClick={onClick}
     >
       <figure className="w-8 h-8 flex items-center justify-center">
