@@ -17,6 +17,7 @@ import ClaimButton from "@/components/claim-button";
 import { useGetLastClaimed } from "@/hooks/use-get-last-claimed";
 import { formatRelativeTime } from "@/utils/time";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
+import { AutomaticClaim } from "./automatic-claim";
 
 const TotalStacked = ({
   id,
@@ -139,6 +140,9 @@ const TotalStacked = ({
                 />
               ) : (
                 <LastClaimStatus address={address} circleId={id} />
+              )}
+              {userCircleData.circleData?.isMember && (
+                <AutomaticClaim stackId={id} />
               )}
             </>
           )}

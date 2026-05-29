@@ -22,7 +22,7 @@ export const ModalHeader = (props: ModalHeaderProps) => {
       <Heading2 className="text-2xl leading-6">{props.title}</Heading2>
       {(props.showCloseIcon ?? true) && (
         <button type="button" onClick={() => modal.setModal(null)}>
-          <CloseIcon />
+          <ModalCloseIcon />
         </button>
       )}
     </header>
@@ -57,7 +57,7 @@ export const ModalContainer = ({
   );
 };
 
-function CloseIcon() {
+export function ModalCloseIcon() {
   return (
     <svg
       width="24"

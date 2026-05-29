@@ -26,6 +26,7 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { foundryChain } from "@/lib/wagmi";
 import { WagmiProvider, createConfig } from "@privy-io/wagmi";
+import { hashFn } from "wagmi/query";
 
 // https://github.com/rainbow-me/rainbowkit/issues/2476#issuecomment-3117608183
 export function getWallets() {
@@ -87,6 +88,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
+      queryKeyHashFn: hashFn,
     },
   },
 });

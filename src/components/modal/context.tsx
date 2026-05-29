@@ -11,6 +11,7 @@ import {
 import { PeerExtensionSdk } from "@zkp2p/sdk";
 import { Address } from "viem";
 import { FundWithConnectedWalletModalAmountModalState } from "./modals/fund-wallet/fund-with-connected-wallet-modal-amount";
+import { AutomaticClaimsModalState } from "./modals/automatic-claims";
 
 export type TModalStatus = "loading" | "success" | "error";
 
@@ -144,6 +145,7 @@ export type ModalState =
   | LiFiBridgeSwapModalState
   | PeerOnRampInstallModalState
   | FundWithConnectedWalletModalAmountModalState
+  | AutomaticClaimsModalState
   | null;
 
 export type ModalContext = {
