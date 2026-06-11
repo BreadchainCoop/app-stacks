@@ -24,8 +24,8 @@ const BREAD_TOKEN_ADDRESS =
 const BREAD_FUND_AMOUNT = parseEther("50");
 const BREAD_MINIMUM_THRESHOLD = parseEther("20");
 
-const ETH_TOP_UP_AMOUNT = parseEther("0.0005");
-const ETH_MINIMUM_THRESHOLD = parseEther("0.0002");
+const ETH_TOP_UP_AMOUNT = parseEther("0.0025");
+const ETH_MINIMUM_THRESHOLD = parseEther("0.0015");
 
 interface FaucetResult {
   address: Address;
