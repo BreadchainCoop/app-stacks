@@ -258,13 +258,13 @@ export const StackSuccessResultModal = ({
             </div>
           )}
 
-          <div className="*:mb-2 *:last:mb-0">
+          <div className="*:mb-2 *:last:mb-0 max-h-96 overflow-y-auto">
             {invites.length > 0
               ? invites.map((invite, i) => (
                   <PendingInviteLink
                     key={invite.nonce.toString()}
                     link={invite.url}
-                    label={`0${i + 1}`}
+                    label={i >= 9 ? `${i + 1}` : `0${i + 1}`}
                     shorten={false}
                   />
                 ))
@@ -275,7 +275,11 @@ export const StackSuccessResultModal = ({
                     },
                     (_, i) => i + 1
                   ).map((m) => (
-                    <PendingInviteLink key={m} link="" label={`0${m}`} />
+                    <PendingInviteLink
+                      key={m}
+                      link=""
+                      label={m >= 10 ? `${m}` : `0${m}`}
+                    />
                   ))
                 : null}
           </div>
