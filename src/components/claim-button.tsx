@@ -37,8 +37,6 @@ const ClaimButton = ({
   const [claiming, setClaiming] = useState(false);
   const { sendSavingCirclesTx } = useSavingCirclesTx();
 
-  console.log({ nextDeposit, roundsLeft, nextDepositAddress });
-
   const claim = async () => {
     if (claiming) return;
 
