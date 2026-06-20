@@ -1,4 +1,6 @@
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
+import { useCircleState } from "@/hooks/use-circles-state";
+import { CircleState } from "@/lib/circle-state";
 import { useGetCircleCreated } from "@/hooks/use-get-cricle-created";
 import { useUserCircleData } from "@/hooks/use-user-circle-data";
 import { ICircleStatus, MemberCircleInfo } from "@/interfaces/circle";
@@ -21,7 +23,7 @@ import {
 } from "@breadcoop/ui";
 import { CalendarDotsIcon } from "@phosphor-icons/react/ssr";
 import { ReactNode } from "react";
-import { formatEther, zeroAddress } from "viem";
+import { formatEther } from "viem";
 import OverallStacked from "./overall-stacked";
 
 const failedStatuses: ICircleStatus[] = [
@@ -186,6 +188,7 @@ const StackDetails = ({
   >;
 }) => {
   const blockTimestamp = useBlockTimestamp();
+  const { circleState } = useCircleState(BigInt(id));
   const circle = _circle.circleInfo;
   const members = _circle.totalRounds;
   const { user } = useConnectedUser();
@@ -201,12 +204,11 @@ const StackDetails = ({
     matchedInterval?.label ?? formatSecondsHuman(depositIntervalSeconds);
 
   const depositPerRound = circle.depositAmount * members;
-  const circleStatus = getUserCircleStatus(
-    _circle,
-    zeroAddress,
-    {},
-    BigInt(Math.floor(blockTimestamp / 1000))
-  );
+  const circleStatus = getUserCircleStatus({
+    circle: _circle,
+    now: BigInt(Math.floor(blockTimestamp / 1000)),
+    circleState: circleState ?? CircleState.Active,
+  });
   const roundsLeft =
     circleStatus.status === "finished"
       ? 0

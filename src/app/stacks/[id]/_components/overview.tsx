@@ -11,7 +11,12 @@ import {
   useConnectedUser,
 } from "@breadcoop/ui";
 import DaysLeft from "./days-left";
-import { getUserCircleStatus } from "@/lib/get-user-circle-status";
+import {
+  getRoundStatus,
+  getUserCircleStatus,
+} from "@/lib/get-user-circle-status";
+import { useCircleState } from "@/hooks/use-circles-state";
+import { CircleState, RoundState } from "@/lib/circle-state";
 import { Address, formatEther } from "viem";
 import { useCircleStatus } from "@/hooks/use-circle-status";
 import StartCircleButton from "@/components/start-circle-button";
@@ -50,18 +55,24 @@ const Overview = ({
   const { setModal } = useModal();
   const connectedUser = useConnectedUser();
   const nowSeconds = BigInt(Math.floor(now / 1000));
-  const formattedCircleStatus = getUserCircleStatus(
+  const { circleState, roundState } = useCircleState(circle.circleId);
+  const formattedCircleStatus = getUserCircleStatus({
     circle,
-    member,
-    { includeClaimable: true },
-    nowSeconds
+    config: { includeClaimable: true },
+    now: nowSeconds,
+    circleState: circleState ?? CircleState.Active,
+  });
+  const roundStatus = getRoundStatus(
+    formattedCircleStatus,
+    roundState ?? RoundState.NotStarted,
+    circle.isCurrentWithdrawer
   );
-  const depositCircleStatus = getUserCircleStatus(
+  const depositCircleStatus = getUserCircleStatus({
     circle,
-    member,
-    { includeDeposited: true },
-    nowSeconds
-  );
+    config: { includeDeposited: true },
+    now: nowSeconds,
+    circleState: circleState ?? CircleState.Active,
+  });
   const { data: stackMetadata, isLoading: isStackMetadataLoading } =
     useStackSupabase(circle.circleId.toString(), circle.isMember);
 
@@ -219,20 +230,16 @@ const Overview = ({
           <span
             className={cn(
               "font-bold",
-              formattedCircleStatus.status === "pending-start" &&
-                "text-primary-blue",
-              ["payment_due", "in-progress"].includes(
-                formattedCircleStatus.status
-              ) && "text-system-warning",
-              formattedCircleStatus.status === "failed" && "text-system-red",
+              roundStatus.status === "pending-start" && "text-primary-blue",
+              ["payment_due", "in-progress"].includes(roundStatus.status) &&
+                "text-system-warning",
+              roundStatus.status === "failed" && "text-system-red",
               ["finished", "claimable", "deposit-completed"].includes(
-                formattedCircleStatus.status
+                roundStatus.status
               ) && "text-system-green"
             )}
           >
-            {formattedCircleStatus.status === "payment_due"
-              ? "In Progress"
-              : formattedCircleStatus.statusLabel}
+            {roundStatus.label}
           </span>
         </Body>
       </div>

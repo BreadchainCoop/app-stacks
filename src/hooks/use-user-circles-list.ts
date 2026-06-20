@@ -7,21 +7,23 @@ import { useMemo } from "react";
 import { getDefaultChainId } from "@/utils/chain";
 import { getUserCircleStatus } from "@/lib/get-user-circle-status";
 import { useBlockTimestamp } from "./use-block-timestamp";
+import { useCirclesState } from "./use-circles-state";
+import { CircleState } from "@/lib/circle-state";
 
-type UserCircleData = Parameters<typeof getUserCircleStatus>[0];
+type UserCircleData = Parameters<typeof getUserCircleStatus>[0]["circle"];
 
 const parseCircleData = (
   c: UserCircleData,
-  address: Address,
-  now: bigint
+  now: bigint,
+  circleState: CircleState
 ): ICircleList => {
   const totalRounds = c.totalRounds;
-  const formattedStatus = getUserCircleStatus(
-    c,
-    address,
-    { includeClaimable: true },
-    now
-  );
+  const formattedStatus = getUserCircleStatus({
+    circle: c,
+    config: { includeClaimable: true },
+    now,
+    circleState,
+  });
 
   const circle = {
     ...c.circleInfo,
@@ -63,15 +65,25 @@ export function useUserCirclesList(address: Address) {
     },
   });
 
+  const circleIds = useMemo(
+    () => (data ? data.circleData.map((circle) => circle.circleId) : []),
+    [data]
+  );
+  const { stateById } = useCirclesState(circleIds);
+
   const circles = useMemo(() => {
     if (!data) return [];
 
     const now = BigInt(Math.floor(blockTimestamp / 1000));
 
     return data.circleData.map((circle) =>
-      parseCircleData(circle as UserCircleData, address, now)
+      parseCircleData(
+        circle as UserCircleData,
+        now,
+        stateById.get(circle.circleId.toString()) ?? CircleState.Active
+      )
     );
-  }, [address, blockTimestamp, data]);
+  }, [address, blockTimestamp, data, stateById]);
 
   return {
     circles,

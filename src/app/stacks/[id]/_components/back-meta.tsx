@@ -4,9 +4,12 @@ import BackPage from "@/components/back-page";
 import { useUserCircleData } from "@/hooks/use-user-circle-data";
 import { CopyStackLink } from "./copy-link";
 import StackReminder from "./reminder";
-import { formatEther, zeroAddress } from "viem";
+import { formatEther } from "viem";
 import { getUserCircleStatus } from "@/lib/get-user-circle-status";
 import { ICircleStatus } from "@/interfaces/circle";
+import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
+import { useCircleState } from "@/hooks/use-circles-state";
+import { CircleState } from "@/lib/circle-state";
 
 type CircleData = Exclude<
   ReturnType<typeof useUserCircleData>["circleData"],
@@ -30,12 +33,20 @@ const BackMeta = ({
   isLoadingCircleData: boolean;
   circle?: CircleData;
 }) => {
+  const now = useBlockTimestamp();
+  const nowSeconds = BigInt(Math.floor(now / 1000));
+  const { circleState } = useCircleState(circle?.circleId);
+
   const depositAmount = `${formatEther(
     circle?.circleInfo.depositAmount ?? BigInt(0)
   )} BREAD`;
 
   const circleStatus: ICircleStatus = circle
-    ? getUserCircleStatus(circle, zeroAddress, {}).status
+    ? getUserCircleStatus({
+        circle,
+        now: nowSeconds,
+        circleState: circleState ?? CircleState.Active,
+      }).status
     : "expired";
 
   const startTime = new Date(
