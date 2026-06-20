@@ -203,7 +203,7 @@ const Stack = ({
         })}
       </ul>
       <div className="flex flex-col gap-3 mt-auto">
-        {stack.status === "claimable" ? (
+        {stack.canWithdraw ? (
           <ClaimButton
             className="bg-paper-main text-system-green"
             amount={
@@ -215,7 +215,11 @@ const Stack = ({
                 ? stack.depositAmount
                 : BigInt(0)
             }
-            roundsLeft={BigInt(stack.totalMember - 1) - stack.currentIndex}
+            roundsLeft={
+              Number(stack.currentIndex) + 1 < stack.totalMember
+                ? BigInt(stack.totalMember - 1) - stack.currentIndex
+                : BigInt(0)
+            }
             nextDepositAddress={stack.token}
           />
         ) : stack.status === "payment_due" ? (

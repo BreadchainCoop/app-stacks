@@ -3,7 +3,7 @@ import { SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS } from "../lib/constants";
 import { savingCirclesViewerAbi } from "../lib/abis/saving-circles-viewers";
 import { ICircleList } from "@/interfaces/circle";
 import { useTotalCircles } from "./use-total-circles";
-import { zeroAddress } from "viem";
+import { formatEther, zeroAddress } from "viem";
 import { getDefaultChainId } from "@/utils/chain";
 import { useBlockTimestamp } from "./use-block-timestamp";
 import { getUserCircleStatus } from "@/lib/get-user-circle-status";
@@ -67,7 +67,7 @@ export function useAllCircles(page: number = 0) {
           stateById.get(circleData.circleId.toString()) ?? CircleState.Active,
       }).status;
 
-      circles.push({
+      const base = {
         ...circleData.circleInfo,
         id: circleData.circleId,
         totalMember: Number(circleData.totalRounds),
@@ -76,7 +76,19 @@ export function useAllCircles(page: number = 0) {
         isMember: circleData.isMember,
         isDecommissionable: circleData.isDecommissionable,
         userBalance: circleData.userBalance,
-      });
+      };
+
+      if (circleData.canWithdraw) {
+        circles.push({
+          ...base,
+          canWithdraw: true,
+          withdrawAmount:
+            Number(formatEther(circleData.circleInfo.depositAmount)) *
+            Number(circleData.totalRounds),
+        });
+      } else {
+        circles.push({ ...base, canWithdraw: false });
+      }
     }
   }
 

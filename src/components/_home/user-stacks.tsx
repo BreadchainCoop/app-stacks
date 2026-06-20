@@ -49,7 +49,9 @@ const HomeUserStacks = ({ address }: { address: Address }) => {
     filteredCircles = [...filteredCircles].filter((c) => {
       if (tab === "due") return c.status === "payment_due";
 
-      if (tab === "claim") return c.status === "claimable" || hasFailedClaim(c);
+      // `canWithdraw` (not just status === "claimable") so that finished/expired
+      // stacks the member still has an unclaimed payout on stay claimable here.
+      if (tab === "claim") return Boolean(c.canWithdraw) || hasFailedClaim(c);
 
       if (tab === "past") {
         if (!c.status) return false;
