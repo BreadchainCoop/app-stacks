@@ -7,10 +7,12 @@ import { zeroAddress } from "viem";
 import { getDefaultChainId } from "@/utils/chain";
 import { useBlockTimestamp } from "./use-block-timestamp";
 import { getUserCircleStatus } from "@/lib/get-user-circle-status";
+import { useCirclesState } from "./use-circles-state";
+import { CircleState } from "@/lib/circle-state";
 import { useConnectedUser } from "@breadcoop/ui";
 
 const PAGE_SIZE = 40;
-type UserCircleData = Parameters<typeof getUserCircleStatus>[0];
+type UserCircleData = Parameters<typeof getUserCircleStatus>[0]["circle"];
 
 export function useAllCircles(page: number = 0) {
   const skip = page * PAGE_SIZE;
@@ -43,6 +45,8 @@ export function useAllCircles(page: number = 0) {
     },
   });
 
+  const { stateById } = useCirclesState(circleIds);
+
   const circles: ICircleList[] = [];
 
   if (rawResults) {
@@ -56,12 +60,12 @@ export function useAllCircles(page: number = 0) {
       }
 
       const circleData = circleResult.result as unknown as UserCircleData;
-      const status = getUserCircleStatus(
-        circleData,
-        memberAddress,
-        {},
-        now
-      ).status;
+      const status = getUserCircleStatus({
+        circle: circleData,
+        now,
+        circleState:
+          stateById.get(circleData.circleId.toString()) ?? CircleState.Active,
+      }).status;
 
       circles.push({
         ...circleData.circleInfo,

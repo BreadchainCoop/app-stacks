@@ -15,6 +15,8 @@ import { getUserCircleStatus } from "@/lib/get-user-circle-status";
 import { useModal } from "@/components/modal/context";
 import BackMeta from "./back-meta";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
+import { useCircleState } from "@/hooks/use-circles-state";
+import { CircleState } from "@/lib/circle-state";
 
 const PageContent = ({ id }: { id: string }) => {
   const now = useBlockTimestamp();
@@ -32,16 +34,16 @@ const PageContent = ({ id }: { id: string }) => {
   });
 
   const nowSeconds = BigInt(Math.floor(now / 1000));
+  const { circleState } = useCircleState(BigInt(id));
 
   useEffect(() => {
     if (!userCircleData.circleData?.isMember) return;
 
-    const status = getUserCircleStatus(
-      userCircleData.circleData,
-      member,
-      {},
-      nowSeconds
-    );
+    const status = getUserCircleStatus({
+      circle: userCircleData.circleData,
+      now: nowSeconds,
+      circleState: circleState ?? CircleState.Active,
+    });
 
     if (
       status.status === "failed" &&
@@ -49,7 +51,7 @@ const PageContent = ({ id }: { id: string }) => {
     ) {
       setModal({ type: "STACK_FAILED", id: BigInt(id) });
     }
-  }, [userCircleData.circleData, member]);
+  }, [userCircleData.circleData, member, circleState]);
 
   return (
     <>

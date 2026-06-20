@@ -17,6 +17,8 @@ import { useUserCircleData } from "@/hooks/use-user-circle-data";
 import { useFundsDeposited } from "@/hooks/use-funds-deposited";
 import { ICircleStatus } from "@/interfaces/circle";
 import { getUserCircleStatus } from "@/lib/get-user-circle-status";
+import { useCircleState } from "@/hooks/use-circles-state";
+import { CircleState } from "@/lib/circle-state";
 import { formatRelativeTime, formatShortDate } from "@/utils/time";
 import { Body, Chip, formatBalance } from "@breadcoop/ui";
 import { Address, formatEther } from "viem";
@@ -155,8 +157,13 @@ function MemberInfoContent({
   });
 
   const nowSeconds = BigInt(Math.floor(now / 1000));
+  const { circleState } = useCircleState(BigInt(circleId));
   const formattedStatus = circleData.circleData
-    ? getUserCircleStatus(circleData.circleData, member, {}, nowSeconds)
+    ? getUserCircleStatus({
+        circle: circleData.circleData,
+        now: nowSeconds,
+        circleState: circleState ?? CircleState.Active,
+      })
     : null;
   const isFailedStack = formattedStatus
     ? FAILED_STATUSES.includes(formattedStatus.status)
