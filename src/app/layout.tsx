@@ -5,14 +5,17 @@ import { Navbar } from "@/components/Navbar/Navbar";
 import Providers from "@/components/providers";
 import { Footer } from "@/components/footer";
 import LoginTracker from "@/components/login-tracker";
+import { isServerMobile } from "@/lib/server-mobile";
 
 export const metadata = generateMetadata();
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const isMobile = await isServerMobile();
+
   return (
     <html lang="en">
       <head>
@@ -23,7 +26,7 @@ export default function RootLayout({
       </head>
       <body className="font-roboto text-text-standard antialiased">
         <div className="body-container">
-          <Providers>
+          <Providers isMobile={isMobile}>
             <LoginTracker />
             <ModalPresenter />
             <Navbar />
