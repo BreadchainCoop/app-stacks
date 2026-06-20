@@ -8,7 +8,11 @@ import { ModalProvider } from "../modal/context";
 import { BreadUIKitProvider, ConnectedUserProvider } from "@breadcoop/ui";
 import { clientEnv } from "@/lib/env";
 import { Address, erc20Abi } from "viem";
-import { PrivyClientConfig, PrivyProvider } from "@privy-io/react-auth";
+import {
+  PrivyClientConfig,
+  PrivyProvider,
+  WalletListEntry,
+} from "@privy-io/react-auth";
 import SepoliaAutoFund from "./sepolia-auto-fund";
 import { networks } from "@/utils/network";
 
@@ -25,7 +29,13 @@ const tokenConfig: ComponentProps<typeof BreadUIKitProvider>["tokenConfig"] = {
 const _chain =
   networks[clientEnv.NEXT_PUBLIC_CHAIN_ID as keyof typeof networks].chain;
 
-const privyConfig: PrivyClientConfig = {
+const walletLists: WalletListEntry[] = [
+  "metamask",
+  "coinbase_wallet",
+  "rainbow",
+];
+
+const privyConfig = (isMobile: boolean): PrivyClientConfig => ({
   defaultChain: _chain,
   supportedChains: [_chain],
   embeddedWallets: {
@@ -33,15 +43,27 @@ const privyConfig: PrivyClientConfig = {
       createOnLogin: "all-users",
     },
   },
-};
+  walletConnectCloudProjectId: clientEnv.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
+  appearance: {
+    walletList: isMobile
+      ? [...walletLists, "wallet_connect"]
+      : [...walletLists, "detected_ethereum_wallets", "wallet_connect_qr"],
+  },
+});
 
-const Providers = ({ children }: { children: ReactNode }) => {
+const Providers = ({
+  children,
+  isMobile,
+}: {
+  children: ReactNode;
+  isMobile: boolean;
+}) => {
   return (
     <ToolsProviders>
       <PrivyProvider
         appId={clientEnv.NEXT_PUBLIC_PRIVY_APP_ID}
         clientId={clientEnv.NEXT_PUBLIC_PRIVY_CLIENT_ID}
-        config={privyConfig}
+        config={privyConfig(isMobile)}
       >
         <SupabaseProvider>
           <Web3Provider>
