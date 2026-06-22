@@ -3,9 +3,9 @@ import { generateMetadata } from "@/utils/metadata";
 import ModalPresenter from "@/components/modal/presenter";
 import { Navbar } from "@/components/Navbar/Navbar";
 import Providers from "@/components/providers";
-import { Footer } from "@/components/footer";
 import LoginTracker from "@/components/login-tracker";
 import { isServerMobile } from "@/lib/server-mobile";
+import { Footer } from "@breadcoop/ui";
 
 export const metadata = generateMetadata();
 
@@ -31,12 +31,10 @@ export default async function RootLayout({
             <ModalPresenter />
             <Navbar />
             <main className="page-layout py-8">{children}</main>
-            <Footer />
+            <Footer mode="transparent" className="page-layout mt-auto" />
           </Providers>
         </div>
       </body>
     </html>
   );
 }
-
-//

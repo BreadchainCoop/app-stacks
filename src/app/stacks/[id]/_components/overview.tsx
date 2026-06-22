@@ -6,7 +6,6 @@ import {
   cn,
   formatBalance,
   Heading3,
-  LiftedButton,
   LoginButton,
   Logo,
   useConnectedUser,
@@ -26,6 +25,7 @@ import { useReadContracts } from "wagmi";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { ICircleStatus } from "@/interfaces/circle";
 import { useFundsDeposited } from "@/hooks/use-funds-deposited";
+import LocalButton from "@/components/button";
 
 const failedStatuses: ICircleStatus[] = [
   "decommissioned",
@@ -259,13 +259,13 @@ const Overview = ({
                 pendingMembers={
                   shouldWarnBeforeStart ? missingExpectedOrInvitedMembers : 0
                 }
-                width="full"
+                className="w-full"
               />
             ) : member === circle.circleInfo.owner &&
               hasEnoughMembersToStart ? (
-              <LiftedButton width="full" className="text-paper-main" disabled>
+              <Body className="disable-like-btn text-paper-main">
                 Checking members...
-              </LiftedButton>
+              </Body>
             ) : !invitesComplete && circle.isMember ? (
               <Body className="text-center text-surface-grey">
                 {pendingMembersToJoin} invited{" "}
@@ -273,17 +273,16 @@ const Overview = ({
                 joined yet.
               </Body>
             ) : (
-              <LiftedButton width="full" className="text-paper-main" disabled>
+              <Body className="disable-like-btn text-paper-main">
                 Stack creator needs to start stack
-              </LiftedButton>
+              </Body>
             )}
           </>
         ) : depositCircleStatus.status === "payment_due" ? (
           <>
             {connectedUser.user.status === "CONNECTED" ? (
               <DepositButton
-                className="font-bold"
-                width="full"
+                className="font-bold w-full"
                 label={`Deposit ${formatEther(
                   circle.circleInfo.depositAmount
                 )} BREAD`}
@@ -308,16 +307,15 @@ const Overview = ({
           circle.isMember ? (
           <>
             {connectedUser.user.status === "CONNECTED" ? (
-              <LiftedButton
-                preset="secondary"
-                width="full"
-                className="bg-red-0 text-system-red"
+              <LocalButton
+                variant="secondary"
+                className="bg-red-0 text-system-red w-full"
                 onClick={() =>
                   setModal({ type: "STACK_FAILED", id: circle.circleId })
                 }
               >
                 Stack Failed - Retire group & Claim your deposits
-              </LiftedButton>
+              </LocalButton>
             ) : (
               <LoginButton app="stacks" status={connectedUser.user.status} />
             )}

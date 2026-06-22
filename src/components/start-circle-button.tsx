@@ -1,8 +1,8 @@
 "use client";
 
-import { LiftedButtonProps } from "@breadcoop/ui";
+import { ButtonProps } from "@breadcoop/ui";
 import { formatEther } from "viem";
-import LocalLiftedButton from "./lifted-button";
+import LocalButton from "./button";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import Loading from "@/app/loading";
@@ -10,7 +10,7 @@ import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { useModal } from "./modal/context";
 
-interface StartCircleButtonProps extends Omit<LiftedButtonProps, "children"> {
+interface StartCircleButtonProps extends Omit<ButtonProps, "children"> {
   amount: bigint;
   circleId: bigint;
   pendingMembers?: number;
@@ -71,7 +71,7 @@ const StartCircleButton = ({
 
   return (
     <div className="flex flex-col gap-1">
-      <LocalLiftedButton
+      <LocalButton
         {...props}
         onClick={onClick}
         className={`${props.className || ""} font-semibold`}
@@ -83,7 +83,7 @@ const StartCircleButton = ({
         ) : (
           <>Start Stacks - {formatEther(amount)} BREAD</>
         )}
-      </LocalLiftedButton>
+      </LocalButton>
     </div>
   );
 };

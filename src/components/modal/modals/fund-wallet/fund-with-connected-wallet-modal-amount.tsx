@@ -4,7 +4,7 @@ import { Label } from "@/components/label";
 import NumericInput from "@/components/numeric-input";
 import { useEffect, useState } from "react";
 import { ModalContainer, ModalHeader } from "../../components";
-import LocalLiftedButton from "@/components/lifted-button";
+import LocalButton from "@/components/button";
 import { Body, formatBalance, useConnectedUser } from "@breadcoop/ui";
 import { useWaitForTxReceipt } from "@/hooks/use-wait-for-tx-receipt";
 import {
@@ -226,13 +226,13 @@ const FundWithConnectedWalletModalAmount = ({
             : formatBalance(formattedBalance)}
         </Body>
         <div className="lifted-button-container mt-6">
-          <LocalLiftedButton
+          <LocalButton
             disabled={disabled}
             className={disabled ? "bg-surface-grey text-paper-main" : ""}
             type="submit"
           >
             Fund
-          </LocalLiftedButton>
+          </LocalButton>
         </div>
       </form>
     </ModalContainer>

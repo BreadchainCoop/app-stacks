@@ -6,7 +6,7 @@ import {
   ModalStatus,
 } from "../components";
 import { StackFailedModalState, useModal } from "../context";
-import LocalLiftedButton from "@/components/lifted-button";
+import LocalButton from "@/components/button";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
@@ -97,9 +97,9 @@ const StackFailed = ({ modalState }: { modalState: StackFailedModalState }) => {
         {feedback.type !== "success" &&
           feedback?.message?.toLowerCase() !== "this circle is not active." && (
             <div className="mb-4">
-              <LocalLiftedButton width="full" onClick={handleDecommission}>
+              <LocalButton className="w-full" onClick={handleDecommission}>
                 {buttonText}
-              </LocalLiftedButton>
+              </LocalButton>
             </div>
           )}
 

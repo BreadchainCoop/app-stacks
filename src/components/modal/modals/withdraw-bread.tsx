@@ -9,14 +9,13 @@ import {
   Body,
   formatBalance,
   FormattedDecimalNumber,
-  LiftedButton,
   Logo,
   TUserConnected,
   useConnectedUser,
 } from "@breadcoop/ui";
 import { useAccount, useReadContract } from "wagmi";
 import { Address, erc20Abi, isAddress } from "viem";
-import LocalLiftedButton from "@/components/lifted-button";
+import LocalButton from "@/components/button";
 import Loading from "@/app/loading";
 import { cn } from "@/lib/utils";
 import { BREAD_TOKEN_ADDRESS } from "@/lib/constants";
@@ -59,14 +58,13 @@ function SuccessContent({
         {recipient}
       </Body>
       <div className="w-full">
-        <LiftedButton
+        <LocalButton
           onClick={() => setModal(null)}
-          className="bg-surface-grey text-paper-main font-bold cursor-default!"
+          className="bg-surface-grey text-paper-main font-bold cursor-default! w-full"
           disabled
-          width="full"
         >
           Close
-        </LiftedButton>
+        </LocalButton>
       </div>
     </div>
   );
@@ -181,13 +179,13 @@ const WithdrawBreadModal = () => {
             {errorMsg ?? "Something went wrong during the withdrawal."}
           </Body>
           <div className="w-full">
-            <LocalLiftedButton
+            <LocalButton
               onClick={() => setLevel("form")}
               // className="bg-surface-grey text-paper-main font-bold"
-              width="full"
+              className="full"
             >
               Try Again
-            </LocalLiftedButton>
+            </LocalButton>
           </div>
         </>
       ) : (
@@ -254,17 +252,17 @@ const WithdrawBreadModal = () => {
               </Body>
             </div>
           </div>
-          <LocalLiftedButton
+          <LocalButton
             onClick={withdraw}
-            width="full"
             disabled={disableButton}
             className={cn(
+              "w-full",
               disableButton ? "bg-surface-grey text-paper-main" : ""
             )}
           >
             {buttonWithdrawContent}
             {/* <Loading /> */}
-          </LocalLiftedButton>
+          </LocalButton>
         </form>
       )}
     </ModalContainer>

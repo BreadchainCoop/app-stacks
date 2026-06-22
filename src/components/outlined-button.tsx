@@ -1,8 +1,7 @@
-import { LiftedButtonProps } from "@breadcoop/ui";
 import clsx from "clsx";
 import { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
 
-type BaseProps = Pick<LiftedButtonProps, "preset"> & {
+type BaseProps = {
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
   className?: string;
@@ -17,21 +16,8 @@ type PolymorphicProps<C extends ElementType> = BaseProps &
 type OutlinedButtonProps<C extends ElementType = "button"> =
   PolymorphicProps<C>;
 
-const classNames: Record<
-  Exclude<LiftedButtonProps["preset"], undefined>,
-  string
-> = {
-  primary: "text-primary-blue",
-  burn: "",
-  destructive: "",
-  positive: "",
-  secondary: "",
-  stroke: "",
-};
-
 const OutlinedButton = <C extends ElementType = "button">({
   className = "",
-  preset = "primary",
   bold,
   leftIcon,
   rightIcon,
@@ -45,8 +31,7 @@ const OutlinedButton = <C extends ElementType = "button">({
     <Component
       {...props}
       className={clsx(
-        "text-body inline-flex items-center justify-center gap-2",
-        classNames[preset],
+        "text-body inline-flex items-center justify-center gap-2 text-primary-blue",
         bold && "font-bold",
         className
       )}

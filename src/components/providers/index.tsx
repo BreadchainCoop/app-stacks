@@ -1,7 +1,7 @@
 "use client";
 
 import { ComponentProps, ReactNode } from "react";
-import ToolsProviders from "./tools";
+// import ToolsProviders from "./tools";
 import { Web3Provider } from "./web3";
 import { SupabaseProvider } from "./supabase";
 import { ModalProvider } from "../modal/context";
@@ -59,7 +59,7 @@ const Providers = ({
   isMobile: boolean;
 }) => {
   return (
-    <ToolsProviders>
+    <>
       <PrivyProvider
         appId={clientEnv.NEXT_PUBLIC_PRIVY_APP_ID}
         clientId={clientEnv.NEXT_PUBLIC_PRIVY_CLIENT_ID}
@@ -81,7 +81,7 @@ const Providers = ({
           </Web3Provider>
         </SupabaseProvider>
       </PrivyProvider>
-    </ToolsProviders>
+    </>
   );
 };
 

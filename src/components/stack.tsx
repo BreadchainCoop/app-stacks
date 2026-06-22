@@ -2,8 +2,7 @@ import { Body, Heading3, Chip, formatBalance } from "@breadcoop/ui";
 import { UsersIcon } from "./icons/users";
 import { CoinIcon, CoinsIcon } from "./icons/coin";
 import { CalendarIcon } from "./icons/calendar";
-import LocalLiftedButton from "./lifted-button";
-import Link from "next/link";
+import LocalButton from "./button";
 import { QuestionIcon } from "@phosphor-icons/react/ssr";
 import ClaimButton from "./claim-button";
 import { ICircleList, ICircleStatus } from "@/interfaces/circle";
@@ -14,6 +13,7 @@ import { parseCircleIntervalToDate } from "@/utils/stacks";
 import { Database } from "@/lib/supabase";
 import { useModal } from "./modal/context";
 import { useFundsDeposited } from "@/hooks/use-funds-deposited";
+import Link from "next/link";
 
 type StackMetadata = Database["public"]["Tables"]["stacks_metadata"]["Row"];
 
@@ -205,6 +205,7 @@ const Stack = ({
       <div className="flex flex-col gap-3 mt-auto">
         {stack.status === "claimable" ? (
           <ClaimButton
+            className="bg-paper-main text-system-green"
             amount={
               Number(formatEther(stack.depositAmount)) * stack.totalMember
             }
@@ -221,19 +222,18 @@ const Stack = ({
           <DepositButton
             circleId={stack.id}
             tokenAddress={stack.token}
-            width="full"
+            className="w-full"
             leftIcon={<HandWithdrawIcon />}
             amount={stack.depositAmount}
           />
         ) : stack.status === "failed" && stack.isMember ? (
-          <LocalLiftedButton
-            className="font-bold"
-            preset="destructive"
-            width="full"
+          <LocalButton
+            className="font-bold w-full"
+            variant="burn"
             onClick={() => setModal({ type: "STACK_FAILED", id: stack.id })}
           >
             Claim last deposits
-          </LocalLiftedButton>
+          </LocalButton>
         ) : statusMode === "" ? (
           <Body
             bold
@@ -243,14 +243,14 @@ const Stack = ({
             Retired
           </Body>
         ) : null}
-        <Link
-          className="lifted-button-container"
+        <LocalButton
+          as={Link}
+          className="font-bold"
+          variant="secondary"
           href={`/stacks/${stack.id.toString()}`}
         >
-          <LocalLiftedButton className="font-bold" preset="secondary">
-            View Details
-          </LocalLiftedButton>
-        </Link>
+          View Details
+        </LocalButton>
       </div>
     </li>
   );

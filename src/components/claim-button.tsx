@@ -1,5 +1,7 @@
-import React, { useState } from "react";
-import LocalLiftedButton from "./lifted-button";
+"use client";
+
+import { useState } from "react";
+import LocalButton from "./button";
 import { HandWithdrawIcon } from "@phosphor-icons/react";
 import { useModal } from "./modal/context";
 import { cn } from "@/lib/utils";
@@ -74,15 +76,13 @@ const ClaimButton = ({
   };
 
   return (
-    <LocalLiftedButton
-      className={cn("font-bold", className)}
-      width="full"
-      preset="stroke"
+    <LocalButton
+      className={cn("font-bold w-full", className)}
       leftIcon={<HandWithdrawIcon />}
       onClick={claim}
     >
       {label || `Claim ${formatBalance(amount, 2)} BREAD`}
-    </LocalLiftedButton>
+    </LocalButton>
   );
 };
 

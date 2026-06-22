@@ -1,7 +1,7 @@
-import { Body, LiftedButton } from "@breadcoop/ui";
+import { Body } from "@breadcoop/ui";
 import { ModalContainer, ModalHeader } from "../components";
 import { StartStackWarningModalState, useModal } from "../context";
-import LocalLiftedButton from "@/components/lifted-button";
+import LocalButton from "@/components/button";
 
 const StartStackWarningModal = ({
   modalState,
@@ -25,21 +25,16 @@ const StartStackWarningModal = ({
         Once the stack starts, no one else can join.
       </Body>
       <div className="flex flex-col gap-3">
-        <LocalLiftedButton
-          width="full"
-          className="font-bold"
-          onClick={startStack}
-        >
+        <LocalButton className="font-bold w-full" onClick={startStack}>
           Start Stacks
-        </LocalLiftedButton>
-        <LiftedButton
-          preset="burn"
-          width="full"
-          className="font-bold text-system-red"
+        </LocalButton>
+        <LocalButton
+          variant="destructive"
+          className="font-bold w-full"
           onClick={() => setModal(null)}
         >
           Cancel
-        </LiftedButton>
+        </LocalButton>
       </div>
     </ModalContainer>
   );

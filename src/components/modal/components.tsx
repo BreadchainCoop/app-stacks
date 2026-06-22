@@ -1,4 +1,4 @@
-import { Body, Heading2, LiftedButton } from "@breadcoop/ui";
+import { Body, Heading2 } from "@breadcoop/ui";
 import { useModal } from "./context";
 import { ReactNode } from "react";
 import clsx from "clsx";
@@ -8,6 +8,7 @@ import {
   WarningCircleIcon,
 } from "@phosphor-icons/react";
 import { CircularProgressIcon } from "../icons/circular-progress";
+import LocalButton from "../button";
 
 interface ModalHeaderProps {
   title: string;
@@ -149,13 +150,12 @@ export const ModalCloseBtn = () => {
   const { setModal } = useModal();
 
   return (
-    <LiftedButton
+    <LocalButton
       onClick={() => setModal(null)}
-      preset="burn"
-      width="full"
-      className="text-system-red font-bold"
+      variant="burn"
+      className="w-full font-bold"
     >
       Close
-    </LiftedButton>
+    </LocalButton>
   );
 };

@@ -1,7 +1,8 @@
 "use client";
 
+import LocalButton from "@/components/button";
 import { useShortenedUrl } from "@/hooks/use-shortened-url";
-import { LiftedButton, useCopyToClipboard } from "@breadcoop/ui";
+import { useCopyToClipboard } from "@breadcoop/ui";
 import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 
@@ -23,8 +24,8 @@ export const CopyStackLink = () => {
   };
 
   return (
-    <LiftedButton
-      preset="stroke"
+    <LocalButton
+      variant="light"
       className={`h-8 border px-4 ${copied ? "text-system-green" : ""}`}
       leftIcon={
         copied ? (
@@ -37,6 +38,6 @@ export const CopyStackLink = () => {
       disabled={isShortening}
     >
       {copied ? "Copied!" : isShortening ? "Loading..." : "Copy stack link"}
-    </LiftedButton>
+    </LocalButton>
   );
 };

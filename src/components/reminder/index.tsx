@@ -1,9 +1,10 @@
 "use client";
 
 import { useModal } from "@/components/modal/context";
-import { cn, LiftedButton } from "@breadcoop/ui";
+import { cn } from "@breadcoop/ui";
 import { CalendarIcon } from "@phosphor-icons/react";
 import { CalendarEvent } from "./interfaces";
+import LocalButton from "../button";
 
 interface ReminderProps {
   calendar: CalendarEvent;
@@ -21,14 +22,14 @@ const Reminder = ({
   const openModal = () => setModal({ type: "REMINDER", calendar });
 
   return (
-    <LiftedButton
-      preset="stroke"
+    <LocalButton
+      variant="light"
       className={cn("h-8 border px-4", className)}
       leftIcon={<CalendarIcon className="fill-primary-blue" />}
       onClick={openModal}
     >
       {label}
-    </LiftedButton>
+    </LocalButton>
   );
 };
 

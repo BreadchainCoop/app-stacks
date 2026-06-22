@@ -1,10 +1,11 @@
 "use client";
 
-import { Body, Heading2, LiftedButton, Logo } from "@breadcoop/ui";
+import { Body, Heading2, Logo } from "@breadcoop/ui";
 import { ModalContainer, ModalHeader } from "../components";
 import { DepositInitModalState, useModal } from "../context";
 import { QuestionIcon } from "@/components/icons/question";
 import DepositButton from "@/components/deposit-button";
+import LocalButton from "@/components/button";
 
 const DepositInitModal = ({
   modalState,
@@ -39,13 +40,13 @@ const DepositInitModal = ({
       </div>
       <div className="flex items-center justify-center gap-4">
         <div className="flex-1 w-full">
-          <LiftedButton preset="burn" width="full" onClick={closeModal}>
+          <LocalButton variant="burn" className="w-full" onClick={closeModal}>
             Cancel
-          </LiftedButton>
+          </LocalButton>
         </div>
         <div className="flex-2 w-full">
           <DepositButton
-            width="full"
+            className="w-full"
             amount={modalState.amount}
             tokenAddress={modalState.tokenAddress}
             circleId={modalState.circleId}

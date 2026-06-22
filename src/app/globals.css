@@ -22,6 +22,10 @@
 }
 
 @layer components {
+  .disable-like-btn {
+    @apply bg-surface-grey py-4 px-8 text-center;
+  }
+
   .lifted-button-container {
     @apply [&>*]:w-full w-full;
   }

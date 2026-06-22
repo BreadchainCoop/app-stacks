@@ -1,7 +1,7 @@
 "use client";
 
 import { Body, Heading2, useConnectedUser } from "@breadcoop/ui";
-import LocalLiftedButton from "../lifted-button";
+import LocalButton from "../button";
 import Link from "next/link";
 import { PlusIcon } from "@phosphor-icons/react";
 
@@ -21,11 +21,15 @@ const HomeHeader = ({ type }: { type: "all" | "persona" }) => {
         </Body>
       </div>
       {(type === "persona" || user.status !== "CONNECTED") && (
-        <Link href="/new" className="lifted-button-container md:w-auto">
-          <LocalLiftedButton leftIcon={<PlusIcon />}>
-            Create new Stack
-          </LocalLiftedButton>
-        </Link>
+        <LocalButton
+          as={Link}
+          href="/new"
+          className="md:w-auto"
+          app="stacks"
+          leftIcon={<PlusIcon />}
+        >
+          Create new Stack
+        </LocalButton>
       )}
     </header>
   );
