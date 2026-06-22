@@ -1,11 +1,12 @@
 "use client";
 
-import { Body, LiftedButton } from "@breadcoop/ui";
+import { Body } from "@breadcoop/ui";
 import { ModalContainer, ModalHeader, ModalStatus } from "../components";
 import { ClaimInitModalState, ClaimResultModalState } from "../context";
 import Alert from "@/components/alert";
 import DepositButton from "@/components/deposit-button";
 import { formatEther } from "viem";
+import LocalButton from "@/components/button";
 
 const ClaimModal = ({
   modalState,
@@ -35,9 +36,9 @@ const ClaimModal = ({
       <ModalHeader title={title} />
       <ModalStatus status={status} msg={msg} />
       {modalState.type !== "CLAIM_LOADING" && modalState.result === "error" && (
-        <LiftedButton width="full" preset="burn">
+        <LocalButton className="w-full" variant="burn">
           Try Again
-        </LiftedButton>
+        </LocalButton>
       )}
       {modalState.type === "CLAIM_RESULT" &&
         Boolean(modalState.nextDeposit) && (
@@ -63,8 +64,7 @@ const ClaimModal = ({
               variant="warning"
             />
             <DepositButton
-              className="font-bold"
-              width="full"
+              className="font-bold w-full"
               label={`Deposit ${formatEther(modalState.nextDeposit!)} BREAD`}
               amount={modalState.nextDeposit!}
               tokenAddress={modalState.nextDepositAddress!}

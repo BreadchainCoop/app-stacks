@@ -1,12 +1,7 @@
 "use client";
 
-import {
-  LiftedButton,
-  LiftedButtonProps,
-  useConnectedUser,
-} from "@breadcoop/ui";
+import { ButtonProps, useConnectedUser } from "@breadcoop/ui";
 import { useModal } from "./modal/context";
-import { localButtonClassNames } from "./lifted-button";
 import { useReadContract } from "wagmi";
 import { Address, encodeFunctionData, erc20Abi } from "viem";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
@@ -20,8 +15,9 @@ import { useWaitForTxReceipt } from "@/hooks/use-wait-for-tx-receipt";
 import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { DEPOSIT_ERRORS } from "@/lib/contract-errors";
+import LocalButton from "./button";
 
-interface DepositButtonProps extends Omit<LiftedButtonProps, "children"> {
+interface DepositButtonProps extends Omit<ButtonProps, "children"> {
   label?: string;
   amount: bigint;
   tokenAddress: Address;
@@ -33,7 +29,6 @@ const parseDepositError = (error: unknown) =>
 
 const DepositButton = ({
   label = "Pay Deposit",
-  className = "",
   amount,
   tokenAddress,
   circleId,
@@ -47,11 +42,6 @@ const DepositButton = ({
   const { user } = useConnectedUser();
   const userAddress = user.status === "CONNECTED" ? user.address : undefined;
   const modal = useModal();
-  const allClassName = `${className} ${
-    !props.preset || props.preset === "primary"
-      ? localButtonClassNames.primary
-      : ""
-  }`;
 
   const { data: allowance = BigInt(0) } = useReadContract({
     address: tokenAddress,
@@ -110,10 +100,9 @@ const DepositButton = ({
 
   // TODO: Since privy is being used, show wrong chain button if user is on unsupported chain
   return (
-    <LiftedButton
+    <LocalButton
       {...props}
       onClick={deposit}
-      className={allClassName}
       leftIcon={depositing ? undefined : props.leftIcon}
       rightIcon={depositing ? undefined : props.rightIcon}
     >
@@ -124,7 +113,7 @@ const DepositButton = ({
       ) : (
         label
       )}
-    </LiftedButton>
+    </LocalButton>
   );
 };
 

@@ -3,7 +3,6 @@ import {
   formatBalance,
   FormattedDecimalNumber,
   Heading3,
-  LiftedButton,
   LoginButton,
   useConnectedUser,
 } from "@breadcoop/ui";
@@ -110,13 +109,9 @@ const TotalStacked = ({
               />
 
               {circleNotStarted ? (
-                <LiftedButton
-                  disabled
-                  width="full"
-                  className="font-semibold text-paper-main"
-                >
+                <Body className="disable-like-btn w-full font-semibold text-paper-main">
                   Awaiting start
-                </LiftedButton>
+                </Body>
               ) : typeof amount === "number" && amount > 0 ? (
                 <ClaimButton
                   circleId={BigInt(id)}
@@ -170,13 +165,9 @@ function LastClaimStatus({
   if (!data) return null;
 
   return (
-    <LiftedButton
-      disabled
-      width="full"
-      className="font-semibold text-paper-main"
-    >
+    <Body className="disable-like-btn font-semibold text-paper-main w-full">
       Claimed {formatRelativeTime(data.timestamp, new Date(now))}
-    </LiftedButton>
+    </Body>
   );
 }
 

@@ -1,9 +1,9 @@
 import { ModalContainer, ModalHeader } from "@/components/modal/components";
 import { ReminderModalState } from "@/components/modal/context";
 import { addToCalendar } from "@/components/reminder/utils";
-import { LiftedButton } from "@breadcoop/ui";
 import { CalendarIcon } from "@phosphor-icons/react";
 import { CalendarProvider } from "./interfaces";
+import LocalButton from "../button";
 
 const options: {
   label: string;
@@ -38,14 +38,14 @@ const ReminderModal = ({ modalState }: { modalState: ReminderModalState }) => {
 
           return (
             <div key={o.provider} className="lifted-button-container">
-              <LiftedButton
-                preset="stroke"
+              <LocalButton
+                variant="light"
                 className="h-8 border pt-1.5 pb-1.5 px-4 justify-start"
                 leftIcon={<CalendarIcon className="fill-primary-blue" />}
                 onClick={() => addToCalendar(o.provider, modalState.calendar)}
               >
                 {o.label}
-              </LiftedButton>
+              </LocalButton>
 
               {/* {unsupported && (
                 <div className="flex items-center gap-1.5 mt-1 pl-1">

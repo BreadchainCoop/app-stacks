@@ -7,7 +7,6 @@ import {
   Body,
   formatBalance,
   Heading3,
-  LiftedButton,
   Logo,
   useBreadBalance,
   useConnectedUser,
@@ -25,7 +24,7 @@ import { Address } from "viem";
 import { formatAddress } from "@/utils/address";
 import Alert from "@/components/alert";
 import Link from "next/link";
-import LocalLiftedButton from "@/components/lifted-button";
+import LocalButton from "@/components/button";
 import { usePathname } from "next/navigation";
 
 function BreadBalance({ address }: { address: Address }) {
@@ -168,46 +167,45 @@ const NewUserOnboarding = ({
         </section>
 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-          <LiftedButton
-            preset="secondary"
-            colorOverrides={{
-              bg: "#B9D5FF",
-              text: "--color-primary-blue",
-              hoverBg: "#A8C3EA",
-              hoverText: "--color-primary-blue",
-            }}
+          <LocalButton
+            variant="secondary"
+            // colorOverrides={{
+            //   bg: "#B9D5FF",
+            //   text: "--color-primary-blue",
+            //   hoverBg: "#A8C3EA",
+            //   hoverText: "--color-primary-blue",
+            // }}
             onClick={handleSkip}
             className="font-bold"
-            width="full"
+            // width="full"
             rightIcon={
               fundingStatus === "success" ? <WalletIcon size={24} /> : undefined
             }
           >
             {fundingStatus === "success" ? <>Visit Wallet</> : "Skip this"}
-          </LiftedButton>
+          </LocalButton>
           {fundingStatus === "success" ? (
-            <Link
+            <LocalButton
+              as={Link}
               href={pathname}
-              className="lifted-button-container md:w-auto"
+              className="lifted-button-container w-full md:w-auto"
               onClick={() => setModal(null)}
+              rightIcon={<ArrowRightIcon size={24} />}
             >
-              <LocalLiftedButton rightIcon={<ArrowRightIcon size={24} />}>
-                View my Stack
-              </LocalLiftedButton>
-            </Link>
+              View my Stack
+            </LocalButton>
           ) : (
-            <LiftedButton
-              preset="positive"
+            <LocalButton
+              variant="positive"
               rightIcon={<CoinsIcon size={24} />}
               onClick={handleFund}
               disabled={fundingStatus === "loading"}
               className="font-bold sm:min-w-60"
-              width="full"
             >
               {fundingStatus === "loading"
                 ? "Funding..."
                 : "Fund Stacks wallet"}
-            </LiftedButton>
+            </LocalButton>
           )}
         </div>
       </div>

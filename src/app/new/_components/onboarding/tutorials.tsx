@@ -1,6 +1,6 @@
 "use client";
 
-import LocalLiftedButton from "@/components/lifted-button";
+import LocalButton from "@/components/button";
 import OutlinedButton from "@/components/outlined-button";
 import { Body, Heading3 } from "@breadcoop/ui";
 import {
@@ -114,20 +114,18 @@ const OnboardingTutorials = ({ nextStage }: { nextStage: () => void }) => {
         <div className="flex items-center justify-between">
           {/* TODO: Match UI with design */}
           {current > 0 && (
-            <div className="hidden md:block">
-              <LocalLiftedButton
-                preset="secondary"
-                className="font-bold"
-                onClick={prevTutorial}
-              >
-                Back
-              </LocalLiftedButton>
-            </div>
+            <LocalButton
+              className="font-bold hidden md:block"
+              variant="secondary"
+              onClick={prevTutorial}
+            >
+              Back
+            </LocalButton>
           )}
           <div
             className={`mx-auto ${current === 0 ? "md:mx-auto" : "md:mx-0"}`}
           >
-            <LocalLiftedButton
+            <LocalButton
               className="font-bold"
               onClick={current === lastTutorialIndex ? nextStage : nextTutorial}
               leftIcon={
@@ -140,7 +138,7 @@ const OnboardingTutorials = ({ nextStage }: { nextStage: () => void }) => {
               }
             >
               {current === lastTutorialIndex ? "Start" : "Next"}
-            </LocalLiftedButton>
+            </LocalButton>
           </div>
         </div>
       </div>

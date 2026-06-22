@@ -2,7 +2,7 @@
 
 import Input, { InputDescription } from "@/components/input";
 import { Label } from "@/components/label";
-import LocalLiftedButton from "@/components/lifted-button";
+import LocalButton from "@/components/button";
 import { Body, Heading3, Logo } from "@breadcoop/ui";
 import { UsersThreeIcon } from "@phosphor-icons/react";
 import { MouseEventHandler, ReactNode } from "react";
@@ -122,15 +122,14 @@ const StackForm = ({ onContinue }: { onContinue: () => void }) => {
             />
           </Field>
         </div>
-        <LocalLiftedButton
-          preset="secondary"
-          width="full"
+        <LocalButton
+          variant="secondary"
           className="font-bold lg:hidden"
           type="button"
           onClick={validateStack}
         >
           Continue
-        </LocalLiftedButton>
+        </LocalButton>
       </section>
     </div>
   );

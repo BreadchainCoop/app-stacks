@@ -116,7 +116,7 @@ so — but the three commands above are the baseline that must pass.
   building new ones. Use the `cn` helper from `@/lib/utils` for conditional/merged classes.
 - **Buttons:** use the project's local `Button` (`@/components/button`), not
   `@breadcoop/ui`'s `Button` directly — the local wrapper sets the props needed to make the
-  library button match the Figma design. Do not use `LiftedButton`; it is being deprecated.
+  library button match the Figma design.
 - **Money/time values:** on-chain amounts and timestamps are `bigint`. Keep them as
   `bigint` end-to-end; format only at the display edge. `bigint` is not JSON-serializable —
   convert to string at the API-route / serialization boundary.

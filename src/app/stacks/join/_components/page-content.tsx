@@ -19,7 +19,7 @@ import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../../../lib/constants";
 import { savingCirclesAbi } from "../../../../lib/abis/saving-circles";
 import { CheckIcon, ConfettiIcon } from "@phosphor-icons/react";
 import Alert from "@/components/alert";
-import LocalLiftedButton from "@/components/lifted-button";
+import LocalButton from "@/components/button";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Loading from "@/app/loading";
@@ -193,24 +193,18 @@ export default function PageContent() {
                       You are already a member of this circle!
                     </Body>
                   ) : isNonceUsed ? (
-                    <LocalLiftedButton
-                      width="full"
-                      disabled
-                      preset="positive"
-                      className="text-white"
-                    >
+                    <Body className="text-white w-full bg-surface-grey text-center py-4 px-8">
                       Invitation already used
-                    </LocalLiftedButton>
+                    </Body>
                   ) : (
-                    <LocalLiftedButton
+                    <LocalButton
                       onClick={redeemInvite}
-                      width="full"
                       leftIcon={redeeming ? undefined : <CheckIcon size={24} />}
-                      className="bg-system-green"
+                      className="bg-system-green w-full"
                       disabled={redeeming}
                     >
                       {redeeming ? <Loading /> : "Accept invite"}
-                    </LocalLiftedButton>
+                    </LocalButton>
                   )}
                 </>
               ) : isMemberError ? (

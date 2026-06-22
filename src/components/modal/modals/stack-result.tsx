@@ -16,7 +16,7 @@ import {
   AccordionItem,
 } from "@/components/accordion";
 import Link from "next/link";
-import LocalLiftedButton from "@/components/lifted-button";
+import LocalButton from "@/components/button";
 import { useEffect, useState } from "react";
 import { usePublicClient } from "wagmi";
 import { savingCirclesAbi } from "../../../lib/abis/saving-circles";
@@ -314,15 +314,15 @@ export const StackSuccessResultModal = ({
           </AccordionItem>
         </Accordion>
       </div>
-      <Link
+      <LocalButton
+        as={Link}
         href={`/stacks/${modalState.circle.id}?name=${modalState.circle.name}`}
-        className="lifted-button-container block"
+        className="w-full"
         onClick={() => modal.setModal(null)}
+        rightIcon={<ArrowRightIcon size={24} />}
       >
-        <LocalLiftedButton rightIcon={<ArrowRightIcon size={24} />}>
-          Visit stacks detail page
-        </LocalLiftedButton>
-      </Link>
+        Visit stacks detail page
+      </LocalButton>
       <Body className="text-surface-grey-2">
         Note: You can also access your member invite links through your Stacks
         details page.

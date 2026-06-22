@@ -1,4 +1,4 @@
-import LocalLiftedButton from "@/components/lifted-button";
+import LocalButton from "@/components/button";
 import {
   Body,
   Heading3,
@@ -213,27 +213,25 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
       </div>
       <div className="flex flex-col gap-4">
         {user.status === "CONNECTED" ? (
-          <LocalLiftedButton
-            width="full"
+          <LocalButton
             leftIcon={<SparkleIcon size={24} />}
             onClick={form.handleSubmit(createStack)}
             type="submit"
           >
             Create Stack
-          </LocalLiftedButton>
+          </LocalButton>
         ) : (
           <LoginButton app="stacks" status={user.status} />
         )}
-        <LocalLiftedButton
+        <LocalButton
           className="lg:hidden"
-          preset="secondary"
-          width="full"
+          variant="secondary"
           leftIcon={<ArrowLeftIcon size={24} />}
           onClick={onBack}
           type="button"
         >
           Back
-        </LocalLiftedButton>
+        </LocalButton>
       </div>
     </section>
   );
