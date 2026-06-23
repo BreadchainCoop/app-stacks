@@ -32,6 +32,7 @@ const parseCircleData = (
     isMember: c.isMember,
     isDecommissionable: c.isDecommissionable,
     userBalance: c.userBalance,
+    depositWindowEnd: c.depositWindowEnd,
   };
 
   if (c.canWithdraw) {
@@ -72,5 +73,10 @@ export function useUserCirclesList(address: Address) {
     );
   }, [address, blockTimestamp, data]);
 
-  return { circles, isLoading, error };
+  return {
+    circles,
+    financialSummary: data?.financialSummary,
+    isLoading,
+    error,
+  };
 }
