@@ -36,7 +36,7 @@ const HomeHeader = ({
               : "Peek into all active Stack groups."}
         </Body>
       </div>
-      {!isVisitor && (
+      {type !== "all" && !isVisitor && (
         <LocalButton
           as={Link}
           href="/new"
