@@ -27,6 +27,7 @@ interface ICircleBaseList {
   isMember?: boolean;
   isDecommissionable?: boolean;
   userBalance?: bigint;
+  depositWindowEnd?: bigint;
 }
 
 type ICircleWithdraw = {

@@ -18,7 +18,7 @@ export const tabs = [
   { label: "Past Stacks", id: "past", icon: StackOverflowLogoIcon },
 ];
 
-const HomeTab = () => {
+const HomeTab = ({ basePath = "/" }: { basePath?: string }) => {
   const { user } = useConnectedUser();
 
   if (!(user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"))
@@ -27,7 +27,7 @@ const HomeTab = () => {
   return (
     // <Suspense fallback={<TabSkeleton />}>
     <Suspense fallback={null}>
-      <ProtectedTab />
+      <ProtectedTab basePath={basePath} />
     </Suspense>
   );
 };
@@ -50,7 +50,7 @@ const HomeTab = () => {
 // 	);
 // };
 
-const ProtectedTab = () => {
+const ProtectedTab = ({ basePath }: { basePath: string }) => {
   const currentTab = useSearchParams().get("tab") || "all";
 
   return (
@@ -60,7 +60,7 @@ const ProtectedTab = () => {
           return (
             <li key={tab.id} className="shrink-0">
               <Link
-                href={`/?tab=${tab.id}`}
+                href={`${basePath}?tab=${tab.id}`}
                 className={`font-bold flex items-center justify-center gap-2.5 py-1 px-4 border transition-colors ${
                   currentTab === tab.id
                     ? "text-surface-ink border-primary-blue"
