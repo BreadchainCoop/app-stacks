@@ -1,4 +1,4 @@
-.PHONY: deploy install-contract-deps anvil update-env update-contract-submodules update-saving-circles-dev start-local warp time-increase mine timestamp time-reset
+.PHONY: deploy install-contract-deps anvil update-env update-contract-submodules update-saving-circles-dev reset-supabase start-local warp time-increase mine timestamp time-reset
 
 ANVIL_ACCOUNTS := 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 \
 	0x70997970C51812dc3A010C7d01b50e0d17dc79C8 \
@@ -125,8 +125,41 @@ update-saving-circles-dev:
 	git -C contracts/lib/saving-circles checkout $(SAVING_CIRCLES_BRANCH) && \
 	git -C contracts/lib/saving-circles pull --ff-only origin $(SAVING_CIRCLES_BRANCH)
 
+# Wipes the off-chain stack data so local dev starts from a clean slate.
+# user_stacks is deleted before stacks_metadata to respect the FK (stack_id).
+reset-supabase:
+	@if [ ! -f .env.local ]; then \
+		echo "Error: .env.local not found"; \
+		exit 1; \
+	fi
+	@NODE_ENV=$$(grep -E '^NEXT_PUBLIC_NODE_ENV=' .env.local | cut -d= -f2- | tr -d '"'\'' '); \
+	if [ "$$NODE_ENV" != "local" ]; then \
+		echo "Error: reset-supabase only runs when NEXT_PUBLIC_NODE_ENV=local (got '$$NODE_ENV'). Refusing to wipe a non-local database."; \
+		exit 1; \
+	fi; \
+	SUPABASE_URL=$$(grep -E '^NEXT_PUBLIC_SUPABASE_URL=' .env.local | cut -d= -f2- | tr -d '"'\'' '); \
+	SERVICE_KEY=$$(grep -E '^SUPABASE_SERVICE_ROLE_KEY=' .env.local | cut -d= -f2- | tr -d '"'\'' '); \
+	if [ -z "$$SUPABASE_URL" ] || [ -z "$$SERVICE_KEY" ]; then \
+		echo "Error: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in .env.local"; \
+		exit 1; \
+	fi; \
+	echo "Clearing off-chain stack data (user_stacks, stacks_metadata)..."; \
+	for entry in "user_stacks:user_id" "stacks_metadata:id"; do \
+		table=$${entry%%:*}; col=$${entry##*:}; \
+		status=$$(curl -s -o /dev/null -w '%{http_code}' -X DELETE \
+			"$$SUPABASE_URL/rest/v1/$$table?$$col=not.is.null" \
+			-H "apikey: $$SERVICE_KEY" \
+			-H "Authorization: Bearer $$SERVICE_KEY"); \
+		if [ "$$status" != "200" ] && [ "$$status" != "204" ]; then \
+			echo "Error: failed to clear $$table (HTTP $$status)"; \
+			exit 1; \
+		fi; \
+		echo "✓ Cleared $$table"; \
+	done
+
 # Make sure to start a new anvil instance before running this
 start-local:
+	$(MAKE) reset-supabase
 	rm -rf contracts/broadcast contracts/cache contracts/out
 	$(MAKE) deploy
 	pnpm run dev
@@ -171,10 +204,16 @@ bread ?= __unset__
 
 FUND_WALLET_ADDRESS := $(filter-out fund-wallet, $(MAKECMDGOALS))
 
+# Fund one or more wallets with ETH and/or BREAD on the local Anvil chain.
+# Pass any number of 0x addresses; the amounts apply to each one.
+#   make fund-wallet 0xAddr1 [0xAddr2 ...]   # 100 ETH + 100 BREAD each (default)
+#   make fund-wallet 0xAddr1 0xAddr2 eth=50  # 50 ETH each, no BREAD
+#   make fund-wallet 0xAddr1 bread=200       # 200 BREAD each, no ETH
+# Note: eth= and bread= are mutually exclusive — pass neither to fund both.
 fund-wallet:
 	@if [ -z "$(FUND_WALLET_ADDRESS)" ]; then \
 		echo "Error: wallet address required"; \
-		echo "Usage: make fund-wallet 0xYourAddress [eth=100] [bread=100]"; \
+		echo "Usage: make fund-wallet 0xAddr1 [0xAddr2 ...] [eth=100] [bread=100]"; \
 		exit 1; \
 	fi
 	@BREAD_TOKEN=$$(jq -r '.breadToken' contracts/out/SAVING_CIRCLES_DEPLOYMENT.json); \
@@ -186,26 +225,30 @@ fund-wallet:
 	elif [ "$(bread)" != "__unset__" ]; then \
 		FUND_BREAD=$(bread); \
 	fi; \
-	if [ "$$FUND_ETH" != "0" ]; then \
-		ETH_WEI_HEX=$$(printf '0x%x' $$(cast to-wei $$FUND_ETH)); \
-		cast rpc anvil_setBalance $(FUND_WALLET_ADDRESS) $$ETH_WEI_HEX --rpc-url $(RPC_URL) > /dev/null; \
-		echo "✓ Set ETH balance to $$FUND_ETH ETH"; \
-	fi; \
-	if [ "$$FUND_BREAD" != "0" ]; then \
-		TOKEN_WEI=$$(cast to-wei $$FUND_BREAD); \
-		cast send $$BREAD_TOKEN \
-			"transfer(address,uint256)" \
-			$(FUND_WALLET_ADDRESS) $$TOKEN_WEI \
-			--rpc-url $(RPC_URL) \
-			--private-key $(PRIVATE_KEY) > /dev/null; \
-		echo "✓ Transferred $$FUND_BREAD BREAD to $(FUND_WALLET_ADDRESS)"; \
-	fi; \
-	echo ""; \
-	echo "Balances for $(FUND_WALLET_ADDRESS):"; \
-	ETH_BAL=$$(cast balance $(FUND_WALLET_ADDRESS) --rpc-url $(RPC_URL) --ether); \
-	BREAD_BAL=$$(cast call $$BREAD_TOKEN 'balanceOf(address)' $(FUND_WALLET_ADDRESS) --rpc-url $(RPC_URL) | cast --to-dec | cast from-wei); \
-	echo "  ETH:   $$ETH_BAL ETH"; \
-	echo "  BREAD: $$BREAD_BAL BREAD"
+	ETH_WEI_HEX=""; TOKEN_WEI=""; \
+	if [ "$$FUND_ETH" != "0" ]; then ETH_WEI_HEX=$$(printf '0x%x' $$(cast to-wei $$FUND_ETH)); fi; \
+	if [ "$$FUND_BREAD" != "0" ]; then TOKEN_WEI=$$(cast to-wei $$FUND_BREAD); fi; \
+	for WALLET in $(FUND_WALLET_ADDRESS); do \
+		echo "Funding $$WALLET..."; \
+		if [ "$$FUND_ETH" != "0" ]; then \
+			cast rpc anvil_setBalance $$WALLET $$ETH_WEI_HEX --rpc-url $(RPC_URL) > /dev/null; \
+			echo "✓ Set ETH balance to $$FUND_ETH ETH"; \
+		fi; \
+		if [ "$$FUND_BREAD" != "0" ]; then \
+			cast send $$BREAD_TOKEN \
+				"transfer(address,uint256)" \
+				$$WALLET $$TOKEN_WEI \
+				--rpc-url $(RPC_URL) \
+				--private-key $(PRIVATE_KEY) > /dev/null; \
+			echo "✓ Transferred $$FUND_BREAD BREAD to $$WALLET"; \
+		fi; \
+		echo "Balances for $$WALLET:"; \
+		ETH_BAL=$$(cast balance $$WALLET --rpc-url $(RPC_URL) --ether); \
+		BREAD_BAL=$$(cast call $$BREAD_TOKEN 'balanceOf(address)' $$WALLET --rpc-url $(RPC_URL) | cast --to-dec | cast from-wei); \
+		echo "  ETH:   $$ETH_BAL ETH"; \
+		echo "  BREAD: $$BREAD_BAL BREAD"; \
+		echo ""; \
+	done
 
 0x%:
 	@:
