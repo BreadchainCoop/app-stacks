@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import StackHeader from "./header";
 import StackDetails from "./stack-details";
+import ClaimSchedule from "./claim-schedule";
 import StackMembers from "./members";
 import StackInfo from "./info";
 import { CircularProgressIcon } from "@/components/icons/circular-progress";
@@ -74,6 +75,9 @@ const PageContent = ({ id }: { id: string }) => {
               member={member}
             />
             <StackDetails id={id} circle={userCircleData.circleData} />
+            {userCircleData.circleData.isMember && (
+              <ClaimSchedule id={id} circle={userCircleData.circleData} />
+            )}
             <StackMembers
               id={id}
               circle={userCircleData.circleData.circleInfo}
