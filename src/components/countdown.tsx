@@ -7,22 +7,42 @@ import { useState, useEffect, useRef } from "react";
 interface CountdownProps {
   targetSeconds: number;
   className?: string;
+  /** Fires once when the countdown reaches zero (re-armed when the target changes). */
+  onComplete?: () => void;
 }
 
 export default function Countdown({
   targetSeconds,
   className,
+  onComplete,
 }: CountdownProps) {
   const blockTimestamp = useBlockTimestamp(true);
   const [timeLeft, setTimeLeft] = useState(0);
   const baseRef = useRef({ blockTime: 0, wallTime: 0 });
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+  // Guards onComplete to a single call per target window.
+  const completedRef = useRef(false);
+
+  // A new target (e.g. the next round) can complete again.
+  useEffect(() => {
+    completedRef.current = false;
+  }, [targetSeconds]);
 
   useEffect(() => {
+    const fireIfDone = (remaining: number) => {
+      if (remaining <= 0 && !completedRef.current) {
+        completedRef.current = true;
+        onCompleteRef.current?.();
+      }
+    };
+
     const blockNowSec = Math.floor(blockTimestamp / 1000);
     baseRef.current = { blockTime: blockNowSec, wallTime: Date.now() };
 
     const diff = targetSeconds - blockNowSec;
     setTimeLeft(diff > 0 ? diff : 0);
+    fireIfDone(diff);
 
     const timer = setInterval(() => {
       const elapsedSec = Math.floor(
@@ -30,6 +50,7 @@ export default function Countdown({
       );
       const remaining = targetSeconds - baseRef.current.blockTime - elapsedSec;
       setTimeLeft(remaining > 0 ? remaining : 0);
+      fireIfDone(remaining);
     }, 1000);
 
     return () => clearInterval(timer);

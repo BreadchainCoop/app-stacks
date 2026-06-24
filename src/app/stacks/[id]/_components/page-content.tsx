@@ -51,8 +51,6 @@ const PageContent = ({ id }: { id: string }) => {
     }
   }, [userCircleData.circleData, member]);
 
-  console.log("__ CIRCLE DATA __", userCircleData.circleData);
-
   return (
     <>
       <BackMeta
