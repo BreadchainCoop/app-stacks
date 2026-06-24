@@ -308,8 +308,8 @@ const Overview = ({
           <>
             {connectedUser.user.status === "CONNECTED" ? (
               <LocalButton
-                variant="secondary"
-                className="bg-red-0 text-system-red w-full"
+                variant="burn"
+                className="w-full"
                 onClick={() =>
                   setModal({ type: "STACK_FAILED", id: circle.circleId })
                 }
