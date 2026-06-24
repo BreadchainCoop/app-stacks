@@ -617,6 +617,30 @@ export const savingCirclesAbi = [
   },
   {
     type: "function",
+    name: "hasClaimed",
+    inputs: [
+      {
+        name: "id",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "member",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "claimed",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "isTokenAllowed",
     inputs: [
       {
