@@ -5,6 +5,7 @@ import StackHeader from "./header";
 import StackDetails from "./stack-details";
 import StackMembers from "./members";
 import StackInfo from "./info";
+import ClaimSchedule from "./claim-schedule";
 import { CircularProgressIcon } from "@/components/icons/circular-progress";
 import { Body, useConnectedUser } from "@breadcoop/ui";
 import StackedStatus from "./stacked-status";
@@ -74,6 +75,14 @@ const PageContent = ({ id }: { id: string }) => {
               member={member}
             />
             <StackDetails id={id} circle={userCircleData.circleData} />
+            {userCircleData.circleData.isMember && (
+              <ClaimSchedule
+                id={id}
+                circle={userCircleData.circleData}
+                member={member}
+                now={now}
+              />
+            )}
             <StackMembers
               id={id}
               circle={userCircleData.circleData.circleInfo}
