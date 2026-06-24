@@ -63,6 +63,7 @@ make start-local
 
 This will:
 
+- Clear off-chain stack data in Supabase (`user_stacks`, `stacks_metadata`) so local dev starts from a clean slate — only runs when `NEXT_PUBLIC_NODE_ENV=local`
 - Compile and deploy the contracts to your local Anvil instance
 - Automatically update your `.env.local` with the deployed contract addresses
 - Start the Next.js development server
@@ -114,11 +115,14 @@ make start-local
 
 ### Funding a Wallet
 
-When signing in through Privy (or any embedded wallet), the generated address starts with zero balances. Use `make fund-wallet` to top it up with ETH, BREAD, or both:
+When signing in through Privy (or any embedded wallet), the generated address starts with zero balances. Use `make fund-wallet` to top it up with ETH, BREAD, or both. You can pass several addresses at once — the amounts apply to each:
 
 ```bash
 # Fund with 100 ETH and 100 BREAD (default amounts)
 make fund-wallet 0xYourWalletAddress
+
+# Fund several wallets in one go
+make fund-wallet 0xWalletA 0xWalletB 0xWalletC
 
 # Fund with a specific ETH amount only
 make fund-wallet 0xYourWalletAddress eth=50
@@ -127,7 +131,7 @@ make fund-wallet 0xYourWalletAddress eth=50
 make fund-wallet 0xYourWalletAddress bread=200
 ```
 
-The command will print the resulting ETH and BREAD balances for the address once complete.
+`eth=` and `bread=` are mutually exclusive — pass neither to fund both with the defaults. The command prints the resulting ETH and BREAD balances for each address once complete.
 
 ### Time Manipulation (for testing)
 
@@ -162,20 +166,21 @@ make warp TIMESTAMP=1735689600     # Jump to a specific timestamp (January 1, 20
 
 ## Useful Make Commands
 
-| Command                              | Description                            |
-| ------------------------------------ | -------------------------------------- |
-| `make anvil`                         | Start local blockchain (Gnosis fork)   |
-| `make start-local`                   | Deploy contracts and start dev server  |
-| `make deploy`                        | Deploy contracts and update .env.local |
-| `make anvil-reset`                   | Reset blockchain to fresh state        |
-| `make update-contract-submodules`    | Update contract dependencies           |
-| `make fund-wallet 0xAddress`         | Fund a wallet with ETH and BREAD       |
-| `make fund-wallet 0xAddress eth=N`   | Fund a wallet with N ETH only          |
-| `make fund-wallet 0xAddress bread=N` | Fund a wallet with N BREAD only        |
-| `make mine`                          | Mine a single block                    |
-| `make timestamp`                     | Show current block timestamp           |
-| `make time-increase SECONDS=N`       | Advance Anvil time by N seconds        |
-| `make warp TIMESTAMP=N`              | Set Anvil time to a specific timestamp |
+| Command                                | Description                                       |
+| -------------------------------------- | ------------------------------------------------- |
+| `make anvil`                           | Start local blockchain (Gnosis fork)              |
+| `make start-local`                     | Clear off-chain data, deploy contracts, start dev |
+| `make deploy`                          | Deploy contracts and update .env.local            |
+| `make reset-supabase`                  | Wipe off-chain stack data (local env only)        |
+| `make anvil-reset`                     | Reset blockchain to fresh state                   |
+| `make update-contract-submodules`      | Update contract dependencies                      |
+| `make fund-wallet 0xAddr [0xAddr ...]` | Fund one or more wallets with ETH and BREAD       |
+| `make fund-wallet 0xAddr eth=N`        | Fund the wallet(s) with N ETH only                |
+| `make fund-wallet 0xAddr bread=N`      | Fund the wallet(s) with N BREAD only              |
+| `make mine`                            | Mine a single block                               |
+| `make timestamp`                       | Show current block timestamp                      |
+| `make time-increase SECONDS=N`         | Advance Anvil time by N seconds                   |
+| `make warp TIMESTAMP=N`                | Set Anvil time to a specific timestamp            |
 
 ## Custom Deployment
 
