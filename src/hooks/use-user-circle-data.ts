@@ -43,8 +43,6 @@ export function useUserCircleData({
     chainId: getDefaultChainId(),
   });
 
-  console.log("__ ERROR __", error);
-
   return {
     circleData,
     isLoading,

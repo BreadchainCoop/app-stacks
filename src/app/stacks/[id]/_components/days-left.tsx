@@ -4,6 +4,8 @@ import Countdown from "@/components/countdown";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { Body } from "@breadcoop/ui";
 import { CalendarStarIcon } from "@phosphor-icons/react";
+import { useQueryClient } from "@tanstack/react-query";
+import { invalidateCircleReads } from "@/utils/invalidate-circle-reads";
 
 const DaysLeft = ({
   depositWindowEnd,
@@ -19,6 +21,7 @@ const DaysLeft = ({
   isActive?: boolean;
 }) => {
   const blockTimestamp = useBlockTimestamp();
+  const queryClient = useQueryClient();
   let daysLeft = "-";
   let progressPercent = 0;
 
@@ -70,7 +73,9 @@ const DaysLeft = ({
       {Boolean(Number(effectiveCircleStartTime)) && isActive && (
         <Countdown
           targetSeconds={Number(depositWindowEnd)}
-          // key={depositWindowEnd}
+          onComplete={() => {
+            invalidateCircleReads(queryClient);
+          }}
         />
       )}
     </div>
