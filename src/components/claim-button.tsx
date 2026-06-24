@@ -7,10 +7,11 @@ import { useModal } from "./modal/context";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { Address } from "viem";
-import { formatBalance } from "@breadcoop/ui";
+import { formatBalance, useConnectedUser } from "@breadcoop/ui";
 import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { CLAIM_ERRORS } from "@/lib/contract-errors";
+import { refetchAfterClaim } from "@/utils/refetch-after-claim";
 
 const parseClaimError = (error: unknown) =>
   parseContractError(error, CLAIM_ERRORS, "Failed to claim. Please try again.");
@@ -36,6 +37,11 @@ const ClaimButton = ({
   const { setModal } = useModal();
   const [claiming, setClaiming] = useState(false);
   const { sendSavingCirclesTx } = useSavingCirclesTx();
+  const { user } = useConnectedUser();
+  const member =
+    user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
+      ? user.address
+      : undefined;
 
   console.log({ nextDeposit, roundsLeft, nextDepositAddress });
 
@@ -51,8 +57,12 @@ const ClaimButton = ({
         args: [circleId],
       });
 
-      queryClient.invalidateQueries({ queryKey: ["readContract"] });
-      queryClient.invalidateQueries({ queryKey: ["readContracts"] });
+      if (member) {
+        await refetchAfterClaim(queryClient, { circleId, member });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["readContract"] });
+        queryClient.invalidateQueries({ queryKey: ["readContracts"] });
+      }
 
       setModal({
         type: "CLAIM_RESULT",
