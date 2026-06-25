@@ -21,6 +21,7 @@ import { Address, formatEther } from "viem";
 import { useCircleStatus } from "@/hooks/use-circle-status";
 import StartCircleButton from "@/components/start-circle-button";
 import DepositButton from "@/components/deposit-button";
+import { AutomaticDeposit } from "@/components/automatic-deposits/toggle";
 import { useModal } from "@/components/modal/context";
 import { useStackSupabase } from "@/hooks/use-stack-supabase";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
@@ -31,6 +32,7 @@ import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { ICircleStatus } from "@/interfaces/circle";
 import { useFundsDeposited } from "@/hooks/use-funds-deposited";
 import LocalButton from "@/components/button";
+import { FeatureGate } from "@/components/feature-gate";
 
 const failedStatuses: ICircleStatus[] = [
   "decommissioned",
@@ -151,6 +153,11 @@ const Overview = ({
     formattedCircleStatus.status === "pending-start"
       ? expectedMembers || "-"
       : Number(circle.totalRounds);
+
+  const remainingRounds = Math.max(
+    0,
+    Number(circle.totalRounds) - Number(circle.circleInfo.currentIndex)
+  );
 
   let roundsCompleted = BigInt(0);
   let membersDeposited: bigint | number = BigInt(0);
@@ -288,15 +295,26 @@ const Overview = ({
         ) : depositCircleStatus.status === "payment_due" ? (
           <>
             {connectedUser.user.status === "CONNECTED" ? (
-              <DepositButton
-                className="font-bold w-full"
-                label={`Deposit ${formatEther(
-                  circle.circleInfo.depositAmount
-                )} BREAD`}
-                amount={circle.circleInfo.depositAmount}
-                tokenAddress={circle.circleInfo.token}
-                circleId={circle.circleId}
-              />
+              <>
+                <FeatureGate feature="automaticDeposit">
+                  <AutomaticDeposit
+                    stackId={circle.circleId.toString()}
+                    depositAmount={circle.circleInfo.depositAmount}
+                    remainingRounds={remainingRounds}
+                    depositInterval={circle.circleInfo.depositInterval}
+                    tokenAddress={circle.circleInfo.token}
+                  />
+                </FeatureGate>
+                <DepositButton
+                  className="font-bold w-full"
+                  label={`Deposit ${formatEther(
+                    circle.circleInfo.depositAmount
+                  )} BREAD`}
+                  amount={circle.circleInfo.depositAmount}
+                  tokenAddress={circle.circleInfo.token}
+                  circleId={circle.circleId}
+                />
+              </>
             ) : (
               <LoginButton app="stacks" status={connectedUser.user.status} />
             )}
