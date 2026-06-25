@@ -75,7 +75,7 @@ const ClaimButton = ({
 
   return (
     <LocalButton
-      className={cn("font-bold w-full", className)}
+      className={cn("claim-btn font-bold w-full", className)}
       leftIcon={<HandWithdrawIcon />}
       onClick={claim}
     >

@@ -118,7 +118,6 @@ const TotalStacked = ({
                   circleId={BigInt(id)}
                   amount={amount}
                   label="Claim funds"
-                  className="bg-system-green! text-paper-main!"
                   nextDeposit={
                     (userCircleData.circleData?.circleInfo.currentIndex ||
                       BigInt(0)) +

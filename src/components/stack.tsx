@@ -205,7 +205,6 @@ const Stack = ({
       <div className="flex flex-col gap-3 mt-auto">
         {stack.canWithdraw ? (
           <ClaimButton
-            className="bg-paper-main text-system-green"
             amount={
               Number(formatEther(stack.depositAmount)) * stack.totalMember
             }
