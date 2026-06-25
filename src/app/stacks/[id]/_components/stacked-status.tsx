@@ -19,11 +19,10 @@ const StackedStatus = ({
   member: Address;
 }) => {
   const status = useCircleStatus(BigInt(id));
-  const userCircleData = useUserCircleData({ circleId: BigInt(id) });
 
   return (
     <div className="md:flex md:justify-between md:gap-6">
-      <TotalStacked id={id} status={status} userCircleData={userCircleData} />
+      <TotalStacked id={id} status={status} />
       <Overview circle={circle} member={member} status={status} />
     </div>
   );
