@@ -1,56 +1,21 @@
 "use client";
 
-import { useReadContract } from "wagmi";
-import { formatEther } from "viem";
-import {
-  Accordion,
-  AccordionHeader,
-  AccordionContent,
-  AccordionItem,
-} from "@/components/accordion";
-import {
-  Body,
-  formatBalance,
-  Heading1,
-  LoginButton,
-  useConnectedUser,
-} from "@breadcoop/ui";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../../../lib/constants";
-import { savingCirclesAbi } from "../../../../lib/abis/saving-circles";
-import { CheckIcon, ConfettiIcon } from "@phosphor-icons/react";
-import Alert from "@/components/alert";
-import LocalButton from "@/components/button";
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import Loading from "@/app/loading";
+import Alert from "@/components/alert";
+import { savingCirclesAbi } from "@/lib/abis/saving-circles";
+import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { getDefaultChainId } from "@/utils/chain";
-import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
-import { usePrivy } from "@privy-io/react-auth";
-
-const errorMessages: Record<string, string> = {
-  InviteAlreadyUsed: "This invitation has already been used.",
-  AlreadyMember: "You are already a member of this circle.",
-  AlreadyActive: "This circle has already started.",
-  NotCommissioned: "This circle does not exist.",
-  InvalidSigner: "This invitation link is invalid.",
-};
+import { Body, Heading1 } from "@breadcoop/ui";
+import { ConfettiIcon } from "@phosphor-icons/react";
+import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+import { useReadContract } from "wagmi";
+import AcceptInvite from "./accept-invite";
+import InviteDetails from "./invite-details";
 
 export default function PageContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useConnectedUser();
-  const { sendSavingCirclesTx } = useSavingCirclesTx();
-  const circleId = searchParams.get("circleId") as string;
-  const parsedId = BigInt(circleId || "");
-  const nonce = searchParams.get("nonce");
-  const signature = searchParams.get("signature");
-  const circleName = searchParams.get("name") || "-";
-  const members = Number(searchParams.get("members"));
-  const duration = searchParams.get("duration") || "";
-  const deposit = Number(searchParams.get("deposit"));
-  const { user: privyUser } = usePrivy();
-
-  const [redeeming, setRedeeming] = useState(false);
+  const parsedId = BigInt(searchParams.get("circleId") || "");
 
   const circleResult = useReadContract({
     abi: savingCirclesAbi,
@@ -59,70 +24,6 @@ export default function PageContent() {
     args: [parsedId],
     chainId: getDefaultChainId(),
   });
-
-  const { data: isMember, error: isMemberError } = useReadContract({
-    abi: savingCirclesAbi,
-    address: SAVING_CIRCLES_CONTRACT_ADDRESS,
-    functionName: "isMember",
-    args: [
-      parsedId,
-      // @ts-expect-error hook only triggers when address is available
-      user.address as `0x${string}`,
-    ],
-    query: {
-      enabled:
-        user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN",
-    },
-    chainId: getDefaultChainId(),
-  });
-
-  const { data: isNonceUsed } = useReadContract({
-    abi: savingCirclesAbi,
-    address: SAVING_CIRCLES_CONTRACT_ADDRESS,
-    functionName: "usedNonces",
-    args: [parsedId, BigInt(nonce || "0")],
-    query: {
-      enabled: !!nonce,
-    },
-    chainId: getDefaultChainId(),
-  });
-
-  const redeemInvite = async () => {
-    if (user.status !== "CONNECTED" || !nonce || !signature) return;
-
-    setRedeeming(true);
-
-    try {
-      await sendSavingCirclesTx({
-        functionName: "redeemInvite",
-        args: [parsedId, BigInt(nonce), signature as `0x${string}`],
-      });
-
-      fetch("/api/stacks/invite", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ circleId, nonce, privyUserId: privyUser?.id }),
-      });
-
-      alert("Invitation Accepted!");
-      router.push(`/stacks/${circleId}`);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      const contractError =
-        (error?.cause?.data?.errorName as string | undefined) ||
-        error?.metaMessages?.[0]?.match(/Error:\s*(\w+)\(\)/)?.[1];
-
-      const shortMessage = error?.shortMessage as string;
-      const message =
-        errorMessages[contractError ?? ""] ||
-        shortMessage ||
-        "Failed to redeem invite.";
-
-      alert(message);
-    } finally {
-      setRedeeming(false);
-    }
-  };
 
   useEffect(() => {
     document.querySelector("main")?.classList.remove("page-layout");
@@ -144,38 +45,7 @@ export default function PageContent() {
 
       {circleResult.data ? (
         <>
-          <div className="border-t border-blue-0 pt-6">
-            <Body className="text-center mb-6">
-              You have been invited to join &quot;{circleName}&quot; Stacks
-              saving journey.
-            </Body>
-
-            <Accordion defaultValue="details">
-              <AccordionItem
-                value="details"
-                className="border-blue-0! bg-transparent!"
-              >
-                <AccordionHeader>Stacks details</AccordionHeader>
-                <AccordionContent>
-                  <div className="">
-                    <RowDetail label="Group name" body={circleName} />
-                    <RowDetail label="Stacks group ID" body={circleId} />
-                    <RowDetail label="Duration" body={duration} />
-                    <RowDetail
-                      label="Est. Deposit amount"
-                      body={`${formatEther(
-                        circleResult.data.depositAmount
-                      )} BREAD`}
-                    />
-                    <RowDetail
-                      label="Stack goal"
-                      body={`${formatBalance(members ** 2 * deposit, 2)} BREAD`}
-                    />
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
+          <InviteDetails depositAmount={circleResult.data.depositAmount} />
 
           <Alert
             closeAble={false}
@@ -184,42 +54,7 @@ export default function PageContent() {
             description="Each invite is unique and can only be accepted once."
           />
 
-          {user.status === "CONNECTED" ? (
-            <>
-              {typeof isMember === "boolean" ? (
-                <>
-                  {isMember ? (
-                    <Body className="text-system-green text-center">
-                      You are already a member of this circle!
-                    </Body>
-                  ) : isNonceUsed ? (
-                    <Body className="text-white w-full bg-surface-grey text-center py-4 px-8">
-                      Invitation already used
-                    </Body>
-                  ) : (
-                    <LocalButton
-                      onClick={redeemInvite}
-                      leftIcon={redeeming ? undefined : <CheckIcon size={24} />}
-                      className="bg-system-green w-full"
-                      disabled={redeeming}
-                    >
-                      {redeeming ? <Loading /> : "Accept invite"}
-                    </LocalButton>
-                  )}
-                </>
-              ) : isMemberError ? (
-                <Body className="text-system-red text-center">
-                  Unable to get data! Please refresh the page!
-                </Body>
-              ) : (
-                <div className="flex items-center justify-center">
-                  <Loading />
-                </div>
-              )}
-            </>
-          ) : (
-            <LoginButton app="stacks" status={user.status} />
-          )}
+          <AcceptInvite />
 
           <Body>
             Note: You can also access your member invite links through your
@@ -235,17 +70,6 @@ export default function PageContent() {
           <Loading />
         </div>
       )}
-    </div>
-  );
-}
-
-function RowDetail({ label, body }: { label: string; body: string | number }) {
-  return (
-    <div className="flex items-center justify-between mb-2.5 last:mb-0">
-      <Body className="text-surface-grey">{label}</Body>
-      <Body bold className="text-surface-ink">
-        {body}
-      </Body>
     </div>
   );
 }
