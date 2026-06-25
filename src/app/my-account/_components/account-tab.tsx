@@ -18,7 +18,7 @@ export const tabs = [
   { label: "Past Stacks", id: "past", icon: StackOverflowLogoIcon },
 ];
 
-const HomeTab = ({ basePath = "/" }: { basePath?: string }) => {
+const AccountTab = ({ basePath = "/" }: { basePath?: string }) => {
   const { user } = useConnectedUser();
 
   if (!(user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"))
@@ -84,4 +84,4 @@ const ProtectedTab = ({ basePath }: { basePath: string }) => {
   );
 };
 
-export default HomeTab;
+export default AccountTab;
