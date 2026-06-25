@@ -1,7 +1,8 @@
 "use client";
 
+import Loading from "@/app/loading";
 import { useModal } from "@/components/modal/context";
-import { ICircleList } from "@/interfaces/circle";
+import { useUserCirclesList } from "@/hooks/use-user-circles-list";
 import { Body, formatBalance } from "@breadcoop/ui";
 import {
   CoinsIcon,
@@ -11,10 +12,6 @@ import {
 import Link from "next/link";
 import { Address, formatEther } from "viem";
 import LocalButton from "@/components/button";
-
-interface FinancialSummary {
-  totalBalance: bigint;
-}
 
 const toBread = (value: bigint | undefined) =>
   Number(formatEther(value ?? BigInt(0)));
@@ -59,22 +56,17 @@ const Column = ({
   </div>
 );
 
-const AccountOverviewCard = ({
-  address,
-  circles,
-  financialSummary,
-}: {
-  address: Address;
-  circles: ICircleList[];
-  financialSummary?: FinancialSummary;
-}) => {
+const AccountOverviewCard = ({ address }: { address: Address }) => {
   const { setModal } = useModal();
+  const { circles, financialSummary, isLoading } = useUserCirclesList(address);
 
   const scrollToStacks = () => {
     document
       .getElementById("your-stacks")
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
+
+  if (isLoading) return <Loading />;
 
   const totalHeld = toBread(financialSummary?.totalBalance);
 
@@ -130,7 +122,7 @@ const AccountOverviewCard = ({
               scroll={false}
               onClick={scrollToStacks}
               variant="positive"
-              className="bg-[#DDF7D0]! text-[#155D2A]! font-bold"
+              className="claim-btn font-bold"
               leftIcon={<HandWithdrawIcon />}
             >
               Claim

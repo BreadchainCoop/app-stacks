@@ -100,3 +100,7 @@ body {
   /* width: var(--radix-tooltip-trigger-width); */
   /* max-height: var(--radix-tooltip-content-available-height); */
 }
+
+.claim-btn {
+  @apply bg-[#DDF7D0] text-[#155D2A] hover:bg-[#DDF7D0] hover:text-[#155D2A] hover:opacity-70;
+}
