@@ -3,9 +3,9 @@
 import Loading from "@/app/loading";
 import { useUserCirclesList } from "@/hooks/use-user-circles-list";
 import { Address } from "viem";
-import CardCarousel from "../card-carousel";
+import CardCarousel from "@/components/card-carousel";
 import { useSearchParams } from "next/navigation";
-import { tabs } from "./tab";
+import { tabs } from "./account-tab";
 import { Body, Heading3 } from "@breadcoop/ui";
 import { usePrivy } from "@privy-io/react-auth";
 import { useUserStacksMetadata } from "@/hooks/use-user-stacks-metadata";
@@ -38,7 +38,7 @@ const hasFailedClaim = (circle: {
   circle.isDecommissionable &&
   Boolean(circle.userBalance && circle.userBalance > BigInt(0));
 
-const HomeUserStacks = ({ address }: { address: Address }) => {
+const AccountUserStacks = ({ address }: { address: Address }) => {
   const { isLoading, circles } = useUserCirclesList(address);
   const { user } = usePrivy();
   const { stacksMap } = useUserStacksMetadata(user?.id);
@@ -98,4 +98,4 @@ const HomeUserStacks = ({ address }: { address: Address }) => {
   );
 };
 
-export default HomeUserStacks;
+export default AccountUserStacks;
