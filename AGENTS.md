@@ -111,6 +111,10 @@ so — but the three commands above are the baseline that must pass.
   parent fetches data with a hook and hands it to a single child, move that hook into the
   child. Lift state up only when two or more siblings genuinely need to share it. This keeps
   parents as thin layout/composition shells and pushes `"use client"` to the leaves.
+- **Decompose oversized components:** when a single component mixes several concerns or
+  grows past a few screenfuls, split it into smaller components and colocate each one's
+  state/logic — but only when it genuinely improves readability or colocation. Don't extract
+  single-use components for their own sake (see Simplicity First in CLAUDE.md).
 - **Server vs client:** prefer React Server Components by default. Add `"use client"` only
   when a component actually needs it — hooks, state/effects, event handlers, browser APIs,
   or wallet/Supabase/Privy context — and push that boundary to the leaves so as much of the
