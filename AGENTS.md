@@ -106,6 +106,11 @@ so — but the three commands above are the baseline that must pass.
   `clientEnv` in `src/lib/env.ts`; server-only vars through `serverEnv` in
   `src/lib/envs/server.ts`. Both are Zod-validated. Add new vars to the schema **and**
   `.env.local.example`.
+- **Colocate state & logic:** keep state, hooks, and derived logic in the component that
+  actually uses them — don't lift them to a parent only to pass the result back down. If a
+  parent fetches data with a hook and hands it to a single child, move that hook into the
+  child. Lift state up only when two or more siblings genuinely need to share it. This keeps
+  parents as thin layout/composition shells and pushes `"use client"` to the leaves.
 - **Server vs client:** prefer React Server Components by default. Add `"use client"` only
   when a component actually needs it — hooks, state/effects, event handlers, browser APIs,
   or wallet/Supabase/Privy context — and push that boundary to the leaves so as much of the
@@ -154,7 +159,8 @@ so — but the three commands above are the baseline that must pass.
 
 - Branch from and target **`development`** (not `main`/`master`).
 - Use **Conventional Commits** (`feat:`, `fix:`, `chore:`, `refactor:`, `docs:`…) and
-  reference the issue number when fixing an issue.
+  reference the issue number when fixing an issue. **Do not add a scope in parentheses** —
+  write `feat: add my-account page`, never `feat(my-account): add page`.
 - Keep PRs focused; describe what you changed and how you verified it (the gates above).
 
 Full workflow details: [CONTRIBUTING.md](./CONTRIBUTING.md).
