@@ -22,12 +22,11 @@ import { AutomaticClaim } from "./automatic-claim";
 const TotalStacked = ({
   id,
   status,
-  userCircleData,
 }: {
   id: string;
   status: ReturnType<typeof useCircleStatus>;
-  userCircleData: ReturnType<typeof useUserCircleData>;
 }) => {
+  const userCircleData = useUserCircleData({ circleId: BigInt(id) });
   const { user } = useConnectedUser();
   const address =
     user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
