@@ -16,16 +16,16 @@ jobs:
       matrix:
         include:
           - name: demo
-            url: ${{ secrets.SUPABASE_URL_DEMO }}
-            key: ${{ secrets.SUPABASE_ANON_KEY_DEMO }}
+            url_secret: SUPABASE_URL_DEMO
+            key_secret: SUPABASE_ANON_KEY_DEMO
           - name: development
-            url: ${{ secrets.SUPABASE_URL_DEVELOPMENT }}
-            key: ${{ secrets.SUPABASE_ANON_KEY_DEVELOPMENT }}
+            url_secret: SUPABASE_URL_DEVELOPMENT
+            key_secret: SUPABASE_ANON_KEY_DEVELOPMENT
     steps:
       - name: Query the ${{ matrix.name }} database
         env:
-          SUPABASE_URL: ${{ matrix.url }}
-          SUPABASE_ANON_KEY: ${{ matrix.key }}
+          SUPABASE_URL: ${{ secrets[matrix.url_secret] }}
+          SUPABASE_ANON_KEY: ${{ secrets[matrix.key_secret] }}
         run: |
           if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
             echo "Missing secrets for the ${{ matrix.name }} project"
