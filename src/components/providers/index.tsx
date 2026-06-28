@@ -40,7 +40,11 @@ const privyConfig = (isMobile: boolean): PrivyClientConfig => ({
   supportedChains: [_chain],
   embeddedWallets: {
     ethereum: {
-      createOnLogin: "all-users",
+      // Only provision a Privy embedded wallet for users who DON'T bring their
+      // own wallet (e.g. email/social sign-ins). Users who connect a
+      // self-custody EOA (MetaMask, Rabby, Coinbase Wallet, etc.) keep using
+      // that wallet instead of having a Privy wallet force-created for them.
+      createOnLogin: "users-without-wallets",
     },
   },
   walletConnectCloudProjectId: clientEnv.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
