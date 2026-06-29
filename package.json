@@ -16,7 +16,7 @@
     "lint-staged": "lint-staged"
   },
   "dependencies": {
-    "@breadcoop/ui": "^2.0.1",
+    "@breadcoop/ui": "file:breadcoop-ui-2.0.2.tgz",
     "@duneanalytics/client-sdk": "^0.2.5",
     "@hookform/resolvers": "^5.2.2",
     "@lifi/sdk": "^3.16.3",

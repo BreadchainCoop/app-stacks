@@ -90,7 +90,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
         args: [circleArgs],
       });
 
-      const sponsoredTx = sendSponsoredTransaction(
+      const { hash } = await sendSponsoredTransaction(
         { to: SAVING_CIRCLES_CONTRACT_ADDRESS, data: encodedData },
         { uiOptions: { showWalletUIs: false } }
       );
@@ -100,8 +100,6 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
         name: data.name,
         status: "approved",
       });
-
-      const { hash } = await sponsoredTx;
 
       const receipt = await waitForTransactionReceipt(wagmiConfig, {
         hash,
