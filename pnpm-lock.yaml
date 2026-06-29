@@ -7,14 +7,13 @@ settings:
 overrides:
   "@noble/curves": ">=1.9.0"
   semver: ">=6.3.2"
-  "@breadcoop/ui": 2.0.1
 
 importers:
   .:
     dependencies:
       "@breadcoop/ui":
-        specifier: 2.0.1
-        version: 2.0.1(a42f1bd46a91f3e083f3bbbf6d88fc00)
+        specifier: file:breadcoop-ui-2.0.2.tgz
+        version: file:breadcoop-ui-2.0.2.tgz(a42f1bd46a91f3e083f3bbbf6d88fc00)
       "@duneanalytics/client-sdk":
         specifier: ^0.2.5
         version: 0.2.5
@@ -516,11 +515,12 @@ packages:
         integrity: sha512-jeujZSzb3JOZfmJYI0ph1PVpCRV5oaexCgy+RvCXV8XlY+XFB/2n3WOcvBsKLsOw78KYgnQrQWb2HrKE4be88Q==,
       }
 
-  "@breadcoop/ui@2.0.1":
+  "@breadcoop/ui@file:breadcoop-ui-2.0.2.tgz":
     resolution:
       {
-        integrity: sha512-lvVgyfPpdIi/JW5kOdpoeRpYNaWaAr1/zRxQhfAmvCI0XKYDG+p0NA4zyFeECsZzo7elKmaGj/B1kqnRViiGiA==,
+        integrity: sha512-PKdCk/uaByAL4Z7UKrqrembjm5FvyV82D5c3fsTWhTMM3S2C4RWSzkSmJW7RXWE9lv5rWVSnhZPkDGOKzudVNA==,
       }
+    version: 2.0.2
     peerDependencies:
       "@phosphor-icons/react": ^2.1.1
       "@privy-io/react-auth": ^3.13.1
@@ -11294,7 +11294,7 @@ snapshots:
     dependencies:
       "@noble/curves": 1.9.7
 
-  "@breadcoop/ui@2.0.1(a42f1bd46a91f3e083f3bbbf6d88fc00)":
+  "@breadcoop/ui@file:breadcoop-ui-2.0.2.tgz(a42f1bd46a91f3e083f3bbbf6d88fc00)":
     dependencies:
       "@phosphor-icons/react": 2.1.10(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       "@privy-io/react-auth": 3.18.0(@react-native-async-storage/async-storage@1.24.0(react-native@0.85.2(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6)))(@solana-program/system@0.10.0(@solana/kit@5.5.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)))(@solana-program/token@0.9.0(@solana/kit@5.5.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)))(@solana/kit@5.5.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6))(@solana/sysvars@5.5.1(typescript@5.9.3))(@tanstack/query-core@5.91.2)(@tanstack/react-query@5.91.2(react@19.1.0))(@types/react@19.2.14)(@upstash/redis@1.37.0)(bufferutil@4.1.0)(react-dom@19.1.0(react@19.1.0))(react-native@0.85.2(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6))(react@19.1.0)(typescript@5.9.3)(use-sync-external-store@1.4.0(react@19.1.0))(utf-8-validate@6.0.6)(zod@4.3.6)

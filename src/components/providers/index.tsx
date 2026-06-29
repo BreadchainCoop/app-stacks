@@ -38,11 +38,6 @@ const walletLists: WalletListEntry[] = [
 const privyConfig = (isMobile: boolean): PrivyClientConfig => ({
   defaultChain: _chain,
   supportedChains: [_chain],
-  embeddedWallets: {
-    ethereum: {
-      createOnLogin: "all-users",
-    },
-  },
   walletConnectCloudProjectId: clientEnv.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
   appearance: {
     walletList: isMobile
