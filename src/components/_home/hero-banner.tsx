@@ -39,9 +39,7 @@ const HeroBanner = () => {
             variant="secondary"
             className="font-bold sm:w-auto"
             leftIcon={<InfoIcon />}
-            onClick={() =>
-              setModal({ type: "NEW_USER_ONBOARDING", fundingStatus: "idle" })
-            }
+            onClick={() => setModal({ type: "HOW_IT_WORKS" })}
           >
             How does it work
           </LocalButton>

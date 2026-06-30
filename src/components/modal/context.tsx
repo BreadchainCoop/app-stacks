@@ -126,6 +126,10 @@ export type PeerOnRampInstallModalState = {
   fundWalletModalState: Omit<FundWalletModalState, "type">;
 };
 
+export type HowItWorksModalState = {
+  type: "HOW_IT_WORKS";
+};
+
 export type ModalState =
   | DepositInitModalState
   | DepositLoadingModalState
@@ -146,6 +150,7 @@ export type ModalState =
   | PeerOnRampInstallModalState
   | FundWithConnectedWalletModalAmountModalState
   | AutomaticClaimsModalState
+  | HowItWorksModalState
   | null;
 
 export type ModalContext = {

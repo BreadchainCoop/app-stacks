@@ -22,6 +22,7 @@ import InstallPeerModal from "../peer/install-modal";
 import FundWithConnectedWalletModalAmount from "./modals/fund-wallet/fund-with-connected-wallet-modal-amount";
 import StartStackWarningModal from "./modals/start-stack-warning";
 import AutomaticClaimsModal from "./modals/automatic-claims";
+import HowItWorksModal from "./modals/how-it-works";
 
 const ModalPresenter = () => {
   const { modalState, setModal } = useModal();
@@ -94,6 +95,7 @@ const ModalPresenter = () => {
               {modalState.type === "AUTOMATIC_CLAIMS" && (
                 <AutomaticClaimsModal modalState={modalState} />
               )}
+              {modalState.type === "HOW_IT_WORKS" && <HowItWorksModal />}
             </Dialog.Content>
           </>
         )}
