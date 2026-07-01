@@ -12,6 +12,8 @@ import { usePrivy } from "@privy-io/react-auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useReadContract } from "wagmi";
+import { useQueryClient } from "@tanstack/react-query";
+import { readContractQueryKey } from "wagmi/query";
 
 const errorMessages: Record<string, string> = {
   InviteAlreadyUsed: "This invitation has already been used.",
@@ -27,6 +29,9 @@ export default function AcceptInvite() {
   const { user } = useConnectedUser();
   const { sendSavingCirclesTx } = useSavingCirclesTx();
   const { user: privyUser } = usePrivy();
+  const queryClient = useQueryClient();
+
+  const address = user.status === "CONNECTED" ? user.address : undefined;
 
   const circleId = searchParams.get("circleId") as string;
   const parsedId = BigInt(circleId || "");
@@ -39,14 +44,11 @@ export default function AcceptInvite() {
     abi: savingCirclesAbi,
     address: SAVING_CIRCLES_CONTRACT_ADDRESS,
     functionName: "isMember",
-    args: [
-      parsedId,
-      // @ts-expect-error hook only triggers when address is available
-      user.address as `0x${string}`,
-    ],
+    args: [parsedId, address as `0x${string}`],
     query: {
       enabled:
-        user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN",
+        (user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN") &&
+        !!address,
     },
     chainId: getDefaultChainId(),
   });
@@ -63,7 +65,7 @@ export default function AcceptInvite() {
   });
 
   const redeemInvite = async () => {
-    if (user.status !== "CONNECTED" || !nonce || !signature) return;
+    if (user.status !== "CONNECTED" || !address || !nonce || !signature) return;
 
     setRedeeming(true);
 
@@ -73,13 +75,36 @@ export default function AcceptInvite() {
         args: [parsedId, BigInt(nonce), signature as `0x${string}`],
       });
 
-      fetch("/api/stacks/invite", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ circleId, nonce, privyUserId: privyUser?.id }),
+      const isMemberKey = readContractQueryKey({
+        abi: savingCirclesAbi,
+        address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+        functionName: "isMember",
+        args: [parsedId, address as `0x${string}`],
+        chainId: getDefaultChainId(),
       });
+      queryClient.setQueryData(isMemberKey, true);
+      await queryClient.invalidateQueries({ queryKey: isMemberKey });
 
-      alert("Invitation Accepted!");
+      try {
+        const res = await fetch("/api/stacks/invite", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ circleId, nonce, privyUserId: privyUser?.id }),
+        });
+        if (!res.ok) {
+          console.error(
+            "accept-invite: /api/stacks/invite PATCH failed",
+            res.status,
+            await res.text().catch(() => "")
+          );
+        }
+      } catch (patchErr) {
+        console.error(
+          "accept-invite: /api/stacks/invite PATCH error",
+          patchErr
+        );
+      }
+
       router.push(`/stacks/${circleId}`);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
@@ -101,6 +126,12 @@ export default function AcceptInvite() {
 
   if (user.status !== "CONNECTED") {
     return <LoginButton app="stacks" status={user.status} />;
+  }
+
+  if (!address) {
+    return (
+      <Body className="text-center">Reconnect your wallet to continue.</Body>
+    );
   }
 
   if (typeof isMember === "boolean") {
