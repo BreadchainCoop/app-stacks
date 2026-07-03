@@ -8,6 +8,8 @@ overrides:
   "@noble/curves": ">=1.9.0"
   semver: ">=6.3.2"
   "@breadcoop/ui": 2.0.1
+  undici-types: 6.27.0
+  "@walletconnect/relay-auth>@noble/hashes": ">=1.8.0"
 
 importers:
   .:
@@ -70,8 +72,8 @@ importers:
         specifier: 2.x.x
         version: 2.22.1(@tanstack/query-core@5.91.2)(@types/react@19.2.14)(react@19.1.0)(typescript@5.9.3)(use-sync-external-store@1.4.0(react@19.1.0))(viem@2.47.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6))
       "@zkp2p/sdk":
-        specifier: ^0.3.2
-        version: 0.3.2(bufferutil@4.1.0)(react@19.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(viem@2.47.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6))(zod@4.3.6)
+        specifier: ^0.5.2
+        version: 0.5.2(bufferutil@4.1.0)(react@19.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(viem@2.47.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6))(zod@4.3.6)
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -183,6 +185,12 @@ packages:
     resolution:
       {
         integrity: sha512-96Z2IP3mYmF1Xg2cDm8f1gWGf/HUVedQ3FMifV4kG/PQ4yEP51xDtRAEfhVNt5f/uzpNkZHwWQuUcu6D6K+Ekw==,
+      }
+
+  "@adraffy/ens-normalize@1.11.0":
+    resolution:
+      {
+        integrity: sha512-/3DDPKHqqIqxUULp8yP4zODUY1i+2xvVWsv8A79xGWdCAG+8sb0hRh0Rk2QyOJUnnbyPUAZYcpBuRe3nS2OIUg==,
       }
 
   "@adraffy/ens-normalize@1.11.1":
@@ -1803,10 +1811,10 @@ packages:
       }
     engines: { node: ">= 16" }
 
-  "@noble/hashes@1.7.0":
+  "@noble/hashes@1.5.0":
     resolution:
       {
-        integrity: sha512-HXydb0DgzTpDPwbVeDGCG1gIu7X6+AuU6Zl6av/E/KG8LMsvPntvq+w17CHRpKBmN6Ybdrt1eP3k4cj8DJa78w==,
+        integrity: sha512-1j6kQFb7QRru7eKN3ZDvRcP13rugwdxZqCjbiAVZfIJwgj2A65UmT4TgARXGlXgnRkORLTDTrO19ZErt7+QXgA==,
       }
     engines: { node: ^14.21.3 || >=16 }
 
@@ -1865,6 +1873,72 @@ packages:
         integrity: sha512-IHnV6A+zxU7XwmKFinmYjUcwlyK9+xkG3/s9KcQhI9BjQKycrJ1JRO+FbNYPwZiPKW3je/DR0k7w8/gLa5eaxQ==,
       }
     deprecated: 'The package is now available as "qr": npm install qr'
+
+  "@peculiar/asn1-cms@2.5.0":
+    resolution:
+      {
+        integrity: sha512-p0SjJ3TuuleIvjPM4aYfvYw8Fk1Hn/zAVyPJZTtZ2eE9/MIer6/18ROxX6N/e6edVSfvuZBqhxAj3YgsmSjQ/A==,
+      }
+
+  "@peculiar/asn1-csr@2.5.0":
+    resolution:
+      {
+        integrity: sha512-ioigvA6WSYN9h/YssMmmoIwgl3RvZlAYx4A/9jD2qaqXZwGcNlAxaw54eSx2QG1Yu7YyBC5Rku3nNoHrQ16YsQ==,
+      }
+
+  "@peculiar/asn1-ecc@2.5.0":
+    resolution:
+      {
+        integrity: sha512-t4eYGNhXtLRxaP50h3sfO6aJebUCDGQACoeexcelL4roMFRRVgB20yBIu2LxsPh/tdW9I282gNgMOyg3ywg/mg==,
+      }
+
+  "@peculiar/asn1-pfx@2.5.0":
+    resolution:
+      {
+        integrity: sha512-Vj0d0wxJZA+Ztqfb7W+/iu8Uasw6hhKtCdLKXLG/P3kEPIQpqGI4P4YXlROfl7gOCqFIbgsj1HzFIFwQ5s20ug==,
+      }
+
+  "@peculiar/asn1-pkcs8@2.5.0":
+    resolution:
+      {
+        integrity: sha512-L7599HTI2SLlitlpEP8oAPaJgYssByI4eCwQq2C9eC90otFpm8MRn66PpbKviweAlhinWQ3ZjDD2KIVtx7PaVw==,
+      }
+
+  "@peculiar/asn1-pkcs9@2.5.0":
+    resolution:
+      {
+        integrity: sha512-UgqSMBLNLR5TzEZ5ZzxR45Nk6VJrammxd60WMSkofyNzd3DQLSNycGWSK5Xg3UTYbXcDFyG8pA/7/y/ztVCa6A==,
+      }
+
+  "@peculiar/asn1-rsa@2.5.0":
+    resolution:
+      {
+        integrity: sha512-qMZ/vweiTHy9syrkkqWFvbT3eLoedvamcUdnnvwyyUNv5FgFXA3KP8td+ATibnlZ0EANW5PYRm8E6MJzEB/72Q==,
+      }
+
+  "@peculiar/asn1-schema@2.5.0":
+    resolution:
+      {
+        integrity: sha512-YM/nFfskFJSlHqv59ed6dZlLZqtZQwjRVJ4bBAiWV08Oc+1rSd5lDZcBEx0lGDHfSoH3UziI2pXt2UM33KerPQ==,
+      }
+
+  "@peculiar/asn1-x509-attr@2.5.0":
+    resolution:
+      {
+        integrity: sha512-9f0hPOxiJDoG/bfNLAFven+Bd4gwz/VzrCIIWc1025LEI4BXO0U5fOCTNDPbbp2ll+UzqKsZ3g61mpBp74gk9A==,
+      }
+
+  "@peculiar/asn1-x509@2.5.0":
+    resolution:
+      {
+        integrity: sha512-CpwtMCTJvfvYTFMuiME5IH+8qmDe3yEWzKHe7OOADbGfq7ohxeLaXwQo0q4du3qs0AII3UbLCvb9NF/6q0oTKQ==,
+      }
+
+  "@peculiar/x509@1.14.0":
+    resolution:
+      {
+        integrity: sha512-Yc4PDxN3OrxUPiXgU63c+ZRXKGE8YKF2McTciYhUHFtHVB0KMnjeFSU0qpztGhsp4P0uKix4+J2xEpIEDu8oXg==,
+      }
 
   "@phosphor-icons/react@2.1.10":
     resolution:
@@ -2956,6 +3030,12 @@ packages:
         integrity: sha512-sVUpc0Vq3tXCkDGYVWGIZTRfnvu8LoTDaev7vbwh0omSvVORONr960MQWdKqJDCReIEmTj3PAr73O3aoxz7OPg==,
       }
 
+  "@scure/bip32@1.5.0":
+    resolution:
+      {
+        integrity: sha512-8EnFYkqEQdnkuGBVpCzKxyIwDCBLDVj3oiX0EKUFre/tOjL/Hqba1D6n/8RcmaQy4f95qQFrO2A8Sr6ybh4NRw==,
+      }
+
   "@scure/bip32@1.6.2":
     resolution:
       {
@@ -2978,6 +3058,12 @@ packages:
     resolution:
       {
         integrity: sha512-disdg7gHuTDZtY+ZdkmLpPCk7fxZSu3gBiEGuoC1XYxv9cGx3Z6cpTggCgW6odSOOIXCiDjuGejW+aJKCY/pIQ==,
+      }
+
+  "@scure/bip39@1.4.0":
+    resolution:
+      {
+        integrity: sha512-BEEm6p8IueV/ZTfQLp/0vhw4NPnT9oWf5+28nvmeUICjP99f4vr2d+qc7AVGDDtwRep6ifR43Yed9ERVmiITzw==,
       }
 
   "@scure/bip39@1.5.4":
@@ -4760,10 +4846,10 @@ packages:
         integrity: sha512-9koTqyGrM2cqFRW517BPY/iEtUDx2r1+Pwwu5m7sJ7ka79wi3EyqhqcICk/yDmv6jAS1rjKgTKXlEhanYjijcA==,
       }
 
-  "@zkp2p/contracts-v2@0.2.1":
+  "@zkp2p/contracts-v2@0.2.2":
     resolution:
       {
-        integrity: sha512-tpxtrBV9GmTcdtUGzzo5g3U0H1jJA9hnMd7VSu+oM7WY0cH4U6tghvyBzPQcmddwHnG63qm2T5P/jy7Cb1uQ1w==,
+        integrity: sha512-mI7v491SkHjFHqXnSTFkzNaFPSiVli1Czb1D943tNWAMLCERZaBGQTZe12HJP5kZQpDVndrI1GnnPrB0BU7lFQ==,
       }
     peerDependencies:
       ethers: ^5.0.0 || ^6.0.0
@@ -4775,10 +4861,10 @@ packages:
       }
     engines: { node: ">=16" }
 
-  "@zkp2p/sdk@0.3.2":
+  "@zkp2p/sdk@0.5.2":
     resolution:
       {
-        integrity: sha512-xaTug1rRdjNqhSKlWtUXRqM1exiQAbrPC1dJrJlMcCdV18gMapYfMzV1NYwWqxLHp666MaDHMrcdqi3fExfe0Q==,
+        integrity: sha512-RmFzlxYW526oK1GFQ6fj4Aa56tccO0UgQlDnD1WoFH00FwIDxo44bFaCg7FDJSqrqsz5lqhfmwcl3mdCdvGTVw==,
       }
     engines: { node: ">=22" }
     peerDependencies:
@@ -4787,6 +4873,14 @@ packages:
     peerDependenciesMeta:
       react:
         optional: true
+
+  "@zkp2p/zkp2p-attestation@1.5.1":
+    resolution:
+      {
+        integrity: sha512-s4JkhGQCPONomQxfKa9CNAgFrHiNnUO/sgdz4brxu2qrvbhF0hYuM8pGbsWDnXt24Yjqv2i75z4BGzNEj1Cb2Q==,
+      }
+    engines: { node: ">=20" }
+    hasBin: true
 
   abitype@1.0.6:
     resolution:
@@ -5044,6 +5138,13 @@ packages:
       {
         integrity: sha512-BSHWgDSAiKs50o2Re8ppvp3seVHXSRM44cdSsT9FfNEUUZLOGWVCsiWaRPWM1Znn+mqZ1OfVZ3z3DWEzSp7hRA==,
       }
+
+  asn1js@3.0.6:
+    resolution:
+      {
+        integrity: sha512-UOCGPYbl0tv8+006qks/dTgV9ajs97X2p0FAbyS2iyCRrmLSRolDaHdp+v/CLgnzHc3fVB+CwYiUmei7ndFcgA==,
+      }
+    engines: { node: ">=12.0.0" }
 
   ast-types-flow@0.0.8:
     resolution:
@@ -6429,10 +6530,10 @@ packages:
         integrity: sha512-r/W8lkHSiTLxUxW8Rf3u4HGB0xQweG2RyETjywylKZSzLWoWAijRz8WCuOtJ6wah+avllXBqZuk29HCCvhEIRg==,
       }
 
-  ethers@6.16.0:
+  ethers@6.13.4:
     resolution:
       {
-        integrity: sha512-U1wulmetNymijEhpSEQ7Ct/P/Jw9/e7R1j5XIbPRydgV2DjLVMsULDlNksq3RQnFgKoLlZf88ijYtWEXcPa07A==,
+        integrity: sha512-21YtnZVg4/zKkCQPjrDj38B1r4nQvTZLopUGMLQ1ePU2zV/joCfDC3t3iKQjWRzjjjbzR+mdAIoikeBRNkdllA==,
       }
     engines: { node: ">=14.0.0" }
 
@@ -8951,6 +9052,19 @@ packages:
       }
     engines: { node: ">=6" }
 
+  pvtsutils@1.3.6:
+    resolution:
+      {
+        integrity: sha512-PLgQXQ6H2FWCaeRak8vvk1GW462lMxB5s3Jm673N82zI4vqtVUPuZdffdZbPDFRoU8kAhItWFtPCWiPpp4/EDg==,
+      }
+
+  pvutils@1.1.3:
+    resolution:
+      {
+        integrity: sha512-pMpnA0qRdFp32b1sJl1wOJNxZLQ2cbQx+k6tjNtZ8CpvVhNqEPRgivZ2WOUev2YMajecdH7ctUPDvEe87nariQ==,
+      }
+    engines: { node: ">=6.0.0" }
+
   qr@0.5.5:
     resolution:
       {
@@ -9244,6 +9358,12 @@ packages:
         integrity: sha512-57frrGM/OCTLqLOAh0mhVA9VBMHd+9U7Zb2THMGdBUoZVOtGbJzjxsYGDJ3A9AYYCP4hn6y1TVbaOfzWtm5GFg==,
       }
     engines: { node: ">= 12.13.0" }
+
+  reflect-metadata@0.2.2:
+    resolution:
+      {
+        integrity: sha512-urBwgfrvVP/eAyXx4hluJivBKzuEbSQs9rKWCrCkbSxNv8mxPcUZKeuoF3Uy4mJl3Lwprp6yy5/39VWigZ4K6Q==,
+      }
 
   reflect.getprototypeof@1.0.10:
     resolution:
@@ -10086,6 +10206,13 @@ packages:
         integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==,
       }
 
+  tsyringe@4.10.0:
+    resolution:
+      {
+        integrity: sha512-axr3IdNuVIxnaK5XGEUFTu3YmAQ6lllgrvqfEoR16g/HGnYY/6We4oWENtAnzK6/LpJ2ur9PAb80RBt7/U4ugw==,
+      }
+    engines: { node: ">= 6.0.0" }
+
   type-check@0.4.0:
     resolution:
       {
@@ -10188,22 +10315,10 @@ packages:
         integrity: sha512-Ql87qFHB3s/De2ClA9e0gsnS6zXG27SkTiSJwjCc9MebbfapQfuPzumMIUMi38ezPZVNFcHI9sUIepeQfw8J8Q==,
       }
 
-  undici-types@6.19.8:
+  undici-types@6.27.0:
     resolution:
       {
-        integrity: sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw==,
-      }
-
-  undici-types@6.21.0:
-    resolution:
-      {
-        integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==,
-      }
-
-  undici-types@7.24.5:
-    resolution:
-      {
-        integrity: sha512-kNh333UBSbgK35OIW7FwJTr9tTfVIG51Fm1tSVT7m8foPHfDVjsb7OIee/q/rs3bB2aV/3qOPgG5mHNWl1odiA==,
+        integrity: sha512-HDBmCak1Ccswl7xS6/blapTYRVsqva4skTCeeJPLiDn6qCszeqiPGDljQBH2Kf/S0BI6EN14FQsgKVyGid9xnA==,
       }
 
   unpipe@1.0.0:
@@ -10892,6 +11007,8 @@ snapshots:
       typescript: 5.9.3
 
   "@adraffy/ens-normalize@1.10.1": {}
+
+  "@adraffy/ens-normalize@1.11.0": {}
 
   "@adraffy/ens-normalize@1.11.1": {}
 
@@ -12119,8 +12236,8 @@ snapshots:
     dependencies:
       "@ethereumjs/tx": 4.2.0
       "@metamask/superstruct": 3.2.1
-      "@noble/hashes": 1.8.0
-      "@scure/base": 1.2.6
+      "@noble/hashes": 1.5.0
+      "@scure/base": 1.1.9
       "@types/debug": 4.1.13
       "@types/lodash": 4.17.24
       debug: 4.4.3
@@ -12145,8 +12262,8 @@ snapshots:
     dependencies:
       "@ethereumjs/tx": 4.2.0
       "@metamask/superstruct": 3.2.1
-      "@noble/hashes": 1.8.0
-      "@scure/base": 1.2.6
+      "@noble/hashes": 1.5.0
+      "@scure/base": 1.1.9
       "@types/debug": 4.1.13
       debug: 4.4.3
       pony-cause: 2.1.11
@@ -12159,8 +12276,8 @@ snapshots:
     dependencies:
       "@ethereumjs/tx": 4.2.0
       "@metamask/superstruct": 3.2.1
-      "@noble/hashes": 1.8.0
-      "@scure/base": 1.2.6
+      "@noble/hashes": 1.5.0
+      "@scure/base": 1.1.9
       "@types/debug": 4.1.12
       debug: 4.3.4
       pony-cause: 2.1.11
@@ -12444,7 +12561,7 @@ snapshots:
 
   "@noble/hashes@1.4.0": {}
 
-  "@noble/hashes@1.7.0": {}
+  "@noble/hashes@1.5.0": {}
 
   "@noble/hashes@1.7.1": {}
 
@@ -12467,6 +12584,96 @@ snapshots:
   "@nolyfill/is-core-module@1.0.39": {}
 
   "@paulmillr/qr@0.2.1": {}
+
+  "@peculiar/asn1-cms@2.5.0":
+    dependencies:
+      "@peculiar/asn1-schema": 2.5.0
+      "@peculiar/asn1-x509": 2.5.0
+      "@peculiar/asn1-x509-attr": 2.5.0
+      asn1js: 3.0.6
+      tslib: 2.8.1
+
+  "@peculiar/asn1-csr@2.5.0":
+    dependencies:
+      "@peculiar/asn1-schema": 2.5.0
+      "@peculiar/asn1-x509": 2.5.0
+      asn1js: 3.0.6
+      tslib: 2.8.1
+
+  "@peculiar/asn1-ecc@2.5.0":
+    dependencies:
+      "@peculiar/asn1-schema": 2.5.0
+      "@peculiar/asn1-x509": 2.5.0
+      asn1js: 3.0.6
+      tslib: 2.8.1
+
+  "@peculiar/asn1-pfx@2.5.0":
+    dependencies:
+      "@peculiar/asn1-cms": 2.5.0
+      "@peculiar/asn1-pkcs8": 2.5.0
+      "@peculiar/asn1-rsa": 2.5.0
+      "@peculiar/asn1-schema": 2.5.0
+      asn1js: 3.0.6
+      tslib: 2.8.1
+
+  "@peculiar/asn1-pkcs8@2.5.0":
+    dependencies:
+      "@peculiar/asn1-schema": 2.5.0
+      "@peculiar/asn1-x509": 2.5.0
+      asn1js: 3.0.6
+      tslib: 2.8.1
+
+  "@peculiar/asn1-pkcs9@2.5.0":
+    dependencies:
+      "@peculiar/asn1-cms": 2.5.0
+      "@peculiar/asn1-pfx": 2.5.0
+      "@peculiar/asn1-pkcs8": 2.5.0
+      "@peculiar/asn1-schema": 2.5.0
+      "@peculiar/asn1-x509": 2.5.0
+      "@peculiar/asn1-x509-attr": 2.5.0
+      asn1js: 3.0.6
+      tslib: 2.8.1
+
+  "@peculiar/asn1-rsa@2.5.0":
+    dependencies:
+      "@peculiar/asn1-schema": 2.5.0
+      "@peculiar/asn1-x509": 2.5.0
+      asn1js: 3.0.6
+      tslib: 2.8.1
+
+  "@peculiar/asn1-schema@2.5.0":
+    dependencies:
+      asn1js: 3.0.6
+      pvtsutils: 1.3.6
+      tslib: 2.8.1
+
+  "@peculiar/asn1-x509-attr@2.5.0":
+    dependencies:
+      "@peculiar/asn1-schema": 2.5.0
+      "@peculiar/asn1-x509": 2.5.0
+      asn1js: 3.0.6
+      tslib: 2.8.1
+
+  "@peculiar/asn1-x509@2.5.0":
+    dependencies:
+      "@peculiar/asn1-schema": 2.5.0
+      asn1js: 3.0.6
+      pvtsutils: 1.3.6
+      tslib: 2.8.1
+
+  "@peculiar/x509@1.14.0":
+    dependencies:
+      "@peculiar/asn1-cms": 2.5.0
+      "@peculiar/asn1-csr": 2.5.0
+      "@peculiar/asn1-ecc": 2.5.0
+      "@peculiar/asn1-pkcs9": 2.5.0
+      "@peculiar/asn1-rsa": 2.5.0
+      "@peculiar/asn1-schema": 2.5.0
+      "@peculiar/asn1-x509": 2.5.0
+      pvtsutils: 1.3.6
+      reflect-metadata: 0.2.2
+      tslib: 2.8.1
+      tsyringe: 4.10.0
 
   "@phosphor-icons/react@2.1.10(react-dom@19.1.0(react@19.1.0))(react@19.1.0)":
     dependencies:
@@ -14034,6 +14241,12 @@ snapshots:
       "@noble/hashes": 1.4.0
       "@scure/base": 1.1.9
 
+  "@scure/bip32@1.5.0":
+    dependencies:
+      "@noble/curves": 1.9.1
+      "@noble/hashes": 1.5.0
+      "@scure/base": 1.1.9
+
   "@scure/bip32@1.6.2":
     dependencies:
       "@noble/curves": 1.9.1
@@ -14055,6 +14268,11 @@ snapshots:
   "@scure/bip39@1.3.0":
     dependencies:
       "@noble/hashes": 1.4.0
+      "@scure/base": 1.1.9
+
+  "@scure/bip39@1.4.0":
+    dependencies:
+      "@noble/hashes": 1.5.0
       "@scure/base": 1.1.9
 
   "@scure/bip39@1.5.4":
@@ -14509,7 +14727,7 @@ snapshots:
       "@solana/errors": 5.5.1(typescript@5.9.3)
       "@solana/rpc-spec": 5.5.1(typescript@5.9.3)
       "@solana/rpc-spec-types": 5.5.1(typescript@5.9.3)
-      undici-types: 7.24.5
+      undici-types: 6.27.0
     optionalDependencies:
       typescript: 5.9.3
 
@@ -14876,7 +15094,7 @@ snapshots:
 
   "@types/connect@3.4.38":
     dependencies:
-      "@types/node": 20.19.37
+      "@types/node": 22.7.5
 
   "@types/debug@4.1.12":
     dependencies:
@@ -14912,11 +15130,11 @@ snapshots:
 
   "@types/node@20.19.37":
     dependencies:
-      undici-types: 6.21.0
+      undici-types: 6.27.0
 
   "@types/node@22.7.5":
     dependencies:
-      undici-types: 6.19.8
+      undici-types: 6.27.0
 
   "@types/parse-json@4.0.2": {}
 
@@ -14944,11 +15162,11 @@ snapshots:
 
   "@types/ws@7.4.7":
     dependencies:
-      "@types/node": 20.19.37
+      "@types/node": 22.7.5
 
   "@types/ws@8.18.1":
     dependencies:
-      "@types/node": 20.19.37
+      "@types/node": 22.7.5
 
   "@types/yargs-parser@21.0.3": {}
 
@@ -15807,7 +16025,7 @@ snapshots:
   "@walletconnect/relay-auth@1.1.0":
     dependencies:
       "@noble/curves": 1.9.1
-      "@noble/hashes": 1.7.0
+      "@noble/hashes": 1.8.0
       "@walletconnect/safe-json": 1.0.2
       "@walletconnect/time": 1.0.2
       uint8arrays: 3.1.1
@@ -16618,7 +16836,7 @@ snapshots:
     dependencies:
       "@msgpack/msgpack": 3.1.2
       "@noble/ciphers": 1.3.0
-      "@noble/curves": 1.9.7
+      "@noble/curves": 1.9.1
       "@noble/hashes": 1.8.0
       "@scure/base": 1.2.6
       "@walletconnect/jsonrpc-utils": 1.0.8
@@ -16668,21 +16886,22 @@ snapshots:
       "@walletconnect/window-getters": 1.0.1
       tslib: 1.14.1
 
-  "@zkp2p/contracts-v2@0.2.1(ethers@6.16.0(bufferutil@4.1.0)(utf-8-validate@6.0.6))(typescript@5.9.3)(zod@4.3.6)":
+  "@zkp2p/contracts-v2@0.2.2(ethers@6.13.4(bufferutil@4.1.0)(utf-8-validate@6.0.6))(typescript@5.9.3)(zod@4.3.6)":
     dependencies:
-      abitype: 1.2.3(typescript@5.9.3)(zod@4.3.6)
-      ethers: 6.16.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+      abitype: 1.0.6(typescript@5.9.3)(zod@4.3.6)
+      ethers: 6.13.4(bufferutil@4.1.0)(utf-8-validate@6.0.6)
     transitivePeerDependencies:
       - typescript
       - zod
 
   "@zkp2p/indexer-schema@0.2.3": {}
 
-  "@zkp2p/sdk@0.3.2(bufferutil@4.1.0)(react@19.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(viem@2.47.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6))(zod@4.3.6)":
+  "@zkp2p/sdk@0.5.2(bufferutil@4.1.0)(react@19.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(viem@2.47.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6))(zod@4.3.6)":
     dependencies:
-      "@zkp2p/contracts-v2": 0.2.1(ethers@6.16.0(bufferutil@4.1.0)(utf-8-validate@6.0.6))(typescript@5.9.3)(zod@4.3.6)
+      "@zkp2p/contracts-v2": 0.2.2(ethers@6.13.4(bufferutil@4.1.0)(utf-8-validate@6.0.6))(typescript@5.9.3)(zod@4.3.6)
       "@zkp2p/indexer-schema": 0.2.3
-      ethers: 6.16.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+      "@zkp2p/zkp2p-attestation": 1.5.1(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+      ethers: 6.13.4(bufferutil@4.1.0)(utf-8-validate@6.0.6)
       ox: 0.11.3(typescript@5.9.3)(zod@4.3.6)
       viem: 2.47.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6)
     optionalDependencies:
@@ -16693,10 +16912,23 @@ snapshots:
       - utf-8-validate
       - zod
 
+  "@zkp2p/zkp2p-attestation@1.5.1(bufferutil@4.1.0)(utf-8-validate@6.0.6)":
+    dependencies:
+      "@peculiar/x509": 1.14.0
+      ethers: 6.13.4(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   abitype@1.0.6(typescript@5.9.3)(zod@3.25.76):
     optionalDependencies:
       typescript: 5.9.3
       zod: 3.25.76
+
+  abitype@1.0.6(typescript@5.9.3)(zod@4.3.6):
+    optionalDependencies:
+      typescript: 5.9.3
+      zod: 4.3.6
 
   abitype@1.0.8(typescript@5.9.3)(zod@3.25.76):
     optionalDependencies:
@@ -16866,6 +17098,12 @@ snapshots:
       is-array-buffer: 3.0.5
 
   asap@2.0.6: {}
+
+  asn1js@3.0.6:
+    dependencies:
+      pvtsutils: 1.3.6
+      pvutils: 1.1.3
+      tslib: 2.8.1
 
   ast-types-flow@0.0.8: {}
 
@@ -17777,7 +18015,7 @@ snapshots:
       "@scure/bip32": 1.4.0
       "@scure/bip39": 1.3.0
 
-  ethers@6.16.0(bufferutil@4.1.0)(utf-8-validate@6.0.6):
+  ethers@6.13.4(bufferutil@4.1.0)(utf-8-validate@6.0.6):
     dependencies:
       "@adraffy/ens-normalize": 1.10.1
       "@noble/curves": 1.9.1
@@ -18992,7 +19230,7 @@ snapshots:
 
   ox@0.11.3(typescript@5.9.3)(zod@4.3.6):
     dependencies:
-      "@adraffy/ens-normalize": 1.11.1
+      "@adraffy/ens-normalize": 1.11.0
       "@noble/ciphers": 1.3.0
       "@noble/curves": 1.9.1
       "@noble/hashes": 1.8.0
@@ -19052,12 +19290,12 @@ snapshots:
 
   ox@0.6.7(typescript@5.9.3)(zod@3.25.76):
     dependencies:
-      "@adraffy/ens-normalize": 1.11.1
+      "@adraffy/ens-normalize": 1.10.1
       "@noble/curves": 1.9.1
-      "@noble/hashes": 1.8.0
-      "@scure/bip32": 1.7.0
-      "@scure/bip39": 1.6.0
-      abitype: 1.2.3(typescript@5.9.3)(zod@3.25.76)
+      "@noble/hashes": 1.5.0
+      "@scure/bip32": 1.5.0
+      "@scure/bip39": 1.4.0
+      abitype: 1.0.6(typescript@5.9.3)(zod@3.25.76)
       eventemitter3: 5.0.1
     optionalDependencies:
       typescript: 5.9.3
@@ -19066,12 +19304,12 @@ snapshots:
 
   ox@0.6.7(typescript@5.9.3)(zod@4.3.6):
     dependencies:
-      "@adraffy/ens-normalize": 1.11.1
+      "@adraffy/ens-normalize": 1.10.1
       "@noble/curves": 1.9.1
-      "@noble/hashes": 1.8.0
-      "@scure/bip32": 1.7.0
-      "@scure/bip39": 1.6.0
-      abitype: 1.2.3(typescript@5.9.3)(zod@4.3.6)
+      "@noble/hashes": 1.5.0
+      "@scure/bip32": 1.5.0
+      "@scure/bip39": 1.4.0
+      abitype: 1.0.6(typescript@5.9.3)(zod@4.3.6)
       eventemitter3: 5.0.1
     optionalDependencies:
       typescript: 5.9.3
@@ -19080,12 +19318,12 @@ snapshots:
 
   ox@0.6.9(typescript@5.9.3)(zod@3.25.76):
     dependencies:
-      "@adraffy/ens-normalize": 1.11.1
-      "@noble/curves": 1.9.7
-      "@noble/hashes": 1.8.0
-      "@scure/bip32": 1.7.0
-      "@scure/bip39": 1.6.0
-      abitype: 1.2.3(typescript@5.9.3)(zod@3.25.76)
+      "@adraffy/ens-normalize": 1.10.1
+      "@noble/curves": 1.9.1
+      "@noble/hashes": 1.5.0
+      "@scure/bip32": 1.5.0
+      "@scure/bip39": 1.4.0
+      abitype: 1.0.6(typescript@5.9.3)(zod@3.25.76)
       eventemitter3: 5.0.1
     optionalDependencies:
       typescript: 5.9.3
@@ -19094,12 +19332,12 @@ snapshots:
 
   ox@0.6.9(typescript@5.9.3)(zod@4.3.6):
     dependencies:
-      "@adraffy/ens-normalize": 1.11.1
-      "@noble/curves": 1.9.7
-      "@noble/hashes": 1.8.0
-      "@scure/bip32": 1.7.0
-      "@scure/bip39": 1.6.0
-      abitype: 1.2.3(typescript@5.9.3)(zod@4.3.6)
+      "@adraffy/ens-normalize": 1.10.1
+      "@noble/curves": 1.9.1
+      "@noble/hashes": 1.5.0
+      "@scure/bip32": 1.5.0
+      "@scure/bip39": 1.4.0
+      abitype: 1.0.6(typescript@5.9.3)(zod@4.3.6)
       eventemitter3: 5.0.1
     optionalDependencies:
       typescript: 5.9.3
@@ -19108,13 +19346,13 @@ snapshots:
 
   ox@0.9.1(typescript@5.9.3)(zod@4.3.6):
     dependencies:
-      "@adraffy/ens-normalize": 1.11.1
+      "@adraffy/ens-normalize": 1.11.0
       "@noble/ciphers": 1.3.0
       "@noble/curves": 1.9.1
       "@noble/hashes": 1.8.0
       "@scure/bip32": 1.7.0
       "@scure/bip39": 1.6.0
-      abitype: 1.2.3(typescript@5.9.3)(zod@4.3.6)
+      abitype: 1.0.8(typescript@5.9.3)(zod@4.3.6)
       eventemitter3: 5.0.1
     optionalDependencies:
       typescript: 5.9.3
@@ -19123,7 +19361,7 @@ snapshots:
 
   ox@0.9.17(typescript@5.9.3)(zod@4.3.6):
     dependencies:
-      "@adraffy/ens-normalize": 1.11.1
+      "@adraffy/ens-normalize": 1.11.0
       "@noble/ciphers": 1.3.0
       "@noble/curves": 1.9.1
       "@noble/hashes": 1.8.0
@@ -19138,7 +19376,7 @@ snapshots:
 
   ox@0.9.3(typescript@5.9.3)(zod@4.3.6):
     dependencies:
-      "@adraffy/ens-normalize": 1.11.1
+      "@adraffy/ens-normalize": 1.11.0
       "@noble/ciphers": 1.3.0
       "@noble/curves": 1.9.1
       "@noble/hashes": 1.8.0
@@ -19388,6 +19626,12 @@ snapshots:
 
   punycode@2.3.1: {}
 
+  pvtsutils@1.3.6:
+    dependencies:
+      tslib: 2.8.1
+
+  pvutils@1.1.3: {}
+
   qr@0.5.5: {}
 
   qrcode@1.5.3:
@@ -19607,6 +19851,8 @@ snapshots:
 
   real-require@0.2.0: {}
 
+  reflect-metadata@0.2.2: {}
+
   reflect.getprototypeof@1.0.10:
     dependencies:
       call-bind: 1.0.8
@@ -19669,9 +19915,9 @@ snapshots:
       "@types/uuid": 10.0.0
       "@types/ws": 8.18.1
       buffer: 6.0.3
-      eventemitter3: 5.0.4
+      eventemitter3: 5.0.1
       uuid: 11.1.0
-      ws: 8.19.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+      ws: 8.18.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)
     optionalDependencies:
       bufferutil: 4.1.0
       utf-8-validate: 6.0.6
@@ -20156,6 +20402,10 @@ snapshots:
 
   tslib@2.8.1: {}
 
+  tsyringe@4.10.0:
+    dependencies:
+      tslib: 1.14.1
+
   type-check@0.4.0:
     dependencies:
       prelude-ls: 1.2.1
@@ -20222,11 +20472,7 @@ snapshots:
 
   uncrypto@0.1.3: {}
 
-  undici-types@6.19.8: {}
-
-  undici-types@6.21.0: {}
-
-  undici-types@7.24.5: {}
+  undici-types@6.27.0: {}
 
   unpipe@1.0.0: {}
 

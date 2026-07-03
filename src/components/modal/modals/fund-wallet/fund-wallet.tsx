@@ -7,10 +7,9 @@ import { useEffect, useState } from "react";
 import { useWatchFundedXdai } from "@/hooks/use-watch-funded-xdai";
 import { Body, useConnectedUser } from "@breadcoop/ui";
 import Alert from "@/components/alert";
-import { PeerIntentFulfilledResult } from "@zkp2p/sdk";
+import FundWithPeer from "./fund-with-peer";
 
 const FundWallet = ({ modalState }: { modalState: FundWalletModalState }) => {
-  const [result, _setResult] = useState<PeerIntentFulfilledResult | null>(null);
   const { setModal } = useModal();
   const { user } = useConnectedUser();
 
@@ -37,29 +36,20 @@ const FundWallet = ({ modalState }: { modalState: FundWalletModalState }) => {
 
   return (
     <ModalContainer className="bg-[#FDFAF3]! border-paper-1! shadow-[0px_4px_12px_0px_#1B201A26] max-w-140.75!">
-      <ModalHeader title={result ? "Peer Successful" : "Fund your account"} />
+      <ModalHeader title="Fund your account" />
       <Body className="-mt-4">
         Send xDAI to your wallet and automatically get BREAD
       </Body>
-      <div className={result ? "" : ""}>
-        {result && (
-          <div>
-            <h1>Peer Onramp result:</h1>
-            <p>{JSON.stringify(result, undefined, 2)}</p>
-          </div>
-        )}
-      </div>
-      <div className={result ? "h-0 overflow-hidden" : ""}>
+      <div>
         <StacksBalance address={modalState.address} />
         <FundWithConnectedWallet handleListerForXDai={handleListerForXDai} />
         <div className="*:mb-2">
           <FundWithLifi address={modalState.address} />
-          {/* <FundWithPeer
+          <FundWithPeer
             address={modalState.address}
             onFunded={modalState.onFunded}
             showSkipProcess={modalState.showSkipProcess}
-            setResult={setResult}
-          /> */}
+          />
         </div>
         <Alert
           variant="warning"

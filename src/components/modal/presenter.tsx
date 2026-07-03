@@ -19,6 +19,7 @@ import NewUserOnboarding from "./modals/new-user-onboarding";
 import FundWallet from "./modals/fund-wallet/fund-wallet";
 import LiFiSwapModal from "../lifi/swap-modal";
 import InstallPeerModal from "../peer/install-modal";
+import PeerOnrampModal from "./modals/fund-wallet/peer-onramp-modal";
 import FundWithConnectedWalletModalAmount from "./modals/fund-wallet/fund-with-connected-wallet-modal-amount";
 import StartStackWarningModal from "./modals/start-stack-warning";
 import AutomaticClaimsModal from "./modals/automatic-claims";
@@ -90,6 +91,9 @@ const ModalPresenter = () => {
               )}
               {modalState.type === "PEER_ONRAMP_INSTALL" && (
                 <InstallPeerModal modalState={modalState} />
+              )}
+              {modalState.type === "PEER_ONRAMP" && (
+                <PeerOnrampModal modalState={modalState} />
               )}
               {modalState.type === "AUTOMATIC_CLAIMS" && (
                 <AutomaticClaimsModal modalState={modalState} />
