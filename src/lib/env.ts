@@ -14,6 +14,14 @@ const depositIntervalSchema = z
   )
   .min(2, "At least two deposit intervals are required");
 
+const featuresSchema = z.record(
+  z.string(),
+  z.object({
+    enabled: z.boolean(),
+    addresses: z.array(z.string().regex(/^0x[a-fA-F0-9]{40}$/)).optional(),
+  })
+);
+
 const envSchema = z.object({
   NEXT_PUBLIC_CHAIN_ID: z.coerce.number(),
   NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS: z.string(),
@@ -45,6 +53,22 @@ const envSchema = z.object({
       }
     })
     .pipe(depositIntervalSchema),
+  NEXT_PUBLIC_FEATURES: z
+    .string()
+    .optional()
+    .default("{}")
+    .transform((val, ctx) => {
+      try {
+        return JSON.parse(val) as Record<string, unknown>;
+      } catch {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "NEXT_PUBLIC_FEATURES must be valid JSON",
+        });
+        return z.NEVER;
+      }
+    })
+    .pipe(featuresSchema),
 });
 
 const parsedSchema = envSchema.safeParse({
@@ -69,6 +93,7 @@ const parsedSchema = envSchema.safeParse({
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   NEXT_PUBLIC_DEPOSIT_INTERVALS: process.env.NEXT_PUBLIC_DEPOSIT_INTERVALS,
+  NEXT_PUBLIC_FEATURES: process.env.NEXT_PUBLIC_FEATURES,
 });
 
 if (!parsedSchema.success) {
