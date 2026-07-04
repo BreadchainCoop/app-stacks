@@ -78,34 +78,34 @@ const HowItWorksModal = () => {
   const { setModal } = useModal();
 
   return (
-    <ModalContainer>
+    <ModalContainer className="max-w-[35.5rem]">
       <div className="relative">
         <button
           type="button"
           onClick={() => setModal(null)}
           className="absolute right-0 top-0"
         >
-          <XIcon size={24} className="text-primary-blue" />
+          <XIcon size={24} className="text-[#1c5bb9]" />
         </button>
 
-        <div className="flex flex-col items-center gap-4">
-          <InfoIcon size={48} className="text-primary-blue" />
-          <Heading2 className="text-2xl leading-6 text-center">
+        <div className="flex flex-col items-center gap-3">
+          <InfoIcon size={48} weight="regular" className="text-[#1c5bb9]" />
+          <Heading2 className="text-xl leading-6 text-center sm:text-2xl">
             How does it work?
           </Heading2>
-          <Body className="text-surface-grey-2 text-center">
+          <Body className="text-surface-grey-2 text-center text-sm sm:text-base">
             Collective savings, no banks or credit with your friends. Everyone
             contributes, everyone takes turns to receive the full benefit.
           </Body>
         </div>
 
-        <div className="flex flex-col gap-4 mt-4">
+        <div className="flex flex-col gap-3 mt-4 sm:gap-4">
           {steps.map(({ Icon, label, desc }) => (
             <div key={label} className="flex gap-2 items-start">
-              <div className="shrink-0 bg-surface-main p-1">
-                <Icon size={24} className="text-surface-ink" />
+              <div className="shrink-0 bg-[#f6f3eb] p-1">
+                <Icon size={24} className="text-[#1c5bb9]" />
               </div>
-              <Body className="text-surface-grey-2">
+              <Body className="text-surface-grey-2 text-sm sm:text-base">
                 <span className="font-bold">{label} </span>
                 {desc}
               </Body>
@@ -115,7 +115,7 @@ const HowItWorksModal = () => {
 
         <hr className="border-surface-grey my-4" />
 
-        <Heading2 className="text-2xl leading-6 text-center mb-4">
+        <Heading2 className="text-xl leading-6 text-center mb-4 sm:text-2xl">
           FAQs
         </Heading2>
 
@@ -123,10 +123,14 @@ const HowItWorksModal = () => {
           {faqs.map(({ q, a }, i) => (
             <AccordionItem key={i} value={`faq-${i}`}>
               <AccordionHeader>
-                <Body bold>{q}</Body>
+                <Body bold className="text-sm sm:text-base">
+                  {q}
+                </Body>
               </AccordionHeader>
               <AccordionContent>
-                <Body className="text-surface-grey-2">{a}</Body>
+                <Body className="text-surface-grey-2 text-sm sm:text-base">
+                  {a}
+                </Body>
               </AccordionContent>
             </AccordionItem>
           ))}
