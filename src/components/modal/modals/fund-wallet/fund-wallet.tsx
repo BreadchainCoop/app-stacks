@@ -8,6 +8,7 @@ import { useWatchFundedXdai } from "@/hooks/use-watch-funded-xdai";
 import { Body, useConnectedUser } from "@breadcoop/ui";
 import Alert from "@/components/alert";
 import FundWithPeer from "./fund-with-peer";
+import { FeatureGate } from "@/components/feature-gate";
 
 const FundWallet = ({ modalState }: { modalState: FundWalletModalState }) => {
   const { setModal } = useModal();
@@ -45,11 +46,13 @@ const FundWallet = ({ modalState }: { modalState: FundWalletModalState }) => {
         <FundWithConnectedWallet handleListerForXDai={handleListerForXDai} />
         <div className="*:mb-2">
           <FundWithLifi address={modalState.address} />
-          <FundWithPeer
-            address={modalState.address}
-            onFunded={modalState.onFunded}
-            showSkipProcess={modalState.showSkipProcess}
-          />
+          <FeatureGate feature="fundWithPeer">
+            <FundWithPeer
+              address={modalState.address}
+              onFunded={modalState.onFunded}
+              showSkipProcess={modalState.showSkipProcess}
+            />
+          </FeatureGate>
         </div>
         <Alert
           variant="warning"
