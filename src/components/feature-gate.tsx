@@ -1,11 +1,28 @@
 "use client";
 
-import { type Feature, isFeatureEnabled } from "@/lib/features";
+import { type Feature, isFeatureVisible } from "@/lib/features";
+import { useConnectedUser } from "@breadcoop/ui";
 import type { ComponentType, ReactNode } from "react";
 
 /**
- * Renders `children` only when `feature` is enabled in the current
- * environment, otherwise renders `fallback` (nothing by default).
+ * True when `feature` is enabled for this deployment and, if the feature's
+ * config lists addresses, the connected wallet is one of them. See
+ * NEXT_PUBLIC_FEATURES in @/lib/features.
+ */
+function useFeatureVisible(feature: Feature) {
+  const { user } = useConnectedUser();
+
+  const connectedAddress =
+    user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
+      ? user.address
+      : undefined;
+
+  return isFeatureVisible(feature, connectedAddress);
+}
+
+/**
+ * Renders `children` only when `feature` is visible to the current user,
+ * otherwise renders `fallback` (nothing by default).
  */
 export function FeatureGate({
   feature,
@@ -16,19 +33,19 @@ export function FeatureGate({
   children: ReactNode;
   fallback?: ReactNode;
 }) {
-  return <>{isFeatureEnabled(feature) ? children : fallback}</>;
+  return <>{useFeatureVisible(feature) ? children : fallback}</>;
 }
 
 /**
  * HOC variant of {@link FeatureGate}: wraps a component so it only renders
- * when `feature` is enabled in the current environment.
+ * when `feature` is visible to the current user.
  */
 export function withFeatureGate<P extends object>(
   feature: Feature,
   Component: ComponentType<P>
 ) {
   function FeatureGated(props: P) {
-    return isFeatureEnabled(feature) ? <Component {...props} /> : null;
+    return useFeatureVisible(feature) ? <Component {...props} /> : null;
   }
 
   FeatureGated.displayName = `withFeatureGate(${
