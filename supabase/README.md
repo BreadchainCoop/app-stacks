@@ -17,21 +17,26 @@ supabase login
 ## Applying migrations to an environment
 
 Each environment (local, development, demo, production) is its own Supabase
-project. Link the one you want to update, then push:
+project. Put each project's database URL in `.env.local` (see
+`.env.local.example`; Dashboard -> Settings -> Database -> Connection string),
+then:
 
 ```bash
-supabase link --project-ref <project-ref>   # ref from the project's dashboard URL
-supabase db push
+pnpm db:push:local
+pnpm db:push:development
+pnpm db:push:demo
+pnpm db:push:prod
 ```
 
 `db push` runs only the migrations that project hasn't seen yet, in filename
-order. Re-linking switches environments; push each one after a schema change
-lands on the branch it deploys from.
+order. Push each environment after a schema change lands on the branch it
+deploys from. (The equivalent manual flow is
+`supabase link --project-ref <ref> && supabase db push`.)
 
 ## Adding a new migration
 
 ```bash
-supabase migration new <short_name>
+pnpm db:migration <short_name>
 # -> creates migrations/<timestamp>_<short_name>.sql; write your SQL there
 ```
 
