@@ -1,0 +1,267 @@
+SQL 1
+
+create or replace function public.prevent_stacks_metadata_delete()
+returns trigger
+language plpgsql
+as $$
+begin
+  raise exception 'stacks_metadata rows cannot be deleted';
+end;
+$$;
+
+create trigger tr_no_delete_stacks_metadata
+before delete on public.stacks_metadata
+for each row execute function public.prevent_stacks_metadata_delete();
+
+SQL 2
+
+-- I created this cause I'm still in development mode.
+-- Recreate it when you're ready for production.
+drop trigger tr_no_delete_stacks_metadata on public.stacks_metadata;
+drop function public.prevent_stacks_metadata_delete();
+
+SQL 3
+
+create or replace function public.prevent_stacks_metadata_delete()
+returns trigger
+language plpgsql
+as $$
+begin
+  raise exception 'stacks_metadata rows cannot be deleted';
+end;
+$$;
+
+create trigger tr_no_delete_stacks_metadata
+before delete on public.stacks_metadata
+for each row execute function public.prevent_stacks_metadata_delete();
+
+SQL 4
+
+-- Drop the auth.uid() policies that will never work
+drop policy if exists "user_stack_select_own" on public.user_stacks;
+drop policy if exists "user_stack_insert_own" on public.user_stacks;
+drop policy if exists "user_stack_update_own" on public.user_stacks;
+
+-- Restore correct grants
+revoke insert, update, delete on public.user_stacks from anon, authenticated;
+grant select on public.user_stacks to anon, authenticated;
+
+SQL 5
+
+alter table public.stacks_metadata
+  add column if not exists expected_members int4 not null default 0,
+  add column if not exists invite_links jsonb not null default '[]';
+
+SQL 6
+
+grant select on public.user_stacks to anon, authenticated;
+
+SQL 7
+
+alter table public.user_stacks enable row level security;
+
+  
+
+create policy "user_stack_select_own"
+  on public.user_stacks
+  for select
+  using (user_id = auth.uid());
+
+  
+
+create policy "user_stack_insert_own"
+  on public.user_stacks
+  for insert
+    with check (user_id = auth.uid());
+
+  
+
+create policy "user_stack_update_own"
+  on public.user_stacks
+  for update
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());
+
+  
+
+revoke all on public.user_stacks from anon;
+
+grant select, insert, update on public.user_stacks to authenticated;
+
+SQL 8
+
+alter table public.user_stacks enable row level security;
+
+create policy "user_stacks_select_own"
+on public.user_stacks
+for select
+using (true);
+
+grant select on public.user_stacks to anon, authenticated;
+revoke insert, update, delete on public.user_stacks from anon, authenticated;
+
+SQL 9
+
+create table if not exists public.user_stacks (
+  user_id uuid references public.users(id) on delete cascade,
+  stack_id text references public.stacks_metadata(id),
+  joined_at timestamptz not null default now(),
+  primary key (user_id, stack_id)
+);
+
+SQL 10
+
+-- I created this cause I'm still in development mode.
+-- Recreate it when you're ready for production.
+drop trigger tr_no_delete_stacks_metadata on public.stacks_metadata;
+drop function public.prevent_stacks_metadata_delete();
+
+SQL 11
+
+-- Drop the existing blanket trigger and function
+drop trigger tr_no_update_stacks_metadata on public.stacks_metadata;
+drop function public.prevent_stacks_metadata_mutation() cascade;
+
+-- New function that only blocks changes to id and created_at
+create or replace function public.prevent_stacks_metadata_immutable_fields()
+returns trigger
+language plpgsql
+as $$
+begin
+  if NEW.id <> OLD.id then
+    raise exception 'stacks_metadata.id is immutable';
+  end if;
+
+  if NEW.created_at <> OLD.created_at then
+    raise exception 'stacks_metadata.created_at is immutable';
+  end if;
+
+  return NEW;
+end;
+$$;
+
+-- Re-attach trigger for updates only
+create trigger tr_protect_stacks_metadata_fields
+before update on public.stacks_metadata
+for each row execute function public.prevent_stacks_metadata_immutable_fields();
+
+-- Keep the delete trigger
+create or replace function public.prevent_stacks_metadata_delete()
+returns trigger
+language plpgsql
+as $$
+begin
+  raise exception 'stacks_metadata rows cannot be deleted';
+end;
+$$;
+
+create trigger tr_no_delete_stacks_metadata
+before delete on public.stacks_metadata
+for each row execute function public.prevent_stacks_metadata_delete();
+
+SQL 12
+
+alter table public.users enable row level security;
+
+create policy "users_select_own"
+on public.users
+for select
+using (id = auth.uid());
+
+create policy "users_insert_own"
+on public.users
+for insert
+with check (id = auth.uid());
+
+create policy "users_update_own"
+on public.users
+for update
+using (id = auth.uid())
+with check (id = auth.uid());
+
+revoke all on public.users from anon;
+grant select, insert, update on public.users to authenticated;
+
+
+SQL 13
+
+alter table public.profiles enable row level security;
+
+create policy "profiles_select_own"
+on public.profiles for select
+using (user_id = auth.uid());
+
+create policy "profiles_insert_own"
+on public.profiles for insert
+with check (user_id = auth.uid());
+
+create policy "profiles_update_own"
+on public.profiles for update
+using (user_id = auth.uid())
+with check (user_id = auth.uid());
+
+alter table public.stacks_metadata enable row level security;
+
+alter table public.stacks_metadata
+  alter column stackname set not null;
+
+create policy "stacks_select_all"
+on public.stacks_metadata
+for select
+using (true);
+
+grant select on public.stacks_metadata to anon, authenticated;
+revoke insert, update, delete on public.stacks_metadata from anon, authenticated;
+
+create or replace function public.prevent_stacks_metadata_mutation()
+returns trigger
+language plpgsql
+as $$
+begin
+  raise exception 'stacks_metadata is immutable (write-once)';
+end;
+$$;
+
+create trigger tr_no_update_stacks_metadata
+before update on public.stacks_metadata
+for each row execute function public.prevent_stacks_metadata_mutation();
+
+create trigger tr_no_delete_stacks_metadata
+before delete on public.stacks_metadata
+for each row execute function public.prevent_stacks_metadata_mutation();
+
+SQL 14
+
+-- Username format check
+alter table public.profiles
+  add constraint username_format_chk
+  check (
+    username is null
+    or username ~* '^[a-z0-9_.-]{3,24}$'
+  );
+
+SQL 15
+
+create extension if not exists pgcrypto;
+create extension if not exists citext;
+
+-- If using Supabase Auth shadow users:
+-- public.users.id should equal auth.uid() (1:1 mapping)
+create table if not exists public.users (
+  id uuid primary key, -- equals auth.uid()
+  privy_user_id text not null unique,
+  wallet_address text, 
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.profiles (
+  user_id uuid primary key references public.users(id) on delete cascade,
+  username citext unique,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.stacks_metadata (
+  id text primary key,
+  stackname text,
+  created_at timestamptz not null default now()
+);

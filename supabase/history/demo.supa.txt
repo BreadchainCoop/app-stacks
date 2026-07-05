@@ -1,0 +1,160 @@
+SQL 1
+
+-- ============================================================
+-- Extensions
+-- ============================================================
+create extension if not exists pgcrypto;
+create extension if not exists citext;
+
+
+-- ============================================================
+-- Tables
+-- ============================================================
+
+-- public.users
+-- id equals auth.uid() (1:1 mapping with Supabase Auth)
+create table if not exists public.users (
+  id              uuid        primary key,
+  privy_user_id   text        not null unique,
+  wallet_address  text,
+  created_at      timestamptz not null default now()
+);
+
+-- public.profiles
+create table if not exists public.profiles (
+  user_id     uuid    primary key references public.users(id) on delete cascade,
+  username    citext  unique,
+  updated_at  timestamptz not null default now(),
+
+  constraint username_format_chk check (
+    username is null
+    or username ~* '^[a-z0-9_.-]{3,24}$'
+  )
+);
+
+-- public.stacks_metadata
+create table if not exists public.stacks_metadata (
+  id               text        primary key,
+  stackname        text        not null,
+  expected_members int4        not null default 0,
+  invite_links     jsonb       not null default '[]',
+  created_at       timestamptz not null default now()
+);
+
+-- public.user_stacks
+create table if not exists public.user_stacks (
+  user_id    uuid  references public.users(id) on delete cascade,
+  stack_id   text  references public.stacks_metadata(id),
+  joined_at  timestamptz not null default now(),
+  primary key (user_id, stack_id)
+);
+
+
+-- ============================================================
+-- Row Level Security — public.users
+-- ============================================================
+alter table public.users enable row level security;
+
+create policy "users_select_own"
+  on public.users for select
+  using (id = auth.uid());
+
+create policy "users_insert_own"
+  on public.users for insert
+  with check (id = auth.uid());
+
+create policy "users_update_own"
+  on public.users for update
+  using  (id = auth.uid())
+  with check (id = auth.uid());
+
+revoke all on public.users from anon;
+grant select, insert, update on public.users to authenticated;
+
+
+-- ============================================================
+-- Row Level Security — public.profiles
+-- ============================================================
+alter table public.profiles enable row level security;
+
+create policy "profiles_select_own"
+  on public.profiles for select
+  using (user_id = auth.uid());
+
+create policy "profiles_insert_own"
+  on public.profiles for insert
+  with check (user_id = auth.uid());
+
+create policy "profiles_update_own"
+  on public.profiles for update
+  using  (user_id = auth.uid())
+  with check (user_id = auth.uid());
+
+
+-- ============================================================
+-- Row Level Security — public.stacks_metadata
+-- ============================================================
+alter table public.stacks_metadata enable row level security;
+
+create policy "stacks_select_all"
+  on public.stacks_metadata for select
+  using (true);
+
+grant select on public.stacks_metadata to anon, authenticated;
+revoke insert, update, delete on public.stacks_metadata from anon, authenticated;
+
+
+-- ============================================================
+-- Row Level Security — public.user_stacks
+-- ============================================================
+alter table public.user_stacks enable row level security;
+
+-- Read-only for everyone; writes are handled server-side / service role
+create policy "user_stacks_select_all"
+  on public.user_stacks for select
+  using (true);
+
+grant select on public.user_stacks to anon, authenticated;
+revoke insert, update, delete on public.user_stacks from anon, authenticated;
+
+
+-- ============================================================
+-- Triggers — stacks_metadata: protect immutable fields
+-- ============================================================
+create or replace function public.prevent_stacks_metadata_immutable_fields()
+returns trigger
+language plpgsql
+as $$
+begin
+  if NEW.id <> OLD.id then
+    raise exception 'stacks_metadata.id is immutable';
+  end if;
+
+  if NEW.created_at <> OLD.created_at then
+    raise exception 'stacks_metadata.created_at is immutable';
+  end if;
+
+  return NEW;
+end;
+$$;
+
+create trigger tr_protect_stacks_metadata_fields
+  before update on public.stacks_metadata
+  for each row execute function public.prevent_stacks_metadata_immutable_fields();
+
+
+-- ============================================================
+-- Triggers — stacks_metadata: prevent deletes
+-- ============================================================
+create or replace function public.prevent_stacks_metadata_delete()
+returns trigger
+language plpgsql
+as $$
+begin
+  raise exception 'stacks_metadata rows cannot be deleted';
+end;
+$$;
+
+create trigger tr_no_delete_stacks_metadata
+  before delete on public.stacks_metadata
+  for each row execute function public.prevent_stacks_metadata_delete();

@@ -1,0 +1,204 @@
+SQL 1
+
+grant select on public.users to anon, authenticated;
+
+SQL 2
+
+-- Anyone can read aliases
+drop policy if exists "profiles readable" on public.profiles;
+create policy "profiles readable" on public.profiles
+  for select to anon, authenticated using (true);
+
+-- Anyone can resolve wallet -> user for alias display
+drop policy if exists "users readable" on public.users;
+create policy "users readable" on public.users
+  for select to anon, authenticated using (true);
+
+-- Browser writes are no longer allowed at all; the API route
+-- (service role) is the only write path
+drop policy if exists "own profile insert" on public.profiles;
+drop policy if exists "own profile update" on public.profiles;
+
+SQL 3
+
+-- ============ profiles: constraints & housekeeping ============
+
+-- Upserts by user_id need this (skip if it errors with "already exists")
+alter table public.profiles
+  add constraint profiles_user_id_key unique (user_id);
+
+-- Clear any existing aliases that don't meet the new format rules
+-- (harmless if there are none yet)
+update public.profiles
+  set username = null
+  where username is not null
+    and username !~ '^[A-Za-z][A-Za-z0-9_]{2,19}$';
+
+-- Format: starts with a letter, 3-20 chars, letters/digits/underscore
+alter table public.profiles
+  add constraint profiles_username_format
+  check (username is null or username ~ '^[A-Za-z][A-Za-z0-9_]{2,19}$');
+
+-- Reserved names (impersonation protection)
+alter table public.profiles
+  add constraint profiles_username_reserved
+  check (username is null or lower(username) <> all (array[
+    'admin','administrator','root','support','help','api','www','settings',
+    'login','signup','system','moderator','mod','owner','staff','team',
+    'official','bread','breadchain','stacks'
+  ]));
+
+-- Case-insensitive global uniqueness ("Otunba" blocks "otunba");
+-- NULLs don't collide, so users without an alias are unaffected
+create unique index if not exists profiles_username_lower_key
+  on public.profiles (lower(username));
+
+-- Keep updated_at accurate automatically
+alter table public.profiles alter column updated_at set default now();
+
+create or replace function public.touch_updated_at()
+returns trigger language plpgsql as $$
+begin
+  new.updated_at = now();
+  return new;
+end $$;
+
+drop trigger if exists profiles_touch_updated_at on public.profiles;
+create trigger profiles_touch_updated_at
+  before update on public.profiles
+  for each row execute function public.touch_updated_at();
+
+-- ============ Row Level Security ============
+
+alter table public.profiles enable row level security;
+alter table public.users enable row level security;
+
+-- Any signed-in user can read aliases (shown in member lists)
+drop policy if exists "profiles readable" on public.profiles;
+create policy "profiles readable" on public.profiles
+  for select to authenticated using (true);
+
+-- Users may create/update only their own profile row
+drop policy if exists "own profile insert" on public.profiles;
+create policy "own profile insert" on public.profiles
+  for insert to authenticated with check (
+    user_id in (select id from public.users
+                where privy_user_id = (auth.jwt()->>'sub'))
+  );
+
+drop policy if exists "own profile update" on public.profiles;
+create policy "own profile update" on public.profiles
+  for update to authenticated
+  using (
+    user_id in (select id from public.users
+                where privy_user_id = (auth.jwt()->>'sub'))
+  )
+  with check (
+    user_id in (select id from public.users
+                where privy_user_id = (auth.jwt()->>'sub'))
+  );
+
+-- Signed-in users can resolve wallets -> users (needed for alias lookup)
+drop policy if exists "users readable" on public.users;
+create policy "users readable" on public.users
+  for select to authenticated using (true);
+
+SQL 4
+
+ALTER TABLE user_stacks ADD COLUMN automatic_claims BOOLEAN NOT NULL DEFAULT FALSE;
+
+SQL 5
+
+-- Extensions
+create extension if not exists pgcrypto;
+create extension if not exists citext;
+
+-- Tables
+create table if not exists public.users (
+  id uuid primary key,
+  privy_user_id text not null unique,
+  wallet_address text,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.profiles (
+  user_id uuid primary key references public.users(id) on delete cascade,
+  username citext unique,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.stacks_metadata (
+  id text primary key,
+  stackname text not null,
+  expected_members int4 not null default 0,
+  invite_links jsonb not null default '[]',
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.user_stacks (
+  user_id uuid references public.users(id) on delete cascade,
+  stack_id text references public.stacks_metadata(id),
+  joined_at timestamptz not null default now(),
+  primary key (user_id, stack_id)
+);
+
+-- Constraints
+alter table public.profiles
+  add constraint username_format_chk
+  check (
+    username is null
+    or username ~* '^[a-z0-9_.-]{3,24}$'
+  );
+
+-- RLS
+alter table public.users enable row level security;
+alter table public.profiles enable row level security;
+alter table public.stacks_metadata enable row level security;
+alter table public.user_stacks enable row level security;
+
+-- users: authenticated full access (dev)
+revoke all on public.users from anon;
+grant select, insert, update, delete on public.users to authenticated;
+
+-- users: allow delete own row
+create policy "users_delete_own" on public.users for delete using (id = auth.uid());
+
+-- profiles
+create policy "profiles_select_own" on public.profiles for select using (user_id = auth.uid());
+create policy "profiles_insert_own" on public.profiles for insert with check (user_id = auth.uid());
+create policy "profiles_update_own" on public.profiles for update using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- profiles: allow delete own row (dev)
+grant delete on public.profiles to authenticated;
+create policy "profiles_delete_own" on public.profiles for delete using (user_id = auth.uid());
+
+-- stacks_metadata: full access for dev
+create policy "stacks_select_all" on public.stacks_metadata for select using (true);
+create policy "stacks_insert_all" on public.stacks_metadata for insert with check (true);  -- dev only
+create policy "stacks_update_all" on public.stacks_metadata for update using (true);       -- dev only
+create policy "stacks_delete_all" on public.stacks_metadata for delete using (true);       -- dev only
+grant select, insert, update, delete on public.stacks_metadata to anon, authenticated;
+
+-- user_stacks: full access for dev
+create policy "user_stacks_select_all" on public.user_stacks for select using (true);
+create policy "user_stacks_insert_all" on public.user_stacks for insert with check (true); -- dev only
+create policy "user_stacks_delete_all" on public.user_stacks for delete using (true);      -- dev only
+grant select, insert, update, delete on public.user_stacks to anon, authenticated;
+
+-- Triggers: stacks_metadata immutable fields
+create or replace function public.prevent_stacks_metadata_immutable_fields()
+returns trigger language plpgsql as $$
+begin
+  if NEW.id <> OLD.id then
+    raise exception 'stacks_metadata.id is immutable';
+  end if;
+  if NEW.created_at <> OLD.created_at then
+    raise exception 'stacks_metadata.created_at is immutable';
+  end if;
+  return NEW;
+end;
+$$;
+
+create trigger tr_protect_stacks_metadata_fields
+before update on public.stacks_metadata
+for each row execute function public.prevent_stacks_metadata_immutable_fields();

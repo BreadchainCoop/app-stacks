@@ -8,10 +8,12 @@ The core privacy requirement: **non-members of a circle must not be able to read
 circle's private information.** This is enforced by Postgres **Row Level Security (RLS)**,
 not by the frontend. Treat RLS as a security boundary, not a convenience.
 
-> The actual SQL — table definitions and RLS policies — is managed in the Supabase project
-> (dashboard / migrations), not in this repo. This document describes how the application
-> code uses Supabase and the rules code must respect. If you change a table's shape, mirror
-> it in the `Database` type in [`src/lib/supabase.ts`](../src/lib/supabase.ts).
+> The actual SQL — table definitions and RLS policies — lives in
+> [`supabase/migrations/`](../supabase/migrations/) and is applied per environment with the
+> Supabase CLI (see [`supabase/README.md`](../supabase/README.md)). This document describes
+> how the application code uses Supabase and the rules code must respect. If you change a
+> table's shape, add a migration **and** mirror it in the `Database` type in
+> [`src/lib/supabase.ts`](../src/lib/supabase.ts).
 
 ## Two ways the app talks to Supabase
 
