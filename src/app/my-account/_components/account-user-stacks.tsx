@@ -7,7 +7,7 @@ import CardCarousel from "@/components/card-carousel";
 import { useSearchParams } from "next/navigation";
 import { tabs } from "./account-tab";
 import { Body, Heading3 } from "@breadcoop/ui";
-import { usePrivy } from "@privy-io/react-auth";
+import { useAppUserId } from "@/hooks/use-app-user-id";
 import { useUserStacksMetadata } from "@/hooks/use-user-stacks-metadata";
 
 type Tab = "due" | "claim" | "past" | "all";
@@ -40,8 +40,8 @@ const hasFailedClaim = (circle: {
 
 const AccountUserStacks = ({ address }: { address: Address }) => {
   const { isLoading, circles } = useUserCirclesList(address);
-  const { user } = usePrivy();
-  const { stacksMap } = useUserStacksMetadata(user?.id);
+  const appUserId = useAppUserId();
+  const { stacksMap } = useUserStacksMetadata(appUserId);
   const tab = (useSearchParams().get("tab") || "all") as Tab;
   let filteredCircles = [...circles];
 

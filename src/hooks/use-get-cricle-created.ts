@@ -1,5 +1,5 @@
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { clientEnv } from "@/lib/env";
+import { getCreationBlock } from "@/lib/creation-block";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { parseAbiItem } from "viem";
 import { usePublicClient } from "wagmi";
@@ -24,9 +24,7 @@ export const useGetCircleCreated = ({
           "event CircleCreated(uint256 indexed id, address indexed token, uint256 depositAmount, uint256 depositInterval)"
         ),
         args: { id: BigInt(circleId) },
-        fromBlock: BigInt(
-          clientEnv.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK
-        ),
+        fromBlock: await getCreationBlock(publicClient),
         toBlock: "latest",
       });
 

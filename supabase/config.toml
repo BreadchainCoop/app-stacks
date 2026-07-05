@@ -1,0 +1,8 @@
+# Minimal supabase CLI config for the local (Anvil) mode. Missing sections use
+# the CLI defaults (API on 54321, standard demo anon key, db on 54322).
+project_id = "app-stacks"
+
+[db.seed]
+enabled = true
+# Applies the permissive local-only RLS policies after every `supabase db reset`.
+sql_paths = ["./local-rls.sql"]

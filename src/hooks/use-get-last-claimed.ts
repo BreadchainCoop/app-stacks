@@ -1,5 +1,5 @@
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { clientEnv } from "@/lib/env";
+import { getCreationBlock } from "@/lib/creation-block";
 import { useQuery } from "@tanstack/react-query";
 import { Address } from "viem";
 import { usePublicClient } from "wagmi";
@@ -36,9 +36,7 @@ export const useGetLastClaimed = ({
           _id: BigInt(circleId),
           ...(accountAddress ? { _member: accountAddress } : {}),
         },
-        fromBlock: BigInt(
-          clientEnv.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK
-        ),
+        fromBlock: await getCreationBlock(publicClient),
         toBlock: "latest",
       });
 

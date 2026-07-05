@@ -6,6 +6,9 @@ import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { getDefaultChainId } from "@/utils/chain";
+import { isLocalMode } from "@/lib/network-mode";
+import { redeemLocalInvite } from "@/lib/local-supabase";
+import { useSupabaseClient } from "@/components/providers/supabase";
 import { Body, LoginButton, useConnectedUser } from "@breadcoop/ui";
 import { CheckIcon } from "@phosphor-icons/react";
 import { usePrivy } from "@privy-io/react-auth";
@@ -27,6 +30,7 @@ export default function AcceptInvite() {
   const { user } = useConnectedUser();
   const { sendSavingCirclesTx } = useSavingCirclesTx();
   const { user: privyUser } = usePrivy();
+  const supabase = useSupabaseClient();
 
   const circleId = searchParams.get("circleId") as string;
   const parsedId = BigInt(circleId || "");
@@ -73,11 +77,21 @@ export default function AcceptInvite() {
         args: [parsedId, BigInt(nonce), signature as `0x${string}`],
       });
 
-      fetch("/api/stacks/invite", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ circleId, nonce, privyUserId: privyUser?.id }),
-      });
+      if (isLocalMode()) {
+        redeemLocalInvite(supabase, {
+          circleId,
+          nonce,
+          address: user.address,
+        }).catch((err) =>
+          console.error("Failed to record local invite redemption:", err)
+        );
+      } else {
+        fetch("/api/stacks/invite", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ circleId, nonce, privyUserId: privyUser?.id }),
+        });
+      }
 
       alert("Invitation Accepted!");
       router.push(`/stacks/${circleId}`);

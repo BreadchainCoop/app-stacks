@@ -1,4 +1,5 @@
 import { clientEnv } from "./env";
+import { isLocalMode } from "./network-mode";
 
 type Environment = (typeof clientEnv)["NEXT_PUBLIC_NODE_ENV"];
 
@@ -20,7 +21,7 @@ export type Feature = keyof typeof FEATURE_ENVIRONMENTS;
 
 export function isFeatureEnabled(feature: Feature): boolean {
   const env = clientEnv.NEXT_PUBLIC_NODE_ENV;
-  if (env === "local") return true;
+  if (env === "local" || isLocalMode()) return true;
 
   const allowed: readonly GatedEnvironment[] = FEATURE_ENVIRONMENTS[feature];
   return allowed.includes(env);

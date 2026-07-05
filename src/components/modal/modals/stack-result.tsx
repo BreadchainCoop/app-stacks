@@ -22,11 +22,15 @@ import { usePublicClient } from "wagmi";
 import { savingCirclesAbi } from "../../../lib/abis/saving-circles";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../../lib/constants";
 import { usePrivy, useSignTypedData } from "@privy-io/react-auth";
+import { useSignTypedData as useWagmiSignTypedData } from "wagmi";
 import { getDefaultChainId } from "@/utils/chain";
 import { shortenUrl } from "@/utils/shorten";
 import { SupabaseInviteLink } from "@/lib/supabase";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
-import { clientEnv } from "@/lib/env";
+import { isLocalMode } from "@/lib/network-mode";
+import { createLocalStackMetadata } from "@/lib/local-supabase";
+import { useSupabaseClient } from "@/components/providers/supabase";
+import { useConnectedUser } from "@breadcoop/ui";
 
 type InviteLink = {
   nonce: bigint;
@@ -62,7 +66,7 @@ function buildInviteUrl(
   return url.toString();
 }
 
-const isLocal = clientEnv.NEXT_PUBLIC_NODE_ENV === "local";
+const isLocal = isLocalMode();
 
 export const StackSuccessResultModal = ({
   modalState,
@@ -71,8 +75,11 @@ export const StackSuccessResultModal = ({
 }) => {
   const blockTimestamp = useBlockTimestamp();
   const { user: privyUser } = usePrivy();
+  const { user: connectedUser } = useConnectedUser();
+  const supabase = useSupabaseClient();
   const publicClient = usePublicClient();
   const { signTypedData } = useSignTypedData();
+  const { signTypedDataAsync: signWagmiTypedData } = useWagmiSignTypedData();
   const modal = useModal();
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -129,31 +136,56 @@ export const StackSuccessResultModal = ({
             ? Number(nonce)
             : nonce.toString();
 
-        const typedData = {
-          domain: {
-            name: INVITE_DOMAIN_NAME,
-            version: INVITE_DOMAIN_VERSION,
-            chainId: DEFAULT_CHAIN,
-            verifyingContract: SAVING_CIRCLES_CONTRACT_ADDRESS,
-          },
-          types: {
-            Invite: [
-              { name: "id", type: "uint256" },
-              { name: "nonce", type: "uint256" },
-            ],
-          },
-          primaryType: "Invite" as const,
-          message: {
-            id: circleIdNum,
-            nonce: nonceNum,
-          },
-        };
+        let signature: string;
 
-        const { signature } = await signTypedData(typedData, {
-          uiOptions: {
-            showWalletUIs: false,
-          },
-        });
+        if (isLocal) {
+          // Anvil signs for the unlocked mock-connector account.
+          signature = await signWagmiTypedData({
+            domain: {
+              name: INVITE_DOMAIN_NAME,
+              version: INVITE_DOMAIN_VERSION,
+              chainId: DEFAULT_CHAIN,
+              verifyingContract: SAVING_CIRCLES_CONTRACT_ADDRESS,
+            },
+            types: {
+              Invite: [
+                { name: "id", type: "uint256" },
+                { name: "nonce", type: "uint256" },
+              ],
+            },
+            primaryType: "Invite",
+            message: {
+              id: circleId,
+              nonce,
+            },
+          });
+        } else {
+          const typedData = {
+            domain: {
+              name: INVITE_DOMAIN_NAME,
+              version: INVITE_DOMAIN_VERSION,
+              chainId: DEFAULT_CHAIN,
+              verifyingContract: SAVING_CIRCLES_CONTRACT_ADDRESS,
+            },
+            types: {
+              Invite: [
+                { name: "id", type: "uint256" },
+                { name: "nonce", type: "uint256" },
+              ],
+            },
+            primaryType: "Invite" as const,
+            message: {
+              id: circleIdNum,
+              nonce: nonceNum,
+            },
+          };
+
+          ({ signature } = await signTypedData(typedData, {
+            uiOptions: {
+              showWalletUIs: false,
+            },
+          }));
+        }
 
         const url = buildInviteUrl(
           baseUrl,
@@ -170,33 +202,59 @@ export const StackSuccessResultModal = ({
         signedInvites.push({ nonce, signature, url, used: false });
       }
 
-      setSigningProgress("Shortening invite links...");
+      if (isLocal) {
+        // No URL shortener against localhost — keep the long URLs.
+        supabaseInviteLinks.forEach((link) => {
+          link.short = link.long;
+        });
+      } else {
+        setSigningProgress("Shortening invite links...");
 
-      const shorteningResults = await Promise.allSettled(
-        signedInvites.map((invite) => shortenUrl(invite.url, { check: false }))
-      );
+        const shorteningResults = await Promise.allSettled(
+          signedInvites.map((invite) =>
+            shortenUrl(invite.url, { check: false })
+          )
+        );
 
-      signedInvites.forEach((invite, index) => {
-        const result = shorteningResults[index];
-        if (result.status === "fulfilled" && result.value !== invite.url) {
-          invite.url = result.value;
-          supabaseInviteLinks[index].short = result.value;
-        } else {
-          supabaseInviteLinks[index].short = supabaseInviteLinks[index].long;
+        signedInvites.forEach((invite, index) => {
+          const result = shorteningResults[index];
+          if (result.status === "fulfilled" && result.value !== invite.url) {
+            invite.url = result.value;
+            supabaseInviteLinks[index].short = result.value;
+          } else {
+            supabaseInviteLinks[index].short = supabaseInviteLinks[index].long;
+          }
+        });
+      }
+
+      if (isLocal) {
+        if (
+          connectedUser.status === "CONNECTED" ||
+          connectedUser.status === "UNSUPPORTED_CHAIN"
+        ) {
+          createLocalStackMetadata(supabase, {
+            id: modalState.circle.id,
+            stackname: modalState.circle.name,
+            expected_members: modalState.circle.members,
+            invite_links: supabaseInviteLinks,
+            address: connectedUser.address,
+          }).catch((err) =>
+            console.error("Failed to save local stack metadata:", err)
+          );
         }
-      });
-
-      fetch("/api/stacks/metadata", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: modalState.circle.id,
-          stackname: modalState.circle.name,
-          expected_members: modalState.circle.members,
-          invite_links: supabaseInviteLinks,
-          privyUserId: privyUser?.id,
-        }),
-      });
+      } else {
+        fetch("/api/stacks/metadata", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: modalState.circle.id,
+            stackname: modalState.circle.name,
+            expected_members: modalState.circle.members,
+            invite_links: supabaseInviteLinks,
+            privyUserId: privyUser?.id,
+          }),
+        });
+      }
 
       setSigningProgress("");
       setInvites(signedInvites);

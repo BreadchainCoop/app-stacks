@@ -93,6 +93,10 @@ export type NewUserOnboardingModalState = {
   fundingStatus: "idle" | "loading" | "success" | "error";
 };
 
+export type NetworkModeSelectModalState = {
+  type: "NETWORK_MODE_SELECT";
+};
+
 export type FundWalletModalState = {
   type: "FUND_WALLET";
   address: Address;
@@ -141,6 +145,7 @@ export type ModalState =
   | WalletFundingStatusModalState
   | ReminderModalState
   | NewUserOnboardingModalState
+  | NetworkModeSelectModalState
   | FundWalletModalState
   | LiFiBridgeSwapModalState
   | PeerOnRampInstallModalState

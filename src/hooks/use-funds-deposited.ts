@@ -1,7 +1,7 @@
 "use client";
 
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { clientEnv } from "@/lib/env";
+import { getCreationBlock } from "@/lib/creation-block";
 import { getDefaultChainId } from "@/utils/chain";
 import { paginateLogs } from "@/utils/paginate-logs";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
@@ -61,10 +61,6 @@ export function useFundsDeposited({
   const circleEndsTimestamp =
     circleStartsTimestamp + BigInt(totalRounds) * depositInterval;
 
-  const defaultFromBlock = BigInt(
-    clientEnv.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK
-  );
-
   return useQuery<FundsDepositedData>({
     queryKey: ["fundsDeposited", circleId],
     enabled: Boolean(publicClient) && enabled,
@@ -78,7 +74,7 @@ export function useFundsDeposited({
         event: FUNDS_DEPOSITED_EVENT,
         args: { id: BigInt(circleId) },
         address: SAVING_CIRCLES_CONTRACT_ADDRESS,
-        fromBlock: fromBlock ?? defaultFromBlock,
+        fromBlock: fromBlock ?? (await getCreationBlock(publicClient)),
         toBlock: toBlock ?? "latest",
         fromTimestamp: circleStartsTimestamp,
         toTimestamp: circleEndsTimestamp,

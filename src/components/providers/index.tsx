@@ -7,18 +7,22 @@ import { SupabaseProvider } from "./supabase";
 import { ModalProvider } from "../modal/context";
 import { BreadUIKitProvider, ConnectedUserProvider } from "@breadcoop/ui";
 import { clientEnv } from "@/lib/env";
-import { Address, erc20Abi } from "viem";
+import { isLocalMode } from "@/lib/network-mode";
+import { BREAD_TOKEN_ADDRESS } from "@/lib/constants";
+import { getDefaultChainId } from "@/utils/chain";
+import { erc20Abi } from "viem";
 import {
   PrivyClientConfig,
   PrivyProvider,
   WalletListEntry,
 } from "@privy-io/react-auth";
 import SepoliaAutoFund from "./sepolia-auto-fund";
+import LocalUserBootstrap from "./local-user-bootstrap";
 import { networks } from "@/utils/network";
 
 const tokenConfig: ComponentProps<typeof BreadUIKitProvider>["tokenConfig"] = {
   BREAD: {
-    address: clientEnv.NEXT_PUBLIC_BREAD_TOKEN_ADDRESS as Address,
+    address: BREAD_TOKEN_ADDRESS,
     abi: erc20Abi,
   },
 };
@@ -69,12 +73,12 @@ const Providers = ({
           <Web3Provider>
             <BreadUIKitProvider
               app="stacks"
-              chainId={clientEnv.NEXT_PUBLIC_CHAIN_ID}
+              chainId={getDefaultChainId()}
               tokenConfig={tokenConfig}
-              authProvider="privy"
+              authProvider={isLocalMode() ? "general" : "privy"}
             >
               <ConnectedUserProvider>
-                <SepoliaAutoFund />
+                {isLocalMode() ? <LocalUserBootstrap /> : <SepoliaAutoFund />}
                 <ModalProvider>{children}</ModalProvider>
               </ConnectedUserProvider>
             </BreadUIKitProvider>

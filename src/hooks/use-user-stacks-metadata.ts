@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createSupabaseClient, SupabaseStackMetadata } from "@/lib/supabase";
+import { isLocalMode } from "@/lib/network-mode";
 
 type UserStacks = {
   stack_id: string;
@@ -12,9 +13,23 @@ export const useUserStacksMetadata = (privyUserId: string | undefined) => {
   const { data, isLoading } = useQuery({
     queryKey: ["user-stacks-metadata", privyUserId],
     queryFn: async () => {
-      const res = await fetch(`/api/user?privyUserId=${privyUserId}`);
-      if (!res.ok) throw new Error("Failed to fetch user");
-      const { id } = await res.json();
+      let id: string;
+
+      if (isLocalMode()) {
+        // No API routes in local mode: look the user up directly.
+        const { data: user, error } = await supabase
+          .from("users")
+          .select("id")
+          .eq("privy_user_id", privyUserId!)
+          .single<{ id: string }>();
+
+        if (error || !user) throw new Error("Failed to fetch user");
+        id = user.id;
+      } else {
+        const res = await fetch(`/api/user?privyUserId=${privyUserId}`);
+        if (!res.ok) throw new Error("Failed to fetch user");
+        ({ id } = await res.json());
+      }
 
       const { data, error } = await supabase
         .from("user_stacks")
@@ -33,6 +48,9 @@ export const useUserStacksMetadata = (privyUserId: string | undefined) => {
       return returned;
     },
     enabled: !!privyUserId,
+    // Local supabase is optional; when it isn't running, fail fast so the UI
+    // falls back to on-chain data instead of retrying a dead localhost.
+    retry: isLocalMode() ? false : undefined,
   });
 
   return {

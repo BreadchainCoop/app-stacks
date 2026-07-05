@@ -102,13 +102,25 @@ addresses must be known ahead of time:
   typed-data signing in `stack-result.tsx` → wagmi `useSignTypedData` (Anvil supports
   `eth_signTypedData_v4` for unlocked accounts).
 
-### Local Supabase, no auth
+### Local Supabase, no auth — and optional
+
+Local Supabase is **optional**: users without the CLI/Docker still get the full
+on-chain flow (create, join, deposit, "Next round", claim). Without it, only
+the off-chain metadata degrades — stack names fall back to "Stack &lt;id&gt;"
+and invite redemption isn't tracked. Metadata reads fail fast in local mode
+(no react-query retries against a dead localhost), writes are fire-and-forget
+with logged errors, and `make start-local` warns instead of failing when the
+CLI or stack is unavailable. Stated in the popup info.
 
 - Client-side reads already use only the anon key (the Privy sign-in helper in
   `src/lib/supabase.ts` is never called). Writes go through server API routes with the
   service-role key — which a deployed site cannot use against a user's localhost
   instance.
-- Local mode therefore talks **directly from the browser** to the local Supabase:
+- Local mode therefore talks **directly from the browser** to the local Supabase.
+  This **includes the existing `NEXT_PUBLIC_NODE_ENV=local` developer workflow**, which
+  today points at the hosted dev instance: in local mode the hosted Supabase URL/anon
+  vars and `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` become unused. Defaults are the
+  standard CLI URL/anon key, overridable via `NEXT_PUBLIC_LOCAL_SUPABASE_*`.
   - `createSupabaseClient()` gets a mode ternary for URL/anon key (covers all readers).
   - A small `src/lib/local-supabase.ts` replicates the three API routes' logic
     (`ensureLocalUser`, `createStackMetadata`, `redeemInvite`), with synthetic identity
@@ -125,8 +137,13 @@ addresses must be known ahead of time:
 
 - Anvil runs with `--block-time 5`, so chain time advances in real time. In local mode
   `DEPOSIT_INTERVALS` collapses to a single 30-day entry (`1month`) — long enough that
-  rounds only ever advance via the button. The interval radio group in the stack
-  creation form is hidden when there's a single option.
+  rounds only ever advance via the button. The local list is a **hardcoded constant**,
+  not an env value: `src/utils/deposit-interval.ts` becomes
+  `isLocalMode() ? LOCAL_DEPOSIT_INTERVALS : clientEnv.NEXT_PUBLIC_DEPOSIT_INTERVALS`.
+  Do not thread it through `NEXT_PUBLIC_DEPOSIT_INTERVALS` — the zod schema in
+  `src/lib/env.ts` requires ≥2 entries and stays untouched (module-scope resolution is
+  safe thanks to reload-on-switch). The interval radio group in the stack creation
+  form is hidden when there's a single option.
 - `next-round-button.tsx` (stack detail, local mode only): viem
   `createTestClient({ mode: "anvil" })` → `setNextBlockTimestamp(depositWindowEnd + 1)`
   (or `increaseTime` if already past) → `mine` → `queryClient.invalidateQueries()`.
@@ -159,13 +176,22 @@ addresses must be known ahead of time:
    changes). Creation block helper: local → memoized `anvil_nodeInfo.forkBlockNumber`;
    update the 4 consumer hooks (`use-get-cricle-created`, `use-get-last-claimed`,
    `use-invite-redeemed`, `use-funds-deposited`).
-4. Providers (`src/components/providers/web3.tsx`, `index.tsx`): wagmi config +
-   provider branch, `authProvider` switch, skip `SepoliaAutoFund` in local mode.
+4. Providers (`src/components/providers/web3.tsx`, `index.tsx`): start with a
+   10-minute spike verifying the `mock` connector forwards `eth_sendTransaction` /
+   `eth_signTypedData_v4` through the transport to Anvil (it's the load-bearing
+   assumption of the Privy bypass). Then wagmi config + provider branch — removing
+   the existing `process.env.NODE_ENV === "development"` foundryChain conditional in
+   `web3.tsx`, subsumed by the mode branch — `authProvider` switch, skip
+   `SepoliaAutoFund` in local mode.
 5. Mode-selection popup + Navbar chip + gate component.
 6. Local write paths (`use-sponsored-tx.ts`, `stack-result.tsx`; skip `shortenUrl`
    locally, owner identity from `useConnectedUser`).
-7. Local Supabase data layer (`local-supabase.ts`, client ternary, call-site branches,
-   `supabase/local-rls.sql`, `make local-supabase-setup`).
+7. Local Supabase data layer. First export the schema (none is checked in today):
+   `supabase init` → `supabase link` to the dev project → `supabase db pull`,
+   committing `supabase/config.toml` + `supabase/migrations/0000_baseline.sql`, so
+   `supabase start` gives first-time users the full schema. Then `local-supabase.ts`,
+   client ternary, call-site branches, `supabase/local-rls.sql` applied by
+   `make local-supabase-setup`.
 8. Fixed interval + hidden radio (`src/utils/deposit-interval.ts`,
    `src/app/new/_components/form/form.tsx`).
 9. "Next round" button; migrate remaining `env === "local"` checks to `isLocalMode()`
@@ -174,21 +200,28 @@ addresses must be known ahead of time:
     connect.
 11. Makefile: deterministic deployer (`LOCAL_DEPLOYER_PK/_ADDRESS`, setBalance +
     setNonce 0, address sanity check), `start-local` depends on
-    `update-saving-circles-dev`, optional `fund-all`.
+    `update-saving-circles-dev`, optional `fund-all`. Replace the curl-based
+    `reset-supabase` (greps the hosted URL + service key from `.env.local`) with
+    `supabase db reset`, which re-applies the checked-in migrations plus
+    `local-rls.sql` and is guaranteed to hit the local instance.
 
 ## Known risks / limitations
 
 - **Browser support**: https deployed site → http localhost RPC/Supabase relies on the
   mixed-content localhost exemption — Chrome/Edge only. Stated in the popup info.
+  Chrome's Local Network Access rollout may additionally show a one-time permission
+  prompt for public-site → localhost requests; Anvil's default CORS (`*`) and local
+  Supabase's Kong should otherwise suffice.
 - **Hydration warnings**: SSR resolves Sepolia values, client may resolve local.
   Cosmetic; gate specific offenders behind a mounted check only if warnings appear.
 - **Address drift**: deterministic addresses break if `Deploy.s.sol` changes deployment
   order/count — caught loudly by the makefile sanity check; regenerate the env
   defaults then.
-- **Local Supabase prerequisites**: the deployed-site local flow needs `supabase start`
-  with the schema plus `local-rls.sql`. If the schema currently lives only in the
-  hosted dashboard, exporting it into `supabase/` is a prerequisite for first-time
-  users.
+- **Local Supabase prerequisites**: stack names and invite tracking need
+  `supabase start` with the checked-in schema plus `local-rls.sql` (one-time
+  `make local-supabase-setup`); everything else works without it (see "Local
+  Supabase, no auth — and optional"). The schema previously lived only in the
+  hosted dashboard; phase 7 checks it into `supabase/migrations`.
 
 ## Verification checklist
 
