@@ -124,6 +124,9 @@ importers:
       "@types/react-dom":
         specifier: ^19
         version: 19.2.3(@types/react@19.2.14)
+      dotenv-cli:
+        specifier: ^7.4.2
+        version: 7.4.2
       eslint:
         specifier: ^9
         version: 9.39.4(jiti@2.6.1)
@@ -5610,6 +5613,13 @@ packages:
         integrity: sha512-uKm5PU+MHTootlWEY+mZ4vvXoCn4fLQxT9dSc1sXVMSFkINTJVN8cAQROpwcKm8bJ/c7rgZVIBWzH5T78sNZZw==,
       }
 
+  cross-spawn@7.0.5:
+    resolution:
+      {
+        integrity: sha512-ZVJrKKYunU38/76t0RMOulHOnUcbU9GbpWKAOZ0mhjr7CX6FVrH+4FrAapSOekrgFQ3f/8gwMEuIft0aKq6Hug==,
+      }
+    engines: { node: ">= 8" }
+
   cross-spawn@7.0.6:
     resolution:
       {
@@ -5936,6 +5946,27 @@ packages:
       {
         integrity: sha512-nRCa7CK3VTrM2NmGkIy4cbK7IZlgBE/PYMn55rrXefr5xXDP0LdtfPnblFDoVdcAfslJ7or6iqAUnx0CCGIWQA==,
       }
+
+  dotenv-cli@7.4.2:
+    resolution:
+      {
+        integrity: sha512-SbUj8l61zIbzyhIbg0FwPJq6+wjbzdn9oEtozQpZ6kW2ihCcapKVZj49oCT3oPM+mgQm+itgvUQcG5szxVrZTA==,
+      }
+    hasBin: true
+
+  dotenv-expand@10.0.0:
+    resolution:
+      {
+        integrity: sha512-GopVGCpVS1UKH75VKHGuQFqS1Gusej0z4FyQkPdwjil2gNIv+LNsqBlboOzpJFZKVT95GkCyWJbBSdFEFUWI2A==,
+      }
+    engines: { node: ">=12" }
+
+  dotenv@16.4.5:
+    resolution:
+      {
+        integrity: sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==,
+      }
+    engines: { node: ">=12" }
 
   dunder-proto@1.0.1:
     resolution:
@@ -17187,6 +17218,12 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
+  cross-spawn@7.0.5:
+    dependencies:
+      path-key: 3.1.1
+      shebang-command: 2.0.0
+      which: 2.0.2
+
   cross-spawn@7.0.6:
     dependencies:
       path-key: 3.1.1
@@ -17331,6 +17368,17 @@ snapshots:
     dependencies:
       "@babel/runtime": 7.29.2
       csstype: 3.2.3
+
+  dotenv-cli@7.4.2:
+    dependencies:
+      cross-spawn: 7.0.5
+      dotenv: 16.4.5
+      dotenv-expand: 10.0.0
+      minimist: 1.2.8
+
+  dotenv-expand@10.0.0: {}
+
+  dotenv@16.4.5: {}
 
   dunder-proto@1.0.1:
     dependencies:

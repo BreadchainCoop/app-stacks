@@ -13,7 +13,12 @@
     "netlify:dev": "NODE_ENV=production netlify dev",
     "find-deadcode": "ts-prune | grep -v '(used in module)'",
     "prepare": "husky",
-    "lint-staged": "lint-staged"
+    "lint-staged": "lint-staged",
+    "db:migration": "supabase migration new",
+    "db:push:local": "dotenv -e .env.local -- sh -c 'supabase db push --db-url \"$SUPABASE_DB_URL_LOCAL\"'",
+    "db:push:development": "dotenv -e .env.local -- sh -c 'supabase db push --db-url \"$SUPABASE_DB_URL_DEVELOPMENT\"'",
+    "db:push:demo": "dotenv -e .env.local -- sh -c 'supabase db push --db-url \"$SUPABASE_DB_URL_DEMO\"'",
+    "db:push:prod": "dotenv -e .env.local -- sh -c 'supabase db push --db-url \"$SUPABASE_DB_URL_PROD\"'"
   },
   "dependencies": {
     "@breadcoop/ui": "^2.0.1",
@@ -55,6 +60,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv-cli": "^7.4.2",
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
     "eslint-config-prettier": "^10.1.8",
