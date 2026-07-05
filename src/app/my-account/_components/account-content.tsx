@@ -3,6 +3,7 @@
 import { Body, useConnectedUser } from "@breadcoop/ui";
 import SolidarityFundSection from "./solidarity-fund-section";
 import StacksOverview from "./stacks-overview";
+import { UsernameSetting } from "./username-setting";
 
 export const AccountContent = () => {
   const { user } = useConnectedUser();
@@ -19,6 +20,7 @@ export const AccountContent = () => {
 
   return (
     <>
+      <UsernameSetting address={user.address} />
       <StacksOverview address={user.address} />
       <SolidarityFundSection />
     </>

@@ -13,6 +13,7 @@ import { useGetCircleCreated } from "@/hooks/use-get-cricle-created";
 import { useGetLastDeposit } from "@/hooks/use-get-last-deposit";
 import { useInviteRedeemed } from "@/hooks/use-invite-redeemed";
 import { usePreferredEnsName } from "@/hooks/use-preferred-ens-name";
+import { useUsername } from "@/hooks/use-usernames";
 import { useUserCircleData } from "@/hooks/use-user-circle-data";
 import { useFundsDeposited } from "@/hooks/use-funds-deposited";
 import { ICircleStatus } from "@/interfaces/circle";
@@ -252,11 +253,16 @@ function MemberInfoContent({
 }
 
 function MemberEnsName({ address }: { address: Address }) {
+  const { username } = useUsername(address);
   const { ensName, isLoading } = usePreferredEnsName({ address });
+
+  // Prefer a user-set username, then ENS, then the raw address. Show the
+  // username immediately even while the ENS lookup is still in flight.
+  const label = username || ensName || address;
 
   return (
     <span className="inline-flex items-center justify-start">
-      {isLoading ? "Loading..." : ensName || address}
+      {isLoading && !username ? "Loading..." : label}
     </span>
   );
 }
