@@ -3,20 +3,24 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { clientEnv } from "@/lib/env";
 
-export interface SupabaseInviteLink {
+// Must stay type aliases: interfaces break supabase-js's generics and every
+// query silently degrades to never.
+export type SupabaseInviteLink = {
   short: string;
   long: string;
   used: boolean;
-}
+};
 
-export interface SupabaseStackMetadata {
+export type SupabaseStackMetadata = {
   id: string;
   stackname: string;
   created_at: string;
   expected_members: number;
   invite_links: SupabaseInviteLink[];
-}
+};
 
+// Mirror the supabase generated-types shape (Relationships per table,
+// Views/Functions/Enums/CompositeTypes on the schema) or queries degrade.
 export type Database = {
   public: {
     Tables: {
@@ -39,6 +43,7 @@ export type Database = {
           wallet_address?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       profiles: {
         Row: {
@@ -56,16 +61,42 @@ export type Database = {
           username?: string | null;
           updated_at?: string;
         };
+        Relationships: [];
       };
       stacks_metadata: {
         Row: SupabaseStackMetadata;
         Insert: SupabaseStackMetadata;
-        // Update: {
-        //   invite_links?: SupabaseInviteLink[];
-        // };
         Update: Pick<SupabaseStackMetadata, "invite_links">;
+        Relationships: [];
+      };
+      user_stacks: {
+        Row: {
+          user_id: string;
+          stack_id: string;
+        };
+        Insert: {
+          user_id: string;
+          stack_id: string;
+        };
+        Update: {
+          user_id?: string;
+          stack_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_stacks_stack_id_fkey";
+            columns: ["stack_id"];
+            isOneToOne: false;
+            referencedRelation: "stacks_metadata";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
+    Views: { [_ in never]: never };
+    Functions: { [_ in never]: never };
+    Enums: { [_ in never]: never };
+    CompositeTypes: { [_ in never]: never };
   };
 };
 
@@ -104,37 +135,57 @@ export const getStacksMetadata = (client: AppSupabaseClient) =>
   });
 
 export const getProfile = (client: AppSupabaseClient, userId: string) =>
-  client.from("profiles").select("*").eq("user_id", userId).single();
+  client
+    .from("profiles")
+    .select("username")
+    .eq("user_id", userId)
+    .maybeSingle();
 
-// export const upsertProfile = (
-//   client: AppSupabaseClient,
-//   userId: string,
-//   username: string | null
-// ) =>
-//   client
-//     .from("profiles")
-//     .upsert(
-//       { user_id: userId, username },
-//       {
-//         onConflict: "user_id",
-//       }
-//     )
-//     .select("*")
-//     .single();
+export interface MemberAlias {
+  walletAddress: string;
+  username: string | null;
+}
 
-// export const upsertUser = (
-//   client: AppSupabaseClient,
-//   id: string,
-//   privyUserId: string,
-//   walletAddress?: string | null
-// ) =>
-//   client.from("users").upsert(
-//     {
-//       id,
-//       privy_user_id: privyUserId,
-//       wallet_address: walletAddress,
-//     },
-//     {
-//       onConflict: "id",
-//     }
-//   );
+export const getMemberAliases = async (
+  client: AppSupabaseClient,
+  walletAddresses: readonly string[]
+): Promise<MemberAlias[]> => {
+  if (walletAddresses.length === 0) return [];
+
+  // .in() is case-sensitive; match both casings
+  const candidates = [
+    ...walletAddresses,
+    ...walletAddresses.map((a) => a.toLowerCase()),
+  ];
+
+  const { data: users, error: usersError } = await client
+    .from("users")
+    .select("id, wallet_address")
+    .in("wallet_address", candidates);
+
+  if (usersError) throw usersError;
+  if (!users || users.length === 0) return [];
+
+  const { data: profiles, error: profilesError } = await client
+    .from("profiles")
+    .select("user_id, username")
+    .in(
+      "user_id",
+      users.map((u) => u.id)
+    );
+
+  if (profilesError) throw profilesError;
+
+  const usernameByUserId = new Map(
+    (profiles ?? []).map((p) => [p.user_id, p.username])
+  );
+
+  return users
+    .filter((u): u is typeof u & { wallet_address: string } =>
+      Boolean(u.wallet_address)
+    )
+    .map((u) => ({
+      walletAddress: u.wallet_address,
+      username: usernameByUserId.get(u.id) ?? null,
+    }));
+};
