@@ -72,8 +72,8 @@ importers:
         specifier: 2.x.x
         version: 2.22.1(@tanstack/query-core@5.91.2)(@types/react@19.2.14)(react@19.1.0)(typescript@5.9.3)(use-sync-external-store@1.4.0(react@19.1.0))(viem@2.47.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6))
       "@zkp2p/sdk":
-        specifier: ^0.5.2
-        version: 0.5.2(bufferutil@4.1.0)(react@19.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(viem@2.47.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6))(zod@4.3.6)
+        specifier: ^0.7.2
+        version: 0.7.2(bufferutil@4.1.0)(react@19.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(viem@2.47.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6))(zod@4.3.6)
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -4846,25 +4846,25 @@ packages:
         integrity: sha512-9koTqyGrM2cqFRW517BPY/iEtUDx2r1+Pwwu5m7sJ7ka79wi3EyqhqcICk/yDmv6jAS1rjKgTKXlEhanYjijcA==,
       }
 
-  "@zkp2p/contracts-v2@0.2.2":
+  "@zkp2p/contracts-v2@0.2.4":
     resolution:
       {
-        integrity: sha512-mI7v491SkHjFHqXnSTFkzNaFPSiVli1Czb1D943tNWAMLCERZaBGQTZe12HJP5kZQpDVndrI1GnnPrB0BU7lFQ==,
+        integrity: sha512-2MIPKWdKYCcgA/BjoasJh0VdTvP25UYyDi0TyTMx/8Z+6Qc/wzWnJTRMOzUP07P069XoQ2sTCcgS246Rb9AiHw==,
       }
     peerDependencies:
       ethers: ^5.0.0 || ^6.0.0
 
-  "@zkp2p/indexer-schema@0.2.3":
+  "@zkp2p/indexer-schema@0.5.0":
     resolution:
       {
-        integrity: sha512-SUVEhdPh0sgLikUEwsf0MxKevuYiCep/WhWh8OkC0GKx+C3OBaH/ueHYvgWoI7b7rczzthDCvvIJ0JlAbvHAvQ==,
+        integrity: sha512-L2ShEBv7HjghRElZSYtGcBNdnRVchVW7c/wnN3S5VLZQA4V2IUmVv8BPZzYYiQ53y+7F/qPKtUQOW+p9ZbZEiQ==,
       }
     engines: { node: ">=16" }
 
-  "@zkp2p/sdk@0.5.2":
+  "@zkp2p/sdk@0.7.2":
     resolution:
       {
-        integrity: sha512-RmFzlxYW526oK1GFQ6fj4Aa56tccO0UgQlDnD1WoFH00FwIDxo44bFaCg7FDJSqrqsz5lqhfmwcl3mdCdvGTVw==,
+        integrity: sha512-ZtRMfnI4LOUHZ+pYGjTi6rxQsch1kDFeTLIeRd7ytARWW1GT3+7qeXmT7FSxvq8sJCyrNkY6xmnLirtsC6De5Q==,
       }
     engines: { node: ">=22" }
     peerDependencies:
@@ -4874,10 +4874,10 @@ packages:
       react:
         optional: true
 
-  "@zkp2p/zkp2p-attestation@1.5.1":
+  "@zkp2p/zkp2p-attestation@1.6.3":
     resolution:
       {
-        integrity: sha512-s4JkhGQCPONomQxfKa9CNAgFrHiNnUO/sgdz4brxu2qrvbhF0hYuM8pGbsWDnXt24Yjqv2i75z4BGzNEj1Cb2Q==,
+        integrity: sha512-gGBNrbULr/livdR7wkyDto+zRVsAxIBUx6YBT+VEFW5stgZBwxv6sEuQ4AguBnmSe9WKFrWZWYC3fLgdFcPT6g==,
       }
     engines: { node: ">=20" }
     hasBin: true
@@ -16886,7 +16886,7 @@ snapshots:
       "@walletconnect/window-getters": 1.0.1
       tslib: 1.14.1
 
-  "@zkp2p/contracts-v2@0.2.2(ethers@6.13.4(bufferutil@4.1.0)(utf-8-validate@6.0.6))(typescript@5.9.3)(zod@4.3.6)":
+  "@zkp2p/contracts-v2@0.2.4(ethers@6.13.4(bufferutil@4.1.0)(utf-8-validate@6.0.6))(typescript@5.9.3)(zod@4.3.6)":
     dependencies:
       abitype: 1.0.6(typescript@5.9.3)(zod@4.3.6)
       ethers: 6.13.4(bufferutil@4.1.0)(utf-8-validate@6.0.6)
@@ -16894,13 +16894,13 @@ snapshots:
       - typescript
       - zod
 
-  "@zkp2p/indexer-schema@0.2.3": {}
+  "@zkp2p/indexer-schema@0.5.0": {}
 
-  "@zkp2p/sdk@0.5.2(bufferutil@4.1.0)(react@19.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(viem@2.47.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6))(zod@4.3.6)":
+  "@zkp2p/sdk@0.7.2(bufferutil@4.1.0)(react@19.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(viem@2.47.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6))(zod@4.3.6)":
     dependencies:
-      "@zkp2p/contracts-v2": 0.2.2(ethers@6.13.4(bufferutil@4.1.0)(utf-8-validate@6.0.6))(typescript@5.9.3)(zod@4.3.6)
-      "@zkp2p/indexer-schema": 0.2.3
-      "@zkp2p/zkp2p-attestation": 1.5.1(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+      "@zkp2p/contracts-v2": 0.2.4(ethers@6.13.4(bufferutil@4.1.0)(utf-8-validate@6.0.6))(typescript@5.9.3)(zod@4.3.6)
+      "@zkp2p/indexer-schema": 0.5.0
+      "@zkp2p/zkp2p-attestation": 1.6.3(bufferutil@4.1.0)(utf-8-validate@6.0.6)
       ethers: 6.13.4(bufferutil@4.1.0)(utf-8-validate@6.0.6)
       ox: 0.11.3(typescript@5.9.3)(zod@4.3.6)
       viem: 2.47.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6)
@@ -16912,7 +16912,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  "@zkp2p/zkp2p-attestation@1.5.1(bufferutil@4.1.0)(utf-8-validate@6.0.6)":
+  "@zkp2p/zkp2p-attestation@1.6.3(bufferutil@4.1.0)(utf-8-validate@6.0.6)":
     dependencies:
       "@peculiar/x509": 1.14.0
       ethers: 6.13.4(bufferutil@4.1.0)(utf-8-validate@6.0.6)
@@ -19290,7 +19290,7 @@ snapshots:
 
   ox@0.6.7(typescript@5.9.3)(zod@3.25.76):
     dependencies:
-      "@adraffy/ens-normalize": 1.10.1
+      "@adraffy/ens-normalize": 1.11.0
       "@noble/curves": 1.9.1
       "@noble/hashes": 1.5.0
       "@scure/bip32": 1.5.0
@@ -19304,7 +19304,7 @@ snapshots:
 
   ox@0.6.7(typescript@5.9.3)(zod@4.3.6):
     dependencies:
-      "@adraffy/ens-normalize": 1.10.1
+      "@adraffy/ens-normalize": 1.11.0
       "@noble/curves": 1.9.1
       "@noble/hashes": 1.5.0
       "@scure/bip32": 1.5.0

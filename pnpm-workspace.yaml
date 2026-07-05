@@ -5,6 +5,8 @@ blockExoticSubdeps: true
 minimumReleaseAge: 864000 # 10 days
 minimumReleaseAgeExclude:
   - "@breadcoop/ui"
+  # Peer ships breaking API changes rapidly; track latest despite the age gate
+  - "@zkp2p/sdk"
 strictDepBuilds: true
 trustPolicy: no-downgrade
 
