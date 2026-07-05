@@ -8,11 +8,13 @@ import {
   formatEther,
   Hex,
   http,
+  parseUnits,
   zeroAddress,
 } from "viem";
 import { usePublicClient } from "wagmi";
 import { useSendTransaction } from "@privy-io/react-auth";
 import {
+  apiGetPayeeDetails,
   createPeerExtensionSdk,
   Zkp2pClient,
   type BuyerTeePaymentProofInput,
@@ -61,6 +63,7 @@ export const PEER_PLATFORM_CONFIG: Record<PeerPlatform, PlatformConfig> = {
 };
 
 const ATTESTATION_SERVICE_URL = "https://attestation-service.zkp2p.xyz";
+const PEER_API_BASE_URL = "https://api.zkp2p.xyz";
 const MIN_EXTENSION_VERSION = [0, 6, 3] as const;
 const BRIDGE_TIMEOUT_MS = 15 * 60 * 1000;
 // Peer's quote API only supports Base as a destination, so the onramp lands
@@ -431,7 +434,9 @@ export function usePeerOnramp(
         recipient: address,
         destinationChainId: base.id,
         destinationToken: BASE_USDC_ADDRESS,
-        amount: fiatAmount,
+        // The quote API takes fiat amounts in 6-decimal precise units
+        // ("200000000" = 200.00), not human-readable strings.
+        amount: parseUnits(fiatAmount, 6).toString(),
         isExactFiat: true,
       });
 
@@ -444,18 +449,39 @@ export function usePeerOnramp(
         );
       }
 
+      const intent = bestQuote.intent;
+
+      // Quote responses only inline payeeData for authenticated callers, but
+      // the payee lookup itself is public - fetch the maker's handle so the
+      // payment instructions can show where to send the fiat.
+      let payeeHandle = bestQuote.payeeData?.offchainId ?? "";
+      if (!payeeHandle) {
+        try {
+          const payee = await apiGetPayeeDetails(
+            {
+              hashedOnchainId: intent.payeeDetails,
+              processorName: intent.processorName,
+            },
+            PEER_API_BASE_URL
+          );
+          payeeHandle = payee.responseObject?.offchainId ?? "";
+        } catch (error) {
+          console.warn("[usePeerOnramp]: payee details lookup failed", error);
+        }
+      }
+
       const quote: PeerOnrampQuote = {
         platform,
         currency,
-        fiatAmount: bestQuote.fiatAmount,
+        // Keep the human-readable amount (the API echoes precise units);
+        // it is matched against the captured payment rows later.
+        fiatAmount,
         fiatAmountFormatted: bestQuote.fiatAmountFormatted,
         tokenAmountFormatted: bestQuote.tokenAmountFormatted,
-        payeeHandle: bestQuote.payeeData?.offchainId ?? "",
+        payeeHandle,
       };
 
       setStepState({ step: "signaling", quote });
-
-      const intent = bestQuote.intent;
 
       const prepared = await client.signalIntent.prepare({
         depositId: String(intent.depositId),

@@ -149,11 +149,8 @@ const PeerOnrampModal = ({
       {stepState.step === "awaiting_payment" && (
         <div>
           <Body className="mb-4">
-            Send{" "}
-            <strong>
-              {stepState.quote.fiatAmountFormatted} {stepState.quote.currency}
-            </strong>{" "}
-            with {PEER_PLATFORM_CONFIG[stepState.quote.platform].label} to:
+            Send <strong>{stepState.quote.fiatAmountFormatted}</strong> with{" "}
+            {PEER_PLATFORM_CONFIG[stepState.quote.platform].label} to:
           </Body>
           <Body
             bold
@@ -162,7 +159,7 @@ const PeerOnrampModal = ({
             {stepState.quote.payeeHandle || "See your payment app"}
           </Body>
           <Body className="text-sm text-surface-grey mb-6">
-            You will receive ~{stepState.quote.tokenAmountFormatted} USDC,
+            You will receive ~{stepState.quote.tokenAmountFormatted},
             automatically converted to xDAI and baked into BREAD. Send exactly
             the amount shown, then confirm below.
           </Body>
