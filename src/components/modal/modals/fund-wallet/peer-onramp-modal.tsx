@@ -162,9 +162,9 @@ const PeerOnrampModal = ({
             {stepState.quote.payeeHandle || "See your payment app"}
           </Body>
           <Body className="text-sm text-surface-grey mb-6">
-            You will receive ~{stepState.quote.tokenAmountFormatted} xDAI,
-            automatically baked into BREAD. Send exactly the amount shown, then
-            confirm below.
+            You will receive ~{stepState.quote.tokenAmountFormatted} USDC,
+            automatically converted to xDAI and baked into BREAD. Send exactly
+            the amount shown, then confirm below.
           </Body>
           <div className="lifted-button-container">
             <LocalButton onClick={confirmPaid} type="button">

@@ -4,6 +4,7 @@ import {
   Address,
   createWalletClient,
   encodeFunctionData,
+  erc20Abi,
   formatEther,
   Hex,
   http,
@@ -22,6 +23,7 @@ import {
 } from "@zkp2p/sdk";
 import { clientEnv } from "@/lib/env";
 import { breadAbi } from "@/lib/abis/bread-abi";
+import { getBridgeQuote } from "@/lib/lifi";
 import { useSponsoredTx } from "./use-sponsored-tx";
 import { useWaitForTxReceipt } from "./use-wait-for-tx-receipt";
 
@@ -61,6 +63,9 @@ export const PEER_PLATFORM_CONFIG: Record<PeerPlatform, PlatformConfig> = {
 const ATTESTATION_SERVICE_URL = "https://attestation-service.zkp2p.xyz";
 const MIN_EXTENSION_VERSION = [0, 6, 3] as const;
 const BRIDGE_TIMEOUT_MS = 15 * 60 * 1000;
+// Peer's quote API only supports Base as a destination, so the onramp lands
+// USDC on Base and we bridge it to Gnosis xDAI ourselves via LI.FI.
+const BASE_USDC_ADDRESS: Address = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 
 export type PeerOnrampQuote = {
   platform: PeerPlatform;
@@ -263,6 +268,86 @@ export function usePeerOnramp(
     return sdk;
   };
 
+  const readUsdcBalance = async () => {
+    if (!basePublicClient) throw new Error("Base RPC client unavailable");
+
+    return basePublicClient.readContract({
+      address: BASE_USDC_ADDRESS,
+      abi: erc20Abi,
+      functionName: "balanceOf",
+      args: [address],
+    });
+  };
+
+  // The fulfill tx releases USDC to the recipient on Base in the same block;
+  // the short retry loop only covers RPC lag.
+  const waitForUsdcReceived = async (prevBalance: bigint) => {
+    for (let attempt = 0; attempt < 15; attempt++) {
+      if (cancelledRef.current) throw new Error("Onramp was cancelled");
+
+      const balance = await readUsdcBalance();
+      if (balance > prevBalance) return balance - prevBalance;
+
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+
+    throw new Error(
+      "Your payment was verified, but the USDC has not shown up on Base yet - check back in a few minutes."
+    );
+  };
+
+  const bridgeUsdcToXdai = async (amount: bigint) => {
+    if (!basePublicClient) throw new Error("Base RPC client unavailable");
+
+    const lifiQuote = await getBridgeQuote({
+      fromChainId: base.id,
+      toChainId: clientEnv.NEXT_PUBLIC_CHAIN_ID,
+      fromToken: BASE_USDC_ADDRESS,
+      toToken: zeroAddress,
+      fromAmount: amount,
+      fromAddress: address,
+      toAddress: address,
+    });
+
+    const txRequest = lifiQuote.transactionRequest;
+    const approvalAddress = lifiQuote.estimate.approvalAddress as
+      | Address
+      | undefined;
+
+    if (!txRequest?.to || !txRequest.data) {
+      throw new Error("LI.FI returned no executable bridge transaction");
+    }
+
+    if (approvalAddress) {
+      const allowance = await basePublicClient.readContract({
+        address: BASE_USDC_ADDRESS,
+        abi: erc20Abi,
+        functionName: "allowance",
+        args: [address, approvalAddress],
+      });
+
+      if (allowance < amount) {
+        await sendPreparedTx({
+          to: BASE_USDC_ADDRESS,
+          data: encodeFunctionData({
+            abi: erc20Abi,
+            functionName: "approve",
+            args: [approvalAddress, amount],
+          }),
+          value: BigInt(0),
+          chainId: base.id,
+        });
+      }
+    }
+
+    await sendPreparedTx({
+      to: txRequest.to as Address,
+      data: txRequest.data as Hex,
+      value: txRequest.value ? BigInt(txRequest.value) : BigInt(0),
+      chainId: base.id,
+    });
+  };
+
   const waitForBridgedXdai = async (prevBalance: bigint) => {
     if (!gnosisPublicClient) throw new Error("Gnosis RPC client unavailable");
 
@@ -344,8 +429,8 @@ export function usePeerOnramp(
         fiatCurrency: currency,
         user: address,
         recipient: address,
-        destinationChainId: clientEnv.NEXT_PUBLIC_CHAIN_ID,
-        destinationToken: zeroAddress,
+        destinationChainId: base.id,
+        destinationToken: BASE_USDC_ADDRESS,
         amount: fiatAmount,
         isExactFiat: true,
       });
@@ -438,10 +523,11 @@ export function usePeerOnramp(
 
           setStepState({ step: "fulfilling", quote: session.quote });
 
-          // Snapshot before fulfilling: the bridged xDAI can only arrive
-          // after the fulfill tx releases funds on Base.
+          // Snapshot both sides before fulfilling: USDC lands on Base with
+          // the fulfill tx, xDAI lands on Gnosis after our LI.FI bridge.
           if (!gnosisPublicClient)
             throw new Error("Gnosis RPC client unavailable");
+          const prevUsdcBalance = await readUsdcBalance();
           const prevBalance = await gnosisPublicClient.getBalance({ address });
 
           const prepared = await session.client.fulfillIntent.prepare({
@@ -453,6 +539,8 @@ export function usePeerOnramp(
           await sendPreparedTx(prepared);
 
           setStepState({ step: "bridging", quote: session.quote });
+          const usdcReceived = await waitForUsdcReceived(prevUsdcBalance);
+          await bridgeUsdcToXdai(usdcReceived);
           const newBalance = await waitForBridgedXdai(prevBalance);
 
           setStepState({ step: "minting", quote: session.quote });
