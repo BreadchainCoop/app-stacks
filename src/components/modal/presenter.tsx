@@ -16,6 +16,7 @@ import WithdrawBreadModal from "./modals/withdraw-bread";
 import WalletFundingStatusModal from "./modals/wallet-funding-status";
 import ReminderModal from "@/components/reminder/modal";
 import NewUserOnboarding from "./modals/new-user-onboarding";
+import SetAliasModal from "./modals/set-alias";
 import FundWallet from "./modals/fund-wallet/fund-wallet";
 import LiFiSwapModal from "../lifi/swap-modal";
 import InstallPeerModal from "../peer/install-modal";
@@ -68,6 +69,9 @@ const ModalPresenter = () => {
               {modalState.type === "WITHDRAW_BREAD" && <WithdrawBreadModal />}
               {modalState.type === "NEW_USER_ONBOARDING" && (
                 <NewUserOnboarding modalState={modalState} />
+              )}
+              {modalState.type === "SET_ALIAS" && (
+                <SetAliasModal modalState={modalState} />
               )}
               {modalState.type === "FUND_WALLET" && (
                 <FundWallet modalState={modalState} />

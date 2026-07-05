@@ -1,6 +1,7 @@
 "use client";
 
 import { Body, useConnectedUser } from "@breadcoop/ui";
+import ProfileSection from "./profile-section";
 import SolidarityFundSection from "./solidarity-fund-section";
 import StacksOverview from "./stacks-overview";
 
@@ -19,6 +20,7 @@ export const AccountContent = () => {
 
   return (
     <>
+      <ProfileSection />
       <StacksOverview address={user.address} />
       <SolidarityFundSection />
     </>

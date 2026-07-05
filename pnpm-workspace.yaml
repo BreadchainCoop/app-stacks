@@ -7,6 +7,11 @@ minimumReleaseAgeExclude:
   - "@breadcoop/ui"
 strictDepBuilds: true
 trustPolicy: no-downgrade
+trustPolicyExclude:
+  # @privy-io/react-auth pins jose@4.15.9, an unsigned backport published
+  # after signed 5.x releases (a "downgrade" by publish date). Our own
+  # top-level jose (5.x) is provenance-signed.
+  - "jose"
 
 # pnpm v11: explicit per-package build script approval
 allowBuilds:

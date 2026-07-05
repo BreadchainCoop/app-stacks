@@ -19,9 +19,12 @@ import { ICircleStatus } from "@/interfaces/circle";
 import { getUserCircleStatus } from "@/lib/get-user-circle-status";
 import { useCircleState } from "@/hooks/use-circles-state";
 import { CircleState } from "@/lib/circle-state";
+import { useMemberAliases } from "@/hooks/use-member-aliases";
 import { formatRelativeTime, formatShortDate } from "@/utils/time";
 import { Body, Chip, formatBalance } from "@breadcoop/ui";
 import { Address, formatEther } from "viem";
+import { networks } from "@/utils/network";
+import { clientEnv } from "@/lib/env";
 
 const FAILED_STATUSES: ICircleStatus[] = [
   "decommissioned",
@@ -58,6 +61,8 @@ const MembersInfo = ({
   circleStartsTimestamp: bigint;
   depositInterval: bigint;
 }) => {
+  const aliases = useMemberAliases(info.members);
+
   return (
     <div>
       <Accordion>
@@ -65,6 +70,7 @@ const MembersInfo = ({
           const totalDeposits = +formatEther(
             info.memberBalances?.balances[index] || BigInt(0)
           );
+          const alias = aliases[member.toLowerCase()];
 
           return (
             <AccordionItem key={member} value={member}>
@@ -73,7 +79,7 @@ const MembersInfo = ({
                   {member === owner ? (
                     <>
                       <Body bold>
-                        <MemberEnsName address={owner} />
+                        <MemberEnsName address={owner} alias={alias} />
                       </Body>
                       <Chip className="font-bold text-blue-1 bg-paper-main border-current text-xs">
                         Group owner
@@ -81,7 +87,7 @@ const MembersInfo = ({
                     </>
                   ) : (
                     <Body bold>
-                      <MemberEnsName address={member} />
+                      <MemberEnsName address={member} alias={alias} />
                     </Body>
                   )}
                 </div>
@@ -251,8 +257,27 @@ function MemberInfoContent({
   );
 }
 
-function MemberEnsName({ address }: { address: Address }) {
+function MemberEnsName({
+  address,
+  alias,
+}: {
+  address: Address;
+  alias?: string | null;
+}) {
   const { ensName, isLoading } = usePreferredEnsName({ address });
+
+  if (alias) {
+    return (
+      <a
+        href={`${networks[clientEnv.NEXT_PUBLIC_CHAIN_ID as keyof typeof networks].explorerUrl}/${address}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="hover:text-primary-blue"
+      >
+        <span className="inline-flex items-center justify-start">{alias}</span>
+      </a>
+    );
+  }
 
   return (
     <span className="inline-flex items-center justify-start">
