@@ -50,7 +50,6 @@ function buildInviteUrl(
   deposit: string
 ): string {
   const url = new URL(baseUrl);
-  url.searchParams.set("contract", SAVING_CIRCLES_CONTRACT_ADDRESS);
   url.searchParams.set("circleId", circleId);
   url.searchParams.set("nonce", nonce.toString());
   url.searchParams.set("signature", signature);
