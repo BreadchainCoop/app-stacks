@@ -9,11 +9,12 @@ import { getDefaultChainId } from "@/utils/chain";
 import { Body, LoginButton, useConnectedUser } from "@breadcoop/ui";
 import { CheckIcon } from "@phosphor-icons/react";
 import { usePrivy } from "@privy-io/react-auth";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useReadContract } from "wagmi";
 import { useQueryClient } from "@tanstack/react-query";
 import { readContractQueryKey } from "wagmi/query";
+import { CircleParams } from "./interface";
 
 const errorMessages: Record<string, string> = {
   InviteAlreadyUsed: "This invitation has already been used.",
@@ -23,9 +24,14 @@ const errorMessages: Record<string, string> = {
   InvalidSigner: "This invitation link is invalid.",
 };
 
-export default function AcceptInvite() {
+type AcceptInvite = Pick<CircleParams, "circleId" | "nonce" | "signature">;
+
+export default function AcceptInvite({
+  circleId,
+  nonce,
+  signature,
+}: AcceptInvite) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { user } = useConnectedUser();
   const { sendSavingCirclesTx } = useSavingCirclesTx();
   const { user: privyUser } = usePrivy();
@@ -33,10 +39,7 @@ export default function AcceptInvite() {
 
   const address = user.status === "CONNECTED" ? user.address : undefined;
 
-  const circleId = searchParams.get("circleId") as string;
   const parsedId = BigInt(circleId || "");
-  const nonce = searchParams.get("nonce");
-  const signature = searchParams.get("signature");
 
   const [redeeming, setRedeeming] = useState(false);
 
@@ -82,30 +85,19 @@ export default function AcceptInvite() {
         args: [parsedId, address as `0x${string}`],
         chainId: getDefaultChainId(),
       });
-      queryClient.setQueryData(isMemberKey, true);
-      await queryClient.invalidateQueries({ queryKey: isMemberKey });
-
-      try {
-        const res = await fetch("/api/stacks/invite", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ circleId, nonce, privyUserId: privyUser?.id }),
-        });
-        if (!res.ok) {
-          console.error(
-            "accept-invite: /api/stacks/invite PATCH failed",
-            res.status,
-            await res.text().catch(() => "")
-          );
-        }
-      } catch (patchErr) {
-        console.error(
-          "accept-invite: /api/stacks/invite PATCH error",
-          patchErr
-        );
-      }
 
       router.push(`/stacks/${circleId}`);
+
+      queryClient.setQueryData(isMemberKey, true);
+      queryClient.invalidateQueries({ queryKey: isMemberKey });
+
+      fetch("/api/stacks/invite", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ circleId, nonce, privyUserId: privyUser?.id }),
+      }).catch((error) => {
+        console.error("Failed to mark invite as used:", error);
+      });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       const contractError =
@@ -157,9 +149,9 @@ export default function AcceptInvite() {
         leftIcon={redeeming ? undefined : <CheckIcon size={24} />}
         className="w-full"
         variant="positive"
-        disabled={redeeming}
+        isLoading={redeeming}
       >
-        {redeeming ? <Loading /> : "Accept invite"}
+        Accept invite
       </LocalButton>
     );
   }
