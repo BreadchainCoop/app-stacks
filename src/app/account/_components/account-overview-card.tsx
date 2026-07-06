@@ -12,6 +12,7 @@ import {
 import Link from "next/link";
 import { Address, formatEther } from "viem";
 import LocalButton from "@/components/button";
+import { useIsOwnAddress } from "@/hooks/use-is-own-address";
 
 const toBread = (value: bigint | undefined) =>
   Number(formatEther(value ?? BigInt(0)));
@@ -56,8 +57,15 @@ const Column = ({
   </div>
 );
 
-const AccountOverviewCard = ({ address }: { address: Address }) => {
+const AccountOverviewCard = ({
+  address,
+  basePath,
+}: {
+  address: Address;
+  basePath: string;
+}) => {
   const { setModal } = useModal();
+  const isOwner = useIsOwnAddress(address);
   const { circles, financialSummary, isLoading } = useUserCirclesList(address);
 
   const scrollToStacks = () => {
@@ -93,20 +101,22 @@ const AccountOverviewCard = ({ address }: { address: Address }) => {
           <p className="text-4xl font-bold text-surface-ink md:text-5xl">
             ${formatBalance(totalHeld, 2)}
           </p>
-          <div className="flex gap-2">
-            <SmallButton
-              tone="primary"
-              onClick={() => setModal({ type: "FUND_WALLET", address })}
-            >
-              Deposit
-            </SmallButton>
-            <SmallButton
-              tone="ink"
-              onClick={() => setModal({ type: "WITHDRAW_BREAD" })}
-            >
-              Withdraw
-            </SmallButton>
-          </div>
+          {isOwner && (
+            <div className="flex gap-2">
+              <SmallButton
+                tone="primary"
+                onClick={() => setModal({ type: "FUND_WALLET", address })}
+              >
+                Deposit
+              </SmallButton>
+              <SmallButton
+                tone="ink"
+                onClick={() => setModal({ type: "WITHDRAW_BREAD" })}
+              >
+                Withdraw
+              </SmallButton>
+            </div>
+          )}
         </div>
       </div>
 
@@ -115,10 +125,11 @@ const AccountOverviewCard = ({ address }: { address: Address }) => {
         label="Funds to claim"
         amount={claimTotal}
         cta={
-          claimTotal > 0 ? (
+          isOwner &&
+          (claimTotal > 0 ? (
             <LocalButton
               as={Link}
-              href="/my-account?tab=claim"
+              href={`${basePath}?tab=claim`}
               scroll={false}
               onClick={scrollToStacks}
               variant="positive"
@@ -136,7 +147,7 @@ const AccountOverviewCard = ({ address }: { address: Address }) => {
             >
               Claim
             </LocalButton>
-          )
+          ))
         }
       />
 
@@ -145,10 +156,11 @@ const AccountOverviewCard = ({ address }: { address: Address }) => {
         label="Funds to deposit"
         amount={depositTotal}
         cta={
-          depositTotal > 0 ? (
+          isOwner &&
+          (depositTotal > 0 ? (
             <LocalButton
               as={Link}
-              href="/my-account?tab=due"
+              href={`${basePath}?tab=due`}
               scroll={false}
               onClick={scrollToStacks}
               className="font-bold"
@@ -164,7 +176,7 @@ const AccountOverviewCard = ({ address }: { address: Address }) => {
             >
               Deposit funds
             </LocalButton>
-          )
+          ))
         }
       />
     </div>

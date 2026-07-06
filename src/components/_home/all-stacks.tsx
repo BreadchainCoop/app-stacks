@@ -4,13 +4,17 @@ import CardCarousel from "../card-carousel";
 import { useAllCircles } from "@/hooks/use-all-circles";
 import Loading from "@/app/loading";
 import HomeHeader from "./header";
-import { usePrivy } from "@privy-io/react-auth";
+import { useConnectedUser } from "@breadcoop/ui";
 import { useUserStacksMetadata } from "@/hooks/use-user-stacks-metadata";
 
 const HomeAllStacks = () => {
   const { data, isLoading } = useAllCircles();
-  const { user } = usePrivy();
-  const { stacksMap } = useUserStacksMetadata(user?.id);
+  const { user } = useConnectedUser();
+  const address =
+    user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
+      ? user.address
+      : undefined;
+  const { stacksMap } = useUserStacksMetadata(address);
 
   return (
     <section className="mt-6">

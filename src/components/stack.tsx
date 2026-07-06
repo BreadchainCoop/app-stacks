@@ -28,9 +28,12 @@ const failedStatuses: ICircleStatus[] = ["decommissioned", "expired", "failed"];
 const Stack = ({
   stack,
   stacksMap,
+  readOnly = false,
 }: {
   stack: ICircleList;
   stacksMap: Record<string, StackMetadata>;
+  /** Hide claim/deposit actions when the viewer is not the account owner */
+  readOnly?: boolean;
 }) => {
   const { setModal } = useModal();
   const stackMeta = stacksMap[String(stack.id)];
@@ -127,7 +130,10 @@ const Stack = ({
             ID: {stack.id}
           </Body>
           <div className="flex items-center justify-end gap-2">
-            {stack.status === "payment_due" ? (
+            {/* "Payment due" / "Member" describe the account's own standing,
+                so they only render for the owner; "Failed" is a fact about
+                the stack itself and shows for every viewer. */}
+            {stack.status === "payment_due" && !readOnly ? (
               <Chip className="font-bold border-current! text-system-warning">
                 Payment due
               </Chip>
@@ -135,7 +141,9 @@ const Stack = ({
               <Chip className="font-bold border-current! text-system-red">
                 Failed
               </Chip>
-            ) : stack.isMember && !completedStatuses.includes(stack.status!) ? (
+            ) : stack.isMember &&
+              !readOnly &&
+              !completedStatuses.includes(stack.status!) ? (
               <Chip className="border-system-green text-system-green bg-paper-main max-w-max hover:border-current">
                 Member
               </Chip>
@@ -203,7 +211,7 @@ const Stack = ({
         })}
       </ul>
       <div className="flex flex-col gap-3 mt-auto">
-        {stack.canWithdraw ? (
+        {stack.canWithdraw && !readOnly ? (
           <ClaimButton
             amount={
               Number(formatEther(stack.depositAmount)) * stack.totalMember
@@ -221,7 +229,7 @@ const Stack = ({
             }
             nextDepositAddress={stack.token}
           />
-        ) : stack.status === "payment_due" ? (
+        ) : stack.status === "payment_due" && !readOnly ? (
           <DepositButton
             circleId={stack.id}
             tokenAddress={stack.token}
@@ -229,7 +237,7 @@ const Stack = ({
             leftIcon={<HandWithdrawIcon />}
             amount={stack.depositAmount}
           />
-        ) : stack.status === "failed" && stack.isMember ? (
+        ) : stack.status === "failed" && stack.isMember && !readOnly ? (
           <LocalButton
             className="font-bold w-full"
             variant="burn"

@@ -23,8 +23,7 @@ import { useMemberAliases } from "@/hooks/use-member-aliases";
 import { formatRelativeTime, formatShortDate } from "@/utils/time";
 import { Body, Chip, formatBalance } from "@breadcoop/ui";
 import { Address, formatEther } from "viem";
-import { networks } from "@/utils/network";
-import { clientEnv } from "@/lib/env";
+import Link from "next/link";
 
 const FAILED_STATUSES: ICircleStatus[] = [
   "decommissioned",
@@ -267,23 +266,34 @@ function MemberEnsName({
   const { ensName, isLoading } = usePreferredEnsName({ address });
 
   if (alias) {
+    return <AccountPage address={address} label={alias} />;
+  }
+
+  if (isLoading) {
     return (
-      <a
-        href={`${networks[clientEnv.NEXT_PUBLIC_CHAIN_ID as keyof typeof networks].explorerUrl}/${address}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="hover:text-primary-blue"
-      >
-        <span className="inline-flex items-center justify-start">{alias}</span>
-      </a>
+      <span className="inline-flex items-center justify-start">Loading...</span>
     );
   }
 
-  return (
-    <span className="inline-flex items-center justify-start">
-      {isLoading ? "Loading..." : ensName || address}
-    </span>
-  );
+  return <AccountPage address={address} label={ensName || address} />;
 }
+
+const AccountPage = ({
+  address,
+  label,
+}: {
+  address: Address;
+  label: string;
+}) => {
+  return (
+    <Link
+      href={`/account/${address}`}
+      className="hover:text-primary-blue"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <span className="inline-flex items-center justify-start">{label}</span>
+    </Link>
+  );
+};
 
 export default MembersInfo;

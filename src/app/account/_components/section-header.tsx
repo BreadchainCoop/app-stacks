@@ -1,5 +1,5 @@
 import { Body, Heading3 } from "@breadcoop/ui";
-import { Icon } from "@phosphor-icons/react";
+import type { Icon } from "@phosphor-icons/react";
 
 interface SectionHeaderProps {
   I: Icon;

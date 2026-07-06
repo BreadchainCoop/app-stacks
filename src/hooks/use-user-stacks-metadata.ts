@@ -1,38 +1,41 @@
 import { useQuery } from "@tanstack/react-query";
 import { createSupabaseClient, SupabaseStackMetadata } from "@/lib/supabase";
 
-type UserStacks = {
-  stack_id: string;
-  stacks_metadata: SupabaseStackMetadata;
-};
-
 const supabase = createSupabaseClient();
 
-export const useUserStacksMetadata = (privyUserId: string | undefined) => {
+export const useUserStacksMetadata = (address: string | undefined) => {
   const { data, isLoading } = useQuery({
-    queryKey: ["user-stacks-metadata", privyUserId],
+    queryKey: ["user-stacks-metadata", address?.toLowerCase()],
     queryFn: async () => {
-      const res = await fetch(`/api/user?privyUserId=${privyUserId}`);
-      if (!res.ok) throw new Error("Failed to fetch user");
-      const { id } = await res.json();
+      const empty: Record<string, SupabaseStackMetadata> = {};
+      if (!address) return empty;
+
+      // .in() is case-sensitive; match both casings
+      const { data: users, error: userError } = await supabase
+        .from("users")
+        .select("id")
+        .in("wallet_address", [address, address.toLowerCase()]);
+
+      if (userError) throw userError;
+
+      const userId = users?.[0]?.id;
+      if (!userId) return empty;
 
       const { data, error } = await supabase
         .from("user_stacks")
         .select("stack_id, stacks_metadata(*)")
-        .eq("user_id", id);
+        .eq("user_id", userId);
 
       if (error) throw error;
 
-      const returned = Object.fromEntries(
-        data.map(({ stacks_metadata }: UserStacks) => [
-          stacks_metadata.id,
-          stacks_metadata,
-        ])
+      return Object.fromEntries(
+        data
+          .map(({ stacks_metadata }) => stacks_metadata)
+          .filter((meta): meta is SupabaseStackMetadata => Boolean(meta))
+          .map((meta) => [meta.id, meta])
       ) as Record<string, SupabaseStackMetadata>;
-
-      return returned;
     },
-    enabled: !!privyUserId,
+    enabled: !!address,
   });
 
   return {

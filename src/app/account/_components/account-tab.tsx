@@ -9,7 +9,8 @@ import {
   StackOverflowLogoIcon,
   WarningIcon,
 } from "@phosphor-icons/react";
-import { useConnectedUser } from "@breadcoop/ui";
+import { Address } from "viem";
+import { useIsOwnAddress } from "@/hooks/use-is-own-address";
 
 export const tabs = [
   { label: "All your Stacks", id: "all", icon: StackIcon },
@@ -18,16 +19,21 @@ export const tabs = [
   { label: "Past Stacks", id: "past", icon: StackOverflowLogoIcon },
 ];
 
-const AccountTab = ({ basePath = "/" }: { basePath?: string }) => {
-  const { user } = useConnectedUser();
-
-  if (!(user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"))
-    return null;
+// Tabs are just filters over publicly readable on-chain data, so they render
+// for any viewer, not only the connected user.
+const AccountTab = ({
+  basePath = "/",
+  address,
+}: {
+  basePath?: string;
+  address: Address;
+}) => {
+  const isOwner = useIsOwnAddress(address);
 
   return (
     // <Suspense fallback={<TabSkeleton />}>
     <Suspense fallback={null}>
-      <ProtectedTab basePath={basePath} />
+      <ProtectedTab basePath={basePath} isOwner={isOwner} />
     </Suspense>
   );
 };
@@ -50,7 +56,13 @@ const AccountTab = ({ basePath = "/" }: { basePath?: string }) => {
 // 	);
 // };
 
-const ProtectedTab = ({ basePath }: { basePath: string }) => {
+const ProtectedTab = ({
+  basePath,
+  isOwner,
+}: {
+  basePath: string;
+  isOwner: boolean;
+}) => {
   const currentTab = useSearchParams().get("tab") || "all";
 
   return (
@@ -66,6 +78,7 @@ const ProtectedTab = ({ basePath }: { basePath: string }) => {
                     ? "text-surface-ink border-primary-blue"
                     : "text-surface-grey border-transparent"
                 }`}
+                scroll={false}
               >
                 <span
                   className={`${
@@ -74,7 +87,7 @@ const ProtectedTab = ({ basePath }: { basePath: string }) => {
                 >
                   <span>{<tab.icon size={20} />}</span>
                 </span>
-                {tab.label}
+                {tab.id === "all" && !isOwner ? "All Stacks" : tab.label}
               </Link>
             </li>
           );
