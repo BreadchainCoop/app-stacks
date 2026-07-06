@@ -1,5 +1,6 @@
 import { Body, Caption } from "@breadcoop/ui";
-import { HandHeartIcon } from "@phosphor-icons/react";
+// dist/ssr: context-free icons usable in server components
+import { HandHeartIcon } from "@phosphor-icons/react/dist/ssr";
 import SectionHeader from "./section-header";
 
 const SolidarityFundSection = () => (
