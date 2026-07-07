@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { createErrorResponse } from "../../utils";
 import { SupabaseInviteLink } from "@/lib/supabase";
+import { parseStackMetadataId } from "@/lib/stack-types";
 
 const supabaseAdmin = createClient(
   serverEnv.NEXT_PUBLIC_SUPABASE_URL,
@@ -15,6 +16,7 @@ interface CreateStackRequestBody {
   expected_members: number;
   invite_links: SupabaseInviteLink[];
   privyUserId: string;
+  stackType?: string;
 }
 
 export async function POST(req: NextRequest) {
@@ -31,11 +33,32 @@ export async function POST(req: NextRequest) {
       return createErrorResponse("Invalid request body");
     }
 
-    const { id, stackname, expected_members, invite_links, privyUserId } =
-      body as CreateStackRequestBody;
+    const {
+      id,
+      stackname,
+      expected_members,
+      invite_links,
+      privyUserId,
+      stackType,
+    } = body as CreateStackRequestBody;
 
     if (!id || typeof id !== "string") {
       return createErrorResponse("id is required and must be a string");
+    }
+
+    // Bare on-chain id = rosca; the new types are prefixed (asca:<id>,
+    // goal:<id>, collective:<id>) so ids from different contracts never
+    // collide in stacks_metadata.
+    const parsedId = parseStackMetadataId(id);
+
+    if (!parsedId) {
+      return createErrorResponse(
+        "id must be a numeric on-chain id, optionally prefixed with asca:, goal: or collective:"
+      );
+    }
+
+    if (stackType !== undefined && stackType !== parsedId.type) {
+      return createErrorResponse("stackType does not match the id prefix");
     }
 
     if (!stackname || typeof stackname !== "string") {
@@ -62,7 +85,13 @@ export async function POST(req: NextRequest) {
 
     const { error: stackError } = await supabaseAdmin
       .from("stacks_metadata")
-      .insert({ id, stackname, expected_members, invite_links });
+      .insert({
+        id,
+        stackname,
+        expected_members,
+        invite_links,
+        stack_type: parsedId.type,
+      });
 
     if (stackError) {
       console.error("Failed to insert stack metadata:", stackError);

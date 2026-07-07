@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { createErrorResponse } from "../../utils";
 import { SupabaseInviteLink } from "@/lib/supabase";
+import { parseStackMetadataId } from "@/lib/stack-types";
 
 const supabaseAdmin = createClient(
   serverEnv.NEXT_PUBLIC_SUPABASE_URL,
@@ -13,6 +14,7 @@ interface RedeemInviteRequestBody {
   circleId: string;
   nonce: string;
   privyUserId: string;
+  stackType?: string;
 }
 
 export async function PATCH(req: NextRequest) {
@@ -29,10 +31,27 @@ export async function PATCH(req: NextRequest) {
       return createErrorResponse("Invalid request body");
     }
 
-    const { circleId, nonce, privyUserId } = body as RedeemInviteRequestBody;
+    const { circleId, nonce, privyUserId, stackType } =
+      body as RedeemInviteRequestBody;
 
     if (!circleId || typeof circleId !== "string") {
       return createErrorResponse("circleId is required and must be a string");
+    }
+
+    // Bare on-chain id = rosca; the new types are prefixed (asca:<id>,
+    // goal:<id>, collective:<id>) — same id shape as stacks_metadata.id.
+    const parsedId = parseStackMetadataId(circleId);
+
+    if (!parsedId) {
+      return createErrorResponse(
+        "circleId must be a numeric on-chain id, optionally prefixed with asca:, goal: or collective:"
+      );
+    }
+
+    if (stackType !== undefined && stackType !== parsedId.type) {
+      return createErrorResponse(
+        "stackType does not match the circleId prefix"
+      );
     }
 
     if (!nonce || typeof nonce !== "string") {
