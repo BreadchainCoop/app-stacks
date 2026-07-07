@@ -14,6 +14,7 @@ import { useReadContract } from "wagmi";
 import AcceptInvite from "./accept-invite";
 import InviteDetails from "./invite-details";
 import AscaInvite from "./asca-invite";
+import GoalInvite from "./goal-invite";
 
 export default function PageContent() {
   const searchParams = useSearchParams();
@@ -33,6 +34,14 @@ export default function PageContent() {
     return (
       <FeatureGate feature="asca">
         <AscaInvite />
+      </FeatureGate>
+    );
+  }
+
+  if (type === "goal") {
+    return (
+      <FeatureGate feature="goalSavings">
+        <GoalInvite />
       </FeatureGate>
     );
   }
