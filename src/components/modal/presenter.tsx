@@ -33,6 +33,11 @@ import {
   GoalFailedResultModal,
   GoalSuccessResultModal,
 } from "./modals/goal-result";
+import CollectiveInitModal from "./modals/collective-init";
+import {
+  CollectiveFailedResultModal,
+  CollectiveSuccessResultModal,
+} from "./modals/collective-result";
 import { StackTxInitModal, StackTxStatusModal } from "./modals/stack-tx";
 
 const ModalPresenter = () => {
@@ -126,6 +131,15 @@ const ModalPresenter = () => {
               )}
               {modalState.type === "GOAL_CREATION_FAILED" && (
                 <GoalFailedResultModal modalState={modalState} />
+              )}
+              {modalState.type === "COLLECTIVE_CREATION_INIT" && (
+                <CollectiveInitModal modalState={modalState} />
+              )}
+              {modalState.type === "COLLECTIVE_CREATION_SUCCESS" && (
+                <CollectiveSuccessResultModal modalState={modalState} />
+              )}
+              {modalState.type === "COLLECTIVE_CREATION_FAILED" && (
+                <CollectiveFailedResultModal modalState={modalState} />
               )}
               {modalState.type === "STACK_TX_INIT" && (
                 <StackTxInitModal modalState={modalState} />
