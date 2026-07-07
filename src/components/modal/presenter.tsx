@@ -28,6 +28,11 @@ import {
   AscaFailedResultModal,
   AscaSuccessResultModal,
 } from "./modals/asca-result";
+import GoalInitModal from "./modals/goal-init";
+import {
+  GoalFailedResultModal,
+  GoalSuccessResultModal,
+} from "./modals/goal-result";
 import { StackTxInitModal, StackTxStatusModal } from "./modals/stack-tx";
 
 const ModalPresenter = () => {
@@ -112,6 +117,15 @@ const ModalPresenter = () => {
               )}
               {modalState.type === "ASCA_CREATION_FAILED" && (
                 <AscaFailedResultModal modalState={modalState} />
+              )}
+              {modalState.type === "GOAL_CREATION_INIT" && (
+                <GoalInitModal modalState={modalState} />
+              )}
+              {modalState.type === "GOAL_CREATION_SUCCESS" && (
+                <GoalSuccessResultModal modalState={modalState} />
+              )}
+              {modalState.type === "GOAL_CREATION_FAILED" && (
+                <GoalFailedResultModal modalState={modalState} />
               )}
               {modalState.type === "STACK_TX_INIT" && (
                 <StackTxInitModal modalState={modalState} />
