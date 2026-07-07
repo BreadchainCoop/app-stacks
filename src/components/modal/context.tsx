@@ -12,6 +12,7 @@ import { PeerExtensionSdk } from "@zkp2p/sdk";
 import { Address } from "viem";
 import { FundWithConnectedWalletModalAmountModalState } from "./modals/fund-wallet/fund-with-connected-wallet-modal-amount";
 import { AutomaticClaimsModalState } from "./modals/automatic-claims";
+import { NewStackType } from "@/lib/stack-types";
 
 export type TModalStatus = "loading" | "success" | "error";
 
@@ -132,6 +133,125 @@ export type PeerOnRampInstallModalState = {
   fundWalletModalState: Omit<FundWalletModalState, "type">;
 };
 
+// ── New stack-type creation flows ───────────────────────────────────────────
+// One init/success/failed set per type so each success payload carries the
+// on-chain params its success modal displays. The modal components land
+// together with the per-type creation flows; the presenter picks these up
+// then (it only renders the variants it knows about).
+
+export type AscaCreationInitModalState = {
+  type: "ASCA_CREATION_INIT";
+  name: string;
+  status: "awaiting" | "approved" | "successful";
+};
+
+export type AscaCreationSuccessModalState = {
+  type: "ASCA_CREATION_SUCCESS";
+  fund: {
+    name: string;
+    id: string;
+    borrowLimitBps: number;
+    interestRateBps: number;
+    repaymentPeriods: number;
+    periodLength: bigint;
+    members: number;
+  };
+};
+
+export type AscaCreationFailedModalState = {
+  type: "ASCA_CREATION_FAILED";
+  msg?: string;
+};
+
+export type GoalCreationInitModalState = {
+  type: "GOAL_CREATION_INIT";
+  name: string;
+  status: "awaiting" | "approved" | "successful";
+};
+
+export type GoalCreationSuccessModalState = {
+  type: "GOAL_CREATION_SUCCESS";
+  goal: {
+    name: string;
+    id: string;
+    goalAmount: bigint;
+    deadline: bigint;
+    beneficiary?: Address;
+    members: number;
+  };
+};
+
+export type GoalCreationFailedModalState = {
+  type: "GOAL_CREATION_FAILED";
+  msg?: string;
+};
+
+export type CollectiveCreationInitModalState = {
+  type: "COLLECTIVE_CREATION_INIT";
+  name: string;
+  status: "awaiting" | "approved" | "successful";
+};
+
+export type CollectiveCreationSuccessModalState = {
+  type: "COLLECTIVE_CREATION_SUCCESS";
+  fund: {
+    name: string;
+    id: string;
+    votingPeriod: bigint;
+    approvalThresholdBps: number;
+    members: number;
+  };
+};
+
+export type CollectiveCreationFailedModalState = {
+  type: "COLLECTIVE_CREATION_FAILED";
+  msg?: string;
+};
+
+// ── Generic per-action tx flow for the new stack types ─────────────────────
+// One confirm/loading/result trio parameterized by stack type + action,
+// mirroring the DEPOSIT_INIT / DEPOSIT_LOADING / DEPOSIT_RESULT pattern.
+
+export type StackTxAction =
+  | "deposit"
+  | "withdraw"
+  | "borrow"
+  | "repay"
+  | "claimInterest"
+  | "liquidate"
+  | "deactivate"
+  | "release"
+  | "cancel"
+  | "donate"
+  | "propose"
+  | "vote"
+  | "execute";
+
+export type StackTxInitModalState = {
+  type: "STACK_TX_INIT";
+  stackType: NewStackType;
+  action: StackTxAction;
+  id: bigint;
+  amount?: bigint;
+  onConfirm: () => void | Promise<void>;
+};
+
+export type StackTxLoadingModalState = {
+  type: "STACK_TX_LOADING";
+  stackType: NewStackType;
+  action: StackTxAction;
+  msg?: string;
+};
+
+export type StackTxResultModalState = {
+  type: "STACK_TX_RESULT";
+  stackType: NewStackType;
+  action: StackTxAction;
+  result: "success" | "error";
+  msg?: string;
+  amount?: bigint;
+};
+
 export type ModalState =
   | DepositInitModalState
   | DepositLoadingModalState
@@ -153,6 +273,18 @@ export type ModalState =
   | PeerOnRampInstallModalState
   | FundWithConnectedWalletModalAmountModalState
   | AutomaticClaimsModalState
+  | AscaCreationInitModalState
+  | AscaCreationSuccessModalState
+  | AscaCreationFailedModalState
+  | GoalCreationInitModalState
+  | GoalCreationSuccessModalState
+  | GoalCreationFailedModalState
+  | CollectiveCreationInitModalState
+  | CollectiveCreationSuccessModalState
+  | CollectiveCreationFailedModalState
+  | StackTxInitModalState
+  | StackTxLoadingModalState
+  | StackTxResultModalState
   | null;
 
 export type ModalContext = {
