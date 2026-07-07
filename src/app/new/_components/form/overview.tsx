@@ -1,11 +1,5 @@
 import LocalButton from "@/components/button";
-import {
-  Body,
-  Heading3,
-  LoginButton,
-  Logo,
-  useConnectedUser,
-} from "@breadcoop/ui";
+import { Body, Heading3, LoginButton, useConnectedUser } from "@breadcoop/ui";
 import {
   ArrowLeftIcon,
   ArrowsClockwiseIcon,
@@ -189,7 +183,6 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
         />
       </div>
       <div className="flex flex-col gap-2">
-        <Body className="text-sm text-surface-grey">1 BREAD = 1 USD</Body>
         <BreadRow
           label={
             <>
@@ -199,7 +192,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
           amount={freqDeposit}
         />
         <BreadRow
-          label="Total Stacked per member"
+          label="Total Deposited per member"
           amount={total.toFixed(2)}
           colored
         />
@@ -284,7 +277,7 @@ function BreadRow({
           colored ? "border-system-green" : "border-paper-2"
         }`}
       >
-        <Logo size={24} variant="square" text={`${amount} BREAD`} />
+        <Body bold>${amount}</Body>
       </div>
     </div>
   );

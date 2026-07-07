@@ -81,7 +81,7 @@ const TotalStacked = ({
       )}
     >
       <Heading3 className="pb-3.5 border-b border-paper-2 text-center mb-4.25 text-2xl font-bold w-full">
-        Total stacked for you
+        Total deposited for you
       </Heading3>
       {!address ? (
         <div className="h-full w-full flex items-center justify-center">
@@ -114,8 +114,7 @@ const TotalStacked = ({
                   <Body className="text-surface-grey-2">
                     {amount === "-"
                       ? "-"
-                      : `${formatBalance(Number(amount), 2)}`}{" "}
-                    $BREAD
+                      : `$${formatBalance(Number(amount), 2)}`}
                   </Body>
                   <Body className="text-xs">{msg}</Body>
                 </div>

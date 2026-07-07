@@ -37,9 +37,9 @@ const BackMeta = ({
   const nowSeconds = BigInt(Math.floor(now / 1000));
   const { circleState } = useCircleState(circle?.circleId);
 
-  const depositAmount = `${formatEther(
+  const depositAmount = `$${formatEther(
     circle?.circleInfo.depositAmount ?? BigInt(0)
-  )} BREAD`;
+  )}`;
 
   const circleStatus: ICircleStatus = circle
     ? getUserCircleStatus({

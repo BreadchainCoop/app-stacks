@@ -7,7 +7,6 @@ import {
   formatBalance,
   Heading3,
   LoginButton,
-  Logo,
   useConnectedUser,
 } from "@breadcoop/ui";
 import DaysLeft from "./days-left";
@@ -219,12 +218,9 @@ const Overview = ({
         <Body className="flex flex-col justify-start md:items-center md:justify-center">
           <span className="text-surface-grey">Total Deposit</span>
           <span className="inline-flex items-center justify-start">
-            <>
-              <Logo size={24} variant="square" className="mr-1" />
-              <span className="font-bold mt-[0.2rem]">
-                {formatBalance(+formatEther(poolBalance), 2)} BREAD
-              </span>
-            </>
+            <span className="font-bold mt-[0.2rem]">
+              ${formatBalance(+formatEther(poolBalance), 2)}
+            </span>
           </span>
         </Body>
         <Body className="flex flex-col justify-start md:justify-end md:items-end">
@@ -300,17 +296,15 @@ const Overview = ({
         ) : depositCircleStatus.status === "payment_due" ? (
           <>
             {connectedUser.user.status === "CONNECTED" ? (
-              <>
-                <DepositButton
-                  className="font-bold w-full"
-                  label={`Deposit ${formatEther(
-                    circle.circleInfo.depositAmount
-                  )} BREAD`}
-                  amount={circle.circleInfo.depositAmount}
-                  tokenAddress={circle.circleInfo.token}
-                  circleId={circle.circleId}
-                />
-              </>
+              <DepositButton
+                className="font-bold w-full"
+                label={`Deposit $${formatEther(
+                  circle.circleInfo.depositAmount
+                )}`}
+                amount={circle.circleInfo.depositAmount}
+                tokenAddress={circle.circleInfo.token}
+                circleId={circle.circleId}
+              />
             ) : (
               <LoginButton app="stacks" status={connectedUser.user.status} />
             )}

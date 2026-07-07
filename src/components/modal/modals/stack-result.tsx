@@ -302,11 +302,11 @@ export const StackSuccessResultModal = ({
                 <RowDetail label="Duration" body={modalState.circle.duration} />
                 <RowDetail
                   label="Est. Deposit amount"
-                  body={`${formatBalance(modalState.circle.deposit, 2)} BREAD`}
+                  body={`$${formatBalance(modalState.circle.deposit, 2)}`}
                 />
                 <RowDetail
                   label="Stack goal"
-                  body={`${formatBalance(modalState.circle.total, 2)} BREAD`}
+                  body={`$${formatBalance(modalState.circle.total, 2)}`}
                 />
               </div>
             </AccordionContent>
