@@ -26,17 +26,17 @@ const SmallButton = ({
   onClick: () => void;
   tone: "primary" | "ink";
 }) => (
-  <button
+  <LocalButton
     type="button"
+    size="sm"
+    variant="light"
     onClick={onClick}
-    className={`border bg-paper-main px-4 py-1.5 text-sm font-bold shadow-[2px_2px_0px_#595959] transition-opacity hover:opacity-90 ${
-      tone === "primary"
-        ? "border-primary-blue text-primary-blue"
-        : "border-surface-ink text-surface-ink"
+    className={`text-sm font-bold ${
+      tone === "primary" ? "border-primary-blue text-primary-blue" : ""
     }`}
   >
     {children}
-  </button>
+  </LocalButton>
 );
 
 const Column = ({
