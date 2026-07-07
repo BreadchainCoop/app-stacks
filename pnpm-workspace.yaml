@@ -5,6 +5,8 @@ blockExoticSubdeps: true
 minimumReleaseAge: 864000 # 10 days
 minimumReleaseAgeExclude:
   - "@breadcoop/ui"
+  # Peer ships breaking API changes rapidly; track latest despite the age gate
+  - "@zkp2p/sdk"
 strictDepBuilds: true
 trustPolicy: no-downgrade
 trustPolicyExclude:
@@ -26,3 +28,8 @@ overrides:
   "@noble/curves": ">=1.9.0"
   "semver": ">=6.3.2"
   "@breadcoop/ui": "2.0.1"
+  # 6.19.8 (via ethers -> @types/node) has no provenance attestation; force a signed release
+  "undici-types": "6.27.0"
+  # 1.7.0 (via @walletconnect/relay-auth) has no provenance attestation; force a signed release
+  # (scoped: a blanket override breaks ethereum-cryptography's internal _assert import)
+  "@walletconnect/relay-auth>@noble/hashes": ">=1.8.0"

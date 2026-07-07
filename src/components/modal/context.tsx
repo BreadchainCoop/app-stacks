@@ -132,6 +132,11 @@ export type PeerOnRampInstallModalState = {
   fundWalletModalState: Omit<FundWalletModalState, "type">;
 };
 
+export type PeerOnrampModalState = {
+  type: "PEER_ONRAMP";
+  fundWalletModalState: Omit<FundWalletModalState, "type">;
+};
+
 export type ModalState =
   | DepositInitModalState
   | DepositLoadingModalState
@@ -151,6 +156,7 @@ export type ModalState =
   | FundWalletModalState
   | LiFiBridgeSwapModalState
   | PeerOnRampInstallModalState
+  | PeerOnrampModalState
   | FundWithConnectedWalletModalAmountModalState
   | AutomaticClaimsModalState
   | null;
