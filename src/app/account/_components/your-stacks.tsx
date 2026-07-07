@@ -2,6 +2,7 @@ import HomeHeader from "@/components/_home/header";
 import { Address } from "viem";
 import AccountTab from "./account-tab";
 import AccountUserStacks from "./account-user-stacks";
+import AccountNewStacks from "./account-new-stacks";
 
 const YourStacks = ({
   address,
@@ -14,6 +15,7 @@ const YourStacks = ({
     <HomeHeader type="persona" address={address} />
     <AccountTab basePath={basePath} address={address} />
     <AccountUserStacks address={address} />
+    <AccountNewStacks address={address} />
   </div>
 );
 
