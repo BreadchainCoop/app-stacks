@@ -23,6 +23,8 @@ import FundWithConnectedWalletModalAmount from "./modals/fund-wallet/fund-with-c
 import StartStackWarningModal from "./modals/start-stack-warning";
 import AutomaticClaimsModal from "./modals/automatic-claims";
 import HowItWorksModal from "./modals/how-it-works";
+import VisitorOnboarding from "./modals/visitor-onboarding";
+import LoggedInOnboarding from "./modals/logged-in-onboarding";
 
 const ModalPresenter = () => {
   const { modalState, setModal } = useModal();
@@ -96,6 +98,12 @@ const ModalPresenter = () => {
                 <AutomaticClaimsModal modalState={modalState} />
               )}
               {modalState.type === "HOW_IT_WORKS" && <HowItWorksModal />}
+              {modalState.type === "VISITOR_ONBOARDING" && (
+                <VisitorOnboarding />
+              )}
+              {modalState.type === "LOGGED_IN_ONBOARDING" && (
+                <LoggedInOnboarding />
+              )}
             </Dialog.Content>
           </>
         )}

@@ -130,6 +130,14 @@ export type HowItWorksModalState = {
   type: "HOW_IT_WORKS";
 };
 
+export type VisitorOnboardingModalState = {
+  type: "VISITOR_ONBOARDING";
+};
+
+export type LoggedInOnboardingModalState = {
+  type: "LOGGED_IN_ONBOARDING";
+};
+
 export type ModalState =
   | DepositInitModalState
   | DepositLoadingModalState
@@ -151,6 +159,8 @@ export type ModalState =
   | FundWithConnectedWalletModalAmountModalState
   | AutomaticClaimsModalState
   | HowItWorksModalState
+  | VisitorOnboardingModalState
+  | LoggedInOnboardingModalState
   | null;
 
 export type ModalContext = {
