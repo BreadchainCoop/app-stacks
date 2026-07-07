@@ -66,6 +66,12 @@ update-env:
 	$(eval SAVING_CIRCLES_PROXY := $(shell jq -r '.savingCirclesProxy' contracts/out/SAVING_CIRCLES_DEPLOYMENT.json))
 	$(eval SAVING_CIRCLES_VIEWER := $(shell jq -r '.savingCirclesViewer' contracts/out/SAVING_CIRCLES_DEPLOYMENT.json))
 	$(eval AUTOMATIC_SAVING_CIRCLES := $(shell jq -r '.automaticSavingCircles' contracts/out/SAVING_CIRCLES_DEPLOYMENT.json))
+	# New stack-type contracts are optional: they only appear in the deployment
+	# JSON once the saving-circles submodule is bumped and Deploy.s.sol emits
+	# them. `// empty` yields "" when absent, so the sed below becomes a no-op.
+	$(eval ASCA := $(shell jq -r '.accumulatingSavingCircles // empty' contracts/out/SAVING_CIRCLES_DEPLOYMENT.json))
+	$(eval GOAL_SAVINGS := $(shell jq -r '.goalSavingCircles // empty' contracts/out/SAVING_CIRCLES_DEPLOYMENT.json))
+	$(eval COLLECTIVE_FUND := $(shell jq -r '.collectiveFundCircles // empty' contracts/out/SAVING_CIRCLES_DEPLOYMENT.json))
 	$(eval CREATION_BLOCK := $(shell cast block latest --rpc-url $(RPC_URL) | grep number | awk '{print $$2}'))
 	@if [ -z "$(BREAD_TOKEN)" ] || [ "$(BREAD_TOKEN)" = "null" ]; then \
 		echo "Error: Could not parse breadToken from JSON file"; \
@@ -88,6 +94,15 @@ update-env:
 	@sed -i.bak 's|^NEXT_PUBLIC_SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS=.*|NEXT_PUBLIC_SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS=$(SAVING_CIRCLES_VIEWER)|' .env.local
 	@sed -i.bak 's|^NEXT_PUBLIC_AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS=.*|NEXT_PUBLIC_AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS=$(AUTOMATIC_SAVING_CIRCLES)|' .env.local
 	@sed -i.bak 's|^NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK=.*|NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK=$(CREATION_BLOCK)|' .env.local
+	@if [ -n "$(ASCA)" ]; then \
+		sed -i.bak 's|^NEXT_PUBLIC_ASCA_CONTRACT_ADDRESS=.*|NEXT_PUBLIC_ASCA_CONTRACT_ADDRESS=$(ASCA)|' .env.local; \
+	fi
+	@if [ -n "$(GOAL_SAVINGS)" ]; then \
+		sed -i.bak 's|^NEXT_PUBLIC_GOAL_SAVINGS_CONTRACT_ADDRESS=.*|NEXT_PUBLIC_GOAL_SAVINGS_CONTRACT_ADDRESS=$(GOAL_SAVINGS)|' .env.local; \
+	fi
+	@if [ -n "$(COLLECTIVE_FUND)" ]; then \
+		sed -i.bak 's|^NEXT_PUBLIC_COLLECTIVE_FUND_CONTRACT_ADDRESS=.*|NEXT_PUBLIC_COLLECTIVE_FUND_CONTRACT_ADDRESS=$(COLLECTIVE_FUND)|' .env.local; \
+	fi
 	@rm -f .env.local.bak
 	@echo "✓ Updated .env.local successfully with contract addresses and creation block $(CREATION_BLOCK)"
 
