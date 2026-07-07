@@ -14,7 +14,12 @@ import { clientEnv } from "./env";
  * - `addresses` absent or empty -> every user sees it
  * - local always renders every feature regardless of config
  */
-export const FEATURES = ["automaticClaim"] as const;
+export const FEATURES = [
+  "automaticClaim",
+  "asca",
+  "goalSavings",
+  "collectiveFund",
+] as const;
 
 export type Feature = (typeof FEATURES)[number];
 

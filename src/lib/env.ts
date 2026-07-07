@@ -22,11 +22,25 @@ const featuresSchema = z.record(
   })
 );
 
+// New-stack-type contracts are optional so existing deployments keep working;
+// the zero-address default means "not deployed here" (surfaces stay
+// feature-gated anyway).
+const zeroAddress = "0x0000000000000000000000000000000000000000";
+
 const envSchema = z.object({
   NEXT_PUBLIC_CHAIN_ID: z.coerce.number(),
   NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS: z.string(),
   NEXT_PUBLIC_SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS: z.string(),
   NEXT_PUBLIC_AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS: z.string(),
+  NEXT_PUBLIC_ASCA_CONTRACT_ADDRESS: z.string().optional().default(zeroAddress),
+  NEXT_PUBLIC_GOAL_SAVINGS_CONTRACT_ADDRESS: z
+    .string()
+    .optional()
+    .default(zeroAddress),
+  NEXT_PUBLIC_COLLECTIVE_FUND_CONTRACT_ADDRESS: z
+    .string()
+    .optional()
+    .default(zeroAddress),
   NEXT_PUBLIC_BREAD_TOKEN_ADDRESS: z.string(),
   NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK: z.string(),
   NEXT_PUBLIC_SEPOLIA_RPC_URL: z.string().optional().default(""),
@@ -79,6 +93,12 @@ const parsedSchema = envSchema.safeParse({
     process.env.NEXT_PUBLIC_SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS,
   NEXT_PUBLIC_AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS:
     process.env.NEXT_PUBLIC_AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS,
+  NEXT_PUBLIC_ASCA_CONTRACT_ADDRESS:
+    process.env.NEXT_PUBLIC_ASCA_CONTRACT_ADDRESS,
+  NEXT_PUBLIC_GOAL_SAVINGS_CONTRACT_ADDRESS:
+    process.env.NEXT_PUBLIC_GOAL_SAVINGS_CONTRACT_ADDRESS,
+  NEXT_PUBLIC_COLLECTIVE_FUND_CONTRACT_ADDRESS:
+    process.env.NEXT_PUBLIC_COLLECTIVE_FUND_CONTRACT_ADDRESS,
   NEXT_PUBLIC_BREAD_TOKEN_ADDRESS: process.env.NEXT_PUBLIC_BREAD_TOKEN_ADDRESS,
   NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK:
     process.env.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK,
