@@ -25,6 +25,7 @@ import { ArrowDownIcon } from "@phosphor-icons/react";
 import { useModal } from "../context";
 import { useSimulateAndSponsorTx } from "@/hooks/use-simulate-and-sponsor-tx";
 import { parseContractError } from "@/utils/parse-contract-error";
+import { formatUsd } from "@/utils/format-usd";
 
 const BREAD_DECIMALS = 18;
 
@@ -240,14 +241,16 @@ const WithdrawBreadModal = () => {
             </div>
             <div className="flex items-center justify-between mt-2 text-surface-grey">
               <Body className="text-xs">
-                ${formatBalance(Number(form.amount || 0), 2)}
+                {formatUsd(Number(form.amount || 0))}
               </Body>
               <Body className="text-xs flex items-center justify-end">
                 Balance:{" "}
                 {isLoading ? (
                   <CircularProgressIcon className="w-4! h-4! ml-1" />
                 ) : (
-                  <>{balance} BREAD</>
+                  <span title="Powered by BREAD">
+                    {formatUsd(Number(balance))}
+                  </span>
                 )}
               </Body>
             </div>
