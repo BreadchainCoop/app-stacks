@@ -39,11 +39,11 @@ export default function InviteDetails({
               <RowDetail label="Duration" body={duration} />
               <RowDetail
                 label="Est. Deposit amount"
-                body={`${formatBalance(+deposit)} BREAD`}
+                body={`$${formatBalance(+deposit)}`}
               />
               <RowDetail
                 label="Stack goal"
-                body={`${formatBalance(Number(members) ** 2 * Number(deposit), 2)} BREAD`}
+                body={`$${formatBalance(Number(members) ** 2 * Number(deposit), 2)}`}
               />
             </div>
           </AccordionContent>

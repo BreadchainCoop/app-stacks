@@ -309,7 +309,7 @@ function MemberInfoContent({
             ? "Loading"
             : isFailedStack && fundsDeposited.error
               ? "Error"
-              : `${memberTotal} BREAD`
+              : `$${memberTotal}`
         }
       />
       <DepositRow

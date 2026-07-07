@@ -3,7 +3,7 @@
 import { useFundsDeposited } from "@/hooks/use-funds-deposited";
 import { ICircleStatus } from "@/interfaces/circle";
 import { IFormattedUserCircleStatusResult } from "@/lib/get-user-circle-status";
-import { formatBalance, Logo } from "@breadcoop/ui";
+import { Body, formatBalance } from "@breadcoop/ui";
 import { formatEther } from "viem";
 
 const failedStatuses: ICircleStatus[] = [
@@ -39,22 +39,14 @@ const OverallStacked = ({
   });
 
   if (!isFailedStack) {
-    return (
-      <Logo
-        variant="square"
-        text={formatBalance(+totalAmountStackedByMembers, 2)}
-        size={24}
-      />
-    );
+    return <Body>${formatBalance(+totalAmountStackedByMembers, 2)}</Body>;
   }
 
   if (fundsDeposited.data) {
     return (
-      <Logo
-        variant="square"
-        text={formatBalance(+formatEther(fundsDeposited.data.totalDeposit), 2)}
-        size={24}
-      />
+      <Body>
+        ${formatBalance(+formatEther(fundsDeposited.data.totalDeposit), 2)}
+      </Body>
     );
   }
 

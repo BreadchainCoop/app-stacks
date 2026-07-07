@@ -18,7 +18,6 @@ import {
   formatBalance,
   FormattedDecimalNumber,
   Heading3,
-  Logo,
   useConnectedUser,
 } from "@breadcoop/ui";
 import { CalendarDotsIcon } from "@phosphor-icons/react/ssr";
@@ -67,24 +66,19 @@ const StackDetailsTotal = ({
       <div className="flex items-center justify-start gap-x-4 flex-wrap">
         <FormattedDecimalNumber
           value={depositPerRound}
+          unit="$"
           integralPartClassName="text-[80px]"
           decimalPartClassName="text-[48px] text-surface-grey-2"
         />
         <div>
-          <Logo
-            variant="square"
-            text="BREAD"
-            className="[&+span]:font-normal"
-            size={24}
-          />
           <Body className="text-surface-grey-2">
-            Total stacked per {intervalLabel}
+            Total deposited per {intervalLabel}
           </Body>
         </div>
       </div>
       <div className="flex flex-wrap gap-2 flex-row items-center justify-between">
         <Body className="shrink-0 text-surface-grey-2">
-          Overall stacked by members
+          Overall deposited by members
         </Body>
         <div className="shrink-0 flex items-center justify-start flex-wrap gap-2">
           <OverallStacked
@@ -95,7 +89,6 @@ const StackDetailsTotal = ({
             circleStartsTimestamp={circleStartsTimestamp}
             depositInterval={depositInterval}
           />
-          <Body className="mt-[0.2rem]">BREAD</Body>
         </div>
       </div>
     </div>
@@ -144,14 +137,9 @@ const StackDetailsBreakdown = ({
   return (
     <div className="md:flex-1">
       <StackDetailsBreakdownRow label={`${intervalLabel} deposit`}>
-        <>
-          <Logo
-            size={24}
-            text={formatBalance(+formatEther(circle.depositAmount), 2)}
-            variant="square"
-          />
-          <Body className="mt-[0.3rem]">BREAD</Body>
-        </>
+        <p className="text-h2 text-2xl leading-6 tracking-[-2%]">
+          ${formatBalance(+formatEther(circle.depositAmount), 2)}
+        </p>
       </StackDetailsBreakdownRow>
       <StackDetailsBreakdownRow label="Members deposit every">
         <>

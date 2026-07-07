@@ -93,21 +93,21 @@ const Stack = ({
       className: "",
     },
     {
-      label: `Token: BREAD`,
-      icon: <CoinIcon />,
-      className: "hidden md:flex",
-    },
-    {
-      label: `${formatBalance(Number(depositAmount) * stack.totalMember, 2)} BREAD ${
+      label: `Deposit: $${formatBalance(Number(depositAmount), 2)} ${
         parseCircleIntervalToDate(stack.depositInterval).label
       }`,
       icon: <CoinsIcon />,
       className: "",
     },
     {
-      label: `Goal: ${formatBalance(totalGoal, 2)} BREAD`,
+      label: `Pay out: $${formatBalance(Number(depositAmount) * stack.totalMember, 2)} per member`,
+      icon: <CoinIcon />,
+      className: "",
+    },
+    {
+      label: `Stack volume: $${formatBalance(totalGoal, 2)}`,
       icon: <CalendarIcon />,
-      className: "hidden md:flex",
+      className: "",
     },
   ];
 
@@ -191,7 +191,7 @@ const Stack = ({
             )}
           </p>
           <Body className="flex items-center justify-start gap-1 text-surface-grey">
-            <span className="text-[0.625rem]">Total BREAD stacked</span>
+            <span className="text-[0.625rem]">Total deposited</span>
             <span>
               <QuestionIcon size={16} className="fill-surface-grey" />
             </span>
