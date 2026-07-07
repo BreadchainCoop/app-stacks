@@ -23,6 +23,12 @@ import InstallPeerModal from "../peer/install-modal";
 import FundWithConnectedWalletModalAmount from "./modals/fund-wallet/fund-with-connected-wallet-modal-amount";
 import StartStackWarningModal from "./modals/start-stack-warning";
 import AutomaticClaimsModal from "./modals/automatic-claims";
+import AscaInitModal from "./modals/asca-init";
+import {
+  AscaFailedResultModal,
+  AscaSuccessResultModal,
+} from "./modals/asca-result";
+import { StackTxInitModal, StackTxStatusModal } from "./modals/stack-tx";
 
 const ModalPresenter = () => {
   const { modalState, setModal } = useModal();
@@ -97,6 +103,22 @@ const ModalPresenter = () => {
               )}
               {modalState.type === "AUTOMATIC_CLAIMS" && (
                 <AutomaticClaimsModal modalState={modalState} />
+              )}
+              {modalState.type === "ASCA_CREATION_INIT" && (
+                <AscaInitModal modalState={modalState} />
+              )}
+              {modalState.type === "ASCA_CREATION_SUCCESS" && (
+                <AscaSuccessResultModal modalState={modalState} />
+              )}
+              {modalState.type === "ASCA_CREATION_FAILED" && (
+                <AscaFailedResultModal modalState={modalState} />
+              )}
+              {modalState.type === "STACK_TX_INIT" && (
+                <StackTxInitModal modalState={modalState} />
+              )}
+              {(modalState.type === "STACK_TX_LOADING" ||
+                modalState.type === "STACK_TX_RESULT") && (
+                <StackTxStatusModal modalState={modalState} />
               )}
             </Dialog.Content>
           </>
