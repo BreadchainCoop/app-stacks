@@ -15,6 +15,7 @@ import AcceptInvite from "./accept-invite";
 import InviteDetails from "./invite-details";
 import AscaInvite from "./asca-invite";
 import GoalInvite from "./goal-invite";
+import CollectiveInvite from "./collective-invite";
 
 export default function PageContent() {
   const searchParams = useSearchParams();
@@ -42,6 +43,14 @@ export default function PageContent() {
     return (
       <FeatureGate feature="goalSavings">
         <GoalInvite />
+      </FeatureGate>
+    );
+  }
+
+  if (type === "collective") {
+    return (
+      <FeatureGate feature="collectiveFund">
+        <CollectiveInvite />
       </FeatureGate>
     );
   }
