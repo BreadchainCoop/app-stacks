@@ -25,7 +25,7 @@ const NavLinks = () => {
             aria-current={isActive ? "page" : undefined}
             className={cn(
               "text-body transition-colors hover:text-primary-blue",
-              isActive && "text-primary-blue"
+              isActive ? "text-primary-blue" : "text-current"
             )}
           >
             {label}
