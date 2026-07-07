@@ -54,9 +54,13 @@ The frontend is a Next.js App Router application that orchestrates both.
 ### Routes (`src/app`)
 
 - `/` (`page.tsx`) — dashboard / home.
-- `/new` — create a new stack.
-- `/stacks/[id]` — a single circle's detail and actions.
-- `/stacks/join` — accept an invite link.
+- `/new` — pick a stack type, then create it. The picker leads to the ROSCA
+  wizard or, feature-gated, to `/new/asca`, `/new/goal`, `/new/collective`.
+- `/stacks/[id]` — a single ROSCA circle's detail and actions.
+- `/ascas/[id]`, `/goals/[id]`, `/funds/[id]` — detail pages for the three new
+  stack types (Savings & credit fund, Goal savings, Collective fund), each
+  feature-gated (`asca` / `goalSavings` / `collectiveFund`).
+- `/stacks/join` — accept an invite link (`?type=` switches the contract).
 - `api/onboard` — create the Supabase user record after Privy login.
 - `api/user` — look up a user by Privy id.
 - `api/shorten` — invite-link shortening (spoo.me + Upstash Redis).
