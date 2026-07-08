@@ -32,6 +32,7 @@ import { simulateContract } from "@wagmi/core";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { getIntervalById, splitIntervalId } from "@/utils/deposit-interval";
 import { CREATE_ERRORS } from "@/lib/contract-errors";
+import { getDefaultChainId } from "@/utils/chain";
 
 const parseCreateError = (error: unknown) =>
   parseContractError(
@@ -82,6 +83,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
         functionName: "create",
         args: [circleArgs],
         account: user.address,
+        chainId: getDefaultChainId(),
       });
 
       const encodedData = encodeFunctionData({
@@ -106,6 +108,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
       const receipt = await waitForTransactionReceipt(wagmiConfig, {
         hash,
         confirmations: 1,
+        chainId: getDefaultChainId(),
       });
 
       const logs = parseEventLogs({
