@@ -1,3 +1,15 @@
 [dev]
   targetPort = 3001
   port = 8888
+
+# Deploy previews render every gated feature so reviewers can see work in
+# progress. Values here override dashboard env vars for the deploy-preview
+# context only; production/branch deploys are untouched.
+# The three stack-type addresses are the Sepolia deployment made by
+# saving-circles PR #184's CI — replace via the dashboard (and drop from here)
+# once official addresses exist.
+[context.deploy-preview.environment]
+  NEXT_PUBLIC_FEATURES = '{"automaticClaim":{"enabled":true},"asca":{"enabled":true},"goalSavings":{"enabled":true},"collectiveFund":{"enabled":true}}'
+  NEXT_PUBLIC_ASCA_CONTRACT_ADDRESS = "0xCF2E620c13B9190E532eFEA20A58D69A393C20b9"
+  NEXT_PUBLIC_GOAL_SAVINGS_CONTRACT_ADDRESS = "0x2D0d7cCEA5EBD01FE8d540De12C0A5CBb3a4D52f"
+  NEXT_PUBLIC_COLLECTIVE_FUND_CONTRACT_ADDRESS = "0xfFA503F4eC5a7925A938011B636392edc7Ba889B"
