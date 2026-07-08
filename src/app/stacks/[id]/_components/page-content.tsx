@@ -6,6 +6,9 @@ import StackDetails from "./stack-details";
 import ClaimSchedule from "./claim-schedule";
 import StackMembers from "./members";
 import StackInfo from "./info";
+import Link from "next/link";
+import { PlusIcon } from "@phosphor-icons/react/dist/ssr";
+import LocalButton from "@/components/button";
 import { CircularProgressIcon } from "@/components/icons/circular-progress";
 import { Body, useConnectedUser } from "@breadcoop/ui";
 import StackedStatus from "./stacked-status";
@@ -36,6 +39,10 @@ const PageContent = ({ id }: { id: string }) => {
   const nowSeconds = BigInt(Math.floor(now / 1000));
   const { circleState } = useCircleState(BigInt(id));
 
+  const circleExists =
+    !!userCircleData.circleData &&
+    userCircleData.circleData.circleInfo.owner !== zeroAddress;
+
   useEffect(() => {
     if (!userCircleData.circleData?.isMember) return;
 
@@ -58,15 +65,15 @@ const PageContent = ({ id }: { id: string }) => {
       <BackMeta
         className="mb-4! -mt-3 md:hidden"
         isLoadingCircleData={userCircleData.isLoading}
-        circle={userCircleData.circleData}
+        circle={circleExists ? userCircleData.circleData : undefined}
       />
       <StackHeader
         id={id}
         isMember={userCircleData.circleData?.isMember}
         isLoadingCircleData={userCircleData.isLoading}
-        circle={userCircleData.circleData}
+        circle={circleExists ? userCircleData.circleData : undefined}
       />
-      {userCircleData.circleData ? (
+      {circleExists && userCircleData.circleData ? (
         <>
           <div className="*:mb-4 last:mb-0 md:mb-6 md:last:mb-0">
             <StackedStatus
@@ -91,6 +98,13 @@ const PageContent = ({ id }: { id: string }) => {
       ) : userCircleData.error ? (
         // TODO: Show correct error message
         <Body className="text-system-red">Unable to get circle data!</Body>
+      ) : userCircleData.circleData ? (
+        <div className="flex flex-col items-center gap-4 py-8 text-center">
+          <Body className="text-system-red">This stack does not exist.</Body>
+          <LocalButton as={Link} href="/new" leftIcon={<PlusIcon />}>
+            Start your Stack today
+          </LocalButton>
+        </div>
       ) : (
         <div className="flex items-center justify-center">
           <CircularProgressIcon />
