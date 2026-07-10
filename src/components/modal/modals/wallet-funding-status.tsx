@@ -14,12 +14,21 @@ import LocalButton from "@/components/button";
 import { ArrowRightIcon, XIcon } from "@phosphor-icons/react";
 import { formatAddress } from "@/utils/address";
 import Link from "next/link";
+import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
+import { isCeloChain } from "@/utils/celo";
+import { getDefaultChainId } from "@/utils/chain";
+
+// On Celo funding is a plain stablecoin transfer; the "convert to BREAD"
+// bake step only exists on Gnosis
+const isCelo = isCeloChain(getDefaultChainId());
 
 const content = {
   loading: {
     title: "Funding wallet",
     status: "Loading...",
-    message: "Converting to BREAD...",
+    message: isCelo
+      ? `Transferring ${DEPOSIT_TOKEN.symbol}...`
+      : "Converting to BREAD...",
   },
   success: {
     title: "Funding wallet successful",
@@ -73,7 +82,7 @@ const WalletFundingStatusModal = ({
           <div className="mb-2 flex items-center justify-center gap-1.5">
             <Logo size={24} />
             <Heading2 className="text-[2.5rem] leading-9 mb-[-0.2rem]">
-              {displayedAmount} BREAD
+              {displayedAmount} {DEPOSIT_TOKEN.symbol}
             </Heading2>
           </div>
           <Body bold className="mb-9 text-center text-surface-grey-2">

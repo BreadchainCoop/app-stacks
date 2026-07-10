@@ -2,7 +2,7 @@
 
 import { Body } from "@breadcoop/ui";
 import { PencilSimpleIcon, UserCircleIcon } from "@phosphor-icons/react";
-import { usePrivy } from "@privy-io/react-auth";
+import { useUserIdentity } from "@/components/providers/user-identity";
 import { Address } from "viem";
 import SectionHeader from "./section-header";
 import LocalButton from "@/components/button";
@@ -13,12 +13,12 @@ import { useIsOwnAddress } from "@/hooks/use-is-own-address";
 
 const ProfileSection = ({ address }: { address: Address }) => {
   const isOwner = useIsOwnAddress(address);
-  const { user: privyUser } = usePrivy();
+  const { userId } = useUserIdentity();
   const { setModal } = useModal();
 
   // Own profile comes from the profile query (fresh after edits); other
   // members' aliases from the public wallet -> alias lookup.
-  const myProfile = useMyProfile(isOwner ? privyUser?.id : undefined);
+  const myProfile = useMyProfile(isOwner ? userId : undefined);
   const aliases = useMemberAliases(isOwner ? [] : [address]);
 
   const alias = isOwner

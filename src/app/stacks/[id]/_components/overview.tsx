@@ -17,7 +17,8 @@ import {
 } from "@/lib/get-user-circle-status";
 import { useCircleState } from "@/hooks/use-circles-state";
 import { CircleState, RoundState } from "@/lib/circle-state";
-import { Address, formatEther } from "viem";
+import { Address } from "viem";
+import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
 import { useCircleStatus } from "@/hooks/use-circle-status";
 import StartCircleButton from "@/components/start-circle-button";
 import DepositButton from "@/components/deposit-button";
@@ -220,7 +221,8 @@ const Overview = ({
             <>
               <Logo size={24} variant="square" className="mr-1" />
               <span className="font-bold mt-[0.2rem]">
-                {formatBalance(+formatEther(poolBalance), 2)} BREAD
+                {formatBalance(+formatDepositAmount(poolBalance), 2)}{" "}
+                {DEPOSIT_TOKEN.symbol}
               </span>
             </>
           </span>
@@ -290,9 +292,9 @@ const Overview = ({
             {connectedUser.user.status === "CONNECTED" ? (
               <DepositButton
                 className="font-bold w-full"
-                label={`Deposit ${formatEther(
+                label={`Deposit ${formatDepositAmount(
                   circle.circleInfo.depositAmount
-                )} BREAD`}
+                )} ${DEPOSIT_TOKEN.symbol}`}
                 amount={circle.circleInfo.depositAmount}
                 tokenAddress={circle.circleInfo.token}
                 circleId={circle.circleId}

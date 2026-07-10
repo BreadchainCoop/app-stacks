@@ -8,7 +8,7 @@ import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { getDefaultChainId } from "@/utils/chain";
 import { Body, LoginButton, useConnectedUser } from "@breadcoop/ui";
 import { CheckIcon } from "@phosphor-icons/react";
-import { usePrivy } from "@privy-io/react-auth";
+import { useUserIdentity } from "@/components/providers/user-identity";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useReadContract } from "wagmi";
@@ -34,7 +34,7 @@ export default function AcceptInvite({
   const router = useRouter();
   const { user } = useConnectedUser();
   const { sendSavingCirclesTx } = useSavingCirclesTx();
-  const { user: privyUser } = usePrivy();
+  const { userId } = useUserIdentity();
   const queryClient = useQueryClient();
 
   const address = user.status === "CONNECTED" ? user.address : undefined;
@@ -94,7 +94,7 @@ export default function AcceptInvite({
       fetch("/api/stacks/invite", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ circleId, nonce, privyUserId: privyUser?.id }),
+        body: JSON.stringify({ circleId, nonce, privyUserId: userId }),
       }).catch((error) => {
         console.error("Failed to mark invite as used:", error);
       });

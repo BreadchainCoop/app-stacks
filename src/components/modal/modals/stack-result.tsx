@@ -21,12 +21,14 @@ import { useEffect, useState } from "react";
 import { usePublicClient } from "wagmi";
 import { savingCirclesAbi } from "../../../lib/abis/saving-circles";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../../lib/constants";
-import { usePrivy, useSignTypedData } from "@privy-io/react-auth";
+import { useSignTypedData } from "@privy-io/react-auth";
+import { useUserIdentity } from "@/components/providers/user-identity";
 import { getDefaultChainId } from "@/utils/chain";
 import { shortenUrl } from "@/utils/shorten";
 import { SupabaseInviteLink } from "@/lib/supabase";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { clientEnv } from "@/lib/env";
+import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
 
 type InviteLink = {
   nonce: bigint;
@@ -69,7 +71,7 @@ export const StackSuccessResultModal = ({
   modalState: StackInitSuccessModalState;
 }) => {
   const blockTimestamp = useBlockTimestamp();
-  const { user: privyUser } = usePrivy();
+  const { userId } = useUserIdentity();
   const publicClient = usePublicClient({ chainId: getDefaultChainId() });
   const { signTypedData } = useSignTypedData();
   const modal = useModal();
@@ -193,7 +195,7 @@ export const StackSuccessResultModal = ({
           stackname: modalState.circle.name,
           expected_members: modalState.circle.members,
           invite_links: supabaseInviteLinks,
-          privyUserId: privyUser?.id,
+          privyUserId: userId,
         }),
       });
 
@@ -302,11 +304,11 @@ export const StackSuccessResultModal = ({
                 <RowDetail label="Duration" body={modalState.circle.duration} />
                 <RowDetail
                   label="Est. Deposit amount"
-                  body={`${formatBalance(modalState.circle.deposit, 2)} BREAD`}
+                  body={`${formatBalance(modalState.circle.deposit, 2)} ${DEPOSIT_TOKEN.symbol}`}
                 />
                 <RowDetail
                   label="Stack goal"
-                  body={`${formatBalance(modalState.circle.total, 2)} BREAD`}
+                  body={`${formatBalance(modalState.circle.total, 2)} ${DEPOSIT_TOKEN.symbol}`}
                 />
               </div>
             </AccordionContent>

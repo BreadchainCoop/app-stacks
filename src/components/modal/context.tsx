@@ -55,6 +55,8 @@ export type DepositResultModalState = {
   result: "success" | "error";
   msg?: string;
   amount?: number;
+  /** Failed because the wallet holds less than the deposit amount */
+  insufficientBalance?: boolean;
 };
 
 export type ClaimInitModalState = {

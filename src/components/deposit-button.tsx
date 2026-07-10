@@ -15,6 +15,8 @@ import { useWaitForTxReceipt } from "@/hooks/use-wait-for-tx-receipt";
 import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { DEPOSIT_ERRORS } from "@/lib/contract-errors";
+import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
+import { useIsMiniPay } from "@/hooks/use-is-minipay";
 import LocalButton from "./button";
 
 interface DepositButtonProps extends Omit<ButtonProps, "children"> {
@@ -42,6 +44,7 @@ const DepositButton = ({
   const { user } = useConnectedUser();
   const userAddress = user.status === "CONNECTED" ? user.address : undefined;
   const modal = useModal();
+  const isMiniPay = useIsMiniPay();
 
   const { data: allowance = BigInt(0) } = useReadContract({
     address: tokenAddress,
@@ -52,6 +55,16 @@ const DepositButton = ({
     chainId: getDefaultChainId(),
   });
 
+  const { refetch: refetchBalance } = useReadContract({
+    address: tokenAddress,
+    abi: erc20Abi,
+    functionName: "balanceOf",
+    args: [userAddress!],
+    // Only consulted at click time in MiniPay (see deposit below)
+    query: { enabled: false },
+    chainId: getDefaultChainId(),
+  });
+
   const needsApproval = useMemo(() => {
     if (!userAddress) return false;
     return allowance < amount;
@@ -59,6 +72,23 @@ const DepositButton = ({
 
   const deposit = async () => {
     if (depositing) return;
+
+    // MiniPay only: surface a low balance (fresh read, the cache may be
+    // stale) before sending anything, so the result modal can point the
+    // user at MiniPay's Deposit flow. Elsewhere behavior is unchanged.
+    if (isMiniPay && userAddress) {
+      const { data: balance } = await refetchBalance();
+
+      if (balance !== undefined && balance < amount) {
+        modal.setModal({
+          type: "DEPOSIT_RESULT",
+          result: "error",
+          msg: `You don't have enough ${DEPOSIT_TOKEN.symbol} to make this deposit.`,
+          insufficientBalance: true,
+        });
+        return;
+      }
+    }
 
     modal.setModal({ type: "DEPOSIT_LOADING" });
     setDepositing(true);

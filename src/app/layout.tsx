@@ -3,10 +3,9 @@ import { generateMetadata } from "@/utils/metadata";
 import ModalPresenter from "@/components/modal/presenter";
 import { Navbar } from "@/components/Navbar/Navbar";
 import Providers from "@/components/providers";
-import LoginTracker from "@/components/login-tracker";
 import { isServerMobile } from "@/lib/server-mobile";
+import { isServerMiniPay } from "@/lib/server-minipay";
 import { Footer } from "@breadcoop/ui";
-import { OnboardVisitorTracker } from "@/components/onboard/visitor-tracker";
 
 export const metadata = generateMetadata();
 
@@ -16,6 +15,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const isMobile = await isServerMobile();
+  const isMiniPay = await isServerMiniPay();
 
   return (
     <html lang="en">
@@ -27,9 +27,7 @@ export default async function RootLayout({
       </head>
       <body className="font-roboto text-text-standard antialiased">
         <div className="body-container">
-          <Providers isMobile={isMobile}>
-            <OnboardVisitorTracker />
-            <LoginTracker />
+          <Providers isMobile={isMobile} isMiniPay={isMiniPay}>
             <ModalPresenter />
             <Navbar />
             <main className="page-layout py-8">{children}</main>

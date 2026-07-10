@@ -4,6 +4,7 @@ import { createRemoteJWKSet, jwtVerify } from "jose";
 import { serverEnv } from "@/lib/envs/server";
 import { validateAlias } from "@/lib/alias";
 import { createErrorResponse } from "../utils";
+import { verifyMiniPaySessionToken } from "../minipay/auth";
 
 const supabaseAdmin = createClient(
   serverEnv.NEXT_PUBLIC_SUPABASE_URL,
@@ -16,13 +17,22 @@ const privyJwks = createRemoteJWKSet(
   )
 );
 
-/** Verifies the Privy access token and returns the caller's Privy user id. */
-const verifyPrivyToken = async (req: NextRequest): Promise<string | null> => {
+/**
+ * Verifies the bearer token — a MiniPay session token or a Privy access
+ * token — and returns the caller's external user id (users.privy_user_id).
+ */
+const verifyUserToken = async (req: NextRequest): Promise<string | null> => {
   const header = req.headers.get("authorization");
   if (!header?.startsWith("Bearer ")) return null;
 
+  const token = header.slice(7);
+
+  // MiniPay first: local HMAC check, no network round-trip
+  const miniPayUserId = await verifyMiniPaySessionToken(token);
+  if (miniPayUserId) return miniPayUserId;
+
   try {
-    const { payload } = await jwtVerify(header.slice(7), privyJwks, {
+    const { payload } = await jwtVerify(token, privyJwks, {
       issuer: "privy.io",
       audience: serverEnv.NEXT_PUBLIC_PRIVY_APP_ID,
     });
@@ -35,7 +45,7 @@ const verifyPrivyToken = async (req: NextRequest): Promise<string | null> => {
 
 export async function POST(req: NextRequest) {
   try {
-    const privyUserId = await verifyPrivyToken(req);
+    const privyUserId = await verifyUserToken(req);
     if (!privyUserId) return createErrorResponse("Unauthorized", 401);
 
     let body: unknown;

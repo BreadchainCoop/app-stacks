@@ -8,6 +8,8 @@ const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string(),
   SEPOLIA_RPC_URL: z.string().optional(),
   AUTOMATIC_FUNDING_PRIVATE_KEY: z.string(),
+  // HMAC secret for MiniPay session JWTs; only required when serving MiniPay
+  MINIPAY_SESSION_SECRET: z.string().optional(),
   NEXT_PUBLIC_CHAIN_ID: z.coerce.number(),
   NEXT_PUBLIC_BREAD_TOKEN_ADDRESS: z.string(),
   NEXT_PUBLIC_PRIVY_APP_ID: z.string(),

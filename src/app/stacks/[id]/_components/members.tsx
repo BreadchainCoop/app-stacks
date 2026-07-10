@@ -6,7 +6,8 @@ import {
   UsersIcon,
 } from "@phosphor-icons/react/ssr";
 import MembersInfo from "./members-info";
-import { Address, formatEther } from "viem";
+import { Address } from "viem";
+import { formatDepositAmount } from "@/lib/deposit-token";
 import { useCircleMembersWithBalances } from "@/hooks/use-circle-members";
 import { useReadContracts } from "wagmi";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
@@ -59,7 +60,7 @@ const StackMembers = ({
 
   const totalMembers = info.isLoading ? "-" : info.members.length;
   const totalBaseDeposit =
-    +formatEther(circle.depositAmount) * Number(circle.currentIndex);
+    +formatDepositAmount(circle.depositAmount) * Number(circle.currentIndex);
 
   const nonceChecks = (stackMetadata?.invite_links ?? [])
     .map((link) => {

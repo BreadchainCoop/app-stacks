@@ -6,6 +6,7 @@ import LocalButton from "../button";
 import Link from "next/link";
 import { PlusIcon } from "@phosphor-icons/react";
 import { useIsOwnAddress } from "@/hooks/use-is-own-address";
+import { useIsMiniPay } from "@/hooks/use-is-minipay";
 
 const HomeHeader = ({
   type,
@@ -17,6 +18,8 @@ const HomeHeader = ({
 }) => {
   const isOwnProfile = useIsOwnAddress(address ?? "");
   const isVisitor = type === "persona" && Boolean(address) && !isOwnProfile;
+  // Creation is gated in MiniPay (invite links need EIP-712 signing)
+  const isMiniPay = useIsMiniPay();
 
   return (
     <header className="mb-6 md:flex md:items-center md:justify-between">
@@ -36,7 +39,7 @@ const HomeHeader = ({
               : "Peek into all active Stack groups."}
         </Body>
       </div>
-      {type !== "all" && !isVisitor && (
+      {type !== "all" && !isVisitor && !isMiniPay && (
         <LocalButton
           as={Link}
           href="/new"

@@ -1,18 +1,11 @@
-import { clientEnv } from "@/lib/env";
+import { TxSender, useTxSender } from "@/components/providers/tx-sender";
 import { getDefaultChainId } from "@/utils/chain";
-import { useSendTransaction } from "@privy-io/react-auth";
 
 export const useSponsoredTx = () => {
-  const { sendTransaction } = useSendTransaction();
+  const sendTx = useTxSender();
 
-  const sendSponsoredTransaction: typeof sendTransaction = async (
-    input,
-    options
-  ) => {
-    return sendTransaction(
-      { ...input, chainId: getDefaultChainId() },
-      { ...options, sponsor: clientEnv.NEXT_PUBLIC_CHAIN_ID === 100 }
-    );
+  const sendSponsoredTransaction: TxSender = async (input, options) => {
+    return sendTx({ ...input, chainId: getDefaultChainId() }, options);
   };
 
   return { sendSponsoredTransaction };

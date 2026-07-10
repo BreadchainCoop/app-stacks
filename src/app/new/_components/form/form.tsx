@@ -10,6 +10,7 @@ import { useFormContext } from "react-hook-form";
 import { StackFormSchemaData } from "./schema";
 import NumericInput from "@/components/numeric-input";
 import { DEPOSIT_INTERVALS, getIntervalById } from "@/utils/deposit-interval";
+import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
 
 const StackForm = ({ onContinue }: { onContinue: () => void }) => {
   const form = useFormContext<StackFormSchemaData>();
@@ -80,7 +81,10 @@ const StackForm = ({ onContinue }: { onContinue: () => void }) => {
               </Label>
             </div>
             <InputDescription desc="The total amount of money you want to stack up with friends every week or month." />
-            <InputDescription desc="1 BREAD = 1 USD" className="text-xs" />
+            <InputDescription
+              desc={`1 ${DEPOSIT_TOKEN.symbol} = 1 USD`}
+              className="text-xs"
+            />
             <div className="relative">
               <NumericInput
                 {...form.register("depositAmount", {
@@ -91,7 +95,11 @@ const StackForm = ({ onContinue }: { onContinue: () => void }) => {
                 allowDecimal
               />
               <div className="absolute top-1/2 -translate-y-1/2 right-3 p-1 bg-paper-main">
-                <Logo text="BREAD" className="size-6" variant="square" />
+                <Logo
+                  text={DEPOSIT_TOKEN.symbol}
+                  className="size-6"
+                  variant="square"
+                />
               </div>
             </div>
             <ErrorMessage msg={form.formState.errors.depositAmount?.message} />

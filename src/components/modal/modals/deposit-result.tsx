@@ -4,12 +4,16 @@ import {
   TModalStatus,
 } from "../context";
 import { ModalContainer, ModalHeader, ModalStatus } from "../components";
+import LocalButton from "@/components/button";
+import { useIsMiniPay } from "@/hooks/use-is-minipay";
+import { MINIPAY_ADD_CASH_URL } from "@/utils/minipay";
 
 const DepositResult = ({
   modalState,
 }: {
   modalState: DepositResultModalState | DepositLoadingModalState;
 }) => {
+  const isMiniPay = useIsMiniPay();
   const status: TModalStatus =
     modalState.type === "DEPOSIT_LOADING" ? "loading" : modalState.result;
 
@@ -36,6 +40,17 @@ const DepositResult = ({
     >
       <ModalHeader title={title} />
       <ModalStatus status={status} msg={msg} />
+      {isMiniPay &&
+        modalState.type === "DEPOSIT_RESULT" &&
+        modalState.insufficientBalance && (
+          <LocalButton
+            as="a"
+            href={MINIPAY_ADD_CASH_URL}
+            className="w-full font-bold"
+          >
+            Deposit funds
+          </LocalButton>
+        )}
     </ModalContainer>
   );
 };
