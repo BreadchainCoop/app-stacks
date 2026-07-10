@@ -1,9 +1,9 @@
 "use client";
 
-import { ButtonProps, useConnectedUser } from "@breadcoop/ui";
+import { ButtonProps, formatBalance, useConnectedUser } from "@breadcoop/ui";
 import { useModal } from "./modal/context";
 import { useReadContract } from "wagmi";
-import { Address, encodeFunctionData, erc20Abi } from "viem";
+import { Address, encodeFunctionData, erc20Abi, formatEther } from "viem";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { useMemo, useState } from "react";
 import { getDefaultChainId } from "@/utils/chain";
@@ -52,10 +52,25 @@ const DepositButton = ({
     chainId: getDefaultChainId(),
   });
 
+  const { data: balance = BigInt(0) } = useReadContract({
+    address: tokenAddress,
+    abi: erc20Abi,
+    functionName: "balanceOf",
+    args: [userAddress!],
+    query: { enabled: !!userAddress },
+    chainId: getDefaultChainId(),
+  });
+
   const needsApproval = useMemo(() => {
     if (!userAddress) return false;
     return allowance < amount;
   }, [allowance, amount, userAddress]);
+
+  const hasInsufficientBalance = !!userAddress && balance < amount;
+
+  const missingAmount = hasInsufficientBalance
+    ? formatBalance(Number(formatEther(amount - balance)), 2)
+    : null;
 
   const deposit = async () => {
     if (depositing) return;
@@ -103,6 +118,7 @@ const DepositButton = ({
     <LocalButton
       {...props}
       onClick={deposit}
+      disabled={props.disabled || hasInsufficientBalance}
       leftIcon={depositing ? undefined : props.leftIcon}
       rightIcon={depositing ? undefined : props.rightIcon}
     >
@@ -110,6 +126,8 @@ const DepositButton = ({
         <span className="flex items-center justify-center">
           <Loading />
         </span>
+      ) : hasInsufficientBalance ? (
+        `Need ${missingAmount} More BREAD`
       ) : (
         label
       )}

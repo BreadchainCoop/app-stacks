@@ -41,3 +41,6 @@ broadcast/
 
 # supabase cli
 supabase/.temp
+
+# claude
+~/.claude-personal
