@@ -109,7 +109,7 @@ const WithdrawBreadModal = () => {
   });
 
   const balance = data
-    ? formatBalance(Number(data) / 10 ** DEPOSIT_TOKEN.decimals, 2)
+    ? formatBalance(Number(formatDepositAmount(data)), 2)
     : 0;
   console.log("Balance data", { data, isLoading, error, balance });
 

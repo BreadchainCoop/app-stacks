@@ -9,8 +9,6 @@ export const OnboardVisitorTracker = () => {
   const { setModal } = useModal();
   const { userId, ready } = useUserIdentity();
 
-  console.log({ modalShown: modalShown.current, userId, ready });
-
   useEffect(() => {
     if (modalShown.current || !ready || userId) return;
 

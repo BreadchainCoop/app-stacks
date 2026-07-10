@@ -103,7 +103,9 @@ const MiniPayTxSenderProvider = ({ children }: { children: ReactNode }) => {
 
 const isTokenExpired = (token: string): boolean => {
   try {
-    const { exp } = JSON.parse(atob(token.split(".")[1])) as { exp?: number };
+    // JWT segments are base64url ("-"/"_", no padding); atob wants base64
+    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const { exp } = JSON.parse(atob(base64)) as { exp?: number };
     return typeof exp !== "number" || Date.now() / 1000 > exp - 60;
   } catch {
     return true;
