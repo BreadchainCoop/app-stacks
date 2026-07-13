@@ -17,8 +17,10 @@ import {
 } from "@/components/accordion";
 import Link from "next/link";
 import LocalButton from "@/components/button";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePublicClient } from "wagmi";
+import AddMembersCard from "@/components/add-members/add-members-card";
+import { useIsMiniPay } from "@/hooks/use-is-minipay";
 import { savingCirclesAbi } from "../../../lib/abis/saving-circles";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../../lib/constants";
 import { useSignTypedData } from "@privy-io/react-auth";
@@ -65,7 +67,91 @@ function buildInviteUrl(
 
 const isLocal = clientEnv.NEXT_PUBLIC_NODE_ENV === "local";
 
+/**
+ * MiniPay cannot sign EIP-712 invites, so it never renders the Privy variant
+ * (whose hooks require PrivyProvider); the owner adds members directly via
+ * the signing-free addMembers contract call instead.
+ */
 export const StackSuccessResultModal = ({
+  modalState,
+}: {
+  modalState: StackInitSuccessModalState;
+}) => {
+  const isMiniPay = useIsMiniPay();
+
+  if (isMiniPay) {
+    return <MiniPayStackSuccessModal modalState={modalState} />;
+  }
+
+  return <PrivyStackSuccessModal modalState={modalState} />;
+};
+
+const MiniPayStackSuccessModal = ({
+  modalState,
+}: {
+  modalState: StackInitSuccessModalState;
+}) => {
+  const modal = useModal();
+  const { userId } = useUserIdentity();
+  const metadataSaved = useRef(false);
+
+  // Persist the stack name off-chain, like the invite flow does — just with
+  // no invite links, since members are added directly on-chain.
+  useEffect(() => {
+    if (metadataSaved.current || !userId) return;
+    metadataSaved.current = true;
+
+    fetch("/api/stacks/metadata", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: modalState.circle.id,
+        stackname: modalState.circle.name,
+        expected_members: modalState.circle.members,
+        invite_links: [],
+        privyUserId: userId,
+      }),
+    }).catch((error) => {
+      console.error("Failed to save stack metadata:", error);
+    });
+  }, [userId, modalState.circle]);
+
+  return (
+    <ModalContainer className="max-w-142!">
+      <div className="flex flex-col gap-3 items-center justify-center">
+        <SealCheckIcon size={80} className="fill-system-green" />
+        <Heading2 className="text-2xl leading-6">
+          &quot;{modalState.circle.name}&ldquo;
+        </Heading2>
+        <Body className="text-surface-ink">Stacks group created!</Body>
+      </div>
+
+      <div className="*:mb-4 *:last:mb-0 border-t border-primary-blue pt-6">
+        <Body>
+          Your Stacks has 1 member (you). Add members by their wallet address or
+          ENS name. To deposit, it needs 2 or more members.
+        </Body>
+
+        <AddMembersCard circleId={BigInt(modalState.circle.id)} />
+      </div>
+
+      <LocalButton
+        as={Link}
+        href={`/stacks/${modalState.circle.id}?name=${modalState.circle.name}`}
+        className="w-full"
+        onClick={() => modal.setModal(null)}
+        rightIcon={<ArrowRightIcon size={24} />}
+      >
+        Visit stacks detail page
+      </LocalButton>
+      <Body className="text-surface-grey-2">
+        Note: You can also add members later from your Stacks details page.
+      </Body>
+    </ModalContainer>
+  );
+};
+
+const PrivyStackSuccessModal = ({
   modalState,
 }: {
   modalState: StackInitSuccessModalState;

@@ -1,4 +1,4 @@
-.PHONY: deploy install-contract-deps anvil update-env update-contract-submodules update-saving-circles-dev reset-supabase start-local warp time-increase mine timestamp time-reset
+.PHONY: deploy deploy-celo install-contract-deps anvil update-env update-contract-submodules update-saving-circles-dev reset-supabase start-local warp time-increase mine timestamp time-reset
 
 ANVIL_ACCOUNTS := 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 \
 	0x70997970C51812dc3A010C7d01b50e0d17dc79C8 \
@@ -51,6 +51,45 @@ deploy:
 		--private-key $(PRIVATE_KEY) \
 		--legacy
 	$(MAKE) update-env
+
+# Celo mainnet (issue #154). Deploys against the real deposit stablecoin
+# (USDT by default) and verifies on Celoscan. Requires explicit
+# PRIVATE_KEY/ADMIN_ADDRESS (the anvil defaults are refused) and
+# CELOSCAN_API_KEY for verification:
+#   make deploy-celo PRIVATE_KEY=0x... ADMIN_ADDRESS=0x... CELOSCAN_API_KEY=...
+CELO_RPC_URL ?= https://forno.celo.org
+# USDT on Celo mainnet (6 decimals)
+CELO_DEPOSIT_TOKEN ?= 0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e
+
+deploy-celo:
+	@if [ "$(PRIVATE_KEY)" = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" ]; then \
+		echo "Error: refusing to deploy to Celo mainnet with the default anvil PRIVATE_KEY"; \
+		exit 1; \
+	fi
+	@if [ "$(ADMIN_ADDRESS)" = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" ]; then \
+		echo "Error: refusing to deploy to Celo mainnet with the default anvil ADMIN_ADDRESS"; \
+		exit 1; \
+	fi
+	@if [ -z "$(CELOSCAN_API_KEY)" ]; then \
+		echo "Error: CELOSCAN_API_KEY is required for contract verification"; \
+		exit 1; \
+	fi
+	cd contracts && \
+	export ADMIN_ADDRESS=$(ADMIN_ADDRESS) && \
+	export DEPOSIT_TOKEN_ADDRESS=$(CELO_DEPOSIT_TOKEN) && \
+	export CELOSCAN_API_KEY=$(CELOSCAN_API_KEY) && \
+	forge script script/DeployCelo.s.sol:DeployCelo \
+		--optimize \
+		--optimizer-runs $(SOLC_OPTIMIZER_RUNS) \
+		--rpc-url $(CELO_RPC_URL) \
+		--broadcast \
+		--private-key $(PRIVATE_KEY) \
+		--legacy \
+		--verify \
+		--chain celo
+	$(MAKE) update-env RPC_URL=$(CELO_RPC_URL)
+	@echo "Reminder: set NEXT_PUBLIC_CHAIN_ID=42220, NEXT_PUBLIC_DEPOSIT_TOKEN_SYMBOL=USDT,"
+	@echo "and NEXT_PUBLIC_DEPOSIT_TOKEN_DECIMALS=6 in the deployment environment."
 
 update-env:
 	@echo "Updating .env.local with deployed contract addresses..."

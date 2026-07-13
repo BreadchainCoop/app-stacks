@@ -1,14 +1,8 @@
-"use client";
-
 import LocalButton from "@/components/button";
 import { PlusIcon } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
-import { useIsMiniPay } from "@/hooks/use-is-minipay";
 
 const HeroBanner = () => {
-  // Creation is gated in MiniPay (invite links need EIP-712 signing)
-  const isMiniPay = useIsMiniPay();
-
   return (
     <section
       className="relative mb-12 overflow-hidden bg-cover bg-center md:min-h-95"
@@ -27,18 +21,16 @@ const HeroBanner = () => {
         <p className="text-xl font-bold text-paper-2 md:text-2xl">
           Invite friends deposit, get payed out.
         </p>
-        {!isMiniPay && (
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            <LocalButton
-              as={Link}
-              href="/new"
-              className="font-bold sm:w-auto"
-              leftIcon={<PlusIcon />}
-            >
-              Create new Stack
-            </LocalButton>
-          </div>
-        )}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <LocalButton
+            as={Link}
+            href="/new"
+            className="font-bold sm:w-auto"
+            leftIcon={<PlusIcon />}
+          >
+            Create new Stack
+          </LocalButton>
+        </div>
       </div>
     </section>
   );

@@ -29,6 +29,8 @@ import { useStackSupabase } from "@/hooks/use-stack-supabase";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { getDefaultChainId } from "@/utils/chain";
+import { isCeloChain } from "@/utils/celo";
+import AddMembersCard from "@/components/add-members/add-members-card";
 import { useReadContracts } from "wagmi";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useFundsDeposited } from "@/hooks/use-funds-deposited";
@@ -271,6 +273,14 @@ const Overview = ({
         </FeatureGate>
         {formattedCircleStatus.status === "pending-start" ? (
           <>
+            {/* Signing-free member invites (addMembers) exist on the Celo
+                deployment's contract only */}
+            {isCeloChain(getDefaultChainId()) &&
+              member === circle.circleInfo.owner && (
+                <div className="mb-4">
+                  <AddMembersCard circleId={BigInt(circle.circleId)} />
+                </div>
+              )}
             {member === circle.circleInfo.owner &&
             hasEnoughMembersToStart &&
             canResolveMissingMembers ? (

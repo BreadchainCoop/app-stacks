@@ -21,3 +21,7 @@ remappings = [
   "contracts/=lib/saving-circles/src/contracts/",
   "interfaces/=lib/saving-circles/src/interfaces/",
 ]
+
+# Contract verification for `make deploy-celo` (Etherscan-compatible API)
+[etherscan]
+celo = { key = "${CELOSCAN_API_KEY}", chain = 42220, url = "https://api.celoscan.io/api" }
