@@ -1,6 +1,6 @@
 "use client";
 
-import { ButtonProps, useConnectedUser } from "@breadcoop/ui";
+import { ButtonProps, formatBalance, useConnectedUser } from "@breadcoop/ui";
 import { useModal } from "./modal/context";
 import { useReadContract } from "wagmi";
 import { Address, encodeFunctionData, erc20Abi } from "viem";
@@ -15,7 +15,7 @@ import { useWaitForTxReceipt } from "@/hooks/use-wait-for-tx-receipt";
 import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { DEPOSIT_ERRORS } from "@/lib/contract-errors";
-import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
+import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
 import { useIsMiniPay } from "@/hooks/use-is-minipay";
 import LocalButton from "./button";
 
@@ -55,13 +55,12 @@ const DepositButton = ({
     chainId: getDefaultChainId(),
   });
 
-  const { refetch: refetchBalance } = useReadContract({
+  const { data: balance = BigInt(0) } = useReadContract({
     address: tokenAddress,
     abi: erc20Abi,
     functionName: "balanceOf",
     args: [userAddress!],
-    // Only consulted at click time in MiniPay (see deposit below)
-    query: { enabled: false },
+    query: { enabled: !!userAddress },
     chainId: getDefaultChainId(),
   });
 
@@ -70,24 +69,25 @@ const DepositButton = ({
     return allowance < amount;
   }, [allowance, amount, userAddress]);
 
+  const hasInsufficientBalance = !!userAddress && balance < amount;
+
+  const missingAmount = hasInsufficientBalance
+    ? formatBalance(Number(formatDepositAmount(amount - balance)), 2)
+    : null;
+
   const deposit = async () => {
     if (depositing) return;
 
-    // MiniPay only: surface a low balance (fresh read, the cache may be
-    // stale) before sending anything, so the result modal can point the
-    // user at MiniPay's Deposit flow. Elsewhere behavior is unchanged.
-    if (isMiniPay && userAddress) {
-      const { data: balance } = await refetchBalance();
-
-      if (balance !== undefined && balance < amount) {
-        modal.setModal({
-          type: "DEPOSIT_RESULT",
-          result: "error",
-          msg: `You don't have enough ${DEPOSIT_TOKEN.symbol} to make this deposit.`,
-          insufficientBalance: true,
-        });
-        return;
-      }
+    // In MiniPay, route a low balance to MiniPay's Deposit flow (via the
+    // result modal's Add Cash deeplink) instead of a dead disabled button.
+    if (isMiniPay && hasInsufficientBalance) {
+      modal.setModal({
+        type: "DEPOSIT_RESULT",
+        result: "error",
+        msg: `You don't have enough ${DEPOSIT_TOKEN.symbol} to make this deposit.`,
+        insufficientBalance: true,
+      });
+      return;
     }
 
     modal.setModal({ type: "DEPOSIT_LOADING" });
@@ -133,6 +133,8 @@ const DepositButton = ({
     <LocalButton
       {...props}
       onClick={deposit}
+      // In MiniPay the button stays active so it can route to Add Cash
+      disabled={props.disabled || (hasInsufficientBalance && !isMiniPay)}
       leftIcon={depositing ? undefined : props.leftIcon}
       rightIcon={depositing ? undefined : props.rightIcon}
     >
@@ -140,6 +142,8 @@ const DepositButton = ({
         <span className="flex items-center justify-center">
           <Loading />
         </span>
+      ) : hasInsufficientBalance ? (
+        `Need ${missingAmount} More ${DEPOSIT_TOKEN.symbol}`
       ) : (
         label
       )}

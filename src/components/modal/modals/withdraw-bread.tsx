@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { ReactNode, SubmitEventHandler, useState } from "react";
 import { ModalContainer, ModalHeader, ModalStatus } from "../components";
 import { Label } from "@/components/label";
 import Input from "@/components/input";
@@ -146,7 +146,9 @@ const WithdrawBreadModal = () => {
     typeof buttonWithdrawContent === "string" &&
     buttonWithdrawContent !== "Withdraw";
 
-  const withdraw = async () => {
+  const withdraw: SubmitEventHandler<HTMLFormElement> = async (e) => {
+    e.preventDefault();
+
     if (disableButton) return;
 
     setLevel("loading");
@@ -195,7 +197,7 @@ const WithdrawBreadModal = () => {
           </div>
         </>
       ) : (
-        <form className="*:mb-6">
+        <form className="*:mb-6" onSubmit={withdraw}>
           <div>
             <Label htmlFor="address">Recipient Address</Label>
             <div className="relative">
@@ -261,7 +263,6 @@ const WithdrawBreadModal = () => {
             </div>
           </div>
           <LocalButton
-            onClick={withdraw}
             disabled={disableButton}
             className={cn(
               "w-full",

@@ -14,6 +14,16 @@ const LIFECYCLE_STATUSES: ICircleStatus[] = [
   "expired",
 ];
 
+// Terminal statuses where the circle can no longer be acted upon (e.g. no more
+// deposits or claims are possible). Used to disable actions like automatic
+// deposits/claims toggles.
+export const FAILED_STACK_STATUSES: ICircleStatus[] = [
+  "decommissioned",
+  "expired",
+  "failed",
+  "finished",
+];
+
 /**
  * The status of the *current round*, for the "Round Status" display.
  *

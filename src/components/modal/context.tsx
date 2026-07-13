@@ -12,6 +12,7 @@ import { PeerExtensionSdk } from "@zkp2p/sdk";
 import { Address } from "viem";
 import { FundWithConnectedWalletModalAmountModalState } from "./modals/fund-wallet/fund-with-connected-wallet-modal-amount";
 import { AutomaticClaimsModalState } from "./modals/automatic-claims";
+import type { AutomaticDepositsModalState } from "@/components/automatic-deposits/types";
 
 export type TModalStatus = "loading" | "success" | "error";
 
@@ -160,6 +161,7 @@ export type ModalState =
   | FundWithConnectedWalletModalAmountModalState
   | AutomaticClaimsModalState
   | VisitorOnboardingModalState
+  | AutomaticDepositsModalState
   | null;
 
 export type ModalContext = {
