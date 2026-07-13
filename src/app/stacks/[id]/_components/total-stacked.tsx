@@ -19,6 +19,12 @@ import { formatRelativeTime } from "@/utils/time";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { AutomaticClaim } from "./automatic-claim";
 import { FeatureGate } from "@/components/feature-gate";
+import { useCircleState } from "@/hooks/use-circles-state";
+import { CircleState } from "@/lib/circle-state";
+import {
+  FAILED_STACK_STATUSES,
+  getUserCircleStatus,
+} from "@/lib/get-user-circle-status";
 
 const TotalStacked = ({
   id,
@@ -33,6 +39,18 @@ const TotalStacked = ({
     user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
       ? user.address
       : undefined;
+
+  const now = useBlockTimestamp();
+  const { circleState } = useCircleState(BigInt(id));
+  const isFailedStack = userCircleData.circleData
+    ? FAILED_STACK_STATUSES.includes(
+        getUserCircleStatus({
+          circle: userCircleData.circleData,
+          now: BigInt(Math.floor(now / 1000)),
+          circleState: circleState ?? CircleState.Active,
+        }).status
+      )
+    : false;
 
   const claimableAmount = userCircleData.circleData?.canWithdraw
     ? userCircleData.circleData?.circleInfo.depositAmount *
@@ -142,7 +160,7 @@ const TotalStacked = ({
               )}
               {userCircleData.circleData?.isMember && (
                 <FeatureGate feature="automaticClaim">
-                  <AutomaticClaim stackId={id} />
+                  <AutomaticClaim stackId={id} disabled={isFailedStack} />
                 </FeatureGate>
               )}
             </>

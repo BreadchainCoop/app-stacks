@@ -10,7 +10,13 @@ import { useConnectedUser } from "@breadcoop/ui";
 import { HandWithdrawIcon } from "@phosphor-icons/react";
 import { useReadContract } from "wagmi";
 
-export function AutomaticClaim({ stackId }: { stackId: string }) {
+export function AutomaticClaim({
+  stackId,
+  disabled = false,
+}: {
+  stackId: string;
+  disabled?: boolean;
+}) {
   const { setModal } = useModal();
 
   const { user } = useConnectedUser();
@@ -29,10 +35,12 @@ export function AutomaticClaim({ stackId }: { stackId: string }) {
     <div className="mt-2">
       <Label className="flex items-center justify-start flex-wrap gap-1">
         <HandWithdrawIcon size={24} />
-        <span className="mr-auto">Activate automatic claims</span>
+        <span className="mr-auto flex items-center gap-1">
+          Activate <span className="font-bold">Automatic Claims</span>
+        </span>
         <Switch
           id="automatic-claims"
-          disabled={isFetching}
+          disabled={isFetching || disabled}
           checked={isEnabled}
           onCheckedChange={() =>
             setModal({

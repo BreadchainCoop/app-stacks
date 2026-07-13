@@ -12,6 +12,7 @@ import {
 } from "@breadcoop/ui";
 import DaysLeft from "./days-left";
 import {
+  FAILED_STACK_STATUSES,
   getRoundStatus,
   getUserCircleStatus,
 } from "@/lib/get-user-circle-status";
@@ -29,17 +30,9 @@ import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { getDefaultChainId } from "@/utils/chain";
 import { useReadContracts } from "wagmi";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
-import { ICircleStatus } from "@/interfaces/circle";
 import { useFundsDeposited } from "@/hooks/use-funds-deposited";
 import LocalButton from "@/components/button";
 import { FeatureGate } from "@/components/feature-gate";
-
-const failedStatuses: ICircleStatus[] = [
-  "decommissioned",
-  "expired",
-  "failed",
-  "finished",
-];
 
 const Overview = ({
   circle,
@@ -78,7 +71,9 @@ const Overview = ({
   const { data: stackMetadata, isLoading: isStackMetadataLoading } =
     useStackSupabase(circle.circleId.toString(), circle.isMember);
 
-  const isFailedStack = failedStatuses.includes(formattedCircleStatus.status);
+  const isFailedStack = FAILED_STACK_STATUSES.includes(
+    formattedCircleStatus.status
+  );
 
   const fundsDeposited = useFundsDeposited({
     circleId: circle.circleId.toString(),
@@ -258,10 +253,20 @@ const Overview = ({
         depositInterval={circle.circleInfo.depositInterval}
         isActive={
           status.isActive &&
-          !failedStatuses.includes(formattedCircleStatus.status)
+          !FAILED_STACK_STATUSES.includes(formattedCircleStatus.status)
         }
       />
       <div className="mt-4">
+        <FeatureGate feature="automaticDeposit">
+          <AutomaticDeposit
+            stackId={circle.circleId.toString()}
+            depositAmount={circle.circleInfo.depositAmount}
+            remainingRounds={remainingRounds}
+            depositInterval={circle.circleInfo.depositInterval}
+            tokenAddress={circle.circleInfo.token}
+            disabled={isFailedStack}
+          />
+        </FeatureGate>
         {formattedCircleStatus.status === "pending-start" ? (
           <>
             {member === circle.circleInfo.owner &&
@@ -296,15 +301,6 @@ const Overview = ({
           <>
             {connectedUser.user.status === "CONNECTED" ? (
               <>
-                <FeatureGate feature="automaticDeposit">
-                  <AutomaticDeposit
-                    stackId={circle.circleId.toString()}
-                    depositAmount={circle.circleInfo.depositAmount}
-                    remainingRounds={remainingRounds}
-                    depositInterval={circle.circleInfo.depositInterval}
-                    tokenAddress={circle.circleInfo.token}
-                  />
-                </FeatureGate>
                 <DepositButton
                   className="font-bold w-full"
                   label={`Deposit ${formatEther(
