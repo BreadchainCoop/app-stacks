@@ -17,6 +17,8 @@ export const HomeContent = () => {
       setModal({ type: "VISITOR_ONBOARDING" });
     } else if (onboarding === "logged-in") {
       setModal({ type: "LOGGED_IN_ONBOARDING" });
+    } else if (onboarding === "savings-goals") {
+      setModal({ type: "SAVINGS_GOALS", privyUserId: "test" });
     }
   }, [searchParams, setModal]);
 

@@ -138,6 +138,11 @@ export type LoggedInOnboardingModalState = {
   type: "LOGGED_IN_ONBOARDING";
 };
 
+export type SavingsGoalsModalState = {
+  type: "SAVINGS_GOALS";
+  privyUserId: string;
+};
+
 export type ModalState =
   | DepositInitModalState
   | DepositLoadingModalState
@@ -161,6 +166,7 @@ export type ModalState =
   | HowItWorksModalState
   | VisitorOnboardingModalState
   | LoggedInOnboardingModalState
+  | SavingsGoalsModalState
   | null;
 
 export type ModalContext = {

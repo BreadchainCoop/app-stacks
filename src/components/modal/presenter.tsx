@@ -25,6 +25,7 @@ import AutomaticClaimsModal from "./modals/automatic-claims";
 import HowItWorksModal from "./modals/how-it-works";
 import VisitorOnboarding from "./modals/visitor-onboarding";
 import LoggedInOnboarding from "./modals/logged-in-onboarding";
+import SavingsGoalsModal from "./modals/savings-goals";
 
 const ModalPresenter = () => {
   const { modalState, setModal } = useModal();
@@ -103,6 +104,9 @@ const ModalPresenter = () => {
               )}
               {modalState.type === "LOGGED_IN_ONBOARDING" && (
                 <LoggedInOnboarding />
+              )}
+              {modalState.type === "SAVINGS_GOALS" && (
+                <SavingsGoalsModal modalState={modalState} />
               )}
             </Dialog.Content>
           </>

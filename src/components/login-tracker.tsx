@@ -13,8 +13,8 @@ const LoginTracker = () => {
         onboardSupabaseUser(user);
         if (isNewUser) {
           setModal({
-            type: "NEW_USER_ONBOARDING",
-            fundingStatus: "idle",
+            type: "SAVINGS_GOALS",
+            privyUserId: user.id,
           });
         }
       } catch (err) {
