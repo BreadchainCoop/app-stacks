@@ -25,6 +25,7 @@ import StartStackWarningModal from "./modals/start-stack-warning";
 import AutomaticClaimsModal from "./modals/automatic-claims";
 import VisitorOnboarding from "../onboard/visitor-onboard-modal";
 import AutomaticDepositsModal from "@/components/automatic-deposits/modal";
+import SavingsGoalsModal from "./modals/savings-goals";
 
 const ModalPresenter = () => {
   const { modalState, setModal } = useModal();
@@ -106,6 +107,9 @@ const ModalPresenter = () => {
               {modalState.type === "AUTOMATIC_DEPOSITS" && (
                 <AutomaticDepositsModal modalState={modalState} />
               )}
+              {modalState.type === "SAVINGS_GOALS" && (
+                <SavingsGoalsModal modalState={modalState} />
+              )}
             </Dialog.Content>
           </>
         )}
@@ -125,8 +129,8 @@ const ModalOverlay = forwardRef((props, ref: Ref<HTMLDivElement>) => {
     <div ref={ref} {...props}>
       <div
         className={`z-30 fixed top-0 bg-[#F0F0F0] dark:bg-neutral-900 h-screen w-screen
-					transition-opacity duration-200 
-					${isVisible ? "opacity-90 dark:opacity-70" : "opacity-0"}`}
+						transition-opacity duration-200
+						${isVisible ? "opacity-90 dark:opacity-70" : "opacity-0"}`}
       />
     </div>
   );

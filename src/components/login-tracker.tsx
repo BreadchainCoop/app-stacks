@@ -15,13 +15,8 @@ const LoginTracker = () => {
         await onboardSupabaseUser(user);
         if (isNewUser) {
           setModal({
-            type: "SET_ALIAS",
-            skippable: true,
-            onDone: () =>
-              setModal({
-                type: "NEW_USER_ONBOARDING",
-                fundingStatus: "idle",
-              }),
+            type: "SAVINGS_GOALS",
+            privyUserId: user.id,
           });
         }
       } catch (err) {
