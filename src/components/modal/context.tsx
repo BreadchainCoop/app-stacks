@@ -140,6 +140,7 @@ export type VisitorOnboardingModalState = {
 export type SavingsGoalsModalState = {
   type: "SAVINGS_GOALS";
   privyUserId: string;
+  showFundingNext?: boolean;
 };
 
 export type ModalState =

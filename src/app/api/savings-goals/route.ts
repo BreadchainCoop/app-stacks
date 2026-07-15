@@ -19,6 +19,32 @@ interface SavingsGoalsBody {
   partial: boolean;
 }
 
+export async function GET(req: NextRequest) {
+  const privyUserId = req.nextUrl.searchParams.get("privyUserId");
+
+  if (!privyUserId) {
+    return createErrorResponse("privyUserId is required");
+  }
+
+  const { data: user, error: userError } = await supabaseAdmin
+    .from("users")
+    .select("id")
+    .eq("privy_user_id", privyUserId)
+    .single();
+
+  if (userError || !user) {
+    return createErrorResponse("User not found", 404);
+  }
+
+  const { data: goals } = await supabaseAdmin
+    .from("savings_goals")
+    .select("completed")
+    .eq("user_id", user.id)
+    .single();
+
+  return NextResponse.json({ completed: goals?.completed ?? false });
+}
+
 export async function POST(req: NextRequest) {
   try {
     let body: unknown;
