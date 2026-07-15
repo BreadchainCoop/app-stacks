@@ -19,6 +19,12 @@ export const HomeContent = () => {
       setModal({ type: "LOGGED_IN_ONBOARDING" });
     } else if (onboarding === "savings-goals") {
       setModal({ type: "SAVINGS_GOALS", privyUserId: "test" });
+    } else if (onboarding === "savings-goals-new") {
+      setModal({
+        type: "SAVINGS_GOALS",
+        privyUserId: "test",
+        showFundingNext: true,
+      });
     }
   }, [searchParams, setModal]);
 

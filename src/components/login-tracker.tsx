@@ -15,7 +15,21 @@ const LoginTracker = () => {
           setModal({
             type: "SAVINGS_GOALS",
             privyUserId: user.id,
+            showFundingNext: true,
           });
+        } else {
+          const res = await fetch(
+            `/api/savings-goals?privyUserId=${encodeURIComponent(user.id)}`
+          );
+          if (res.ok) {
+            const data = await res.json();
+            if (!data.completed) {
+              setModal({
+                type: "SAVINGS_GOALS",
+                privyUserId: user.id,
+              });
+            }
+          }
         }
       } catch (err) {
         console.error("Onboarding failed:", err);

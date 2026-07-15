@@ -220,7 +220,11 @@ export default function SavingsGoalsModal({
       console.error("Failed to save savings goals:", err);
     } finally {
       setSubmitting(false);
-      setModal(null);
+      if (modalState.showFundingNext) {
+        setModal({ type: "NEW_USER_ONBOARDING", fundingStatus: "idle" });
+      } else {
+        setModal(null);
+      }
     }
   };
 
