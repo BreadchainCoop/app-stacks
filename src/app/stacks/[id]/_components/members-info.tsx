@@ -20,6 +20,7 @@ import { getUserCircleStatus } from "@/lib/get-user-circle-status";
 import { useCircleState } from "@/hooks/use-circles-state";
 import { CircleState } from "@/lib/circle-state";
 import { useMemberAliases } from "@/hooks/use-member-aliases";
+import { useMembersClaimed } from "@/hooks/use-members-claimed";
 import { formatRelativeTime, formatShortDate } from "@/utils/time";
 import { Body, Chip, formatBalance } from "@breadcoop/ui";
 import { Address, formatEther } from "viem";
@@ -30,6 +31,12 @@ const FAILED_STATUSES: ICircleStatus[] = [
   "expired",
   "failed",
   "finished",
+];
+
+const INCOMPLETE_ROUND_STATUSES: ICircleStatus[] = [
+  "decommissioned",
+  "expired",
+  "failed",
 ];
 
 function DepositRow({ label, body }: { label: string; body: string }) {
@@ -46,21 +53,61 @@ const MembersInfo = ({
   info,
   id,
   totalBaseDeposit,
+  depositAmount,
   pendingInviteLinks,
   totalRounds,
   circleStartsTimestamp,
   depositInterval,
+  circleStatus,
 }: {
   owner: Address;
   id: string;
   info: ReturnType<typeof useCircleMembersWithBalances>;
   totalBaseDeposit: number;
+  depositAmount: bigint;
   pendingInviteLinks?: string[];
   totalRounds: number;
   circleStartsTimestamp: bigint;
   depositInterval: bigint;
+  circleStatus: ICircleStatus | null;
 }) => {
   const aliases = useMemberAliases(info.members);
+  const now = useBlockTimestamp();
+  const { claimedByMember } = useMembersClaimed({
+    circleId: id,
+    members: info.members,
+  });
+  const { circleState } = useCircleState(BigInt(id));
+
+  const isFinished = circleStatus === "finished";
+  const showLastActiveRoundDeposits = circleStatus
+    ? INCOMPLETE_ROUND_STATUSES.includes(circleStatus)
+    : false;
+
+  // For a decommissioned/expired/failed circle, deposit status comes from the
+  // last round that was actually attempted (via event logs) rather than the
+  // live contract round, which is unusable here — see `INCOMPLETE_ROUND_STATUSES`.
+  const fundsDeposited = useFundsDeposited({
+    circleId: id,
+    enabled: showLastActiveRoundDeposits,
+    totalRounds,
+    circleStartsTimestamp,
+    depositInterval,
+  });
+  const lastAttemptedRound = Math.min(
+    (fundsDeposited.data?.lastActiveRound ?? 0) + 1,
+    totalRounds
+  );
+
+  const hasStarted =
+    circleStartsTimestamp !== BigInt(0) &&
+    BigInt(Math.floor(now / 1000)) >= circleStartsTimestamp;
+  const showDepositChips =
+    isFinished ||
+    showLastActiveRoundDeposits ||
+    (hasStarted &&
+      Boolean(info.memberBalances) &&
+      circleState !== CircleState.Expired);
 
   return (
     <div>
@@ -71,23 +118,41 @@ const MembersInfo = ({
           );
           const alias = aliases[member.toLowerCase()];
 
+          const hasDeposited = isFinished
+            ? true
+            : showLastActiveRoundDeposits
+              ? (fundsDeposited.data?.depositsByMember[
+                  member.toLowerCase() as Address
+                ]?.length ?? 0) >= lastAttemptedRound
+              : (info.memberBalances?.balances[index] ?? BigInt(0)) >=
+                depositAmount;
+
           return (
             <AccordionItem key={member} value={member}>
               <AccordionHeader>
-                <div className="flex items-center justify-start gap-4">
-                  {member === owner ? (
-                    <>
-                      <Body bold>
-                        <MemberEnsName address={owner} alias={alias} />
-                      </Body>
-                      <Chip className="font-bold text-blue-1 bg-paper-main border-current text-xs">
-                        Group owner
+                <div className="flex items-center justify-start gap-x-4 gap-y-1 flex-wrap">
+                  <Body bold>
+                    <MemberEnsName address={member} alias={alias} />
+                  </Body>
+                  {member === owner && (
+                    <Chip className="font-bold text-blue-1 bg-paper-main border-current text-xs">
+                      Group owner
+                    </Chip>
+                  )}
+                  {showDepositChips &&
+                    (hasDeposited ? (
+                      <Chip className="font-bold border-current! text-system-green text-xs">
+                        Deposited
                       </Chip>
-                    </>
-                  ) : (
-                    <Body bold>
-                      <MemberEnsName address={member} alias={alias} />
-                    </Body>
+                    ) : (
+                      <Chip className="font-bold border-current! text-system-warning text-xs">
+                        Not deposited
+                      </Chip>
+                    ))}
+                  {claimedByMember[member.toLowerCase()] && (
+                    <Chip className="font-bold border-system-green! bg-system-green! text-paper-main text-xs">
+                      Claimed
+                    </Chip>
                   )}
                 </div>
               </AccordionHeader>

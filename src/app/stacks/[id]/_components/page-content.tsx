@@ -43,17 +43,19 @@ const PageContent = ({ id }: { id: string }) => {
     !!userCircleData.circleData &&
     userCircleData.circleData.circleInfo.owner !== zeroAddress;
 
+  const circleStatus = userCircleData.circleData
+    ? getUserCircleStatus({
+        circle: userCircleData.circleData,
+        now: nowSeconds,
+        circleState: circleState ?? CircleState.Active,
+      })
+    : null;
+
   useEffect(() => {
     if (!userCircleData.circleData?.isMember) return;
 
-    const status = getUserCircleStatus({
-      circle: userCircleData.circleData,
-      now: nowSeconds,
-      circleState: circleState ?? CircleState.Active,
-    });
-
     if (
-      status.status === "failed" &&
+      circleStatus?.status === "failed" &&
       !userCircleData.circleData.isDecommissioned
     ) {
       setModal({ type: "STACK_FAILED", id: BigInt(id) });
@@ -91,6 +93,7 @@ const PageContent = ({ id }: { id: string }) => {
               member={member}
               isMember={userCircleData.circleData?.isMember}
               totalRounds={+userCircleData.circleData.totalRounds.toString()}
+              circleStatus={circleStatus?.status ?? null}
             />
             <StackInfo owner={userCircleData.circleData.circleInfo.owner} />
           </div>
