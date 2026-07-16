@@ -18,7 +18,8 @@ import {
 } from "@/lib/get-user-circle-status";
 import { useCircleState } from "@/hooks/use-circles-state";
 import { CircleState, RoundState } from "@/lib/circle-state";
-import { Address, formatEther } from "viem";
+import { Address } from "viem";
+import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
 import { useCircleStatus } from "@/hooks/use-circle-status";
 import StartCircleButton from "@/components/start-circle-button";
 import DepositButton from "@/components/deposit-button";
@@ -28,6 +29,8 @@ import { useStackSupabase } from "@/hooks/use-stack-supabase";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { getDefaultChainId } from "@/utils/chain";
+import { isCeloChain } from "@/utils/celo";
+import AddMembersCard from "@/components/add-members/add-members-card";
 import { useReadContracts } from "wagmi";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useFundsDeposited } from "@/hooks/use-funds-deposited";
@@ -222,7 +225,8 @@ const Overview = ({
             <>
               <Logo size={24} variant="square" className="mr-1" />
               <span className="font-bold mt-[0.2rem]">
-                {formatBalance(+formatEther(poolBalance), 2)} BREAD
+                {formatBalance(+formatDepositAmount(poolBalance), 2)}{" "}
+                {DEPOSIT_TOKEN.symbol}
               </span>
             </>
           </span>
@@ -269,6 +273,14 @@ const Overview = ({
         </FeatureGate>
         {formattedCircleStatus.status === "pending-start" ? (
           <>
+            {/* Signing-free member invites (addMembers) exist on the Celo
+                deployment's contract only */}
+            {isCeloChain(getDefaultChainId()) &&
+              member === circle.circleInfo.owner && (
+                <div className="mb-4">
+                  <AddMembersCard circleId={BigInt(circle.circleId)} />
+                </div>
+              )}
             {member === circle.circleInfo.owner &&
             hasEnoughMembersToStart &&
             canResolveMissingMembers ? (
@@ -300,17 +312,15 @@ const Overview = ({
         ) : depositCircleStatus.status === "payment_due" ? (
           <>
             {connectedUser.user.status === "CONNECTED" ? (
-              <>
-                <DepositButton
-                  className="font-bold w-full"
-                  label={`Deposit ${formatEther(
-                    circle.circleInfo.depositAmount
-                  )} BREAD`}
-                  amount={circle.circleInfo.depositAmount}
-                  tokenAddress={circle.circleInfo.token}
-                  circleId={circle.circleId}
-                />
-              </>
+              <DepositButton
+                className="font-bold w-full"
+                label={`Deposit ${formatDepositAmount(
+                  circle.circleInfo.depositAmount
+                )} ${DEPOSIT_TOKEN.symbol}`}
+                amount={circle.circleInfo.depositAmount}
+                tokenAddress={circle.circleInfo.token}
+                circleId={circle.circleId}
+              />
             ) : (
               <LoginButton app="stacks" status={connectedUser.user.status} />
             )}

@@ -1,7 +1,8 @@
 import { useReadContract } from "wagmi";
 import { SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS } from "@/lib/constants";
 import { savingCirclesViewerAbi } from "@/lib/abis/saving-circles-viewers";
-import { Address, formatEther } from "viem";
+import { Address } from "viem";
+import { formatDepositAmount } from "@/lib/deposit-token";
 import { ICircleList } from "@/interfaces/circle";
 import { useMemo } from "react";
 import { getDefaultChainId } from "@/utils/chain";
@@ -42,7 +43,8 @@ const parseCircleData = (
       ...circle,
       canWithdraw: true,
       withdrawAmount:
-        Number(formatEther(c.circleInfo.depositAmount)) * Number(totalRounds),
+        Number(formatDepositAmount(c.circleInfo.depositAmount)) *
+        Number(totalRounds),
     };
   }
 

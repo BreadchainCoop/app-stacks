@@ -23,7 +23,8 @@ import { useMemberAliases } from "@/hooks/use-member-aliases";
 import { useMembersClaimed } from "@/hooks/use-members-claimed";
 import { formatRelativeTime, formatShortDate } from "@/utils/time";
 import { Body, Chip, formatBalance } from "@breadcoop/ui";
-import { Address, formatEther } from "viem";
+import { Address } from "viem";
+import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
 import Link from "next/link";
 
 const FAILED_STATUSES: ICircleStatus[] = [
@@ -113,7 +114,7 @@ const MembersInfo = ({
     <div>
       <Accordion>
         {info.members.map((member, index) => {
-          const totalDeposits = +formatEther(
+          const totalDeposits = +formatDepositAmount(
             info.memberBalances?.balances[index] || BigInt(0)
           );
           const alias = aliases[member.toLowerCase()];
@@ -252,7 +253,7 @@ function MemberInfoContent({
   if (isFailedStack) {
     if (fundsDeposited.data) {
       memberTotal = formatBalance(
-        +formatEther(
+        +formatDepositAmount(
           (
             fundsDeposited.data.depositsByMember[
               member.toLowerCase() as Address
@@ -310,7 +311,7 @@ function MemberInfoContent({
             ? "Loading"
             : isFailedStack && fundsDeposited.error
               ? "Error"
-              : `${memberTotal} BREAD`
+              : `${memberTotal} ${DEPOSIT_TOKEN.symbol}`
         }
       />
       <DepositRow

@@ -1,4 +1,6 @@
 import { useGetLastClaimed } from "@/hooks/use-get-last-claimed";
+import { useIsMiniPay } from "@/hooks/use-is-minipay";
+import { useMemberAliases } from "@/hooks/use-member-aliases";
 import { Body, useConnectedUser } from "@breadcoop/ui";
 import { CalendarDotsIcon } from "@phosphor-icons/react";
 
@@ -22,6 +24,17 @@ const LastClaim = ({
       effectiveCircleStartTime !== BigInt(0),
   });
 
+  // MiniPay submission rules forbid raw addresses as the primary identifier;
+  // elsewhere keep the existing truncated-address display
+  const isMiniPay = useIsMiniPay();
+  const aliases = useMemberAliases(
+    isMiniPay && data?.memberAddress ? [data.memberAddress] : []
+  );
+  const alias =
+    isMiniPay && data?.memberAddress
+      ? aliases[data.memberAddress.toLowerCase()]
+      : null;
+
   return (
     <div className="flex items-center justify-between flex-wrap mb-4.25">
       <Body>Last claim:</Body>
@@ -29,8 +42,8 @@ const LastClaim = ({
         <>
           <Body bold className="text-blue-2">
             {/* 0x67e567... (you) */}
-            {data.memberAddress?.slice(0, 6)}...
-            {data.memberAddress?.slice(-4)}{" "}
+            {alias ??
+              `${data.memberAddress?.slice(0, 6)}...${data.memberAddress?.slice(-4)}`}{" "}
             <>
               {address?.toLowerCase() === data.memberAddress?.toLowerCase()
                 ? "(you)"

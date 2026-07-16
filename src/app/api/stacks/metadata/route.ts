@@ -48,9 +48,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!Array.isArray(invite_links) || invite_links.length === 0) {
+    // Empty is allowed: MiniPay circles add members directly on-chain
+    // (addMembers) and have no invite links
+    if (!Array.isArray(invite_links)) {
       return createErrorResponse(
-        "invite_links is required and must be a non-empty array"
+        "invite_links is required and must be an array"
       );
     }
 

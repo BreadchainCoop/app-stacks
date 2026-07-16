@@ -6,6 +6,7 @@ import { DepositInitModalState, useModal } from "../context";
 import { QuestionIcon } from "@/components/icons/question";
 import DepositButton from "@/components/deposit-button";
 import LocalButton from "@/components/button";
+import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
 
 const DepositInitModal = ({
   modalState,
@@ -28,13 +29,13 @@ const DepositInitModal = ({
         <div className="flex items-center justify-center gap-2">
           <Logo variant="square" size={24} />
           <Heading2 className="text-5xl leading-12">
-            {modalState.amount}
+            {formatDepositAmount(modalState.amount)}
           </Heading2>
-          <Body>BREAD</Body>
+          <Body>{DEPOSIT_TOKEN.symbol}</Body>
         </div>
         <div>
           <Body className="text-xs text-surface-grey">
-            ${modalState.amount} USD
+            ${formatDepositAmount(modalState.amount)} USD
           </Body>
         </div>
       </div>

@@ -10,12 +10,15 @@ import {
   HandWithdrawIcon,
 } from "@phosphor-icons/react";
 import Link from "next/link";
-import { Address, formatEther } from "viem";
+import { Address } from "viem";
 import LocalButton from "@/components/button";
 import { useIsOwnAddress } from "@/hooks/use-is-own-address";
+import { formatDepositAmount } from "@/lib/deposit-token";
+import { useIsMiniPay } from "@/hooks/use-is-minipay";
+import { MINIPAY_ADD_CASH_URL } from "@/utils/minipay";
 
 const toBread = (value: bigint | undefined) =>
-  Number(formatEther(value ?? BigInt(0)));
+  Number(formatDepositAmount(value ?? BigInt(0)));
 
 const SmallButton = ({
   children,
@@ -66,6 +69,7 @@ const AccountOverviewCard = ({
 }) => {
   const { setModal } = useModal();
   const isOwner = useIsOwnAddress(address);
+  const isMiniPay = useIsMiniPay();
   const { circles, financialSummary, isLoading } = useUserCirclesList(address);
 
   const scrollToStacks = () => {
@@ -85,7 +89,7 @@ const AccountOverviewCard = ({
       claimTotal += circle.withdrawAmount;
     }
     if (circle.status === "payment_due") {
-      depositTotal += Number(formatEther(circle.depositAmount));
+      depositTotal += Number(formatDepositAmount(circle.depositAmount));
     }
   });
 
@@ -105,7 +109,15 @@ const AccountOverviewCard = ({
             <div className="flex gap-2">
               <SmallButton
                 tone="primary"
-                onClick={() => setModal({ type: "FUND_WALLET", address })}
+                onClick={() => {
+                  // MiniPay users top up through MiniPay's own rails; the
+                  // Privy funding modal is not available in that stack.
+                  if (isMiniPay) {
+                    window.location.href = MINIPAY_ADD_CASH_URL;
+                    return;
+                  }
+                  setModal({ type: "FUND_WALLET", address });
+                }}
               >
                 Deposit
               </SmallButton>

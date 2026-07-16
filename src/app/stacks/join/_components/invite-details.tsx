@@ -5,6 +5,7 @@ import {
   AccordionItem,
 } from "@/components/accordion";
 import { Body, formatBalance } from "@breadcoop/ui";
+import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
 import { CircleParams } from "./interface";
 
 type InviteDetailsProps = Pick<
@@ -39,11 +40,11 @@ export default function InviteDetails({
               <RowDetail label="Duration" body={duration} />
               <RowDetail
                 label="Est. Deposit amount"
-                body={`${formatBalance(+deposit)} BREAD`}
+                body={`${formatBalance(+deposit)} ${DEPOSIT_TOKEN.symbol}`}
               />
               <RowDetail
                 label="Stack goal"
-                body={`${formatBalance(Number(members) ** 2 * Number(deposit), 2)} BREAD`}
+                body={`${formatBalance(Number(members) ** 2 * Number(deposit), 2)} ${DEPOSIT_TOKEN.symbol}`}
               />
             </div>
           </AccordionContent>

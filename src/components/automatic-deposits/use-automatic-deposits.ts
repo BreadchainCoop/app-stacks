@@ -1,6 +1,6 @@
 import { useConnectedUser } from "@breadcoop/ui";
 import { useQueryClient } from "@tanstack/react-query";
-import { usePrivy } from "@privy-io/react-auth";
+import { useUserIdentity } from "@/components/providers/user-identity";
 import { useState } from "react";
 import { Address, encodeFunctionData, erc20Abi } from "viem";
 import { readContractQueryKey } from "wagmi/query";
@@ -17,7 +17,7 @@ export function useAutomaticDeposits(stackId: string) {
   const { sendAutomaticSavingCirclesTx } = useAutomaticSavingCirclesTx();
   const { sendSponsoredTransaction } = useSponsoredTx();
   const { waitForTxReceipt } = useWaitForTxReceipt();
-  const { user: privyUser } = usePrivy();
+  const { userId } = useUserIdentity();
   const { user } = useConnectedUser();
   const address = user.status === "CONNECTED" ? user.address : undefined;
   const [status, setStatus] = useState<AutomaticDepositsStatus>("idle");
@@ -49,7 +49,7 @@ export function useAutomaticDeposits(stackId: string) {
     tokenAddress: Address;
     allowanceAmount: bigint;
   }) => {
-    if (!privyUser?.id || !address) return;
+    if (!userId || !address) return;
     setStatus("loading");
 
     try {
@@ -83,7 +83,7 @@ export function useAutomaticDeposits(stackId: string) {
   };
 
   const deactivate = async () => {
-    if (!privyUser?.id || !address) return;
+    if (!userId || !address) return;
     setStatus("loading");
 
     try {

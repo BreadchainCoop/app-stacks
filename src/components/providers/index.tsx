@@ -1,6 +1,6 @@
 "use client";
 
-import { ComponentProps, ReactNode } from "react";
+import { ComponentProps, ReactNode, useEffect, useState } from "react";
 // import ToolsProviders from "./tools";
 import { Web3Provider } from "./web3";
 import { SupabaseProvider } from "./supabase";
@@ -15,6 +15,13 @@ import {
 } from "@privy-io/react-auth";
 import SepoliaAutoFund from "./sepolia-auto-fund";
 import { networks } from "@/utils/network";
+import { MiniPayProviders } from "./minipay";
+import { PrivyTxSenderProvider } from "./tx-sender";
+import { PrivyUserIdentityProvider } from "./user-identity";
+import { isMiniPayBrowser } from "@/utils/minipay";
+import { isCeloChain } from "@/utils/celo";
+import LoginTracker from "@/components/login-tracker";
+import { OnboardVisitorTracker } from "@/components/onboard/visitor-tracker";
 
 const tokenConfig: ComponentProps<typeof BreadUIKitProvider>["tokenConfig"] = {
   BREAD: {
@@ -52,7 +59,7 @@ const privyConfig = (isMobile: boolean): PrivyClientConfig => ({
   },
 });
 
-const Providers = ({
+const PrivyProviders = ({
   children,
   isMobile,
 }: {
@@ -76,7 +83,15 @@ const Providers = ({
             >
               <ConnectedUserProvider>
                 <SepoliaAutoFund />
-                <ModalProvider>{children}</ModalProvider>
+                <ModalProvider>
+                  <PrivyUserIdentityProvider>
+                    <PrivyTxSenderProvider>
+                      <OnboardVisitorTracker />
+                      <LoginTracker />
+                      {children}
+                    </PrivyTxSenderProvider>
+                  </PrivyUserIdentityProvider>
+                </ModalProvider>
               </ConnectedUserProvider>
             </BreadUIKitProvider>
           </Web3Provider>
@@ -84,6 +99,35 @@ const Providers = ({
       </PrivyProvider>
     </>
   );
+};
+
+// The MiniPay stack only makes sense on a Celo-configured deployment; a
+// Gnosis deployment opened inside MiniPay's browser keeps the Privy stack.
+const miniPaySupported = isCeloChain(clientEnv.NEXT_PUBLIC_CHAIN_ID);
+
+const Providers = ({
+  children,
+  isMobile,
+  isMiniPay,
+}: {
+  children: ReactNode;
+  isMobile: boolean;
+  isMiniPay: boolean;
+}) => {
+  // Server-side UA hint keeps hydration consistent; the injected
+  // window.ethereum.isMiniPay flag is authoritative and corrects the hint
+  // after mount (MiniPay's UA and injected flag agree in practice).
+  const [miniPay, setMiniPay] = useState(isMiniPay);
+
+  useEffect(() => {
+    setMiniPay(isMiniPayBrowser());
+  }, []);
+
+  if (miniPay && miniPaySupported) {
+    return <MiniPayProviders>{children}</MiniPayProviders>;
+  }
+
+  return <PrivyProviders isMobile={isMobile}>{children}</PrivyProviders>;
 };
 
 export default Providers;

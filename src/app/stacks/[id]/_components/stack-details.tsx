@@ -23,7 +23,7 @@ import {
 } from "@breadcoop/ui";
 import { CalendarDotsIcon } from "@phosphor-icons/react/ssr";
 import { ReactNode } from "react";
-import { formatEther } from "viem";
+import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
 import OverallStacked from "./overall-stacked";
 
 const failedStatuses: ICircleStatus[] = [
@@ -73,7 +73,7 @@ const StackDetailsTotal = ({
         <div>
           <Logo
             variant="square"
-            text="BREAD"
+            text={DEPOSIT_TOKEN.symbol}
             className="[&+span]:font-normal"
             size={24}
           />
@@ -95,7 +95,7 @@ const StackDetailsTotal = ({
             circleStartsTimestamp={circleStartsTimestamp}
             depositInterval={depositInterval}
           />
-          <Body className="mt-[0.2rem]">BREAD</Body>
+          <Body className="mt-[0.2rem]">{DEPOSIT_TOKEN.symbol}</Body>
         </div>
       </div>
     </div>
@@ -147,10 +147,10 @@ const StackDetailsBreakdown = ({
         <>
           <Logo
             size={24}
-            text={formatBalance(+formatEther(circle.depositAmount), 2)}
+            text={formatBalance(+formatDepositAmount(circle.depositAmount), 2)}
             variant="square"
           />
-          <Body className="mt-[0.3rem]">BREAD</Body>
+          <Body className="mt-[0.3rem]">{DEPOSIT_TOKEN.symbol}</Body>
         </>
       </StackDetailsBreakdownRow>
       <StackDetailsBreakdownRow label="Members deposit every">
@@ -253,8 +253,8 @@ const StackDetails = ({
               ? intervalLabel.slice(0, -2)
               : intervalLabel
           }
-          depositPerRound={formatEther(depositPerRound)}
-          poolBalance={formatEther(_circle.totalPoolBalance)}
+          depositPerRound={formatDepositAmount(depositPerRound)}
+          poolBalance={formatDepositAmount(_circle.totalPoolBalance)}
           completedRounds={_circle.completedRounds}
           circleStatus={circleStatus}
           circleId={id}

@@ -5,11 +5,22 @@ import { CoinsIcon, HandWithdrawIcon } from "@phosphor-icons/react";
 import { useModal } from "../modal/context";
 import { BreadText } from "./bread-text";
 import LocalButton from "../button";
+import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
+import { useIsMiniPay } from "@/hooks/use-is-minipay";
+import { MINIPAY_ADD_CASH_URL } from "@/utils/minipay";
 
 const ActionItems = () => {
   const { user } = useConnectedUser();
   const { setModal } = useModal();
+  const isMiniPay = useIsMiniPay();
   const handleFund = async () => {
+    // MiniPay has its own stablecoin rails — deep-link there instead of the
+    // Privy funding modal (Privy is not mounted in the MiniPay stack).
+    if (isMiniPay) {
+      window.location.href = MINIPAY_ADD_CASH_URL;
+      return;
+    }
+
     if (user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN") {
       setModal({
         type: "FUND_WALLET",
@@ -26,7 +37,7 @@ const ActionItems = () => {
         variant="positive"
         onClick={handleFund}
       >
-        Fund Stacks wallet
+        {isMiniPay ? "Deposit" : "Fund Stacks wallet"}
       </LocalButton>
       <BreadText
         address={
@@ -41,7 +52,7 @@ const ActionItems = () => {
         className="font-bold w-full mb-1"
         onClick={() => setModal({ type: "WITHDRAW_BREAD" })}
       >
-        Withdraw BREAD
+        Withdraw {DEPOSIT_TOKEN.symbol}
       </LocalButton>
     </div>
   );

@@ -5,7 +5,7 @@ import { ModalContainer, ModalHeader, ModalStatus } from "../components";
 import { ClaimInitModalState, ClaimResultModalState } from "../context";
 import Alert from "@/components/alert";
 import DepositButton from "@/components/deposit-button";
-import { formatEther } from "viem";
+import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
 import LocalButton from "@/components/button";
 
 const ClaimModal = ({
@@ -65,7 +65,7 @@ const ClaimModal = ({
             />
             <DepositButton
               className="font-bold w-full"
-              label={`Deposit ${formatEther(modalState.nextDeposit!)} BREAD`}
+              label={`Deposit ${formatDepositAmount(modalState.nextDeposit!)} ${DEPOSIT_TOKEN.symbol}`}
               amount={modalState.nextDeposit!}
               tokenAddress={modalState.nextDepositAddress!}
               circleId={modalState.circleId!}

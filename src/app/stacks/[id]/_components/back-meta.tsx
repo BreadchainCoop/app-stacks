@@ -4,7 +4,7 @@ import BackPage from "@/components/back-page";
 import { useUserCircleData } from "@/hooks/use-user-circle-data";
 import { CopyStackLink } from "./copy-link";
 import StackReminder from "./reminder";
-import { formatEther } from "viem";
+import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
 import { getUserCircleStatus } from "@/lib/get-user-circle-status";
 import { ICircleStatus } from "@/interfaces/circle";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
@@ -37,9 +37,9 @@ const BackMeta = ({
   const nowSeconds = BigInt(Math.floor(now / 1000));
   const { circleState } = useCircleState(circle?.circleId);
 
-  const depositAmount = `${formatEther(
+  const depositAmount = `${formatDepositAmount(
     circle?.circleInfo.depositAmount ?? BigInt(0)
-  )} BREAD`;
+  )} ${DEPOSIT_TOKEN.symbol}`;
 
   const circleStatus: ICircleStatus = circle
     ? getUserCircleStatus({

@@ -6,7 +6,7 @@ import LocalButton from "./button";
 import { QuestionIcon } from "@phosphor-icons/react/ssr";
 import ClaimButton from "./claim-button";
 import { ICircleList, ICircleStatus } from "@/interfaces/circle";
-import { formatEther } from "viem";
+import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
 import DepositButton from "./deposit-button";
 import { HandWithdrawIcon } from "@phosphor-icons/react";
 import { parseCircleIntervalToDate } from "@/utils/stacks";
@@ -37,7 +37,7 @@ const Stack = ({
 }) => {
   const { setModal } = useModal();
   const stackMeta = stacksMap[String(stack.id)];
-  const depositAmount = formatEther(stack.depositAmount);
+  const depositAmount = formatDepositAmount(stack.depositAmount);
   const totalGoal =
     Number(depositAmount) * stack.totalMember * stack.totalMember;
 
@@ -53,7 +53,7 @@ const Stack = ({
 
   const totalDeposited = isFailedStack
     ? Number(
-        formatEther(
+        formatDepositAmount(
           fundsDeposited.data?.totalDepositInCurrentRound ?? BigInt(0)
         )
       ) +
@@ -65,7 +65,7 @@ const Stack = ({
       ) *
         Number(depositAmount) *
         Number(stack.totalMember) +
-      Number(formatEther(stack.totalPoolBalance || BigInt(0)));
+      Number(formatDepositAmount(stack.totalPoolBalance || BigInt(0)));
 
   let percentageDone = 0;
   if (totalDeposited !== 0 && totalGoal !== 0) {
@@ -93,19 +93,19 @@ const Stack = ({
       className: "",
     },
     {
-      label: `Token: BREAD`,
+      label: `Token: ${DEPOSIT_TOKEN.symbol}`,
       icon: <CoinIcon />,
       className: "hidden md:flex",
     },
     {
-      label: `${formatBalance(Number(depositAmount) * stack.totalMember, 2)} BREAD ${
+      label: `${formatBalance(Number(depositAmount) * stack.totalMember, 2)} ${DEPOSIT_TOKEN.symbol} ${
         parseCircleIntervalToDate(stack.depositInterval).label
       }`,
       icon: <CoinsIcon />,
       className: "",
     },
     {
-      label: `Goal: ${formatBalance(totalGoal, 2)} BREAD`,
+      label: `Goal: ${formatBalance(totalGoal, 2)} ${DEPOSIT_TOKEN.symbol}`,
       icon: <CalendarIcon />,
       className: "hidden md:flex",
     },
@@ -191,7 +191,9 @@ const Stack = ({
             )}
           </p>
           <Body className="flex items-center justify-start gap-1 text-surface-grey">
-            <span className="text-[0.625rem]">Total BREAD stacked</span>
+            <span className="text-[0.625rem]">
+              Total {DEPOSIT_TOKEN.symbol} stacked
+            </span>
             <span>
               <QuestionIcon size={16} className="fill-surface-grey" />
             </span>
@@ -214,7 +216,8 @@ const Stack = ({
         {stack.canWithdraw && !readOnly ? (
           <ClaimButton
             amount={
-              Number(formatEther(stack.depositAmount)) * stack.totalMember
+              Number(formatDepositAmount(stack.depositAmount)) *
+              stack.totalMember
             }
             circleId={stack.id}
             nextDeposit={

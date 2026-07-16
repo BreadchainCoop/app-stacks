@@ -12,7 +12,8 @@ import { cn } from "@/lib/utils";
 import { useUserCircleData } from "@/hooks/use-user-circle-data";
 import LastClaim from "./last-claim";
 import { ReactNode } from "react";
-import { Address, formatEther } from "viem";
+import { Address } from "viem";
+import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
 import ClaimButton from "@/components/claim-button";
 import { useGetLastClaimed } from "@/hooks/use-get-last-claimed";
 import { formatRelativeTime } from "@/utils/time";
@@ -68,7 +69,7 @@ const TotalStacked = ({
     if (circleNotStarted) {
       msg = "You can claim now or  later.";
     } else {
-      amount = Number(formatEther(claimableAmount));
+      amount = Number(formatDepositAmount(claimableAmount));
       msg = "You can claim now or later.";
     }
   }
@@ -115,7 +116,7 @@ const TotalStacked = ({
                     {amount === "-"
                       ? "-"
                       : `${formatBalance(Number(amount), 2)}`}{" "}
-                    $BREAD
+                    ${DEPOSIT_TOKEN.symbol}
                   </Body>
                   <Body className="text-xs">{msg}</Body>
                 </div>

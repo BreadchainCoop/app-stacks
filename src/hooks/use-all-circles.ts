@@ -3,7 +3,8 @@ import { SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS } from "../lib/constants";
 import { savingCirclesViewerAbi } from "../lib/abis/saving-circles-viewers";
 import { ICircleList } from "@/interfaces/circle";
 import { useTotalCircles } from "./use-total-circles";
-import { formatEther, zeroAddress } from "viem";
+import { zeroAddress } from "viem";
+import { formatDepositAmount } from "@/lib/deposit-token";
 import { getDefaultChainId } from "@/utils/chain";
 import { useBlockTimestamp } from "./use-block-timestamp";
 import { getUserCircleStatus } from "@/lib/get-user-circle-status";
@@ -83,7 +84,7 @@ export function useAllCircles(page: number = 0) {
           ...base,
           canWithdraw: true,
           withdrawAmount:
-            Number(formatEther(circleData.circleInfo.depositAmount)) *
+            Number(formatDepositAmount(circleData.circleInfo.depositAmount)) *
             Number(circleData.totalRounds),
         });
       } else {

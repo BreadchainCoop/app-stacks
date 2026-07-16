@@ -52,6 +52,11 @@ deploy:
 		--legacy
 	$(MAKE) update-env
 
+# Celo mainnet deployment lives in the saving-circles repo (its own Foundry
+# deploy framework): run `yarn deploy:celo` there, then point this app's
+# NEXT_PUBLIC_* env vars (chain 42220, deposit token symbol/decimals, and the
+# deployed contract addresses) at the result.
+
 update-env:
 	@echo "Updating .env.local with deployed contract addresses..."
 	@if [ ! -f contracts/out/SAVING_CIRCLES_DEPLOYMENT.json ]; then \

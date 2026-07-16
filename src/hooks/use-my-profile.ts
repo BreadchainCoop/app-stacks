@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { usePrivy } from "@privy-io/react-auth";
+import { useUserIdentity } from "@/components/providers/user-identity";
 import { useSupabaseClient } from "@/components/providers/supabase";
 import { getProfile } from "@/lib/supabase";
 
@@ -34,14 +34,14 @@ export const useMyProfile = (privyUserId: string | undefined) => {
 };
 
 export const useSetAlias = (privyUserId: string | undefined) => {
-  const { getAccessToken } = usePrivy();
+  const { getAuthToken } = useUserIdentity();
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: async (alias: string) => {
-      // Writes go through our API route: it verifies the Privy token and
+      // Writes go through our API route: it verifies the bearer token and
       // uses the service role, since the browser client is anonymous.
-      const token = await getAccessToken();
+      const token = await getAuthToken();
       if (!token) throw new Error("Not signed in");
 
       const res = await fetch("/api/profile", {

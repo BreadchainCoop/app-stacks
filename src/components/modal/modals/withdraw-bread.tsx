@@ -19,14 +19,17 @@ import LocalButton from "@/components/button";
 import Loading from "@/app/loading";
 import { cn } from "@/lib/utils";
 import { BREAD_TOKEN_ADDRESS } from "@/lib/constants";
+import {
+  DEPOSIT_TOKEN,
+  formatDepositAmount,
+  parseDepositAmount,
+} from "@/lib/deposit-token";
 import { getDefaultChainId } from "@/utils/chain";
 import { CircularProgressIcon } from "@/components/icons/circular-progress";
 import { ArrowDownIcon } from "@phosphor-icons/react";
 import { useModal } from "../context";
 import { useSimulateAndSponsorTx } from "@/hooks/use-simulate-and-sponsor-tx";
 import { parseContractError } from "@/utils/parse-contract-error";
-
-const BREAD_DECIMALS = 18;
 
 function SuccessContent({
   amount,
@@ -49,7 +52,7 @@ function SuccessContent({
           integralPartClassName="text-base"
           decimalPartClassName="text-xs"
         />{" "}
-        <span>BREAD</span>
+        <span>{DEPOSIT_TOKEN.symbol}</span>
       </Body>
       <div>
         <ArrowDownIcon size={24} className="fill-primary-blue" />
@@ -73,7 +76,9 @@ function SuccessContent({
 const parseWithdrawError = (error: unknown) =>
   parseContractError(
     error,
-    { ERC20InsufficientBalance: "Insufficient BREAD balance." },
+    {
+      ERC20InsufficientBalance: `Insufficient ${DEPOSIT_TOKEN.symbol} balance.`,
+    },
     "Something went wrong during the withdrawal."
   );
 
@@ -104,7 +109,7 @@ const WithdrawBreadModal = () => {
   });
 
   const balance = data
-    ? formatBalance(Number(data) / 10 ** BREAD_DECIMALS, 2)
+    ? formatBalance(Number(formatDepositAmount(data)), 2)
     : 0;
   console.log("Balance data", { data, isLoading, error, balance });
 
@@ -116,9 +121,11 @@ const WithdrawBreadModal = () => {
   };
 
   const setMaxAmount = () => {
-    if (!balance) return;
+    if (data === undefined) return;
 
-    setForm((prev) => ({ ...prev, amount: balance.toString() }));
+    // Use the raw amount, not the display string — formatBalance output is
+    // comma-grouped, which the parsers reject for balances >= 1000
+    setForm((prev) => ({ ...prev, amount: formatDepositAmount(data) }));
   };
 
   let buttonWithdrawContent: ReactNode = "Withdraw";
@@ -148,11 +155,10 @@ const WithdrawBreadModal = () => {
     setErrorMsg(null);
 
     const recipientAddress = form.address as Address;
-    const amountToSend = BigInt(
-      Math.floor(Number(form.amount) * 10 ** BREAD_DECIMALS)
-    );
 
     try {
+      const amountToSend = parseDepositAmount(form.amount);
+
       const hash = await simulateAndSponsorTx({
         address: BREAD_TOKEN_ADDRESS,
         abi: erc20Abi,
@@ -229,7 +235,7 @@ const WithdrawBreadModal = () => {
               />
               <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center justify-end gap-2.5">
                 <div className="bg-paper-main p-1">
-                  <Logo text="BREAD" size={24} />
+                  <Logo text={DEPOSIT_TOKEN.symbol} size={24} />
                 </div>
                 <button
                   onClick={setMaxAmount}
@@ -249,7 +255,9 @@ const WithdrawBreadModal = () => {
                 {isLoading ? (
                   <CircularProgressIcon className="w-4! h-4! ml-1" />
                 ) : (
-                  <>{balance} BREAD</>
+                  <>
+                    {balance} {DEPOSIT_TOKEN.symbol}
+                  </>
                 )}
               </Body>
             </div>
