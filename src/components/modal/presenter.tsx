@@ -26,7 +26,6 @@ import AutomaticClaimsModal from "./modals/automatic-claims";
 import VisitorOnboarding from "../onboard/visitor-onboard-modal";
 import AutomaticDepositsModal from "@/components/automatic-deposits/modal";
 import SavingsGoalsModal from "./modals/savings-goals";
-import SetAliasModal from "./modals/set-alias";
 
 const ModalPresenter = () => {
   const { modalState, setModal } = useModal();
@@ -110,9 +109,6 @@ const ModalPresenter = () => {
               )}
               {modalState.type === "SAVINGS_GOALS" && (
                 <SavingsGoalsModal modalState={modalState} />
-              )}
-              {modalState.type === "SET_ALIAS" && (
-                <SetAliasModal modalState={modalState} />
               )}
             </Dialog.Content>
           </>
