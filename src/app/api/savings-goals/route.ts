@@ -8,17 +8,6 @@ const supabaseAdmin = createClient(
   serverEnv.SUPABASE_SERVICE_ROLE_KEY
 );
 
-interface SavingsGoalsBody {
-  privyUserId: string;
-  responses: {
-    goals: string[];
-    amount: string | null;
-    timeline: string | null;
-    monthly: string | null;
-  };
-  partial: boolean;
-}
-
 export async function GET(req: NextRequest) {
   const privyUserId = req.nextUrl.searchParams.get("privyUserId");
 
@@ -38,11 +27,19 @@ export async function GET(req: NextRequest) {
 
   const { data: goals } = await supabaseAdmin
     .from("savings_goals")
-    .select("completed")
+    .select("goal, completed")
     .eq("user_id", user.id)
     .single();
 
-  return NextResponse.json({ completed: goals?.completed ?? false });
+  return NextResponse.json({
+    goal: goals?.goal ?? null,
+    completed: goals?.completed ?? false,
+  });
+}
+
+interface SavingsGoalsBody {
+  privyUserId: string;
+  goal: string | null;
 }
 
 export async function POST(req: NextRequest) {
@@ -59,7 +56,7 @@ export async function POST(req: NextRequest) {
       return createErrorResponse("Invalid request body");
     }
 
-    const { privyUserId, responses, partial } = body as SavingsGoalsBody;
+    const { privyUserId, goal } = body as SavingsGoalsBody;
 
     if (!privyUserId || typeof privyUserId !== "string") {
       return createErrorResponse(
@@ -82,18 +79,15 @@ export async function POST(req: NextRequest) {
       .upsert(
         {
           user_id: user.id,
-          goals: responses.goals,
-          target_amount: responses.amount,
-          timeline: responses.timeline,
-          monthly_savings: responses.monthly,
-          completed: !partial,
+          goal: goal ?? null,
+          completed: !!goal,
         },
         { onConflict: "user_id" }
       );
 
     if (upsertError) {
-      console.error("Failed to save savings goals:", upsertError);
-      return createErrorResponse("Failed to save savings goals", 500);
+      console.error("Failed to save savings goal:", upsertError);
+      return createErrorResponse("Failed to save savings goal", 500);
     }
 
     return NextResponse.json({ success: true });

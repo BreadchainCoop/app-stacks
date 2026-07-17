@@ -105,27 +105,18 @@ export type Database = {
       savings_goals: {
         Row: {
           user_id: string;
-          goals: string[];
-          target_amount: string | null;
-          timeline: string | null;
-          monthly_savings: string | null;
+          goal: string | null;
           completed: boolean;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           user_id: string;
-          goals: string[];
-          target_amount?: string | null;
-          timeline?: string | null;
-          monthly_savings?: string | null;
+          goal?: string | null;
           completed?: boolean;
         };
         Update: {
-          goals?: string[];
-          target_amount?: string | null;
-          timeline?: string | null;
-          monthly_savings?: string | null;
+          goal?: string | null;
           completed?: boolean;
         };
       };

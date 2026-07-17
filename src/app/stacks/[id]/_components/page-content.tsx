@@ -20,9 +20,13 @@ import BackMeta from "./back-meta";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useCircleState } from "@/hooks/use-circles-state";
 import { CircleState } from "@/lib/circle-state";
+import { useSearchParams } from "next/navigation";
+import { usePrivy } from "@privy-io/react-auth";
 
 const PageContent = ({ id }: { id: string }) => {
   const now = useBlockTimestamp();
+  const searchParams = useSearchParams();
+  const { user: privyUser } = usePrivy();
   const { setModal } = useModal();
   const { user } = useConnectedUser();
   const address =
@@ -50,6 +54,11 @@ const PageContent = ({ id }: { id: string }) => {
         circleState: circleState ?? CircleState.Active,
       })
     : null;
+
+  useEffect(() => {
+    if (searchParams.get("joined") !== "true" || !privyUser?.id) return;
+    setModal({ type: "SAVINGS_GOALS", privyUserId: privyUser.id });
+  }, [searchParams, privyUser?.id, setModal]);
 
   useEffect(() => {
     if (!userCircleData.circleData?.isMember) return;
