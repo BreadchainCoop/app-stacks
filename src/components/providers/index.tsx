@@ -37,6 +37,7 @@ const walletLists: WalletListEntry[] = [
   "metamask",
   "coinbase_wallet",
   "rainbow",
+  "detected_ethereum_wallets",
 ];
 
 const privyConfig = (isMobile: boolean): PrivyClientConfig => ({
@@ -51,7 +52,7 @@ const privyConfig = (isMobile: boolean): PrivyClientConfig => ({
   appearance: {
     walletList: isMobile
       ? [...walletLists, "wallet_connect"]
-      : [...walletLists, "detected_ethereum_wallets", "wallet_connect_qr"],
+      : [...walletLists, "wallet_connect_qr"],
   },
 });
 

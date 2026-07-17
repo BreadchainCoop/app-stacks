@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 const links = [
   { href: "/", label: "Dashboard" },
   { href: "/new", label: "Start stacks group" },
-  { href: "/my-account", label: "My Account" },
+  { href: "/account", label: "My Account" },
 ];
 
 const NavLinks = () => {
@@ -25,7 +25,7 @@ const NavLinks = () => {
             aria-current={isActive ? "page" : undefined}
             className={cn(
               "text-body transition-colors hover:text-primary-blue",
-              isActive && "font-bold text-primary-blue"
+              isActive ? "text-primary-blue" : "text-current"
             )}
           >
             {label}

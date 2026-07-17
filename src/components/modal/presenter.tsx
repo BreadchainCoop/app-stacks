@@ -17,12 +17,15 @@ import WalletFundingStatusModal from "./modals/wallet-funding-status";
 import ReminderModal from "@/components/reminder/modal";
 import NewUserOnboarding from "./modals/new-user-onboarding";
 import NetworkModeModal from "./modals/network-mode";
+import SetAliasModal from "./modals/set-alias";
 import FundWallet from "./modals/fund-wallet/fund-wallet";
 import LiFiSwapModal from "../lifi/swap-modal";
 import InstallPeerModal from "../peer/install-modal";
 import FundWithConnectedWalletModalAmount from "./modals/fund-wallet/fund-with-connected-wallet-modal-amount";
 import StartStackWarningModal from "./modals/start-stack-warning";
 import AutomaticClaimsModal from "./modals/automatic-claims";
+import VisitorOnboarding from "../onboard/visitor-onboard-modal";
+import AutomaticDepositsModal from "@/components/automatic-deposits/modal";
 
 const ModalPresenter = () => {
   const { modalState, setModal } = useModal();
@@ -80,6 +83,9 @@ const ModalPresenter = () => {
               {modalState.type === "NETWORK_MODE_SELECT" && (
                 <NetworkModeModal />
               )}
+              {modalState.type === "SET_ALIAS" && (
+                <SetAliasModal modalState={modalState} />
+              )}
               {modalState.type === "FUND_WALLET" && (
                 <FundWallet modalState={modalState} />
               )}
@@ -104,6 +110,12 @@ const ModalPresenter = () => {
               )}
               {modalState.type === "AUTOMATIC_CLAIMS" && (
                 <AutomaticClaimsModal modalState={modalState} />
+              )}
+              {modalState.type === "VISITOR_ONBOARDING" && (
+                <VisitorOnboarding />
+              )}
+              {modalState.type === "AUTOMATIC_DEPOSITS" && (
+                <AutomaticDepositsModal modalState={modalState} />
               )}
             </Dialog.Content>
           </>

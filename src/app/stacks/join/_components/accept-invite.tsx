@@ -12,9 +12,12 @@ import { useSupabaseClient } from "@/components/providers/supabase";
 import { Body, LoginButton, useConnectedUser } from "@breadcoop/ui";
 import { CheckIcon } from "@phosphor-icons/react";
 import { usePrivy } from "@privy-io/react-auth";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useReadContract } from "wagmi";
+import { useQueryClient } from "@tanstack/react-query";
+import { readContractQueryKey } from "wagmi/query";
+import { CircleParams } from "./interface";
 
 const errorMessages: Record<string, string> = {
   InviteAlreadyUsed: "This invitation has already been used.",
@@ -24,18 +27,23 @@ const errorMessages: Record<string, string> = {
   InvalidSigner: "This invitation link is invalid.",
 };
 
-export default function AcceptInvite() {
+type AcceptInvite = Pick<CircleParams, "circleId" | "nonce" | "signature">;
+
+export default function AcceptInvite({
+  circleId,
+  nonce,
+  signature,
+}: AcceptInvite) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { user } = useConnectedUser();
   const { sendSavingCirclesTx } = useSavingCirclesTx();
   const { user: privyUser } = usePrivy();
   const supabase = useSupabaseClient();
+  const queryClient = useQueryClient();
 
-  const circleId = searchParams.get("circleId") as string;
+  const address = user.status === "CONNECTED" ? user.address : undefined;
+
   const parsedId = BigInt(circleId || "");
-  const nonce = searchParams.get("nonce");
-  const signature = searchParams.get("signature");
 
   const [redeeming, setRedeeming] = useState(false);
 
@@ -43,14 +51,11 @@ export default function AcceptInvite() {
     abi: savingCirclesAbi,
     address: SAVING_CIRCLES_CONTRACT_ADDRESS,
     functionName: "isMember",
-    args: [
-      parsedId,
-      // @ts-expect-error hook only triggers when address is available
-      user.address as `0x${string}`,
-    ],
+    args: [parsedId, address as `0x${string}`],
     query: {
       enabled:
-        user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN",
+        (user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN") &&
+        !!address,
     },
     chainId: getDefaultChainId(),
   });
@@ -67,7 +72,7 @@ export default function AcceptInvite() {
   });
 
   const redeemInvite = async () => {
-    if (user.status !== "CONNECTED" || !nonce || !signature) return;
+    if (user.status !== "CONNECTED" || !address || !nonce || !signature) return;
 
     setRedeeming(true);
 
@@ -77,24 +82,37 @@ export default function AcceptInvite() {
         args: [parsedId, BigInt(nonce), signature as `0x${string}`],
       });
 
+      const isMemberKey = readContractQueryKey({
+        abi: savingCirclesAbi,
+        address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+        functionName: "isMember",
+        args: [parsedId, address as `0x${string}`],
+        chainId: getDefaultChainId(),
+      });
+
+      router.push(`/stacks/${circleId}`);
+
+      queryClient.setQueryData(isMemberKey, true);
+      queryClient.invalidateQueries({ queryKey: isMemberKey });
+
       if (isLocalMode()) {
+        // No API routes in local mode: record the redemption directly.
         redeemLocalInvite(supabase, {
           circleId,
           nonce,
           address: user.address,
-        }).catch((err) =>
-          console.error("Failed to record local invite redemption:", err)
-        );
+        }).catch((error) => {
+          console.error("Failed to record local invite redemption:", error);
+        });
       } else {
         fetch("/api/stacks/invite", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ circleId, nonce, privyUserId: privyUser?.id }),
+        }).catch((error) => {
+          console.error("Failed to mark invite as used:", error);
         });
       }
-
-      alert("Invitation Accepted!");
-      router.push(`/stacks/${circleId}`);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       const contractError =
@@ -115,6 +133,12 @@ export default function AcceptInvite() {
 
   if (user.status !== "CONNECTED") {
     return <LoginButton app="stacks" status={user.status} />;
+  }
+
+  if (!address) {
+    return (
+      <Body className="text-center">Reconnect your wallet to continue.</Body>
+    );
   }
 
   if (typeof isMember === "boolean") {
@@ -140,9 +164,9 @@ export default function AcceptInvite() {
         leftIcon={redeeming ? undefined : <CheckIcon size={24} />}
         className="w-full"
         variant="positive"
-        disabled={redeeming}
+        isLoading={redeeming}
       >
-        {redeeming ? <Loading /> : "Accept invite"}
+        Accept invite
       </LocalButton>
     );
   }

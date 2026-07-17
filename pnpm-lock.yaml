@@ -7,14 +7,14 @@ settings:
 overrides:
   "@noble/curves": ">=1.9.0"
   semver: ">=6.3.2"
-  "@breadcoop/ui": 2.0.1
+  "@breadcoop/ui": 2.0.2
 
 importers:
   .:
     dependencies:
       "@breadcoop/ui":
-        specifier: 2.0.1
-        version: 2.0.1(a42f1bd46a91f3e083f3bbbf6d88fc00)
+        specifier: 2.0.2
+        version: 2.0.2(a42f1bd46a91f3e083f3bbbf6d88fc00)
       "@duneanalytics/client-sdk":
         specifier: ^0.2.5
         version: 0.2.5
@@ -78,6 +78,9 @@ importers:
       embla-carousel-react:
         specifier: ^8.3.1
         version: 8.3.1(react@19.1.0)
+      jose:
+        specifier: ^5.9.6
+        version: 5.9.6
       next:
         specifier: 15.4.10
         version: 15.4.10(@babel/core@7.29.0)(babel-plugin-macros@3.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -121,6 +124,9 @@ importers:
       "@types/react-dom":
         specifier: ^19
         version: 19.2.3(@types/react@19.2.14)
+      dotenv-cli:
+        specifier: ^7.4.2
+        version: 7.4.2
       eslint:
         specifier: ^9
         version: 9.39.4(jiti@2.6.1)
@@ -516,10 +522,10 @@ packages:
         integrity: sha512-jeujZSzb3JOZfmJYI0ph1PVpCRV5oaexCgy+RvCXV8XlY+XFB/2n3WOcvBsKLsOw78KYgnQrQWb2HrKE4be88Q==,
       }
 
-  "@breadcoop/ui@2.0.1":
+  "@breadcoop/ui@2.0.2":
     resolution:
       {
-        integrity: sha512-lvVgyfPpdIi/JW5kOdpoeRpYNaWaAr1/zRxQhfAmvCI0XKYDG+p0NA4zyFeECsZzo7elKmaGj/B1kqnRViiGiA==,
+        integrity: sha512-5HDWww1REKLV2YN2qSmk/rzxohtll2MgK5bxufy3s7ycCUONxcJU1m+9I0ALfdrmaTWA+6KiSz2NwhyuJ3TfBw==,
       }
     peerDependencies:
       "@phosphor-icons/react": ^2.1.1
@@ -5607,6 +5613,13 @@ packages:
         integrity: sha512-uKm5PU+MHTootlWEY+mZ4vvXoCn4fLQxT9dSc1sXVMSFkINTJVN8cAQROpwcKm8bJ/c7rgZVIBWzH5T78sNZZw==,
       }
 
+  cross-spawn@7.0.5:
+    resolution:
+      {
+        integrity: sha512-ZVJrKKYunU38/76t0RMOulHOnUcbU9GbpWKAOZ0mhjr7CX6FVrH+4FrAapSOekrgFQ3f/8gwMEuIft0aKq6Hug==,
+      }
+    engines: { node: ">= 8" }
+
   cross-spawn@7.0.6:
     resolution:
       {
@@ -5933,6 +5946,27 @@ packages:
       {
         integrity: sha512-nRCa7CK3VTrM2NmGkIy4cbK7IZlgBE/PYMn55rrXefr5xXDP0LdtfPnblFDoVdcAfslJ7or6iqAUnx0CCGIWQA==,
       }
+
+  dotenv-cli@7.4.2:
+    resolution:
+      {
+        integrity: sha512-SbUj8l61zIbzyhIbg0FwPJq6+wjbzdn9oEtozQpZ6kW2ihCcapKVZj49oCT3oPM+mgQm+itgvUQcG5szxVrZTA==,
+      }
+    hasBin: true
+
+  dotenv-expand@10.0.0:
+    resolution:
+      {
+        integrity: sha512-GopVGCpVS1UKH75VKHGuQFqS1Gusej0z4FyQkPdwjil2gNIv+LNsqBlboOzpJFZKVT95GkCyWJbBSdFEFUWI2A==,
+      }
+    engines: { node: ">=12" }
+
+  dotenv@16.4.5:
+    resolution:
+      {
+        integrity: sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==,
+      }
+    engines: { node: ">=12" }
 
   dunder-proto@1.0.1:
     resolution:
@@ -7433,6 +7467,12 @@ packages:
     resolution:
       {
         integrity: sha512-1vUQX+IdDMVPj4k8kOxgUqlcK518yluMuGZwqlr44FS1ppZB/5GWh4rZG89erpOBOJjU/OBsnCVFfapsRz6nEA==,
+      }
+
+  jose@5.9.6:
+    resolution:
+      {
+        integrity: sha512-AMlnetc9+CV9asI19zHmrgS/WYsWUwCn2R7RzlbJWD7F9eWYUTGyBmU9o6PxngtLGOiDGPRu+Uc4fhKzbpteZQ==,
       }
 
   jose@6.2.2:
@@ -11294,7 +11334,7 @@ snapshots:
     dependencies:
       "@noble/curves": 1.9.7
 
-  "@breadcoop/ui@2.0.1(a42f1bd46a91f3e083f3bbbf6d88fc00)":
+  "@breadcoop/ui@2.0.2(a42f1bd46a91f3e083f3bbbf6d88fc00)":
     dependencies:
       "@phosphor-icons/react": 2.1.10(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       "@privy-io/react-auth": 3.18.0(@react-native-async-storage/async-storage@1.24.0(react-native@0.85.2(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6)))(@solana-program/system@0.10.0(@solana/kit@5.5.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)))(@solana-program/token@0.9.0(@solana/kit@5.5.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)))(@solana/kit@5.5.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6))(@solana/sysvars@5.5.1(typescript@5.9.3))(@tanstack/query-core@5.91.2)(@tanstack/react-query@5.91.2(react@19.1.0))(@types/react@19.2.14)(@upstash/redis@1.37.0)(bufferutil@4.1.0)(react-dom@19.1.0(react@19.1.0))(react-native@0.85.2(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6))(react@19.1.0)(typescript@5.9.3)(use-sync-external-store@1.4.0(react@19.1.0))(utf-8-validate@6.0.6)(zod@4.3.6)
@@ -17178,6 +17218,12 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
+  cross-spawn@7.0.5:
+    dependencies:
+      path-key: 3.1.1
+      shebang-command: 2.0.0
+      which: 2.0.2
+
   cross-spawn@7.0.6:
     dependencies:
       path-key: 3.1.1
@@ -17322,6 +17368,17 @@ snapshots:
     dependencies:
       "@babel/runtime": 7.29.2
       csstype: 3.2.3
+
+  dotenv-cli@7.4.2:
+    dependencies:
+      cross-spawn: 7.0.5
+      dotenv: 16.4.5
+      dotenv-expand: 10.0.0
+      minimist: 1.2.8
+
+  dotenv-expand@10.0.0: {}
+
+  dotenv@16.4.5: {}
 
   dunder-proto@1.0.1:
     dependencies:
@@ -18347,6 +18404,8 @@ snapshots:
   jiti@2.6.1: {}
 
   jose@4.15.9: {}
+
+  jose@5.9.6: {}
 
   jose@6.2.2: {}
 

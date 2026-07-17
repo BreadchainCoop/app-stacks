@@ -54,7 +54,6 @@ function buildInviteUrl(
   deposit: string
 ): string {
   const url = new URL(baseUrl);
-  url.searchParams.set("contract", SAVING_CIRCLES_CONTRACT_ADDRESS);
   url.searchParams.set("circleId", circleId);
   url.searchParams.set("nonce", nonce.toString());
   url.searchParams.set("signature", signature);
@@ -77,7 +76,7 @@ export const StackSuccessResultModal = ({
   const { user: privyUser } = usePrivy();
   const { user: connectedUser } = useConnectedUser();
   const supabase = useSupabaseClient();
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({ chainId: getDefaultChainId() });
   const { signTypedData } = useSignTypedData();
   const { signTypedDataAsync: signWagmiTypedData } = useWagmiSignTypedData();
   const modal = useModal();

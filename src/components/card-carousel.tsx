@@ -11,11 +11,14 @@ type StackMetadata = Database["public"]["Tables"]["stacks_metadata"]["Row"];
 interface CardCarouselProps {
   circles: ICircleList[];
   stacksMap: Record<string, StackMetadata>;
+  /** Hide per-stack actions (claim/deposit) when viewing someone else's account */
+  readOnly?: boolean;
 }
 
 export default function CardCarousel({
   circles,
   stacksMap,
+  readOnly = false,
 }: CardCarouselProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [cardsPerPage, setCardsPerPage] = useState(1);
@@ -90,7 +93,12 @@ export default function CardCarousel({
           }`}
         >
           {visibleCards.map((card) => (
-            <Stack stacksMap={stacksMap} stack={card} key={card.id} />
+            <Stack
+              stacksMap={stacksMap}
+              stack={card}
+              readOnly={readOnly}
+              key={card.id}
+            />
           ))}
         </div>
       </div>

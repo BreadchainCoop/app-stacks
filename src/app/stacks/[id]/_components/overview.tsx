@@ -12,6 +12,7 @@ import {
 } from "@breadcoop/ui";
 import DaysLeft from "./days-left";
 import {
+  FAILED_STACK_STATUSES,
   getRoundStatus,
   getUserCircleStatus,
 } from "@/lib/get-user-circle-status";
@@ -21,6 +22,7 @@ import { Address, formatEther } from "viem";
 import { useCircleStatus } from "@/hooks/use-circle-status";
 import StartCircleButton from "@/components/start-circle-button";
 import DepositButton from "@/components/deposit-button";
+import { AutomaticDeposit } from "@/components/automatic-deposits/toggle";
 import { useModal } from "@/components/modal/context";
 import { useStackSupabase } from "@/hooks/use-stack-supabase";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
@@ -28,16 +30,9 @@ import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { getDefaultChainId } from "@/utils/chain";
 import { useReadContracts } from "wagmi";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
-import { ICircleStatus } from "@/interfaces/circle";
 import { useFundsDeposited } from "@/hooks/use-funds-deposited";
 import LocalButton from "@/components/button";
-
-const failedStatuses: ICircleStatus[] = [
-  "decommissioned",
-  "expired",
-  "failed",
-  "finished",
-];
+import { FeatureGate } from "@/components/feature-gate";
 
 const Overview = ({
   circle,
@@ -76,7 +71,9 @@ const Overview = ({
   const { data: stackMetadata, isLoading: isStackMetadataLoading } =
     useStackSupabase(circle.circleId.toString(), circle.isMember);
 
-  const isFailedStack = failedStatuses.includes(formattedCircleStatus.status);
+  const isFailedStack = FAILED_STACK_STATUSES.includes(
+    formattedCircleStatus.status
+  );
 
   const fundsDeposited = useFundsDeposited({
     circleId: circle.circleId.toString(),
@@ -151,6 +148,11 @@ const Overview = ({
     formattedCircleStatus.status === "pending-start"
       ? expectedMembers || "-"
       : Number(circle.totalRounds);
+
+  const remainingRounds = Math.max(
+    0,
+    Number(circle.totalRounds) - Number(circle.circleInfo.currentIndex)
+  );
 
   let roundsCompleted = BigInt(0);
   let membersDeposited: bigint | number = BigInt(0);
@@ -251,10 +253,20 @@ const Overview = ({
         depositInterval={circle.circleInfo.depositInterval}
         isActive={
           status.isActive &&
-          !failedStatuses.includes(formattedCircleStatus.status)
+          !FAILED_STACK_STATUSES.includes(formattedCircleStatus.status)
         }
       />
       <div className="mt-4">
+        <FeatureGate feature="automaticDeposit">
+          <AutomaticDeposit
+            stackId={circle.circleId.toString()}
+            depositAmount={circle.circleInfo.depositAmount}
+            remainingRounds={remainingRounds}
+            depositInterval={circle.circleInfo.depositInterval}
+            tokenAddress={circle.circleInfo.token}
+            disabled={isFailedStack}
+          />
+        </FeatureGate>
         {formattedCircleStatus.status === "pending-start" ? (
           <>
             {member === circle.circleInfo.owner &&
@@ -288,15 +300,17 @@ const Overview = ({
         ) : depositCircleStatus.status === "payment_due" ? (
           <>
             {connectedUser.user.status === "CONNECTED" ? (
-              <DepositButton
-                className="font-bold w-full"
-                label={`Deposit ${formatEther(
-                  circle.circleInfo.depositAmount
-                )} BREAD`}
-                amount={circle.circleInfo.depositAmount}
-                tokenAddress={circle.circleInfo.token}
-                circleId={circle.circleId}
-              />
+              <>
+                <DepositButton
+                  className="font-bold w-full"
+                  label={`Deposit ${formatEther(
+                    circle.circleInfo.depositAmount
+                  )} BREAD`}
+                  amount={circle.circleInfo.depositAmount}
+                  tokenAddress={circle.circleInfo.token}
+                  circleId={circle.circleId}
+                />
+              </>
             ) : (
               <LoginButton app="stacks" status={connectedUser.user.status} />
             )}

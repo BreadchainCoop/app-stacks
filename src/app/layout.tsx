@@ -7,6 +7,7 @@ import LoginTracker from "@/components/login-tracker";
 import NetworkModeGate from "@/components/network-mode-gate";
 import { isServerMobile } from "@/lib/server-mobile";
 import { Footer } from "@breadcoop/ui";
+import { OnboardVisitorTracker } from "@/components/onboard/visitor-tracker";
 
 export const metadata = generateMetadata();
 
@@ -28,6 +29,7 @@ export default async function RootLayout({
       <body className="font-roboto text-text-standard antialiased">
         <div className="body-container">
           <Providers isMobile={isMobile}>
+            <OnboardVisitorTracker />
             <LoginTracker />
             <NetworkModeGate />
             <ModalPresenter />

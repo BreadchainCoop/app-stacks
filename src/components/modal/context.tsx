@@ -12,6 +12,7 @@ import { PeerExtensionSdk } from "@zkp2p/sdk";
 import { Address } from "viem";
 import { FundWithConnectedWalletModalAmountModalState } from "./modals/fund-wallet/fund-with-connected-wallet-modal-amount";
 import { AutomaticClaimsModalState } from "./modals/automatic-claims";
+import type { AutomaticDepositsModalState } from "@/components/automatic-deposits/types";
 
 export type TModalStatus = "loading" | "success" | "error";
 
@@ -97,6 +98,12 @@ export type NetworkModeSelectModalState = {
   type: "NETWORK_MODE_SELECT";
 };
 
+export type SetAliasModalState = {
+  type: "SET_ALIAS";
+  skippable?: boolean;
+  onDone?: () => void;
+};
+
 export type FundWalletModalState = {
   type: "FUND_WALLET";
   address: Address;
@@ -130,6 +137,10 @@ export type PeerOnRampInstallModalState = {
   fundWalletModalState: Omit<FundWalletModalState, "type">;
 };
 
+export type VisitorOnboardingModalState = {
+  type: "VISITOR_ONBOARDING";
+};
+
 export type ModalState =
   | DepositInitModalState
   | DepositLoadingModalState
@@ -146,11 +157,14 @@ export type ModalState =
   | ReminderModalState
   | NewUserOnboardingModalState
   | NetworkModeSelectModalState
+  | SetAliasModalState
   | FundWalletModalState
   | LiFiBridgeSwapModalState
   | PeerOnRampInstallModalState
   | FundWithConnectedWalletModalAmountModalState
   | AutomaticClaimsModalState
+  | VisitorOnboardingModalState
+  | AutomaticDepositsModalState
   | null;
 
 export type ModalContext = {

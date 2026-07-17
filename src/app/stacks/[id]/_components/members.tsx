@@ -11,7 +11,7 @@ import { useCircleMembersWithBalances } from "@/hooks/use-circle-members";
 import { useReadContracts } from "wagmi";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
-import { MemberCircleInfo } from "@/interfaces/circle";
+import { ICircleStatus, MemberCircleInfo } from "@/interfaces/circle";
 import { getDefaultChainId } from "@/utils/chain";
 import { useStackSupabase } from "@/hooks/use-stack-supabase";
 
@@ -45,12 +45,14 @@ const StackMembers = ({
   member,
   isMember,
   totalRounds,
+  circleStatus,
 }: {
   id: string;
   member: Address;
   circle: MemberCircleInfo;
   isMember: boolean;
   totalRounds: number;
+  circleStatus: ICircleStatus | null;
 }) => {
   const info = useCircleMembersWithBalances(BigInt(id));
   const isOwner = circle.owner === member;
@@ -134,10 +136,12 @@ const StackMembers = ({
         id={id}
         info={info}
         totalBaseDeposit={totalBaseDeposit}
+        depositAmount={circle.depositAmount}
         pendingInviteLinks={isOwner ? pendingInviteLinks : []}
         totalRounds={totalRounds}
         circleStartsTimestamp={circle.effectiveCircleStartTime}
         depositInterval={circle.depositInterval}
+        circleStatus={circleStatus}
       />
     </section>
   );

@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Accordion,
   AccordionContent,
@@ -7,21 +5,20 @@ import {
   AccordionItem,
 } from "@/components/accordion";
 import { Body, formatBalance } from "@breadcoop/ui";
-import { useSearchParams } from "next/navigation";
-import { formatEther } from "viem";
+import { CircleParams } from "./interface";
+
+type InviteDetailsProps = Pick<
+  CircleParams,
+  "circleId" | "name" | "duration" | "members" | "deposit"
+>;
 
 export default function InviteDetails({
-  depositAmount,
-}: {
-  depositAmount: bigint;
-}) {
-  const searchParams = useSearchParams();
-  const circleId = searchParams.get("circleId") as string;
-  const circleName = searchParams.get("name") || "-";
-  const duration = searchParams.get("duration") || "";
-  const members = Number(searchParams.get("members"));
-  const deposit = Number(searchParams.get("deposit"));
-
+  name: circleName,
+  circleId,
+  duration,
+  members,
+  deposit,
+}: InviteDetailsProps) {
   return (
     <div className="border-t border-blue-0 pt-6">
       <Body className="text-center mb-6">
@@ -42,11 +39,11 @@ export default function InviteDetails({
               <RowDetail label="Duration" body={duration} />
               <RowDetail
                 label="Est. Deposit amount"
-                body={`${formatEther(depositAmount)} BREAD`}
+                body={`${formatBalance(+deposit)} BREAD`}
               />
               <RowDetail
                 label="Stack goal"
-                body={`${formatBalance(members ** 2 * deposit, 2)} BREAD`}
+                body={`${formatBalance(Number(members) ** 2 * Number(deposit), 2)} BREAD`}
               />
             </div>
           </AccordionContent>

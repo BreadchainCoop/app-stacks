@@ -38,3 +38,9 @@ cache/
 broadcast/
 # Local Netlify folder
 .netlify
+
+# supabase cli
+supabase/.temp
+
+# claude
+~/.claude-personal

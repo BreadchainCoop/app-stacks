@@ -13,6 +13,13 @@ declare
 begin
   foreach t in array array['users', 'profiles', 'stacks_metadata', 'user_stacks']
   loop
+    -- Hosted migrations revoke anon writes on users/profiles (writes go
+    -- through service-role API routes there); local mode writes directly
+    -- with the anon key, so re-grant on this throwaway instance.
+    execute format(
+      'grant select, insert, update, delete on public.%I to anon',
+      t
+    );
     execute format('alter table public.%I enable row level security', t);
     execute format('drop policy if exists local_anon_all on public.%I', t);
     execute format(

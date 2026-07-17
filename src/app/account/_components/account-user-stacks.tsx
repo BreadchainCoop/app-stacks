@@ -6,9 +6,9 @@ import { Address } from "viem";
 import CardCarousel from "@/components/card-carousel";
 import { useSearchParams } from "next/navigation";
 import { tabs } from "./account-tab";
-import { Body, Heading3 } from "@breadcoop/ui";
-import { useAppUserId } from "@/hooks/use-app-user-id";
+import { Body, Heading3, useConnectedUser } from "@breadcoop/ui";
 import { useUserStacksMetadata } from "@/hooks/use-user-stacks-metadata";
+import { useIsOwnAddress } from "@/hooks/use-is-own-address";
 
 type Tab = "due" | "claim" | "past" | "all";
 
@@ -29,6 +29,19 @@ const emptyMessages: Record<Exclude<Tab, "all">, [string, string]> = {
   ],
 };
 
+// Neutral wording for viewers who are not the account owner
+const visitorEmptyMessages: Record<Exclude<Tab, "all">, [string, string]> = {
+  claim: [
+    "Nothing to claim right now.",
+    "Payouts ready to claim will appear here.",
+  ],
+  due: ["No payments pending.", "Upcoming payments will appear here."],
+  past: [
+    "No completed Stacks yet.",
+    "Once a Stack has been finalized, it will appear here.",
+  ],
+};
+
 const hasFailedClaim = (circle: {
   status?: string;
   isDecommissionable?: boolean;
@@ -40,8 +53,17 @@ const hasFailedClaim = (circle: {
 
 const AccountUserStacks = ({ address }: { address: Address }) => {
   const { isLoading, circles } = useUserCirclesList(address);
-  const appUserId = useAppUserId();
-  const { stacksMap } = useUserStacksMetadata(appUserId);
+  const isOwner = useIsOwnAddress(address);
+  const { user } = useConnectedUser();
+
+  // Stack names are member-only info: resolve them from the *viewer's* own
+  // stacks, so a visitor only sees names of stacks they also belong to.
+  const viewerAddress =
+    user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
+      ? user.address
+      : undefined;
+  const { stacksMap } = useUserStacksMetadata(viewerAddress);
+
   const tab = (useSearchParams().get("tab") || "all") as Tab;
   let filteredCircles = [...circles];
 
@@ -72,25 +94,42 @@ const AccountUserStacks = ({ address }: { address: Address }) => {
           {filteredCircles.length === 0 ? (
             <>
               {circles.length === 0 || tab === "all" ? (
-                <>
-                  <Heading3 className="mb-6 text-2xl">
-                    You haven&apos;t joined any Stack yet.
-                  </Heading3>
-                  <Body className="mb-16">
-                    Create your own or join a public stack today.
-                  </Body>
-                </>
+                isOwner ? (
+                  <>
+                    <Heading3 className="mb-6 text-2xl">
+                      You haven&apos;t joined any Stack yet.
+                    </Heading3>
+                    <Body className="mb-16">
+                      Create your own or join a public stack today.
+                    </Body>
+                  </>
+                ) : (
+                  <>
+                    <Heading3 className="mb-6 text-2xl">
+                      This account hasn&apos;t joined any Stack yet.
+                    </Heading3>
+                    <Body className="mb-16">
+                      Stacks they join will appear here.
+                    </Body>
+                  </>
+                )
               ) : (
                 <>
                   <Heading3 className="mb-6 text-2xl">
-                    {emptyMessages[tab][0]}
+                    {(isOwner ? emptyMessages : visitorEmptyMessages)[tab][0]}
                   </Heading3>
-                  <Body className="mb-16">{emptyMessages[tab][1]}</Body>
+                  <Body className="mb-16">
+                    {(isOwner ? emptyMessages : visitorEmptyMessages)[tab][1]}
+                  </Body>
                 </>
               )}
             </>
           ) : (
-            <CardCarousel circles={filteredCircles} stacksMap={stacksMap} />
+            <CardCarousel
+              circles={filteredCircles}
+              stacksMap={stacksMap}
+              readOnly={!isOwner}
+            />
           )}
         </>
       )}
