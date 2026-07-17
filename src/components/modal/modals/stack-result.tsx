@@ -39,7 +39,7 @@ const INVITE_DOMAIN_NAME = "StacksInvite";
 const INVITE_DOMAIN_VERSION = "1";
 const DEFAULT_CHAIN = getDefaultChainId();
 
-function buildInviteUrl(
+export function buildInviteUrl(
   baseUrl: string,
   circleId: string,
   nonce: bigint,

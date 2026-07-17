@@ -3,9 +3,7 @@ import { Body, Heading1 } from "@breadcoop/ui";
 import { ConfettiIcon } from "@phosphor-icons/react/dist/ssr";
 import { JoinPageSettings } from "./_components/settings";
 import { CircleParams } from "./_components/interface";
-import InviteDetails from "./_components/invite-details";
-import Alert from "@/components/alert";
-import AcceptInvite from "./_components/accept-invite";
+import JoinFlow from "./_components/join-flow";
 
 export const metadata = generateMetadata({
   title: "Join a Stack - Bread Cooperative",
@@ -33,19 +31,7 @@ export default async function Page(props: {
           </Body>
         </div>
 
-        <InviteDetails {...searchParams} />
-
-        <Alert
-          closeAble={false}
-          variant="warning"
-          title="IMPORTANT: This invite can only be accepted once!"
-          description="Each invite is unique and can only be accepted once."
-        />
-        <AcceptInvite
-          circleId={searchParams.circleId}
-          nonce={searchParams.nonce}
-          signature={searchParams.signature}
-        />
+        <JoinFlow searchParams={searchParams} />
 
         <Body>
           Note: You can also access your member invite links through your Stacks

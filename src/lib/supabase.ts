@@ -19,6 +19,25 @@ export type SupabaseStackMetadata = {
   invite_links: SupabaseInviteLink[];
 };
 
+export type JoinRequestStatus = "pending" | "approved" | "rejected";
+
+export type JoinRequestInviteLink = {
+  short: string;
+  long: string;
+  nonce: string;
+};
+
+export type JoinRequestRow = {
+  id: string;
+  stack_id: string;
+  user_id: string;
+  wallet_address: string;
+  status: JoinRequestStatus;
+  invite_link: JoinRequestInviteLink | null;
+  requested_at: string;
+  decided_at: string | null;
+};
+
 // Mirror the supabase generated-types shape (Relationships per table,
 // Views/Functions/Enums/CompositeTypes on the schema) or queries degrade.
 export type Database = {
@@ -85,6 +104,31 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "user_stacks_stack_id_fkey";
+            columns: ["stack_id"];
+            isOneToOne: false;
+            referencedRelation: "stacks_metadata";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      join_requests: {
+        Row: JoinRequestRow;
+        Insert: Pick<
+          JoinRequestRow,
+          "stack_id" | "user_id" | "wallet_address"
+        > &
+          Partial<
+            Pick<
+              JoinRequestRow,
+              "id" | "status" | "invite_link" | "requested_at" | "decided_at"
+            >
+          >;
+        Update: Partial<
+          Pick<JoinRequestRow, "status" | "invite_link" | "decided_at">
+        >;
+        Relationships: [
+          {
+            foreignKeyName: "join_requests_stack_id_fkey";
             columns: ["stack_id"];
             isOneToOne: false;
             referencedRelation: "stacks_metadata";

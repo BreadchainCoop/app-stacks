@@ -22,6 +22,7 @@ import LiFiSwapModal from "../lifi/swap-modal";
 import InstallPeerModal from "../peer/install-modal";
 import FundWithConnectedWalletModalAmount from "./modals/fund-wallet/fund-with-connected-wallet-modal-amount";
 import StartStackWarningModal from "./modals/start-stack-warning";
+import RejectJoinRequestWarningModal from "./modals/reject-join-request-warning";
 import AutomaticClaimsModal from "./modals/automatic-claims";
 import VisitorOnboarding from "../onboard/visitor-onboard-modal";
 import AutomaticDepositsModal from "@/components/automatic-deposits/modal";
@@ -67,6 +68,9 @@ const ModalPresenter = () => {
               )}
               {modalState.type === "START_STACK_WARNING" && (
                 <StartStackWarningModal modalState={modalState} />
+              )}
+              {modalState.type === "REJECT_JOIN_REQUEST_WARNING" && (
+                <RejectJoinRequestWarningModal modalState={modalState} />
               )}
               {modalState.type === "WITHDRAW_BREAD" && <WithdrawBreadModal />}
               {modalState.type === "NEW_USER_ONBOARDING" && (

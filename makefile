@@ -126,7 +126,7 @@ update-saving-circles-dev:
 	git -C contracts/lib/saving-circles pull --ff-only origin $(SAVING_CIRCLES_BRANCH)
 
 # Wipes the off-chain stack data so local dev starts from a clean slate.
-# user_stacks is deleted before stacks_metadata to respect the FK (stack_id).
+# user_stacks and join_requests are deleted before stacks_metadata to respect the FK (stack_id).
 reset-supabase:
 	@if [ ! -f .env.local ]; then \
 		echo "Error: .env.local not found"; \
@@ -143,8 +143,8 @@ reset-supabase:
 		echo "Error: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in .env.local"; \
 		exit 1; \
 	fi; \
-	echo "Clearing off-chain stack data (user_stacks, stacks_metadata)..."; \
-	for entry in "user_stacks:user_id" "stacks_metadata:id"; do \
+	echo "Clearing off-chain stack data (user_stacks, join_requests, stacks_metadata)..."; \
+	for entry in "user_stacks:user_id" "join_requests:id" "stacks_metadata:id"; do \
 		table=$${entry%%:*}; col=$${entry##*:}; \
 		status=$$(curl -s -o /dev/null -w '%{http_code}' -X DELETE \
 			"$$SUPABASE_URL/rest/v1/$$table?$$col=not.is.null" \

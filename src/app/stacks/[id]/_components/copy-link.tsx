@@ -6,6 +6,42 @@ import { useCopyToClipboard } from "@breadcoop/ui";
 import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 
+export const CopyGeneralInviteLink = ({ id }: { id: string }) => {
+  const [currentUrl, setCurrentUrl] = useState("");
+  const { isShortening, result: shortenedUrl } = useShortenedUrl(currentUrl);
+  const { copy, copied } = useCopyToClipboard({
+    textToCopy: shortenedUrl,
+  });
+
+  useEffect(() => {
+    setCurrentUrl(`${window.location.origin}/stacks/join?circleId=${id}`);
+  }, [id]);
+
+  const onCopy = () => {
+    if (isShortening) return;
+
+    copy();
+  };
+
+  return (
+    <LocalButton
+      variant="light"
+      className={`h-8 border px-4 ${copied ? "text-system-green" : ""}`}
+      leftIcon={
+        copied ? (
+          <CheckIcon className="fill-system-green" />
+        ) : (
+          <CopyIcon className="fill-primary-blue" />
+        )
+      }
+      onClick={onCopy}
+      disabled={isShortening}
+    >
+      {copied ? "Copied!" : isShortening ? "Loading..." : "Copy invite link"}
+    </LocalButton>
+  );
+};
+
 export const CopyStackLink = () => {
   const [currentUrl, setCurrentUrl] = useState("");
   const { isShortening, result: shortenedUrl } = useShortenedUrl(currentUrl);
