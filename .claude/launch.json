@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "stacks-dev",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["pnpm", "dev", "--turbopack", "-p", "3001"],
+      "port": 3001
+    }
+  ]
+}

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Body, Heading3 } from "@breadcoop/ui";
 import {
-  GoalCard,
+  GoalChip,
   savingGoalOptions,
 } from "@/components/saving-goals/goal-picker";
 import LocalButton from "@/components/button";
@@ -58,9 +58,9 @@ const SavingGoalsStep = ({ nextStage }: { nextStage: () => void }) => {
             <Body className="text-surface-grey">Select all that apply</Body>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="flex flex-wrap gap-2">
             {savingGoalOptions.map((goal) => (
-              <GoalCard
+              <GoalChip
                 key={goal.id}
                 goal={goal}
                 selected={selected.includes(goal.id)}
