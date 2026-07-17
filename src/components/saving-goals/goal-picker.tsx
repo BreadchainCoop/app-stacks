@@ -3,14 +3,18 @@
 import { useState } from "react";
 import { Body, Heading3 } from "@breadcoop/ui";
 import {
-  HouseIcon,
-  ShieldCheckIcon,
-  CurrencyCircleDollarIcon,
-  TrendUpIcon,
-  GraduationCapIcon,
-  StorefrontIcon,
   AirplaneTiltIcon,
-  SparkleIcon,
+  GraduationCapIcon,
+  HouseIcon,
+  CurrencyCircleDollarIcon,
+  CertificateIcon,
+  FirstAidKitIcon,
+  StudentIcon,
+  GlobeIcon,
+  MapPinIcon,
+  WrenchIcon,
+  ShieldCheckIcon,
+  UsersIcon,
   Icon,
 } from "@phosphor-icons/react";
 import LocalButton from "@/components/button";
@@ -19,62 +23,73 @@ import clsx from "clsx";
 export type SavingGoalOption = {
   id: string;
   label: string;
-  description: string;
   icon: Icon;
 };
 
 export const savingGoalOptions: SavingGoalOption[] = [
   {
-    id: "home",
-    label: "Buy a Home",
-    description: "Save for a down payment",
-    icon: HouseIcon,
-  },
-  {
-    id: "emergency",
-    label: "Emergency Fund",
-    description: "Build a safety net",
-    icon: ShieldCheckIcon,
-  },
-  {
-    id: "debt",
-    label: "Pay Off Debt",
-    description: "Student loans, credit cards, etc.",
-    icon: CurrencyCircleDollarIcon,
-  },
-  {
-    id: "retirement",
-    label: "Retirement",
-    description: "Long-term wealth building",
-    icon: TrendUpIcon,
-  },
-  {
-    id: "education",
-    label: "Education",
-    description: "Tuition, courses, certifications",
-    icon: GraduationCapIcon,
-  },
-  {
-    id: "business",
-    label: "Start a Business",
-    description: "Entrepreneurship fund",
-    icon: StorefrontIcon,
-  },
-  {
-    id: "travel",
-    label: "Travel",
-    description: "Vacation or trip savings",
+    id: "vacations",
+    label: "Save money for your vacations",
     icon: AirplaneTiltIcon,
   },
   {
-    id: "other",
-    label: "Something Else",
-    description: "Custom savings goal",
-    icon: SparkleIcon,
+    id: "tuition",
+    label: "Cover tuition",
+    icon: GraduationCapIcon,
+  },
+  {
+    id: "down-payment",
+    label: "Put together a down payment",
+    icon: HouseIcon,
+  },
+  {
+    id: "special-event",
+    label: "Fund your special event",
+    icon: CurrencyCircleDollarIcon,
+  },
+  {
+    id: "certification",
+    label: "Fund a certification or course",
+    icon: CertificateIcon,
+  },
+  {
+    id: "medical",
+    label: "Pool money for a medical procedure",
+    icon: FirstAidKitIcon,
+  },
+  {
+    id: "student-loans",
+    label: "Cover student loans",
+    icon: StudentIcon,
+  },
+  {
+    id: "remittances",
+    label: "Send remittances collectively",
+    icon: GlobeIcon,
+  },
+  {
+    id: "relocating",
+    label: "Relocating to a new city",
+    icon: MapPinIcon,
+  },
+  {
+    id: "home-repairs",
+    label: "For home repairs or appliances",
+    icon: WrenchIcon,
+  },
+  {
+    id: "insurance",
+    label: "Cover annual insurance premiums",
+    icon: ShieldCheckIcon,
+  },
+  {
+    id: "split-bills",
+    label: "Create a group to split bills",
+    icon: UsersIcon,
   },
 ];
 
-export function GoalCard({
+export function GoalChip({
   goal,
   selected,
   onSelect,
@@ -89,23 +104,18 @@ export function GoalCard({
       type="button"
       onClick={onSelect}
       className={clsx(
-        "flex items-center gap-3 border p-3 text-left transition-colors",
+        "flex items-center gap-2 border px-4 py-2 text-left text-sm transition-colors",
         selected
-          ? "border-primary-blue bg-blue-0/10"
-          : "border-paper-1 bg-paper-0 hover:border-surface-grey"
+          ? "border-primary-blue bg-blue-0/10 text-surface-ink"
+          : "border-paper-1 bg-paper-0 text-surface-grey hover:border-surface-grey"
       )}
     >
       <IconComp
-        size={24}
+        size={18}
         weight={selected ? "fill" : "regular"}
         className={selected ? "text-primary-blue" : "text-surface-grey-2"}
       />
-      <div>
-        <Body bold className="text-sm">
-          {goal.label}
-        </Body>
-        <Body className="text-xs text-surface-grey">{goal.description}</Body>
-      </div>
+      {goal.label}
     </button>
   );
 }
@@ -138,9 +148,9 @@ export default function SavingGoalPicker({
         <Body className="text-surface-grey">Select all that apply</Body>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="flex flex-wrap gap-2">
         {savingGoalOptions.map((goal) => (
-          <GoalCard
+          <GoalChip
             key={goal.id}
             goal={goal}
             selected={selected.includes(goal.id)}

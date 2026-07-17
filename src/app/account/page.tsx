@@ -1,12 +1,12 @@
 import { generateMetadata } from "@/utils/metadata";
-import AccountContent from "./_components/account-content";
+import OwnAccountRedirect from "./_components/own-account-redirect";
 
 export const metadata = generateMetadata({
   title: "My Account - Bread Cooperative",
-  description: "Manage your account settings",
+  description: "Your activity across Bread apps.",
   url: "/account",
 });
 
-export default function Page() {
-  return <AccountContent />;
+export default function AccountIndexPage() {
+  return <OwnAccountRedirect />;
 }

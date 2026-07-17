@@ -26,6 +26,7 @@ import HowItWorksModal from "./modals/how-it-works";
 import VisitorOnboarding from "./modals/visitor-onboarding";
 import LoggedInOnboarding from "./modals/logged-in-onboarding";
 import SavingsGoalsModal from "./modals/savings-goals";
+import SetAliasModal from "./modals/set-alias";
 
 const ModalPresenter = () => {
   const { modalState, setModal } = useModal();
@@ -107,6 +108,9 @@ const ModalPresenter = () => {
               )}
               {modalState.type === "SAVINGS_GOALS" && (
                 <SavingsGoalsModal modalState={modalState} />
+              )}
+              {modalState.type === "SET_ALIAS" && (
+                <SetAliasModal modalState={modalState} />
               )}
             </Dialog.Content>
           </>
