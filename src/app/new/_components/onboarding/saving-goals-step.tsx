@@ -12,11 +12,17 @@ import { usePrivy } from "@privy-io/react-auth";
 
 const SavingGoalsStep = ({ nextStage }: { nextStage: () => void }) => {
   const { user } = usePrivy();
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
+  const toggleGoal = (id: string) => {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id]
+    );
+  };
+
   const saveAndContinue = async () => {
-    if (!selected || !user?.id) {
+    if (selected.length === 0 || !user?.id) {
       nextStage();
       return;
     }
@@ -25,10 +31,10 @@ const SavingGoalsStep = ({ nextStage }: { nextStage: () => void }) => {
       await fetch("/api/savings-goals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ privyUserId: user.id, goal: selected }),
+        body: JSON.stringify({ privyUserId: user.id, goals: selected }),
       });
     } catch (err) {
-      console.error("Failed to save savings goal:", err);
+      console.error("Failed to save savings goals:", err);
     } finally {
       setSubmitting(false);
       nextStage();
@@ -49,9 +55,7 @@ const SavingGoalsStep = ({ nextStage }: { nextStage: () => void }) => {
             <Heading3 className="text-2xl leading-[100%]">
               What are you saving for?
             </Heading3>
-            <Body className="text-surface-grey">
-              Tell us your goal so we can match you with the right communities
-            </Body>
+            <Body className="text-surface-grey">Select all that apply</Body>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
@@ -59,15 +63,15 @@ const SavingGoalsStep = ({ nextStage }: { nextStage: () => void }) => {
               <GoalCard
                 key={goal.id}
                 goal={goal}
-                selected={selected === goal.id}
-                onSelect={() => setSelected(goal.id)}
+                selected={selected.includes(goal.id)}
+                onSelect={() => toggleGoal(goal.id)}
               />
             ))}
           </div>
 
           <LocalButton
             onClick={saveAndContinue}
-            disabled={!selected || submitting}
+            disabled={selected.length === 0 || submitting}
             className="font-bold"
           >
             {submitting ? "Saving..." : "Continue"}
