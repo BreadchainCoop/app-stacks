@@ -11,7 +11,7 @@ import { savingGoalOptions } from "@/components/saving-goals/goal-picker";
 export default function SavingGoalsModule() {
   const { user } = usePrivy();
   const { setModal } = useModal();
-  const [goal, setGoal] = useState<string | null>(null);
+  const [goals, setGoals] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,13 +19,13 @@ export default function SavingGoalsModule() {
     fetch(`/api/savings-goals?privyUserId=${encodeURIComponent(user.id)}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data?.goal) setGoal(data.goal);
+        if (data?.goals?.length) setGoals(data.goals);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [user?.id]);
 
-  const goalInfo = goal ? savingGoalOptions.find((g) => g.id === goal) : null;
+  const selectedGoals = savingGoalOptions.filter((g) => goals.includes(g.id));
 
   const handleEdit = () => {
     if (user?.id) {
@@ -48,21 +48,28 @@ export default function SavingGoalsModule() {
           Edit
         </LocalButton>
       </div>
-      {goalInfo ? (
-        <div className="flex items-center gap-3 border border-primary-blue bg-blue-0/10 p-3">
-          <goalInfo.icon
-            size={24}
-            weight="fill"
-            className="text-primary-blue"
-          />
-          <div>
-            <Body bold className="text-sm">
-              {goalInfo.label}
-            </Body>
-            <Body className="text-xs text-surface-grey">
-              {goalInfo.description}
-            </Body>
-          </div>
+      {selectedGoals.length > 0 ? (
+        <div className="flex flex-col gap-2">
+          {selectedGoals.map((goalInfo) => (
+            <div
+              key={goalInfo.id}
+              className="flex items-center gap-3 border border-primary-blue bg-blue-0/10 p-3"
+            >
+              <goalInfo.icon
+                size={24}
+                weight="fill"
+                className="text-primary-blue"
+              />
+              <div>
+                <Body bold className="text-sm">
+                  {goalInfo.label}
+                </Body>
+                <Body className="text-xs text-surface-grey">
+                  {goalInfo.description}
+                </Body>
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         <Body className="text-surface-grey">Tell us more about your goals</Body>

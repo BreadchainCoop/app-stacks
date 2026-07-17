@@ -13,7 +13,7 @@ export default function SavingsGoalsModal({
   const { setModal } = useModal();
   const [submitting, setSubmitting] = useState(false);
 
-  const saveGoal = async (goalId: string | null) => {
+  const saveGoals = async (goals: string[]) => {
     if (!modalState.privyUserId) return;
     setSubmitting(true);
     try {
@@ -22,11 +22,11 @@ export default function SavingsGoalsModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           privyUserId: modalState.privyUserId,
-          goal: goalId,
+          goals,
         }),
       });
     } catch (err) {
-      console.error("Failed to save savings goal:", err);
+      console.error("Failed to save savings goals:", err);
     } finally {
       setSubmitting(false);
       setModal(null);
@@ -36,8 +36,8 @@ export default function SavingsGoalsModal({
   return (
     <ModalContainer className="max-w-[28rem]">
       <SavingGoalPicker
-        onSelect={(goalId) => saveGoal(goalId)}
-        onSkip={() => saveGoal(null)}
+        onSelect={(goalIds) => saveGoals(goalIds)}
+        onSkip={() => saveGoals([])}
         submitting={submitting}
       />
     </ModalContainer>

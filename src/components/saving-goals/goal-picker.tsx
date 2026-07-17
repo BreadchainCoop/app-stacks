@@ -114,17 +114,19 @@ export default function SavingGoalPicker({
   onSelect,
   onSkip,
   submitting,
-  initialGoal,
+  initialGoals,
 }: {
-  onSelect: (goalId: string) => void;
+  onSelect: (goalIds: string[]) => void;
   onSkip: () => void;
   submitting?: boolean;
-  initialGoal?: string | null;
+  initialGoals?: string[];
 }) {
-  const [selected, setSelected] = useState<string | null>(initialGoal ?? null);
+  const [selected, setSelected] = useState<string[]>(initialGoals ?? []);
 
-  const handleContinue = () => {
-    if (selected) onSelect(selected);
+  const toggleGoal = (id: string) => {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id]
+    );
   };
 
   return (
@@ -133,9 +135,7 @@ export default function SavingGoalPicker({
         <Heading3 className="text-2xl font-black leading-7 tracking-tight text-surface-ink">
           What are you saving for?
         </Heading3>
-        <Body className="text-surface-grey">
-          Tell us your goal so we can match you with the right communities
-        </Body>
+        <Body className="text-surface-grey">Select all that apply</Body>
       </div>
 
       <div className="grid grid-cols-2 gap-2">
@@ -143,16 +143,16 @@ export default function SavingGoalPicker({
           <GoalCard
             key={goal.id}
             goal={goal}
-            selected={selected === goal.id}
-            onSelect={() => setSelected(goal.id)}
+            selected={selected.includes(goal.id)}
+            onSelect={() => toggleGoal(goal.id)}
           />
         ))}
       </div>
 
       <div className="flex flex-col items-center gap-3">
         <LocalButton
-          onClick={handleContinue}
-          disabled={!selected || submitting}
+          onClick={() => onSelect(selected)}
+          disabled={selected.length === 0 || submitting}
           className="w-full font-bold"
         >
           {submitting ? "Saving..." : "Continue"}

@@ -27,19 +27,19 @@ export async function GET(req: NextRequest) {
 
   const { data: goals } = await supabaseAdmin
     .from("savings_goals")
-    .select("goal, completed")
+    .select("goals, completed")
     .eq("user_id", user.id)
     .single();
 
   return NextResponse.json({
-    goal: goals?.goal ?? null,
+    goals: goals?.goals ?? [],
     completed: goals?.completed ?? false,
   });
 }
 
 interface SavingsGoalsBody {
   privyUserId: string;
-  goal: string | null;
+  goals: string[];
 }
 
 export async function POST(req: NextRequest) {
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       return createErrorResponse("Invalid request body");
     }
 
-    const { privyUserId, goal } = body as SavingsGoalsBody;
+    const { privyUserId, goals } = body as SavingsGoalsBody;
 
     if (!privyUserId || typeof privyUserId !== "string") {
       return createErrorResponse(
@@ -79,15 +79,15 @@ export async function POST(req: NextRequest) {
       .upsert(
         {
           user_id: user.id,
-          goal: goal ?? null,
-          completed: !!goal,
+          goals: goals ?? [],
+          completed: goals.length > 0,
         },
         { onConflict: "user_id" }
       );
 
     if (upsertError) {
-      console.error("Failed to save savings goal:", upsertError);
-      return createErrorResponse("Failed to save savings goal", 500);
+      console.error("Failed to save savings goals:", upsertError);
+      return createErrorResponse("Failed to save savings goals", 500);
     }
 
     return NextResponse.json({ success: true });
