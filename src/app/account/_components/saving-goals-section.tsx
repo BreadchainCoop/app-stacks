@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Body } from "@breadcoop/ui";
 import { PencilSimpleIcon, TargetIcon } from "@phosphor-icons/react";
 import { usePrivy } from "@privy-io/react-auth";
@@ -14,9 +14,11 @@ import { useConnectedUser } from "@breadcoop/ui";
 const SavingGoalsSection = () => {
   const { user: privyUser } = usePrivy();
   const { user } = useConnectedUser();
-  const { setModal } = useModal();
+  const { modalState, setModal } = useModal();
   const [goals, setGoals] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchKey, setFetchKey] = useState(0);
+  const prevModalRef = useRef<string | null>(null);
 
   const address =
     user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
@@ -25,15 +27,23 @@ const SavingGoalsSection = () => {
   const isOwner = useIsOwnAddress(address ?? "");
 
   useEffect(() => {
+    const prevType = prevModalRef.current;
+    prevModalRef.current = modalState?.type ?? null;
+    if (prevType === "SAVINGS_GOALS" && !modalState) {
+      setFetchKey((k) => k + 1);
+    }
+  }, [modalState]);
+
+  useEffect(() => {
     if (!privyUser?.id) return;
     fetch(`/api/savings-goals?privyUserId=${encodeURIComponent(privyUser.id)}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data?.goals?.length) setGoals(data.goals);
+        setGoals(data?.goals ?? []);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [privyUser?.id]);
+  }, [privyUser?.id, fetchKey]);
 
   if (!isOwner || loading) return null;
 
