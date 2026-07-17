@@ -6,6 +6,8 @@ import {
   UsersIcon,
 } from "@phosphor-icons/react/ssr";
 import MembersInfo from "./members-info";
+import PendingJoinRequests from "./pending-join-requests";
+import { CopyGeneralInviteLink } from "./copy-link";
 import { Address, formatEther } from "viem";
 import { useCircleMembersWithBalances } from "@/hooks/use-circle-members";
 import { useReadContracts } from "wagmi";
@@ -130,6 +132,24 @@ const StackMembers = ({
           </>
         )}
       </div>
+
+      {isOwner && circleStatus === "pending-start" && (
+        <>
+          <div className="flex items-center justify-between gap-2 border-t border-paper-2 pt-4">
+            <Body className="text-surface-grey">
+              Share this link so people can request to join
+            </Body>
+            <CopyGeneralInviteLink id={id} />
+          </div>
+          <PendingJoinRequests
+            id={id}
+            stackName={stackMetadata?.stackname ?? `Stack ${id}`}
+            expectedMembers={stackMetadata?.expected_members ?? 0}
+            depositAmount={circle.depositAmount}
+            depositInterval={circle.depositInterval}
+          />
+        </>
+      )}
 
       <MembersInfo
         owner={circle.owner}

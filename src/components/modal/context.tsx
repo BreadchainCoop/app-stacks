@@ -85,6 +85,11 @@ export type StartStackWarningModalState = {
   onConfirm: () => void;
 };
 
+export type RejectJoinRequestWarningModalState = {
+  type: "REJECT_JOIN_REQUEST_WARNING";
+  onConfirm: () => void;
+};
+
 export type WithdrawBreadModalState = {
   type: "WITHDRAW_BREAD";
 };
@@ -148,6 +153,7 @@ export type ModalState =
   | StackInitFailedModalState
   | StackFailedModalState
   | StartStackWarningModalState
+  | RejectJoinRequestWarningModalState
   | WithdrawBreadModalState
   | WalletFundingStatusModalState
   | ReminderModalState
