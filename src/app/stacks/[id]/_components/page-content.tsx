@@ -14,9 +14,13 @@ import { getUserCircleStatus } from "@/lib/get-user-circle-status";
 import { useModal } from "@/components/modal/context";
 import BackMeta from "./back-meta";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
+import { useSearchParams } from "next/navigation";
+import { usePrivy } from "@privy-io/react-auth";
 
 const PageContent = ({ id }: { id: string }) => {
   const now = useBlockTimestamp();
+  const searchParams = useSearchParams();
+  const { user: privyUser } = usePrivy();
   const { setModal } = useModal();
   const { user } = useConnectedUser();
   const address =
@@ -31,6 +35,11 @@ const PageContent = ({ id }: { id: string }) => {
   });
 
   const nowSeconds = BigInt(Math.floor(now / 1000));
+
+  useEffect(() => {
+    if (searchParams.get("joined") !== "true" || !privyUser?.id) return;
+    setModal({ type: "SAVINGS_GOALS", privyUserId: privyUser.id });
+  }, [searchParams, privyUser?.id, setModal]);
 
   useEffect(() => {
     if (!userCircleData.circleData?.isMember) return;

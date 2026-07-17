@@ -1,36 +1,13 @@
 "use client";
 
-import { useModal } from "@/components/modal/context";
 import { onboardSupabaseUser } from "@/lib/onboarding/supabase";
 import { useLogin } from "@privy-io/react-auth";
 
 const LoginTracker = () => {
-  const { setModal } = useModal();
-
   useLogin({
-    async onComplete({ user, isNewUser }) {
+    async onComplete({ user }) {
       try {
         onboardSupabaseUser(user);
-        if (isNewUser) {
-          setModal({
-            type: "SAVINGS_GOALS",
-            privyUserId: user.id,
-            showFundingNext: true,
-          });
-        } else {
-          const res = await fetch(
-            `/api/savings-goals?privyUserId=${encodeURIComponent(user.id)}`
-          );
-          if (res.ok) {
-            const data = await res.json();
-            if (!data.completed) {
-              setModal({
-                type: "SAVINGS_GOALS",
-                privyUserId: user.id,
-              });
-            }
-          }
-        }
       } catch (err) {
         console.error("Onboarding failed:", err);
       }

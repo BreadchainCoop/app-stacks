@@ -105,7 +105,7 @@ export default function PageContent() {
       });
 
       alert("Invitation Accepted!");
-      router.push(`/stacks/${circleId}`);
+      router.push(`/stacks/${circleId}?joined=true`);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       const contractError =

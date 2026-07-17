@@ -19,6 +19,9 @@ export function Navbar() {
         <Link href="/new" className="text-body">
           Start stacks group
         </Link>
+        <Link href="/account" className="text-body">
+          My Account
+        </Link>
       </nav>
     </LibNavbar>
   );

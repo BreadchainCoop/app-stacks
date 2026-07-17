@@ -141,7 +141,6 @@ export type LoggedInOnboardingModalState = {
 export type SavingsGoalsModalState = {
   type: "SAVINGS_GOALS";
   privyUserId: string;
-  showFundingNext?: boolean;
 };
 
 export type ModalState =
