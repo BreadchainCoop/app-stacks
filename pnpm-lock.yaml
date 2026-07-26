@@ -72,6 +72,9 @@ importers:
       "@zkp2p/sdk":
         specifier: ^0.3.2
         version: 0.3.2(bufferutil@4.1.0)(react@19.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(viem@2.47.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6))(zod@4.3.6)
+      blo:
+        specifier: ^2.0.0
+        version: 2.0.0
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -5194,6 +5197,12 @@ packages:
         integrity: sha512-QXUSXI3QVc/gJME0dBpXrag1kbzOqCjCX8/b54ntNyW6sjtoqxqRk3LTmXzaJoh71zMsDCjM+47jS7XiwN/+fQ==,
       }
 
+  blo@2.0.0:
+    resolution:
+      {
+        integrity: sha512-VUUr1+vWisNSaHVswkbPbk1+GhygClKILkGchae7nsyuJ4ZVz5l1hEW4eR5F/ly/asM5vzigYGXjPnvrd//CVg==,
+      }
+
   bn.js@5.2.1:
     resolution:
       {
@@ -8171,12 +8180,6 @@ packages:
     engines: { node: ">=10" }
     hasBin: true
 
-  modern-ahocorasick@1.0.1:
-    resolution:
-      {
-        integrity: sha512-yoe+JbhTClckZ67b2itRtistFKf8yPYelHLc7e5xAwtNAXxM6wJTUx2C7QeVSJFDzKT7bCIFyBVybPMKvmB9AA==,
-      }
-
   modern-ahocorasick@1.1.0:
     resolution:
       {
@@ -8290,13 +8293,6 @@ packages:
     peerDependenciesMeta:
       encoding:
         optional: true
-
-  node-gyp-build@4.8.2:
-    resolution:
-      {
-        integrity: sha512-IRUxE4BVsHWXkV/SFOut4qTlagw2aM8T5/vnTsmrHJvVoKueJHRc/JaFND7QDDc61kLYUJ6qlZM3sqTSyx2dTw==,
-      }
-    hasBin: true
 
   node-gyp-build@4.8.4:
     resolution:
@@ -10795,6 +10791,14 @@ packages:
         integrity: sha512-r3vXyErRCYJ7wg28yvBY5VSoAF8ZvlcW9/BwUzEtUsjvX/DKs24dIkuwjtuprwJJHsbyUbLApepYTR1BN4uHrg==,
       }
     engines: { node: ">= 6" }
+
+  yaml@2.6.1:
+    resolution:
+      {
+        integrity: sha512-7r0XPzioN/Q9kXBro/XPnA6kznR73DHq+GXh5ON7ZozRO6aMjbmiBuKste2wslTFkC5d1dw0GooOCepZXJ2SAg==,
+      }
+    engines: { node: ">= 14" }
+    hasBin: true
 
   yaml@2.8.2:
     resolution:
@@ -15178,7 +15182,7 @@ snapshots:
       deepmerge: 4.3.1
       lru-cache: 10.4.3
       media-query-parser: 2.0.2
-      modern-ahocorasick: 1.0.1
+      modern-ahocorasick: 1.1.0
       picocolors: 1.1.1
     transitivePeerDependencies:
       - babel-plugin-macros
@@ -16985,6 +16989,8 @@ snapshots:
 
   blakejs@1.2.1: {}
 
+  blo@2.0.0: {}
+
   bn.js@5.2.1: {}
 
   bn.js@5.2.3: {}
@@ -18460,7 +18466,7 @@ snapshots:
   keccak@3.0.4:
     dependencies:
       node-addon-api: 2.0.2
-      node-gyp-build: 4.8.2
+      node-gyp-build: 4.8.4
       readable-stream: 3.6.2
 
   keyv@4.5.4:
@@ -18681,7 +18687,7 @@ snapshots:
       metro-cache: 0.84.3
       metro-core: 0.84.3
       metro-runtime: 0.84.3
-      yaml: 2.8.2
+      yaml: 2.6.1
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -18873,8 +18879,6 @@ snapshots:
 
   mkdirp@1.0.4: {}
 
-  modern-ahocorasick@1.0.1: {}
-
   modern-ahocorasick@1.1.0: {}
 
   ms@2.0.0: {}
@@ -18930,8 +18934,6 @@ snapshots:
   node-fetch@2.7.0:
     dependencies:
       whatwg-url: 5.0.0
-
-  node-gyp-build@4.8.2: {}
 
   node-gyp-build@4.8.4: {}
 
@@ -20366,7 +20368,7 @@ snapshots:
 
   utf-8-validate@5.0.10:
     dependencies:
-      node-gyp-build: 4.8.2
+      node-gyp-build: 4.8.4
 
   utf-8-validate@6.0.6:
     dependencies:
@@ -20803,6 +20805,8 @@ snapshots:
   yallist@3.1.1: {}
 
   yaml@1.10.2: {}
+
+  yaml@2.6.1: {}
 
   yaml@2.8.2: {}
 
