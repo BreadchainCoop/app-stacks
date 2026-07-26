@@ -44,3 +44,6 @@ supabase/.temp
 
 # claude
 ~/.claude-personal
+
+# figma
+fig/
