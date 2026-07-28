@@ -7,12 +7,12 @@ import {
   AccordionItem,
 } from "@/components/accordion";
 import PendingInviteLink from "@/components/pending-invite-link";
+import { DisplayName } from "@/components/display-name";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useCircleMembersWithBalances } from "@/hooks/use-circle-members";
 import { useGetCircleCreated } from "@/hooks/use-get-cricle-created";
 import { useGetLastDeposit } from "@/hooks/use-get-last-deposit";
 import { useInviteRedeemed } from "@/hooks/use-invite-redeemed";
-import { usePreferredEnsName } from "@/hooks/use-preferred-ens-name";
 import { useUserCircleData } from "@/hooks/use-user-circle-data";
 import { useFundsDeposited } from "@/hooks/use-funds-deposited";
 import { ICircleStatus } from "@/interfaces/circle";
@@ -24,7 +24,6 @@ import { useMembersClaimed } from "@/hooks/use-members-claimed";
 import { formatRelativeTime, formatShortDate } from "@/utils/time";
 import { Body, Chip, formatBalance } from "@breadcoop/ui";
 import { Address, formatEther } from "viem";
-import Link from "next/link";
 
 const FAILED_STATUSES: ICircleStatus[] = [
   "decommissioned",
@@ -132,7 +131,7 @@ const MembersInfo = ({
               <AccordionHeader>
                 <div className="flex items-center justify-start gap-x-4 gap-y-1 flex-wrap">
                   <Body bold>
-                    <MemberEnsName address={member} alias={alias} />
+                    <DisplayName address={member} alias={alias ?? null} />
                   </Body>
                   {member === owner && (
                     <Chip className="font-bold text-blue-1 bg-paper-main border-current text-xs">
@@ -320,45 +319,5 @@ function MemberInfoContent({
     </div>
   );
 }
-
-function MemberEnsName({
-  address,
-  alias,
-}: {
-  address: Address;
-  alias?: string | null;
-}) {
-  const { ensName, isLoading } = usePreferredEnsName({ address });
-
-  if (alias) {
-    return <AccountPage address={address} label={alias} />;
-  }
-
-  if (isLoading) {
-    return (
-      <span className="inline-flex items-center justify-start">Loading...</span>
-    );
-  }
-
-  return <AccountPage address={address} label={ensName || address} />;
-}
-
-const AccountPage = ({
-  address,
-  label,
-}: {
-  address: Address;
-  label: string;
-}) => {
-  return (
-    <Link
-      href={`/account/${address}`}
-      className="hover:text-primary-blue"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <span className="inline-flex items-center justify-start">{label}</span>
-    </Link>
-  );
-};
 
 export default MembersInfo;
