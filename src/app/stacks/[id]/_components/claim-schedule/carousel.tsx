@@ -18,7 +18,8 @@ import {
 } from "@/components/carousel";
 import { useCircleMembersWithBalances } from "@/hooks/use-circle-members";
 import { useFundsDeposited } from "@/hooks/use-funds-deposited";
-import { formatAddress } from "@/utils/address";
+import { useMemberAliases } from "@/hooks/use-member-aliases";
+import { DisplayName } from "@/components/display-name";
 import { cn } from "@/lib/utils";
 import type { CircleData } from ".";
 
@@ -26,7 +27,9 @@ type RoundState = "completed" | "current" | "upcoming";
 
 interface ScheduleRound {
   round: number;
-  member: string;
+  memberAddress: Address;
+  alias?: string | null;
+  isYou: boolean;
   dateLabel: string;
   state: RoundState;
 }
@@ -40,7 +43,14 @@ const RoundCardExtraInfo = ({ children }: { children: ReactNode }) => (
   </div>
 );
 
-const RoundCard = ({ round, member, dateLabel, state }: ScheduleRound) => (
+const RoundCard = ({
+  round,
+  memberAddress,
+  alias,
+  isYou,
+  dateLabel,
+  state,
+}: ScheduleRound) => (
   <div
     className={cn(
       "relative shrink-0 w-38.5 h-38.5 flex flex-col items-center justify-center gap-1 p-4 border",
@@ -69,7 +79,8 @@ const RoundCard = ({ round, member, dateLabel, state }: ScheduleRound) => (
     <Body
       className={`text-xs text-center ${state === "upcoming" ? "text-surface-grey" : "text-surface-ink"}`}
     >
-      {member}
+      <DisplayName address={memberAddress} alias={alias} link={false} />
+      {isYou ? " (You)" : ""}
     </Body>
     <div className="flex items-center gap-1">
       <CalendarDotsIcon size={14} className="fill-blue-2" />
@@ -96,6 +107,7 @@ const ClaimScheduleCarousel = ({
       : undefined;
 
   const { members, isLoading } = useCircleMembersWithBalances(BigInt(id));
+  const aliases = useMemberAliases(members as Address[]);
 
   const { effectiveCircleStartTime: start, depositInterval } =
     circle.circleInfo;
@@ -124,9 +136,9 @@ const ClaimScheduleCarousel = ({
 
   const rounds: ScheduleRound[] = members.map((member, i) => ({
     round: i + 1,
-    member:
-      formatAddress(member as Address) +
-      (member.toLowerCase() === address ? " (You)" : ""),
+    memberAddress: member as Address,
+    alias: aliases[member.toLowerCase()] ?? null,
+    isYou: member.toLowerCase() === address,
     dateLabel: hasStarted ? formatDate(claimDate(i)) : "-",
     state: stateFor(i),
   }));

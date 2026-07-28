@@ -3,6 +3,7 @@ import { getAddress, isAddress } from "viem";
 import { Metadata } from "next";
 import { generateMetadata as _generateMetadata } from "@/utils/metadata";
 import { Body, Heading1 } from "@breadcoop/ui";
+import { DisplayName } from "@/components/display-name";
 import ProfileSection from "../_components/profile-section";
 import StacksOverview from "../_components/stacks-overview";
 import SolidarityFundSection from "../_components/solidarity-fund-section";
@@ -40,7 +41,12 @@ const AccountPage = async ({
     <div className="flex flex-col gap-12">
       <header className="flex flex-col gap-2">
         <Heading1 className="text-3xl">Account</Heading1>
-        <Body className="text-surface-grey break-all">{address}</Body>
+        <DisplayName
+          address={address}
+          link={false}
+          className="text-lg font-bold text-surface-ink"
+        />
+        <Body className="text-surface-grey break-all text-xs">{address}</Body>
       </header>
 
       <ProfileSection address={address} />
