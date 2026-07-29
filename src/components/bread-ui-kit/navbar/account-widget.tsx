@@ -59,7 +59,7 @@ const AccountWidget = ({
         appIconColor="text-primary-blue"
         label={displayName || ""}
       >
-        <CopyButtonIcon textToCopy={displayName || address} />
+        <CopyButtonIcon textToCopy={address} />
         <a
           href={`${explorerUrl}/address/${address}`}
           className="text-surface-grey"
