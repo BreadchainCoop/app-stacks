@@ -38,7 +38,11 @@ export function useDisplayName(
         ? (aliases[address.toLowerCase()] ?? null)
         : null;
 
-  const { ensName, isLoading } = usePreferredEnsName({ address });
+  // Skip the ENS lookup once an alias has won: it costs up to seven network
+  // round-trips (Gnosis coinType, L1, then the L2s) and the result is discarded.
+  const { ensName, isLoading } = usePreferredEnsName({
+    address: alias ? undefined : address,
+  });
 
   const displayName = !address
     ? "N/A"
