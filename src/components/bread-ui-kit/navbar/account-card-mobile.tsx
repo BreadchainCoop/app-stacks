@@ -52,7 +52,7 @@ const AccountCardMobile = ({
           {displayName}
         </span>
         <div className="flex items-center gap-3">
-          <CopyButtonIcon textToCopy={displayName || address} />
+          <CopyButtonIcon textToCopy={address} />
           <a
             href={explorer}
             target="_blank"
