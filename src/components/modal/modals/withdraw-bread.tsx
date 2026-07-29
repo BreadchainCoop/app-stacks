@@ -17,6 +17,7 @@ import { useAccount, useReadContract } from "wagmi";
 import { Address, erc20Abi, isAddress } from "viem";
 import LocalButton from "@/components/button";
 import Loading from "@/app/loading";
+import BreadInfoNote from "@/components/bread-info-note";
 import { cn } from "@/lib/utils";
 import { BREAD_TOKEN_ADDRESS } from "@/lib/constants";
 import { getDefaultChainId } from "@/utils/chain";
@@ -192,6 +193,11 @@ const WithdrawBreadModal = () => {
         </>
       ) : (
         <form className="*:mb-6" onSubmit={withdraw}>
+          <BreadInfoNote>
+            You&apos;re withdrawing <strong>BREAD</strong> — worth $1 each (1:1
+            with USD) — from the Gnosis network. Amounts are shown in USD, but
+            you receive BREAD in your wallet.
+          </BreadInfoNote>
           <div>
             <Label htmlFor="address">Recipient Address</Label>
             <div className="relative">
