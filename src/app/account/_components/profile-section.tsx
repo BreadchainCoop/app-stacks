@@ -8,7 +8,7 @@ import SectionHeader from "./section-header";
 import LocalButton from "@/components/button";
 import { useModal } from "@/components/modal/context";
 import { useMyProfile } from "@/hooks/use-my-profile";
-import { useMemberAliases } from "@/hooks/use-member-aliases";
+import { useMemberAlias } from "@/hooks/use-member-aliases";
 import { useIsOwnAddress } from "@/hooks/use-is-own-address";
 
 const ProfileSection = ({ address }: { address: Address }) => {
@@ -19,12 +19,9 @@ const ProfileSection = ({ address }: { address: Address }) => {
   // Own profile comes from the profile query (fresh after edits); other
   // members' aliases from the public wallet -> alias lookup.
   const myProfile = useMyProfile(isOwner ? privyUser?.id : undefined);
-  const aliases = useMemberAliases(isOwner ? [] : [address]);
+  const otherProfile = useMemberAlias(isOwner ? undefined : address);
 
-  const alias = isOwner
-    ? myProfile.alias
-    : (aliases[address.toLowerCase()] ?? null);
-  const isLoading = isOwner && myProfile.isLoading;
+  const { alias, isLoading } = isOwner ? myProfile : otherProfile;
 
   return (
     <section className="flex flex-col gap-6">
