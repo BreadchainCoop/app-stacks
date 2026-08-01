@@ -4,11 +4,6 @@ import { normalize } from "viem/ens";
 import { useQuery } from "@tanstack/react-query";
 import { formatAddress } from "@/utils/address";
 
-console.log(
-  "__ ALCHEMY KEY __",
-  process.env.NEXT_PUBLIC_ALCHEMY_API_KEY_ETHEREUM_MAINNET
-);
-
 const mainnetPublicClient = createPublicClient({
   chain: mainnet,
   transport: fallback([
@@ -36,8 +31,6 @@ const fetchEnsName = async (address: Address) => {
       ...resolverOptions,
     });
 
-    console.log("__ GNOSIS NAME __", gnosisName);
-
     if (gnosisName) return normalize(gnosisName);
   } catch (err) {
     console.warn("Gnosis ENS lookup failed:", err);
@@ -48,8 +41,6 @@ const fetchEnsName = async (address: Address) => {
       address,
       ...resolverOptions,
     });
-
-    console.log("__ L1 Name __", l1Name);
 
     if (l1Name) return normalize(l1Name);
   } catch (err) {
@@ -63,8 +54,6 @@ const fetchEnsName = async (address: Address) => {
         coinType: toCoinType(chain.id),
         ...resolverOptions,
       });
-
-      console.log(`__ ${chain.name} ENS Name __`, name);
 
       return name ? normalize(name) : null;
     } catch (err) {
@@ -92,6 +81,11 @@ export const usePreferredEnsName = ({ address }: { address?: Address }) => {
     select: (name) => name || (address ? formatAddress(address) : "N/A"),
     refetchOnWindowFocus: false,
     refetchOnMount: false,
+    // ENS records barely move, and a miss costs the same seven round-trips as
+    // a hit. `refetchOnMount` alone doesn't help once the entry is garbage
+    // collected, which the 5-minute default does between page visits.
+    staleTime: 60 * 60_000,
+    gcTime: 60 * 60_000,
   });
 
   return {
