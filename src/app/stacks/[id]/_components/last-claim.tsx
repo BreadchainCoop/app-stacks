@@ -2,7 +2,6 @@ import { useGetLastClaimed } from "@/hooks/use-get-last-claimed";
 import { DisplayName } from "@/components/display-name";
 import { Body, useConnectedUser } from "@breadcoop/ui";
 import { CalendarDotsIcon } from "@phosphor-icons/react";
-import { Address } from "viem";
 
 const LastClaim = ({
   id,
@@ -30,7 +29,9 @@ const LastClaim = ({
       {data ? (
         <>
           <Body bold className="text-blue-2">
-            <DisplayName address={data.memberAddress as Address} link={false} />{" "}
+            {data.memberAddress && (
+              <DisplayName address={data.memberAddress} link={false} />
+            )}{" "}
             {address?.toLowerCase() === data.memberAddress?.toLowerCase()
               ? "(you)"
               : ""}
