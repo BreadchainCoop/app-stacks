@@ -38,7 +38,7 @@ const AccountMenu = ({
             className="text-surface-ink whitespace-nowrap leading-none"
           >
             <span className="text-base">${balInt}</span>
-            <span className="text-xs">.{balDec}</span>
+            {balDec && <span className="text-xs">.{balDec}</span>}
           </Body>
         </div>
         {depositSlot}
