@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePrivy } from "@privy-io/react-auth";
-import { useSupabaseClient } from "@/components/providers/supabase";
-import { getProfile } from "@/lib/supabase";
+import { MEMBER_ALIAS_KEY } from "./use-member-aliases";
 
 const profileQueryKey = (privyUserId: string | undefined) => [
   "profile",
@@ -9,22 +8,22 @@ const profileQueryKey = (privyUserId: string | undefined) => [
 ];
 
 export const useMyProfile = (privyUserId: string | undefined) => {
-  const supabase = useSupabaseClient();
-
   const { data, isLoading } = useQuery({
     queryKey: profileQueryKey(privyUserId),
     queryFn: async () => {
-      const res = await fetch(`/api/user?privyUserId=${privyUserId}`);
+      const res = await fetch(
+        `/api/user?privyUserId=${encodeURIComponent(privyUserId!)}`
+      );
       if (!res.ok) throw new Error("Failed to fetch user");
-      const { id } = await res.json();
 
-      const { data, error } = await getProfile(supabase, id);
+      const { username } = await res.json();
 
-      if (error) throw error;
-
-      return { username: data?.username ?? null };
+      return { username: (username as string | null) ?? null };
     },
     enabled: !!privyUserId,
+    // Only this browser changes it, and `useSetAlias` invalidates on write —
+    // without this the navbar refetches it on every mount.
+    staleTime: Infinity,
   });
 
   return {
@@ -67,6 +66,9 @@ export const useSetAlias = (privyUserId: string | undefined) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: profileQueryKey(privyUserId) });
+      // The public wallet -> alias lookup backs every other `DisplayName` on
+      // screen, including the account header sitting right above the editor.
+      queryClient.invalidateQueries({ queryKey: [MEMBER_ALIAS_KEY] });
     },
   });
 

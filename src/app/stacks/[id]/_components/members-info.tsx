@@ -19,7 +19,6 @@ import { ICircleStatus } from "@/interfaces/circle";
 import { getUserCircleStatus } from "@/lib/get-user-circle-status";
 import { useCircleState } from "@/hooks/use-circles-state";
 import { CircleState } from "@/lib/circle-state";
-import { useMemberAliases } from "@/hooks/use-member-aliases";
 import { useMembersClaimed } from "@/hooks/use-members-claimed";
 import { formatRelativeTime, formatShortDate } from "@/utils/time";
 import { Body, Chip, formatBalance } from "@breadcoop/ui";
@@ -70,7 +69,6 @@ const MembersInfo = ({
   depositInterval: bigint;
   circleStatus: ICircleStatus | null;
 }) => {
-  const aliases = useMemberAliases(info.members);
   const now = useBlockTimestamp();
   const { claimedByMember } = useMembersClaimed({
     circleId: id,
@@ -115,7 +113,6 @@ const MembersInfo = ({
           const totalDeposits = +formatEther(
             info.memberBalances?.balances[index] || BigInt(0)
           );
-          const alias = aliases[member.toLowerCase()];
 
           const hasDeposited = isFinished
             ? true
@@ -131,7 +128,7 @@ const MembersInfo = ({
               <AccordionHeader>
                 <div className="flex items-center justify-start gap-x-4 gap-y-1 flex-wrap">
                   <Body bold>
-                    <DisplayName address={member} alias={alias ?? null} />
+                    <DisplayName address={member} />
                   </Body>
                   {member === owner && (
                     <Chip className="font-bold text-blue-1 bg-paper-main border-current text-xs">

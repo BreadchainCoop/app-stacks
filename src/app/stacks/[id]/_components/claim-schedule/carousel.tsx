@@ -18,7 +18,6 @@ import {
 } from "@/components/carousel";
 import { useCircleMembersWithBalances } from "@/hooks/use-circle-members";
 import { useFundsDeposited } from "@/hooks/use-funds-deposited";
-import { useMemberAliases } from "@/hooks/use-member-aliases";
 import { DisplayName } from "@/components/display-name";
 import { cn } from "@/lib/utils";
 import type { CircleData } from ".";
@@ -28,7 +27,6 @@ type RoundState = "completed" | "current" | "upcoming";
 interface ScheduleRound {
   round: number;
   memberAddress: Address;
-  alias?: string | null;
   isYou: boolean;
   dateLabel: string;
   state: RoundState;
@@ -46,7 +44,6 @@ const RoundCardExtraInfo = ({ children }: { children: ReactNode }) => (
 const RoundCard = ({
   round,
   memberAddress,
-  alias,
   isYou,
   dateLabel,
   state,
@@ -79,7 +76,7 @@ const RoundCard = ({
     <Body
       className={`text-xs text-center ${state === "upcoming" ? "text-surface-grey" : "text-surface-ink"}`}
     >
-      <DisplayName address={memberAddress} alias={alias} link={false} />
+      <DisplayName address={memberAddress} link={false} />
       {isYou ? " (You)" : ""}
     </Body>
     <div className="flex items-center gap-1">
@@ -107,7 +104,6 @@ const ClaimScheduleCarousel = ({
       : undefined;
 
   const { members, isLoading } = useCircleMembersWithBalances(BigInt(id));
-  const aliases = useMemberAliases(members as Address[]);
 
   const { effectiveCircleStartTime: start, depositInterval } =
     circle.circleInfo;
@@ -137,7 +133,6 @@ const ClaimScheduleCarousel = ({
   const rounds: ScheduleRound[] = members.map((member, i) => ({
     round: i + 1,
     memberAddress: member as Address,
-    alias: aliases[member.toLowerCase()] ?? null,
     isYou: member.toLowerCase() === address,
     dateLabel: hasStarted ? formatDate(claimDate(i)) : "-",
     state: stateFor(i),

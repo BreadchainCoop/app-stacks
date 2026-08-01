@@ -3,19 +3,18 @@
 import Link from "next/link";
 import { Address } from "viem";
 import { usePreferredEnsName } from "@/hooks/use-preferred-ens-name";
-import { useMemberAliases } from "@/hooks/use-member-aliases";
+import { useMemberAlias } from "@/hooks/use-member-aliases";
 import { formatAddress } from "@/utils/address";
-
-const NO_ADDRESSES: Address[] = [];
 
 /**
  * Resolve an address to its best human-readable label:
  *   Supabase alias  ->  ENS name  ->  truncated 0x… address
  *
- * Pass `aliasOverride` (a string or null) when the caller already has the
- * alias in hand — e.g. a list that fetched `useMemberAliases` in bulk — to
- * avoid a redundant per-address Supabase round-trip. Passing `undefined`
- * (the default) makes the hook resolve the alias itself.
+ * The alias is looked up per address and shared through the query cache, so
+ * rendering a list of these costs one batched round-trip, not one per member.
+ * Pass `alias` only when the caller has a better source than that public
+ * lookup — the connected user reads their own alias from `useMyProfile`, which
+ * is keyed on the Privy id and so stays right after an edit.
  *
  * `usePreferredEnsName` already falls back to `formatAddress` internally, so
  * `displayName` is always a usable string; while ENS resolves we surface the
@@ -24,31 +23,29 @@ const NO_ADDRESSES: Address[] = [];
  */
 export function useDisplayName(
   address: Address | undefined,
-  aliasOverride?: string | null
+  override?: { alias: string | null; isLoading: boolean }
 ) {
-  const shouldFetchAlias = aliasOverride === undefined && Boolean(address);
-  const aliases = useMemberAliases(
-    shouldFetchAlias ? [address as Address] : NO_ADDRESSES
-  );
+  const resolved = useMemberAlias(override ? undefined : address);
 
-  const alias =
-    aliasOverride !== undefined
-      ? aliasOverride
-      : address
-        ? (aliases[address.toLowerCase()] ?? null)
-        : null;
+  const alias = override ? override.alias : resolved.alias;
+  const isAliasLoading = override ? override.isLoading : resolved.isLoading;
 
-  // Skip the ENS lookup once an alias has won: it costs up to seven network
-  // round-trips (Gnosis coinType, L1, then the L2s) and the result is discarded.
-  const { ensName, isLoading } = usePreferredEnsName({
-    address: alias ? undefined : address,
+  // Skip the ENS lookup unless it can still win. It costs up to seven network
+  // round-trips (Gnosis coinType, L1, then the L2s), and it is discarded both
+  // when an alias exists and when one is still on its way in.
+  const { ensName, isLoading: isEnsLoading } = usePreferredEnsName({
+    address: alias || isAliasLoading ? undefined : address,
   });
 
   const displayName = !address
     ? "N/A"
     : alias || ensName || formatAddress(address);
 
-  return { displayName, alias, isLoading: isLoading && !alias };
+  return {
+    displayName,
+    alias,
+    isLoading: isAliasLoading || (isEnsLoading && !alias),
+  };
 }
 
 /**
@@ -58,18 +55,15 @@ export function useDisplayName(
  */
 export function DisplayName({
   address,
-  alias,
   link = true,
   className,
 }: {
   address: Address;
-  /** Pre-resolved alias (string or null) to skip the per-address lookup. */
-  alias?: string | null;
   /** Wrap in a link to the account page (default true). */
   link?: boolean;
   className?: string;
 }) {
-  const { displayName } = useDisplayName(address, alias);
+  const { displayName } = useDisplayName(address);
 
   const label = (
     <span
