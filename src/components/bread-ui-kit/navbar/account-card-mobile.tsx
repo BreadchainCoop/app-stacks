@@ -3,6 +3,7 @@
 import { Address } from "viem";
 import {
   CopyButtonIcon,
+  FormattedDecimalNumber,
   Logo,
   useBreadBalance,
   useConnectedUser,
@@ -30,7 +31,6 @@ const AccountCardMobile = ({
   className,
 }: AccountCardMobileProps) => {
   const { BREAD } = useBreadBalance({ address });
-  const [balInt, balDec] = (BREAD || "0.00").split(".");
   const { user } = useConnectedUser();
   const avatar = blo(address);
   const chain =
@@ -65,10 +65,12 @@ const AccountCardMobile = ({
         </div>
       </div>
       <div className="flex flex-col items-center gap-4.5 px-[0.9rem] py-2">
-        <p className="font-bold leading-none text-surface-ink">
-          <span className="text-[1.8rem]">${balInt}</span>
-          <span className="text-[1.35rem]">.{balDec}</span>
-        </p>
+        <FormattedDecimalNumber
+          value={BREAD}
+          unit="$"
+          integralPartClassName="text-[1.8rem]"
+          decimalPartClassName="text-[1.35rem]"
+        />
         <div className="flex w-full gap-4">
           <LocalButton
             size="sm"

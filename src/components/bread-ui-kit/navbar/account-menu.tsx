@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode, useRef, useState } from "react";
-import { Body, useBreadBalance } from "@breadcoop/ui";
+import { Body, FormattedDecimalNumber, useBreadBalance } from "@breadcoop/ui";
 import { CaretDownIcon } from "@phosphor-icons/react";
 import { blo } from "blo";
 import { cn } from "@/lib/utils";
@@ -22,7 +22,6 @@ const AccountMenu = ({
 }: AccountMenuProps) => {
   const { address, displayName } = useConnectedAccount();
   const { BREAD } = useBreadBalance({ address: address! });
-  const [balInt, balDec] = (BREAD || "0.00").split(".");
   const avatar = blo(address!);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -33,13 +32,12 @@ const AccountMenu = ({
     <div ref={containerRef} className="relative hidden md:block">
       <div className="flex items-center gap-2.5 bg-paper-main border border-surface-ink overflow-hidden p-2">
         <div className="flex items-center bg-paper-main border border-surface-grey overflow-hidden px-2 py-1">
-          <Body
-            bold
-            className="text-surface-ink whitespace-nowrap leading-none"
-          >
-            <span className="text-base">${balInt}</span>
-            {balDec && <span className="text-xs">.{balDec}</span>}
-          </Body>
+          <FormattedDecimalNumber
+            value={BREAD}
+            unit="$"
+            integralPartClassName="text-base"
+            decimalPartClassName="text-xs"
+          />
         </div>
         {depositSlot}
         <div className="h-7 w-px bg-surface-grey/40 shrink-0" />
