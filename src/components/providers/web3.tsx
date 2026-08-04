@@ -13,7 +13,11 @@ import {
   safeWallet,
   // walletConnectWallet,
 } from "@rainbow-me/rainbowkit/wallets";
-import { http } from "wagmi";
+import {
+  http,
+  createConfig as createWagmiOnlyConfig,
+  WagmiProvider as WagmiOnlyProvider,
+} from "wagmi";
 import {
   arbitrum,
   base,
@@ -25,8 +29,12 @@ import {
 } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { foundryChain } from "@/lib/wagmi";
-import { WagmiProvider, createConfig } from "@privy-io/wagmi";
+import {
+  WagmiProvider as PrivyWagmiProvider,
+  createConfig,
+} from "@privy-io/wagmi";
 import { hashFn } from "wagmi/query";
+import { IS_E2E_WALLET } from "@/lib/e2e";
 
 // https://github.com/rainbow-me/rainbowkit/issues/2476#issuecomment-3117608183
 export function getWallets() {
@@ -60,13 +68,21 @@ const connectors = connectorsForWallets(
   }
 );
 
-export const wagmiConfig = createConfig({
+// The Privy wagmi adapter keeps only `mock` connectors and turns off EIP-6963
+// discovery, because wagmi is meant to mirror the Privy wallet. The local E2E
+// wallet mode needs the opposite, so it uses wagmi's own config and provider —
+// the only way an injected wallet can reach wagmi. See src/lib/e2e.ts.
+const createWagmiConfig = IS_E2E_WALLET ? createWagmiOnlyConfig : createConfig;
+const WagmiProvider = IS_E2E_WALLET ? WagmiOnlyProvider : PrivyWagmiProvider;
+
+export const wagmiConfig = createWagmiConfig({
   connectors,
   // @ts-expect-error Correct
   chains: (() => {
     const _chains = [gnosis, sepolia, mainnet, arbitrum, base, bsc, optimism];
-    // @ts-expect-error Correct
-    if (process.env.NODE_ENV === "development") _chains.push(foundryChain);
+    if (process.env.NODE_ENV === "development" || IS_E2E_WALLET)
+      // @ts-expect-error Correct
+      _chains.push(foundryChain);
 
     return _chains;
   })(),

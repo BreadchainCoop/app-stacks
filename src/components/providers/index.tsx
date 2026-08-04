@@ -7,6 +7,7 @@ import { SupabaseProvider } from "./supabase";
 import { ModalProvider } from "../modal/context";
 import { BreadUIKitProvider, ConnectedUserProvider } from "@breadcoop/ui";
 import { clientEnv } from "@/lib/env";
+import { IS_E2E_WALLET } from "@/lib/e2e";
 import { Address, erc20Abi } from "viem";
 import {
   PrivyClientConfig,
@@ -71,7 +72,10 @@ const Providers = ({
               app="stacks"
               chainId={clientEnv.NEXT_PUBLIC_CHAIN_ID}
               tokenConfig={tokenConfig}
-              authProvider="privy"
+              // "general" derives the connected user from wagmi instead of
+              // Privy — the only way an injected test wallet can be the
+              // logged-in user locally. See src/lib/e2e.ts.
+              authProvider={IS_E2E_WALLET ? "general" : "privy"}
             >
               <ConnectedUserProvider>
                 <SepoliaAutoFund />

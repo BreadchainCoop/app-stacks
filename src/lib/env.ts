@@ -48,6 +48,9 @@ const envSchema = z.object({
   NEXT_PUBLIC_NODE_ENV: z
     .enum(["development", "demo", "production", "local"])
     .default("production"),
+  // Local-only end-to-end test wallet. Never required, never set outside a
+  // developer machine — see `src/lib/e2e.ts` for the gate that consumes it.
+  NEXT_PUBLIC_E2E_WALLET: z.string().optional().default(""),
   NEXT_PUBLIC_PRIVY_APP_ID: z.string(),
   NEXT_PUBLIC_PRIVY_CLIENT_ID: z.string(),
   NEXT_PUBLIC_ALCHEMY_API_KEY_ETHEREUM_MAINNET: z.string(),
@@ -106,6 +109,7 @@ const parsedSchema = envSchema.safeParse({
   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID:
     process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
   NEXT_PUBLIC_NODE_ENV: process.env.NEXT_PUBLIC_NODE_ENV,
+  NEXT_PUBLIC_E2E_WALLET: process.env.NEXT_PUBLIC_E2E_WALLET,
   NEXT_PUBLIC_PRIVY_APP_ID: process.env.NEXT_PUBLIC_PRIVY_APP_ID,
   NEXT_PUBLIC_PRIVY_CLIENT_ID: process.env.NEXT_PUBLIC_PRIVY_CLIENT_ID,
   NEXT_PUBLIC_ALCHEMY_API_KEY_ETHEREUM_MAINNET:

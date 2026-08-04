@@ -21,7 +21,8 @@ import { useEffect, useState } from "react";
 import { usePublicClient } from "wagmi";
 import { savingCirclesAbi } from "../../../lib/abis/saving-circles";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../../lib/constants";
-import { usePrivy, useSignTypedData } from "@privy-io/react-auth";
+import { usePrivy } from "@privy-io/react-auth";
+import { useAppSignTypedData } from "@/hooks/use-app-sign-typed-data";
 import { getDefaultChainId } from "@/utils/chain";
 import { shortenUrl } from "@/utils/shorten";
 import { SupabaseInviteLink } from "@/lib/supabase";
@@ -72,7 +73,7 @@ export const StackSuccessResultModal = ({
   const blockTimestamp = useBlockTimestamp();
   const { user: privyUser } = usePrivy();
   const publicClient = usePublicClient();
-  const { signTypedData } = useSignTypedData();
+  const { signTypedData } = useAppSignTypedData();
   const modal = useModal();
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
