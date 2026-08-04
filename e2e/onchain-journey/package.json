@@ -1,0 +1,18 @@
+{
+  "name": "stacks-onchain-journey",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "description": "Test-only e2e harness: drives the real Stacks UI with an injected key-backed wallet (no Privy login) against a local anvil Gnosis fork, asserting every step on chain.",
+  "scripts": {
+    "test": "bash run.sh",
+    "journey:asca": "node journey-asca.cjs",
+    "journey:goal": "node journey-goal.cjs",
+    "journey:collective": "node journey-collective.cjs",
+    "check:bundle": "bash check-bundle.sh"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1",
+    "viem": "2.55.10"
+  }
+}
