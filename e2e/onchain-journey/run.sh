@@ -41,7 +41,13 @@ rpc_up() {
     -d '{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}' \
     2>/dev/null | grep -q result
 }
-web_up() { curl -s -o /dev/null -m 5 "$TEST_BASE_URL/" 2>/dev/null; }
+# Generous timeout on purpose: `next dev` compiles a route on first request,
+# which can take far longer than a normal HTTP timeout. A short one here would
+# wrongly conclude nothing is listening and start a second, redundant server.
+web_up() {
+  curl -s -o /dev/null -m 120 -w '%{http_code}' "$TEST_BASE_URL/" 2>/dev/null \
+    | grep -q '^[23]'
+}
 
 echo "▸ anvil (Gnosis fork, chain ${CHAIN_ID}) on :${RPC_PORT}"
 if rpc_up; then
