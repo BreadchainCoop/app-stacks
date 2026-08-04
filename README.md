@@ -2,6 +2,17 @@
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Documentation
+
+- **[docs/STACK_TYPES.md](./docs/STACK_TYPES.md)** — the four stack types (saving
+  stack, savings & credit fund, goal savings, collective fund): routes, contracts
+  and user flows, with a recorded GIF of each.
+- [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) — how the app fits together.
+- [docs/SUPABASE.md](./docs/SUPABASE.md) — off-chain data model and privacy rules.
+- [e2e/onchain-journey/](./e2e/onchain-journey/README.md) — the on-chain journey
+  tests that drive the real UI against a local fork.
+- [AGENTS.md](./AGENTS.md) / [CONTRIBUTING.md](./CONTRIBUTING.md) — conventions.
+
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) (v18 or higher)

@@ -99,9 +99,30 @@ already up (and starts them if not), checks the four contract addresses in
 three journeys, and exits non-zero on any failed assertion. It only stops what
 it started.
 
-Requirements: `anvil`/`foundry`, node 18+, and the contracts deployed locally
-(`make deploy` from the repo root). Override anything via `.env`
-(see `.env.example`).
+Prerequisites:
+
+- `anvil` / foundry, and node 18+.
+- The contracts deployed on the fork, with their addresses in the app's
+  `.env.local` — `NEXT_PUBLIC_ASCA_CONTRACT_ADDRESS`,
+  `NEXT_PUBLIC_GOAL_SAVINGS_CONTRACT_ADDRESS`,
+  `NEXT_PUBLIC_COLLECTIVE_FUND_CONTRACT_ADDRESS`,
+  `NEXT_PUBLIC_BREAD_TOKEN_ADDRESS` (allowlisted on all three). `make deploy` +
+  `make update-env` from the repo root does this; `setup.cjs` fails loudly if any
+  of them has no code on chain.
+- `NEXT_PUBLIC_E2E_WALLET=true` in `.env.local`, plus
+  `NEXT_PUBLIC_NODE_ENV=local` and `NEXT_PUBLIC_CHAIN_ID=31337` — all three, or
+  the app stays on the Privy path and every journey fails at connect. `run.sh`
+  exports the flag for the server it starts, but a server you started yourself
+  needs it in the environment.
+
+Override anything via `.env` (see `.env.example`).
+
+To drive a single flow against a stack you already have running:
+
+```bash
+node journey-asca.cjs                          # or journey-goal / journey-collective
+HEADED=1 TEST_PACE=1.5 node journey-goal.cjs   # watch it live, at a slower pace
+```
 
 The harness never resets chain state: every journey reads `nextId` and asserts
 against the id it creates, so runs are repeatable against a dirty chain.
@@ -118,6 +139,27 @@ artifacts/collective-owner.webm  artifacts/collective-member.webm
 
 The UI is driven at a deliberately watchable pace so these can be turned into
 docs GIFs; raise `TEST_PACE` to slow it down further.
+
+The GIFs in [docs/STACK_TYPES.md](../../docs/STACK_TYPES.md) are the three
+`*-owner.webm` files above, with the dead time (waiting on a transaction, or on
+the other wallet) cut out and a two-pass palette applied:
+
+```bash
+ffmpeg -i artifacts/asca-owner.webm \
+  -vf "fps=8,scale=900:-2:flags=lanczos,palettegen=max_colors=64:stats_mode=diff" \
+  /tmp/palette.png
+ffmpeg -i artifacts/asca-owner.webm -i /tmp/palette.png -loop 0 \
+  -lavfi "fps=8,scale=900:-2:flags=lanczos[x];[x][1:v]paletteuse=diff_mode=rectangle" \
+  ../../docs/media/asca-journey.gif
+gifsicle -O3 --lossy=140 -b ../../docs/media/asca-journey.gif
+```
+
+## CI
+
+The harness is runnable in CI as-is (`npm test`) given `anvil`, node 18+ and the
+contracts deployed on the fork. Use a **throwaway** signer — the anvil dev keys
+are fine and are the default — never a funded key, and never in a deployed
+build. Keep `check-bundle.sh` as a hard gate.
 
 ## Extending
 

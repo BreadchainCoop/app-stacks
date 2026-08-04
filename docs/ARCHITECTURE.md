@@ -2,7 +2,8 @@
 
 How App-Stacks (Saving Circles) fits together. Read this before making structural
 changes. For day-to-day conventions and commands, see [AGENTS.md](../AGENTS.md); for the
-off-chain data model and privacy rules, see [SUPABASE.md](./SUPABASE.md).
+off-chain data model and privacy rules, see [SUPABASE.md](./SUPABASE.md); for what each
+of the four stack types actually does, see [STACK_TYPES.md](./STACK_TYPES.md).
 
 ## The big picture
 
@@ -59,7 +60,8 @@ The frontend is a Next.js App Router application that orchestrates both.
 - `/stacks/[id]` — a single ROSCA circle's detail and actions.
 - `/ascas/[id]`, `/goals/[id]`, `/funds/[id]` — detail pages for the three new
   stack types (Savings & credit fund, Goal savings, Collective fund), each
-  feature-gated (`asca` / `goalSavings` / `collectiveFund`).
+  feature-gated (`asca` / `goalSavings` / `collectiveFund`). What each type is and
+  how its flow works: [STACK_TYPES.md](./STACK_TYPES.md).
 - `/stacks/join` — accept an invite link (`?type=` switches the contract).
 - `api/onboard` — create the Supabase user record after Privy login.
 - `api/user` — look up a user by Privy id.
