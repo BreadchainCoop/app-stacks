@@ -8,11 +8,11 @@ import NumericInput from "@/components/numeric-input";
 import {
   Body,
   formatBalance,
-  FormattedDecimalNumber,
   Logo,
   TUserConnected,
   useConnectedUser,
 } from "@breadcoop/ui";
+import { FormattedDecimalNumber } from "@/components/bread-ui-kit/formatted-decimal-number";
 import { useAccount, useReadContract } from "wagmi";
 import { Address, erc20Abi, isAddress } from "viem";
 import LocalButton from "@/components/button";
@@ -21,6 +21,7 @@ import BreadInfoNote from "@/components/bread-info-note";
 import { cn } from "@/lib/utils";
 import { BREAD_TOKEN_ADDRESS } from "@/lib/constants";
 import { getDefaultChainId } from "@/utils/chain";
+import { formatAmount } from "@/utils/format-amount";
 import { CircularProgressIcon } from "@/components/icons/circular-progress";
 import { ArrowDownIcon } from "@phosphor-icons/react";
 import { useModal } from "../context";
@@ -104,6 +105,7 @@ const WithdrawBreadModal = () => {
     },
   });
 
+  // Not millified: the Max button writes this string back into the amount input.
   const balance = data
     ? formatBalance(Number(data) / 10 ** BREAD_DECIMALS, 2)
     : 0;
@@ -249,7 +251,7 @@ const WithdrawBreadModal = () => {
             </div>
             <div className="flex items-center justify-between mt-2 text-surface-grey">
               <Body className="text-xs">
-                ${formatBalance(Number(form.amount || 0), 2)}
+                ${formatAmount(Number(form.amount || 0), 2)}
               </Body>
               <Body className="text-xs flex items-center justify-end">
                 Balance:{" "}

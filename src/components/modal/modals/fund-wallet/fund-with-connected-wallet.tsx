@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { usePrivy, WalletWithMetadata } from "@privy-io/react-auth";
 import { Address, formatEther } from "viem";
 import FundButton, { FundButtonProps } from "./fund-button";
-import { Body, formatBalance } from "@breadcoop/ui";
+import { Body } from "@breadcoop/ui";
+import { formatAmount } from "@/utils/format-amount";
 import { usePublicClient } from "wagmi";
 import { clientEnv } from "@/lib/env";
 import { useModal } from "../../context";
@@ -39,7 +40,7 @@ const FundWithConnectedWalletContent = ({
         const balance = await publicClient.getBalance({
           address: walletAddress,
         });
-        setXDaiBalance(formatBalance(parseFloat(formatEther(balance))));
+        setXDaiBalance(formatAmount(parseFloat(formatEther(balance))));
       } catch {
         void 0;
       }

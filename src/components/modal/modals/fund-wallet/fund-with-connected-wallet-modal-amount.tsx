@@ -5,7 +5,8 @@ import NumericInput from "@/components/numeric-input";
 import { SubmitEventHandler, useState } from "react";
 import { ModalContainer, ModalHeader } from "../../components";
 import LocalButton from "@/components/button";
-import { Body, formatBalance, Logo, useConnectedUser } from "@breadcoop/ui";
+import { Body, Logo, useConnectedUser } from "@breadcoop/ui";
+import { formatAmount } from "@/utils/format-amount";
 import { useModal } from "../../context";
 import { formatEther, parseEther } from "viem";
 import {
@@ -155,7 +156,7 @@ const FundWithConnectedWalletModalAmount = ({
           Balance:{" "}
           {tokenBalance.isLoading
             ? "Loading..."
-            : formatBalance(formattedBalance)}
+            : formatAmount(formattedBalance)}
         </Body>
         <div className="lifted-button-container mt-6">
           <LocalButton

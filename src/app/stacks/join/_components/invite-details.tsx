@@ -4,7 +4,8 @@ import {
   AccordionHeader,
   AccordionItem,
 } from "@/components/accordion";
-import { Body, formatBalance } from "@breadcoop/ui";
+import { formatAmount } from "@/utils/format-amount";
+import { Body } from "@breadcoop/ui";
 import { CircleParams } from "./interface";
 
 type InviteDetailsProps = Pick<
@@ -19,6 +20,10 @@ export default function InviteDetails({
   members,
   deposit,
 }: InviteDetailsProps) {
+  // Invites generated before the deposit was written raw carry a comma-grouped
+  // amount (e.g. "90,999,999.00"), which Number() alone reads as NaN.
+  const depositAmount = Number((deposit ?? "").replace(/,/g, ""));
+
   return (
     <div className="border-t border-blue-0 pt-6">
       <Body className="text-center mb-6">
@@ -39,11 +44,11 @@ export default function InviteDetails({
               <RowDetail label="Duration" body={duration} />
               <RowDetail
                 label="Est. Deposit amount"
-                body={`$${formatBalance(+deposit)}`}
+                body={`$${formatAmount(depositAmount)}`}
               />
               <RowDetail
                 label="Stack goal"
-                body={`$${formatBalance(Number(members) ** 2 * Number(deposit), 2)}`}
+                body={`$${formatAmount(Number(members) ** 2 * depositAmount, 2)}`}
               />
             </div>
           </AccordionContent>

@@ -13,13 +13,11 @@ import {
   getIntervalBySeconds,
   splitIntervalId,
 } from "@/utils/deposit-interval";
-import {
-  Body,
-  formatBalance,
-  FormattedDecimalNumber,
-  Heading3,
-  useConnectedUser,
-} from "@breadcoop/ui";
+import { formatAmount } from "@/utils/format-amount";
+import { amountSizeStep } from "@/utils/amount-size";
+import { cn } from "@/lib/utils";
+import { FormattedDecimalNumber } from "@/components/bread-ui-kit/formatted-decimal-number";
+import { Body, Heading3, useConnectedUser } from "@breadcoop/ui";
 import { CalendarDotsIcon } from "@phosphor-icons/react/ssr";
 import { ReactNode } from "react";
 import { formatEther } from "viem";
@@ -31,6 +29,14 @@ const failedStatuses: ICircleStatus[] = [
   "failed",
   "finished",
 ];
+
+// Now that this page shows amounts in full, the hero steps down a size once the
+// figure gets long, so "$1,250,000.00" doesn't run past its container.
+const HERO_SIZES = {
+  base: { integral: "text-[80px]", decimal: "text-[48px]" },
+  sm: { integral: "text-[56px]", decimal: "text-[34px]" },
+  xs: { integral: "text-[40px]", decimal: "text-[24px]" },
+} as const;
 
 const StackDetailsTotal = ({
   intervalLabel,
@@ -61,14 +67,16 @@ const StackDetailsTotal = ({
     );
   }
 
+  const heroSize = HERO_SIZES[amountSizeStep(+depositPerRound)];
+
   return (
     <div className="flex flex-col gap-6 mb-3 md:mb-0 md:flex-1 md:justify-end">
       <div className="flex items-center justify-start gap-x-4 flex-wrap">
         <FormattedDecimalNumber
           value={depositPerRound}
           unit="$"
-          integralPartClassName="text-[80px]"
-          decimalPartClassName="text-[48px] text-surface-grey-2"
+          integralPartClassName={heroSize.integral}
+          decimalPartClassName={cn(heroSize.decimal, "text-surface-grey-2")}
         />
         <div>
           <Body className="text-surface-grey-2">
@@ -138,7 +146,7 @@ const StackDetailsBreakdown = ({
     <div className="md:flex-1">
       <StackDetailsBreakdownRow label={`${intervalLabel} deposit`}>
         <p className="text-h2 text-2xl leading-6 tracking-[-2%]">
-          ${formatBalance(+formatEther(circle.depositAmount), 2)}
+          ${formatAmount(+formatEther(circle.depositAmount), 2)}
         </p>
       </StackDetailsBreakdownRow>
       <StackDetailsBreakdownRow label="Members deposit every">

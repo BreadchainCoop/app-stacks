@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import Loading from "@/app/loading";
 import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
 import { parseContractError } from "@/utils/parse-contract-error";
+import { formatAmount } from "@/utils/format-amount";
 import { useModal } from "./modal/context";
 
 interface StartCircleButtonProps extends Omit<ButtonProps, "children"> {
@@ -84,7 +85,7 @@ const StartCircleButton = ({
             <Loading />
           </span>
         ) : (
-          <>Start Stacks - {formatEther(amount)} BREAD</>
+          <>Start Stacks - {formatAmount(+formatEther(amount))} BREAD</>
         )}
       </LocalButton>
     </div>

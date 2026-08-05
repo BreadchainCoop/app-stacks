@@ -1,4 +1,5 @@
-import { Body, formatBalance, useBreadBalance } from "@breadcoop/ui";
+import { formatAmount } from "@/utils/format-amount";
+import { Body, useBreadBalance } from "@breadcoop/ui";
 import { Address } from "viem";
 
 const StacksBalance = ({ address }: { address: Address }) => {
@@ -6,7 +7,7 @@ const StacksBalance = ({ address }: { address: Address }) => {
 
   return (
     <Body className="text-surface-grey text-xs">
-      Stacks account Balance: ${formatBalance(parseFloat(BREAD))}
+      Stacks account Balance: ${formatAmount(parseFloat(BREAD))}
     </Body>
   );
 };
