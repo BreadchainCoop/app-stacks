@@ -31,7 +31,6 @@ import { useReadContracts } from "wagmi";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useFundsDeposited } from "@/hooks/use-funds-deposited";
 import LocalButton from "@/components/button";
-import { FeatureGate } from "@/components/feature-gate";
 
 const Overview = ({
   circle,
@@ -253,16 +252,14 @@ const Overview = ({
         }
       />
       <div className="mt-4">
-        <FeatureGate feature="automaticDeposit">
-          <AutomaticDeposit
-            stackId={circle.circleId.toString()}
-            depositAmount={circle.circleInfo.depositAmount}
-            remainingRounds={remainingRounds}
-            depositInterval={circle.circleInfo.depositInterval}
-            tokenAddress={circle.circleInfo.token}
-            disabled={isFailedStack}
-          />
-        </FeatureGate>
+        <AutomaticDeposit
+          stackId={circle.circleId.toString()}
+          depositAmount={circle.circleInfo.depositAmount}
+          remainingRounds={remainingRounds}
+          depositInterval={circle.circleInfo.depositInterval}
+          tokenAddress={circle.circleInfo.token}
+          disabled={isFailedStack}
+        />
         {formattedCircleStatus.status === "pending-start" ? (
           <>
             {member === circle.circleInfo.owner &&

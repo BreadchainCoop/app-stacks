@@ -18,7 +18,6 @@ import { useGetLastClaimed } from "@/hooks/use-get-last-claimed";
 import { formatRelativeTime } from "@/utils/time";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { AutomaticClaim } from "./automatic-claim";
-import { FeatureGate } from "@/components/feature-gate";
 import { useCircleState } from "@/hooks/use-circles-state";
 import { CircleState } from "@/lib/circle-state";
 import {
@@ -158,9 +157,7 @@ const TotalStacked = ({
                 <LastClaimStatus address={address} circleId={id} />
               )}
               {userCircleData.circleData?.isMember && (
-                <FeatureGate feature="automaticClaim">
-                  <AutomaticClaim stackId={id} disabled={isFailedStack} />
-                </FeatureGate>
+                <AutomaticClaim stackId={id} disabled={isFailedStack} />
               )}
             </>
           )}
