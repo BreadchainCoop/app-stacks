@@ -27,6 +27,7 @@ import { parseContractError } from "@/utils/parse-contract-error";
 import { getIntervalById, splitIntervalId } from "@/utils/deposit-interval";
 import { CREATE_ERRORS } from "@/lib/contract-errors";
 import { getDefaultChainId } from "@/utils/chain";
+import { formatAmount } from "@/utils/format-amount";
 
 const parseCreateError = (error: unknown) =>
   parseContractError(
@@ -193,11 +194,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
           }
           amount={freqDeposit}
         />
-        <BreadRow
-          label="Total Deposited per member"
-          amount={total.toFixed(2)}
-          colored
-        />
+        <BreadRow label="Total Deposited per member" amount={total} colored />
       </div>
       <div className="px-6 py-3 bg-paper-1">
         <Body className="text-xs text-surface-grey-2">
@@ -280,7 +277,7 @@ function BreadRow({
           colored ? "border-system-green" : "border-paper-2"
         }`}
       >
-        <Body bold>${amount}</Body>
+        <Body bold>${formatAmount(Number(amount))}</Body>
       </div>
     </div>
   );

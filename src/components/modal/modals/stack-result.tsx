@@ -7,7 +7,7 @@ import {
   StackInitSuccessModalState,
   useModal,
 } from "../context";
-import { Body, formatBalance, Heading2, Heading3 } from "@breadcoop/ui";
+import { Body, Heading2, Heading3 } from "@breadcoop/ui";
 import PendingInviteLink from "@/components/pending-invite-link";
 import {
   Accordion,
@@ -23,6 +23,7 @@ import { savingCirclesAbi } from "../../../lib/abis/saving-circles";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../../lib/constants";
 import { usePrivy, useSignTypedData } from "@privy-io/react-auth";
 import { getDefaultChainId } from "@/utils/chain";
+import { formatAmount } from "@/utils/format-amount";
 import { shortenUrl } from "@/utils/shorten";
 import { SupabaseInviteLink } from "@/lib/supabase";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
@@ -162,7 +163,8 @@ export const StackSuccessResultModal = ({
           modalState.circle.name,
           modalState.circle.members,
           modalState.circle.duration,
-          formatBalance(modalState.circle.deposit, 2)
+          // Raw, not formatted: the join page parses this back into a number.
+          String(modalState.circle.deposit)
         );
 
         supabaseInviteLinks.push({ long: url, short: "", used: false });
@@ -302,11 +304,11 @@ export const StackSuccessResultModal = ({
                 <RowDetail label="Duration" body={modalState.circle.duration} />
                 <RowDetail
                   label="Est. Deposit amount"
-                  body={`$${formatBalance(modalState.circle.deposit, 2)}`}
+                  body={`$${formatAmount(modalState.circle.deposit, 2)}`}
                 />
                 <RowDetail
                   label="Stack goal"
-                  body={`$${formatBalance(modalState.circle.total, 2)}`}
+                  body={`$${formatAmount(modalState.circle.total, 2)}`}
                 />
               </div>
             </AccordionContent>

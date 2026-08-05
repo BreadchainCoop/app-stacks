@@ -7,7 +7,7 @@ import { useModal } from "./modal/context";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { Address } from "viem";
-import { formatBalance } from "@breadcoop/ui";
+import { formatAmount } from "@/utils/format-amount";
 import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { CLAIM_ERRORS } from "@/lib/contract-errors";
@@ -80,7 +80,7 @@ const ClaimButton = ({
       onClick={claim}
       disabled={claiming}
     >
-      {label || `Claim ${formatBalance(amount, 2)} BREAD`}
+      {label || `Claim ${formatAmount(amount, 2)} BREAD`}
     </LocalButton>
   );
 };

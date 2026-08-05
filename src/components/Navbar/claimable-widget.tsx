@@ -1,11 +1,8 @@
 "use client";
 
 import { useUserCirclesList } from "@/hooks/use-user-circles-list";
-import {
-  FormattedDecimalNumber,
-  NavAccountWidgetItem,
-  useConnectedUser,
-} from "@breadcoop/ui";
+import { FormattedDecimalNumber } from "@/components/bread-ui-kit/formatted-decimal-number";
+import { NavAccountWidgetItem, useConnectedUser } from "@breadcoop/ui";
 import { HandArrowDownIcon } from "@phosphor-icons/react";
 import { zeroAddress } from "viem";
 
@@ -32,9 +29,10 @@ const ClaimableWidget = () => {
         appIconColor="text-primary-blue"
       >
         <FormattedDecimalNumber
-          className="text-[#EA5817]"
+          className="text-core-orange"
           value={withdrawableAmount}
           withBreadIcon
+          compact
         />
       </NavAccountWidgetItem>
     </>

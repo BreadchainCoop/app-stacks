@@ -3,11 +3,11 @@
 import { Address } from "viem";
 import {
   CopyButtonIcon,
-  FormattedDecimalNumber,
   Logo,
   useBreadBalance,
   useConnectedUser,
 } from "@breadcoop/ui";
+import { FormattedDecimalNumber } from "../formatted-decimal-number";
 import { ArrowUpRightIcon } from "@phosphor-icons/react";
 import { blo } from "blo";
 import { cn } from "@/lib/utils";
@@ -68,6 +68,7 @@ const AccountCardMobile = ({
         <FormattedDecimalNumber
           value={BREAD}
           unit="$"
+          compact
           integralPartClassName="text-[1.8rem]"
           decimalPartClassName="text-[1.35rem]"
         />

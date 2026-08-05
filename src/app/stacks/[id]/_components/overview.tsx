@@ -4,7 +4,6 @@ import { useUserCircleData } from "@/hooks/use-user-circle-data";
 import {
   Body,
   cn,
-  formatBalance,
   Heading3,
   LoginButton,
   useConnectedUser,
@@ -27,6 +26,7 @@ import { useStackSupabase } from "@/hooks/use-stack-supabase";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { getDefaultChainId } from "@/utils/chain";
+import { formatAmount } from "@/utils/format-amount";
 import { useReadContracts } from "wagmi";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useFundsDeposited } from "@/hooks/use-funds-deposited";
@@ -218,7 +218,7 @@ const Overview = ({
           <span className="text-surface-grey">Total Deposit</span>
           <span className="inline-flex items-center justify-start">
             <span className="font-bold mt-[0.2rem]">
-              ${formatBalance(+formatEther(poolBalance), 2)}
+              ${formatAmount(+formatEther(poolBalance), 2)}
             </span>
           </span>
         </Body>
@@ -297,8 +297,8 @@ const Overview = ({
             {connectedUser.user.status === "CONNECTED" ? (
               <DepositButton
                 className="font-bold w-full"
-                label={`Deposit $${formatEther(
-                  circle.circleInfo.depositAmount
+                label={`Deposit $${formatAmount(
+                  +formatEther(circle.circleInfo.depositAmount)
                 )}`}
                 amount={circle.circleInfo.depositAmount}
                 tokenAddress={circle.circleInfo.token}

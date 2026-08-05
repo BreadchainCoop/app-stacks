@@ -3,7 +3,8 @@
 import Loading from "@/app/loading";
 import { useModal } from "@/components/modal/context";
 import { useUserCirclesList } from "@/hooks/use-user-circles-list";
-import { Body, formatBalance } from "@breadcoop/ui";
+import { millify } from "@/utils/format-amount";
+import { Body } from "@breadcoop/ui";
 import {
   CoinsIcon,
   HandDepositIcon,
@@ -50,9 +51,7 @@ const Column = ({
 }) => (
   <div className="flex flex-col gap-3">
     <Body className="text-surface-grey">{label}</Body>
-    <p className="text-2xl font-bold text-surface-ink">
-      ${formatBalance(amount, 2)}
-    </p>
+    <p className="text-2xl font-bold text-surface-ink">${millify(amount, 2)}</p>
     {cta}
   </div>
 );
@@ -99,7 +98,7 @@ const AccountOverviewCard = ({
         </Body>
         <div className="flex flex-wrap items-center gap-4">
           <p className="text-4xl font-bold text-surface-ink md:text-5xl">
-            ${formatBalance(totalHeld, 2)}
+            ${millify(totalHeld, 2)}
           </p>
           {isOwner && (
             <div className="flex gap-2">

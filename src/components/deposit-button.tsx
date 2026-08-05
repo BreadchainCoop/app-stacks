@@ -1,6 +1,7 @@
 "use client";
 
-import { ButtonProps, formatBalance, useConnectedUser } from "@breadcoop/ui";
+import { ButtonProps, useConnectedUser } from "@breadcoop/ui";
+import { formatAmount } from "@/utils/format-amount";
 import { useModal } from "./modal/context";
 import { useReadContract } from "wagmi";
 import { Address, encodeFunctionData, erc20Abi, formatEther } from "viem";
@@ -69,7 +70,7 @@ const DepositButton = ({
   const hasInsufficientBalance = !!userAddress && balance < amount;
 
   const missingAmount = hasInsufficientBalance
-    ? formatBalance(Number(formatEther(amount - balance)), 2)
+    ? formatAmount(Number(formatEther(amount - balance)), 2)
     : null;
 
   const deposit = async () => {

@@ -21,7 +21,8 @@ import { useCircleState } from "@/hooks/use-circles-state";
 import { CircleState } from "@/lib/circle-state";
 import { useMembersClaimed } from "@/hooks/use-members-claimed";
 import { formatRelativeTime, formatShortDate } from "@/utils/time";
-import { Body, Chip, formatBalance } from "@breadcoop/ui";
+import { formatAmount } from "@/utils/format-amount";
+import { Body, Chip } from "@breadcoop/ui";
 import { Address, formatEther } from "viem";
 
 const FAILED_STATUSES: ICircleStatus[] = [
@@ -247,7 +248,7 @@ function MemberInfoContent({
 
   if (isFailedStack) {
     if (fundsDeposited.data) {
-      memberTotal = formatBalance(
+      memberTotal = formatAmount(
         +formatEther(
           (
             fundsDeposited.data.depositsByMember[

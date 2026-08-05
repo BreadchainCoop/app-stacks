@@ -1,4 +1,5 @@
-import { Body, Heading3, Chip, formatBalance } from "@breadcoop/ui";
+import { Body, Heading3, Chip } from "@breadcoop/ui";
+import { millify } from "@/utils/format-amount";
 import { UsersIcon } from "./icons/users";
 import { CoinIcon, CoinsIcon } from "./icons/coin";
 import { CalendarIcon } from "./icons/calendar";
@@ -93,19 +94,19 @@ const Stack = ({
       className: "",
     },
     {
-      label: `Deposit: $${formatBalance(Number(depositAmount), 2)} ${
+      label: `Deposit: $${millify(Number(depositAmount), 2)} ${
         parseCircleIntervalToDate(stack.depositInterval).label
       }`,
       icon: <CoinsIcon />,
       className: "",
     },
     {
-      label: `Pay out: $${formatBalance(Number(depositAmount) * stack.totalMember, 2)} per member`,
+      label: `Pay out: $${millify(Number(depositAmount) * stack.totalMember, 2)} per member`,
       icon: <CoinIcon />,
       className: "",
     },
     {
-      label: `Stack volume: $${formatBalance(totalGoal, 2)}`,
+      label: `Stack volume: $${millify(totalGoal, 2)}`,
       icon: <CalendarIcon />,
       className: "",
     },
@@ -184,10 +185,10 @@ const Stack = ({
               fundsDeposited.isLoading ? (
                 <span className="text-surface-grey text-sm">loading...</span>
               ) : (
-                <>${formatBalance(totalDeposited, 2)}</>
+                <>${millify(totalDeposited, 2)}</>
               )
             ) : (
-              <>${formatBalance(totalDeposited, 2)}</>
+              <>${millify(totalDeposited, 2)}</>
             )}
           </p>
           <Body className="flex items-center justify-start gap-1 text-surface-grey">

@@ -5,6 +5,7 @@ import { Address } from "viem";
 import {
   Body,
   CopyButtonIcon,
+  formatBalance,
   NavAccountWidgetItem,
   useBreadBalance,
   useConnectedUser,
@@ -74,7 +75,7 @@ const AccountWidget = ({
         appIconColor="text-primary-blue"
         label="Balance"
       >
-        <Body>${BREAD}</Body>
+        <Body>${formatBalance(+BREAD)}</Body>
       </NavAccountWidgetItem>
       {widgetItems}
       <NavAccountWidgetItem

@@ -1,7 +1,8 @@
 "use client";
 
 import { ReactNode, useRef, useState } from "react";
-import { Body, FormattedDecimalNumber, useBreadBalance } from "@breadcoop/ui";
+import { Body, useBreadBalance } from "@breadcoop/ui";
+import { FormattedDecimalNumber } from "../formatted-decimal-number";
 import { CaretDownIcon } from "@phosphor-icons/react";
 import { blo } from "blo";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,7 @@ const AccountMenu = ({
           <FormattedDecimalNumber
             value={BREAD}
             unit="$"
+            compact
             integralPartClassName="text-base"
             decimalPartClassName="text-xs"
           />
