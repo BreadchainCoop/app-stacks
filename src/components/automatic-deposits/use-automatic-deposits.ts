@@ -49,7 +49,8 @@ export function useAutomaticDeposits(stackId: string) {
     tokenAddress: Address;
     allowanceAmount: bigint;
   }) => {
-    if (!privyUser?.id || !address) return;
+    if (status === "loading" || !privyUser?.id || !address) return;
+
     setStatus("loading");
 
     try {
@@ -83,7 +84,8 @@ export function useAutomaticDeposits(stackId: string) {
   };
 
   const deactivate = async () => {
-    if (!privyUser?.id || !address) return;
+    if (status === "loading" || !privyUser?.id || !address) return;
+
     setStatus("loading");
 
     try {

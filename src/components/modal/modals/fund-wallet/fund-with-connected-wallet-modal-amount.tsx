@@ -40,6 +40,7 @@ const FundWithConnectedWalletModalAmount = ({
   const { setModal } = useModal();
   const [amount, setAmount] = useState("0");
   const [token, setToken] = useState<FundingToken>("xDAI");
+  const [funding, setFunding] = useState(false);
   const { xDaiBalance, breadBalance, fundWallet } =
     useFundWithConnectedWallet();
 
@@ -64,6 +65,7 @@ const FundWithConnectedWalletModalAmount = ({
   })();
 
   const disabled =
+    funding ||
     parsedAmount === null ||
     parsedAmount <= BigInt(0) ||
     (tokenBalance.data ? parsedAmount > tokenBalance.data.value : false);
@@ -73,7 +75,13 @@ const FundWithConnectedWalletModalAmount = ({
 
     if (disabled) return;
 
-    await fundWallet({ token, amount, wallet: modalState.wallet });
+    setFunding(true);
+
+    try {
+      await fundWallet({ token, amount, wallet: modalState.wallet });
+    } finally {
+      setFunding(false);
+    }
   };
 
   return (

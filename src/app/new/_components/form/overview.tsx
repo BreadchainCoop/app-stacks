@@ -48,6 +48,8 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
   const { sendSponsoredTransaction } = useSponsoredTx();
 
   const createStack = async (data: StackFormSchemaData) => {
+    if (form.formState.isSubmitting) return;
+
     try {
       // This is just for typescript check. user is available at this point
       if (user.status !== "CONNECTED") return;
@@ -212,6 +214,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
           <LocalButton
             leftIcon={<SparkleIcon size={24} />}
             onClick={form.handleSubmit(createStack)}
+            disabled={form.formState.isSubmitting}
             type="submit"
           >
             Create Stack
