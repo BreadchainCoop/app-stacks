@@ -19,7 +19,7 @@ export function useAutomaticClaims(stackId: string) {
   const queryClient = useQueryClient();
 
   const activate = async (enabled: boolean) => {
-    if (!privyUser?.id) return;
+    if (status === "loading" || !privyUser?.id) return;
     setStatus("loading");
 
     try {

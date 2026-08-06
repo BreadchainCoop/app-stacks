@@ -137,8 +137,9 @@ const WithdrawBreadModal = () => {
   }
 
   const disableButton =
-    typeof buttonWithdrawContent === "string" &&
-    buttonWithdrawContent !== "Withdraw";
+    level === "loading" ||
+    (typeof buttonWithdrawContent === "string" &&
+      buttonWithdrawContent !== "Withdraw");
 
   const withdraw: SubmitEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();

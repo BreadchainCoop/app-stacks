@@ -57,6 +57,8 @@ const StartCircleButton = ({
   };
 
   const onClick = () => {
+    if (starting) return;
+
     if (pendingMembers > 0) {
       setModal({
         type: "START_STACK_WARNING",
@@ -74,6 +76,7 @@ const StartCircleButton = ({
       <LocalButton
         {...props}
         onClick={onClick}
+        disabled={props.disabled || starting}
         className={`${props.className || ""} font-semibold`}
       >
         {starting ? (

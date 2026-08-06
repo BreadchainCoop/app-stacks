@@ -118,7 +118,7 @@ const DepositButton = ({
     <LocalButton
       {...props}
       onClick={deposit}
-      disabled={props.disabled || hasInsufficientBalance}
+      disabled={props.disabled || hasInsufficientBalance || depositing}
       leftIcon={depositing ? undefined : props.leftIcon}
       rightIcon={depositing ? undefined : props.rightIcon}
     >

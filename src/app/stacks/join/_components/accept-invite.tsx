@@ -68,7 +68,14 @@ export default function AcceptInvite({
   });
 
   const redeemInvite = async () => {
-    if (user.status !== "CONNECTED" || !address || !nonce || !signature) return;
+    if (
+      redeeming ||
+      user.status !== "CONNECTED" ||
+      !address ||
+      !nonce ||
+      !signature
+    )
+      return;
 
     setRedeeming(true);
 

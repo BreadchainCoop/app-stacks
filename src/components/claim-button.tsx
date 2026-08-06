@@ -78,6 +78,7 @@ const ClaimButton = ({
       className={cn("claim-btn font-bold w-full", className)}
       leftIcon={<HandWithdrawIcon />}
       onClick={claim}
+      disabled={claiming}
     >
       {label || `Claim ${formatBalance(amount, 2)} BREAD`}
     </LocalButton>
