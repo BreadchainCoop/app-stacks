@@ -252,14 +252,16 @@ const Overview = ({
         }
       />
       <div className="mt-4">
-        <AutomaticDeposit
-          stackId={circle.circleId.toString()}
-          depositAmount={circle.circleInfo.depositAmount}
-          remainingRounds={remainingRounds}
-          depositInterval={circle.circleInfo.depositInterval}
-          tokenAddress={circle.circleInfo.token}
-          disabled={isFailedStack}
-        />
+        {circle.isMember && (
+          <AutomaticDeposit
+            stackId={circle.circleId.toString()}
+            depositAmount={circle.circleInfo.depositAmount}
+            remainingRounds={remainingRounds}
+            depositInterval={circle.circleInfo.depositInterval}
+            tokenAddress={circle.circleInfo.token}
+            disabled={isFailedStack}
+          />
+        )}
         {formattedCircleStatus.status === "pending-start" ? (
           <>
             {member === circle.circleInfo.owner &&
