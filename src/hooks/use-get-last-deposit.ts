@@ -3,6 +3,7 @@ import { clientEnv } from "@/lib/env";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Address } from "viem";
 import { usePublicClient } from "wagmi";
+import { getDefaultChainId } from "@/utils/chain";
 
 export const useGetLastDeposit = ({
   circleId,
@@ -13,7 +14,7 @@ export const useGetLastDeposit = ({
   enabled: boolean;
   member?: Address;
 }) => {
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({ chainId: getDefaultChainId() });
 
   const queryKey = ["lastDeposit", circleId, member].filter(
     (i) => i !== undefined

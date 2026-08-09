@@ -3,6 +3,7 @@ import { clientEnv } from "@/lib/env";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Address, parseAbiItem } from "viem";
 import { usePublicClient } from "wagmi";
+import { getDefaultChainId } from "@/utils/chain";
 
 export const useInviteRedeemed = ({
   circleId,
@@ -13,7 +14,7 @@ export const useInviteRedeemed = ({
   member: Address;
   enabled?: boolean;
 }) => {
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({ chainId: getDefaultChainId() });
 
   return useQuery({
     queryKey: ["inviteRedeemed", circleId, member],

@@ -3,6 +3,7 @@ import { clientEnv } from "@/lib/env";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { parseAbiItem } from "viem";
 import { usePublicClient } from "wagmi";
+import { getDefaultChainId } from "@/utils/chain";
 
 export const useGetCircleCreated = ({
   circleId,
@@ -11,7 +12,7 @@ export const useGetCircleCreated = ({
   circleId: string;
   enabled?: boolean;
 }) => {
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({ chainId: getDefaultChainId() });
 
   return useQuery({
     queryKey: ["circleCreated", circleId],

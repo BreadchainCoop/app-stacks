@@ -3,6 +3,7 @@ import { clientEnv } from "@/lib/env";
 import { useQuery } from "@tanstack/react-query";
 import { Address } from "viem";
 import { usePublicClient } from "wagmi";
+import { getDefaultChainId } from "@/utils/chain";
 
 export const useGetLastClaimed = ({
   circleId,
@@ -13,7 +14,7 @@ export const useGetLastClaimed = ({
   enabled: boolean;
   accountAddress?: Address;
 }) => {
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({ chainId: getDefaultChainId() });
 
   const { data, ...result } = useQuery({
     queryKey: ["lastClaimed", circleId, accountAddress],
