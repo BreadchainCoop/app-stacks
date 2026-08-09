@@ -6,10 +6,11 @@
 # progress. Values here override dashboard env vars for the deploy-preview
 # context only; production/branch deploys are untouched.
 # The three stack-type addresses are the Sepolia deployment made by
-# saving-circles PR #184's CI — replace via the dashboard (and drop from here)
-# once official addresses exist.
+# saving-circles PR #184's CI, which now allowlists the chain's token at deploy
+# time — so a fresh CI deployment is usable with no manual owner transaction.
+# Replace via the dashboard (and drop from here) once official addresses exist.
 [context.deploy-preview.environment]
   NEXT_PUBLIC_FEATURES = '{"automaticClaim":{"enabled":true},"asca":{"enabled":true},"goalSavings":{"enabled":true},"collectiveFund":{"enabled":true}}'
-  NEXT_PUBLIC_ASCA_CONTRACT_ADDRESS = "0xCF2E620c13B9190E532eFEA20A58D69A393C20b9"
-  NEXT_PUBLIC_GOAL_SAVINGS_CONTRACT_ADDRESS = "0x2D0d7cCEA5EBD01FE8d540De12C0A5CBb3a4D52f"
-  NEXT_PUBLIC_COLLECTIVE_FUND_CONTRACT_ADDRESS = "0xfFA503F4eC5a7925A938011B636392edc7Ba889B"
+  NEXT_PUBLIC_ASCA_CONTRACT_ADDRESS = "0xA603B5923EDaa1e4C832A54ad1585c7d084698B2"
+  NEXT_PUBLIC_GOAL_SAVINGS_CONTRACT_ADDRESS = "0xA14ED4FEc51e742cac889078d4d1466494D1916c"
+  NEXT_PUBLIC_COLLECTIVE_FUND_CONTRACT_ADDRESS = "0x47bBC6A8a5680A78ec655863992259F61de7BdcD"
