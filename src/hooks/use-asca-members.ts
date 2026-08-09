@@ -6,6 +6,7 @@ import { useReadContract, useReadContracts } from "wagmi";
 const ascaContract = {
   address: ASCA_CONTRACT_ADDRESS,
   abi: accumulatingSavingCirclesAbi,
+  chainId: getDefaultChainId(),
 } as const;
 
 /** The ordered member roster of a fund (getFundMembers). */

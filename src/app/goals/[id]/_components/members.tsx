@@ -43,6 +43,7 @@ const goalContract = {
   address: GOAL_SAVINGS_CONTRACT_ADDRESS,
   abi: goalSavingCirclesAbi,
   functionName: "usedNonces",
+  chainId: getDefaultChainId(),
 } as const;
 
 const GoalMembers = ({

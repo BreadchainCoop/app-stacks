@@ -43,6 +43,7 @@ const collectiveContract = {
   address: COLLECTIVE_FUND_CONTRACT_ADDRESS,
   abi: collectiveFundCirclesAbi,
   functionName: "usedNonces",
+  chainId: getDefaultChainId(),
 } as const;
 
 const FundMembers = ({

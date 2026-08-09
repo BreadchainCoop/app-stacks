@@ -37,6 +37,7 @@ const savingCircleContract = {
   address: SAVING_CIRCLES_CONTRACT_ADDRESS,
   abi: savingCirclesAbi,
   functionName: "usedNonces",
+  chainId: getDefaultChainId(),
 } as const;
 
 const StackMembers = ({

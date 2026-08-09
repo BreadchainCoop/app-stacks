@@ -6,6 +6,7 @@ import { useReadContract, useReadContracts } from "wagmi";
 const collectiveContract = {
   address: COLLECTIVE_FUND_CONTRACT_ADDRESS,
   abi: collectiveFundCirclesAbi,
+  chainId: getDefaultChainId(),
 } as const;
 
 /** The ordered member roster of a fund (getFundMembers). */

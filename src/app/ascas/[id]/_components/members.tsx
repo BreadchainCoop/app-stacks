@@ -47,6 +47,7 @@ const ascaContract = {
   address: ASCA_CONTRACT_ADDRESS,
   abi: accumulatingSavingCirclesAbi,
   functionName: "usedNonces",
+  chainId: getDefaultChainId(),
 } as const;
 
 const FundMembers = ({
