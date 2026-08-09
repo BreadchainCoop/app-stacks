@@ -102,6 +102,7 @@ const AscaOverviewForm = ({ onBack }: { onBack: () => void }) => {
 
       const receipt = await waitForTransactionReceipt(wagmiConfig, {
         hash,
+        chainId: getDefaultChainId(),
         confirmations: 1,
       });
 
