@@ -32,17 +32,18 @@ const MEMBER_DEPOSIT = 15n * ONE;
 const RECLAIM_AMOUNT = 8n * ONE;
 
 /** A datetime-local value `hours` ahead of BLOCK time, plus its unix seconds. */
-async function futureDeadline(hours) {
+async function futureDeadline(days = 1) {
+  // The deadline field is a plain date input; the goal closes at local midnight
+  // at the start of the chosen day, which is what the app puts on chain.
   const chainNow = await L.fork.blockTimestamp();
-  const date = new Date(Number(chainNow + BigInt(hours) * 3600n) * 1000);
+  const date = new Date(Number(chainNow) * 1000);
+  date.setDate(date.getDate() + days);
+  date.setHours(0, 0, 0, 0);
   const pad = (n) => String(n).padStart(2, "0");
   const value = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
     date.getDate()
-  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-  return {
-    value,
-    seconds: BigInt(Math.floor(new Date(value).getTime() / 1000)),
-  };
+  )}`;
+  return { value, seconds: BigInt(Math.floor(date.getTime() / 1000)) };
 }
 
 /** Drive /new -> the goal form -> Create Goal, and return the new goal id. */
@@ -87,7 +88,7 @@ async function createGoal(
 
   /* ------------------------------------------------------------------ 1 -- */
   head("1) create a goal with a beneficiary through the real /new flow");
-  const deadline = await futureDeadline(2);
+  const deadline = await futureDeadline(1);
   const { id: goalId, created } = await createGoal(op, {
     name: `E2E Goal ${Date.now() % 100000}`,
     members: 2,
@@ -284,7 +285,7 @@ async function createGoal(
 
   /* ------------------------------------------------------------------ 6 -- */
   head("6) a second goal in reclaim mode refunds its members");
-  const deadlineB = await futureDeadline(2);
+  const deadlineB = await futureDeadline(1);
   const { id: goalB, created: createdB } = await createGoal(op, {
     name: `E2E Reclaim Goal ${Date.now() % 100000}`,
     members: 2,

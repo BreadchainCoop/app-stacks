@@ -9,6 +9,7 @@ import { MouseEventHandler, ReactNode } from "react";
 import { useFormContext } from "react-hook-form";
 import { GoalFormSchemaData } from "./schema";
 import NumericInput from "@/components/numeric-input";
+import { earliestDeadlineDate } from "@/utils/time";
 
 const GoalForm = ({ onContinue }: { onContinue: () => void }) => {
   const form = useFormContext<GoalFormSchemaData>();
@@ -94,11 +95,12 @@ const GoalForm = ({ onContinue }: { onContinue: () => void }) => {
             <div>
               <Label htmlFor="deadline">Deadline</Label>
             </div>
-            <InputDescription desc="Deposits close at the deadline. If the goal isn't reached by then, everyone gets their money back." />
+            <InputDescription desc="Deposits close at midnight at the start of this date. If the goal isn't reached by then, everyone gets their money back." />
             <Input
               {...form.register("deadline")}
               id="deadline"
-              type="datetime-local"
+              type="date"
+              min={earliestDeadlineDate()}
               className="w-full"
             />
             <ErrorMessage msg={form.formState.errors.deadline?.message} />

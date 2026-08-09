@@ -26,6 +26,7 @@ import { encodeFunctionData, parseEther, parseEventLogs } from "viem";
 import { useModal } from "@/components/modal/context";
 import { sleep } from "@/utils/sleep";
 import { waitForTransactionReceipt } from "@wagmi/core";
+import { getDefaultChainId } from "@/utils/chain";
 import { wagmiConfig } from "@/components/providers/web3";
 import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
 import { simulateContract } from "@wagmi/core";
@@ -82,6 +83,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
         functionName: "create",
         args: [circleArgs],
         account: user.address,
+        chainId: getDefaultChainId(),
       });
 
       const encodedData = encodeFunctionData({

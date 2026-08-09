@@ -20,6 +20,7 @@ import { encodeFunctionData, parseEventLogs } from "viem";
 import { useModal } from "@/components/modal/context";
 import { sleep } from "@/utils/sleep";
 import { waitForTransactionReceipt } from "@wagmi/core";
+import { getDefaultChainId } from "@/utils/chain";
 import { wagmiConfig } from "@/components/providers/web3";
 import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
 import { simulateContract } from "@wagmi/core";
@@ -77,6 +78,7 @@ const AscaOverviewForm = ({ onBack }: { onBack: () => void }) => {
         functionName: "create",
         args: createArgs,
         account: user.address,
+        chainId: getDefaultChainId(),
       });
 
       const encodedData = encodeFunctionData({

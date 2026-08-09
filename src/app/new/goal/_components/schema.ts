@@ -1,5 +1,6 @@
 import { isAddress } from "viem";
 import * as z from "zod";
+import { dateInputToMs } from "@/utils/time";
 
 const goalSchema = z
   .object({
@@ -11,7 +12,7 @@ const goalSchema = z
     beneficiary: z.string().optional(),
   })
   .superRefine((data, ctx) => {
-    if (Number.isNaN(new Date(data.deadline).getTime())) {
+    if (Number.isNaN(dateInputToMs(data.deadline))) {
       ctx.addIssue({
         code: "custom",
         path: ["deadline"],

@@ -35,6 +35,7 @@ import {
 import { useModal } from "@/components/modal/context";
 import { sleep } from "@/utils/sleep";
 import { waitForTransactionReceipt } from "@wagmi/core";
+import { getDefaultChainId } from "@/utils/chain";
 import { wagmiConfig } from "@/components/providers/web3";
 import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
 import { simulateContract } from "@wagmi/core";
@@ -42,7 +43,7 @@ import { parseContractError } from "@/utils/parse-contract-error";
 import { GOAL_CREATE_ERRORS, GOAL_SAVINGS_ERRORS } from "@/lib/contract-errors";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { formatAddress } from "@/utils/address";
-import { formatShortDate } from "@/utils/time";
+import { dateInputToMs, formatShortDate } from "@/utils/time";
 
 const parseCreateError = (error: unknown) =>
   parseContractError(
@@ -63,15 +64,17 @@ const GoalOverviewForm = ({ onBack }: { onBack: () => void }) => {
   const { user } = useConnectedUser();
   const { sendSponsoredTransaction } = useSponsoredTx();
 
-  const deadlineMs = deadline ? new Date(deadline).getTime() : NaN;
+  const deadlineMs = deadline ? dateInputToMs(deadline) : NaN;
 
   const createGoal = async (data: GoalFormSchemaData) => {
     try {
       // This is just for typescript check. user is available at this point
       if (user.status !== "CONNECTED") return;
 
+      // A date input yields YYYY-MM-DD; the deadline is midnight at the start
+      // of that date, in the user's own timezone.
       const deadlineSeconds = BigInt(
-        Math.floor(new Date(data.deadline).getTime() / 1000)
+        Math.floor(dateInputToMs(data.deadline) / 1000)
       );
 
       // Pre-check against block time (never Date.now — local Anvil warps time)
@@ -107,6 +110,7 @@ const GoalOverviewForm = ({ onBack }: { onBack: () => void }) => {
         functionName: "create",
         args: createArgs,
         account: user.address,
+        chainId: getDefaultChainId(),
       });
 
       const encodedData = encodeFunctionData({
