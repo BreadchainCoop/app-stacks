@@ -18,7 +18,8 @@ export const useUserStacksMetadata = (address: string | undefined) => {
 
       if (userError) throw userError;
 
-      const userId = users?.[0]?.id;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const userId = (users as any)?.[0]?.id;
       if (!userId) return empty;
 
       const { data, error } = await supabase
@@ -28,8 +29,10 @@ export const useUserStacksMetadata = (address: string | undefined) => {
 
       if (error) throw error;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rows = data as any[];
       return Object.fromEntries(
-        data
+        rows
           .map(({ stacks_metadata }) => stacks_metadata)
           .filter((meta): meta is SupabaseStackMetadata => Boolean(meta))
           .map((meta) => [meta.id, meta])

@@ -24,8 +24,10 @@ export async function GET(req: NextRequest) {
 
   if (error || !data) return createErrorResponse("User not found", 404);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const row = data as any;
   return NextResponse.json({
-    id: data.id,
-    username: data.profiles?.username ?? null,
+    id: row.id,
+    username: row.profiles?.username ?? null,
   });
 }

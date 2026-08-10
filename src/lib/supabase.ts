@@ -188,12 +188,11 @@ export const getMemberAliases = async (
 
   if (error) throw error;
 
-  return (users ?? [])
-    .filter((u): u is typeof u & { wallet_address: string } =>
-      Boolean(u.wallet_address)
-    )
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return ((users as any[]) ?? [])
+    .filter((u) => Boolean(u.wallet_address))
     .map((u) => ({
-      walletAddress: u.wallet_address,
+      walletAddress: u.wallet_address as string,
       username: u.profiles?.username ?? null,
     }));
 };

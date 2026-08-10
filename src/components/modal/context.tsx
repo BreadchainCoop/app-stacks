@@ -142,12 +142,6 @@ export type SavingsGoalsModalState = {
   privyUserId: string;
 };
 
-export type SetAliasModalState = {
-  type: "SET_ALIAS";
-  skippable?: boolean;
-  onDone?: () => void;
-};
-
 export type ModalState =
   | DepositInitModalState
   | DepositLoadingModalState
@@ -172,7 +166,6 @@ export type ModalState =
   | VisitorOnboardingModalState
   | AutomaticDepositsModalState
   | SavingsGoalsModalState
-  | SetAliasModalState
   | null;
 
 export type ModalContext = {
