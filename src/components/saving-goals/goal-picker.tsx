@@ -4,16 +4,10 @@ import { useState } from "react";
 import { Body, Heading3 } from "@breadcoop/ui";
 import {
   AirplaneTiltIcon,
-  GraduationCapIcon,
   HouseIcon,
   CurrencyCircleDollarIcon,
-  CertificateIcon,
   FirstAidKitIcon,
-  StudentIcon,
   GlobeIcon,
-  MapPinIcon,
-  WrenchIcon,
-  ShieldCheckIcon,
   UsersIcon,
   Icon,
 } from "@phosphor-icons/react";
@@ -29,13 +23,8 @@ export type SavingGoalOption = {
 export const savingGoalOptions: SavingGoalOption[] = [
   {
     id: "vacations",
-    label: "Save money for your vacations",
+    label: "Save for vacations",
     icon: AirplaneTiltIcon,
-  },
-  {
-    id: "tuition",
-    label: "Cover tuition",
-    icon: GraduationCapIcon,
   },
   {
     id: "down-payment",
@@ -44,13 +33,8 @@ export const savingGoalOptions: SavingGoalOption[] = [
   },
   {
     id: "special-event",
-    label: "Fund your special event",
+    label: "Fund a special event",
     icon: CurrencyCircleDollarIcon,
-  },
-  {
-    id: "certification",
-    label: "Fund a certification or course",
-    icon: CertificateIcon,
   },
   {
     id: "medical",
@@ -58,33 +42,13 @@ export const savingGoalOptions: SavingGoalOption[] = [
     icon: FirstAidKitIcon,
   },
   {
-    id: "student-loans",
-    label: "Cover student loans",
-    icon: StudentIcon,
-  },
-  {
     id: "remittances",
     label: "Send remittances collectively",
     icon: GlobeIcon,
   },
   {
-    id: "relocating",
-    label: "Relocating to a new city",
-    icon: MapPinIcon,
-  },
-  {
-    id: "home-repairs",
-    label: "For home repairs or appliances",
-    icon: WrenchIcon,
-  },
-  {
-    id: "insurance",
-    label: "Cover annual insurance premiums",
-    icon: ShieldCheckIcon,
-  },
-  {
     id: "split-bills",
-    label: "Create a group to split bills",
+    label: "Split bills with a group",
     icon: UsersIcon,
   },
 ];
@@ -143,7 +107,7 @@ export default function SavingGoalPicker({
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <Heading3 className="text-2xl font-black leading-7 tracking-tight text-surface-ink">
-          What are you saving for?
+          What are you saving for when using Stacks?
         </Heading3>
         <Body className="text-surface-grey">Select all that apply</Body>
       </div>

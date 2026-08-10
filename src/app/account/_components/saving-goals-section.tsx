@@ -61,7 +61,7 @@ const SavingGoalsSection = () => {
         I={TargetIcon}
         iconColor="text-primary-blue"
         title="Your saving goals"
-        subtitle="What you're saving for with your Stacks"
+        subtitle="What you're saving for when using Stacks"
       />
       <div className="flex items-center justify-between border border-paper-1 bg-paper-0 p-6 shadow-[0px_4px_12px_0px_#1B201A26]">
         <div className="flex-1">

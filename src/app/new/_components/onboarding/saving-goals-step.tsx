@@ -53,7 +53,7 @@ const SavingGoalsStep = ({ nextStage }: { nextStage: () => void }) => {
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-1 text-center">
             <Heading3 className="text-2xl leading-[100%]">
-              What are you saving for?
+              What are you saving for when using Stacks?
             </Heading3>
             <Body className="text-surface-grey">Select all that apply</Body>
           </div>

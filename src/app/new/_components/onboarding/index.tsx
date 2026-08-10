@@ -1,12 +1,11 @@
 "use client";
 
 import OnboardingTutorials from "./tutorials";
-import SavingGoalsStep from "./saving-goals-step";
 import { useState } from "react";
 import BackPage from "@/components/back-page";
 import StackFormContainer from "../form/form-container";
 
-type Stage = "tutorial" | "goals" | "form";
+type Stage = "tutorial" | "form";
 
 const OnboardingStacksCreation = () => {
   const [stage, setStage] = useState<Stage>("tutorial");
@@ -16,13 +15,7 @@ const OnboardingStacksCreation = () => {
       {stage === "tutorial" && (
         <>
           <BackPage href="/" label="Return to dashboard" />
-          <OnboardingTutorials nextStage={() => setStage("goals")} />
-        </>
-      )}
-      {stage === "goals" && (
-        <>
-          <BackPage href="/" label="Return to dashboard" />
-          <SavingGoalsStep nextStage={() => setStage("form")} />
+          <OnboardingTutorials nextStage={() => setStage("form")} />
         </>
       )}
       {stage === "form" && (
