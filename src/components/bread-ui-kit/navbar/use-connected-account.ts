@@ -15,7 +15,7 @@ export function useConnectedAccount() {
 
   // Own alias comes from the profile query rather than the public
   // wallet -> alias lookup, so it stays correct right after an edit —
-  // same split as account/_components/profile-section.tsx.
+  // same split as account/_components/account-profile-card.tsx.
   const myProfile = useMyProfile(privyUser?.id);
   const { displayName } = useDisplayName(address, myProfile);
 
