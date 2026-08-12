@@ -10,7 +10,14 @@ import { useConnectedUser } from "@breadcoop/ui";
 
 export type AutomaticClaimsStatus = "idle" | "loading" | "success" | "error";
 
-export function useAutomaticClaims(stackId: string) {
+/**
+ * Automatic claims are opt-out: members are enrolled when they join a stack and
+ * can turn it off later from the toggle on the stack page. The contract
+ * defaults to disabled and has no flag for "explicitly set", so joining has to
+ * write the opt-in — defaulting it on read would re-enable it right after a
+ * user opts out.
+ */
+export function useAutomaticClaims() {
   const { sendAutomaticSavingCirclesTx } = useAutomaticSavingCirclesTx();
   const { user: privyUser } = usePrivy();
   const { user } = useConnectedUser();
@@ -18,21 +25,26 @@ export function useAutomaticClaims(stackId: string) {
   const [status, setStatus] = useState<AutomaticClaimsStatus>("idle");
   const queryClient = useQueryClient();
 
-  const activate = async (enabled: boolean) => {
+  const activate = async (circleId: bigint, enabled: boolean) => {
     if (status === "loading" || !privyUser?.id) return;
     setStatus("loading");
 
     try {
       await sendAutomaticSavingCirclesTx({
         functionName: "setAutomaticClaimsEnabled",
-        args: [BigInt(stackId), enabled],
+        args: [circleId, enabled],
       });
+
+      if (!address) {
+        setStatus("success");
+        return;
+      }
 
       const queryKey = readContractQueryKey({
         abi: automaticSavingCirclesAbi,
         address: AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS,
         functionName: "isAutomaticClaimsEnabled",
-        args: [BigInt(stackId), address!],
+        args: [circleId, address],
         chainId: getDefaultChainId(),
       });
 

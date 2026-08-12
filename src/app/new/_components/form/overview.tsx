@@ -22,6 +22,7 @@ import { sleep } from "@/utils/sleep";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { wagmiConfig } from "@/components/providers/web3";
 import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
+import { useAutomaticClaims } from "@/hooks/use-automatic-claims";
 import { simulateContract } from "@wagmi/core";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { getIntervalById, splitIntervalId } from "@/utils/deposit-interval";
@@ -47,6 +48,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
   const total = (members || 0) * (freqDeposit || 0);
   const { user } = useConnectedUser();
   const { sendSponsoredTransaction } = useSponsoredTx();
+  const { activate: enableAutomaticClaims } = useAutomaticClaims();
 
   const createStack = async (data: StackFormSchemaData) => {
     if (form.formState.isSubmitting) return;
@@ -127,6 +129,8 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
         name: data.name,
         status: "successful",
       });
+
+      await enableAutomaticClaims(newCircleId, true);
 
       const parsedInterval = splitIntervalId(interval.id);
       const duration = `${data.members * parsedInterval[0]} ${parsedInterval[1]}`;
