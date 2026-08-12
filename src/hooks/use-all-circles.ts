@@ -7,6 +7,7 @@ import { formatEther, zeroAddress } from "viem";
 import { getDefaultChainId } from "@/utils/chain";
 import { useBlockTimestamp } from "./use-block-timestamp";
 import { getUserCircleStatus } from "@/lib/get-user-circle-status";
+import { isBlockedCircle } from "@/constants/blocked-circles";
 import { useCirclesState } from "./use-circles-state";
 import { CircleState } from "@/lib/circle-state";
 import { useConnectedUser } from "@breadcoop/ui";
@@ -60,6 +61,21 @@ export function useAllCircles(page: number = 0) {
       }
 
       const circleData = circleResult.result as unknown as UserCircleData;
+
+      if (isBlockedCircle(circleData.circleId, circleData.circleInfo.owner)) {
+        continue;
+      }
+
+      // Spam circles get created and abandoned. An unstarted circle can only be
+      // joined through an owner-signed invite, so it has nothing to offer a
+      // browsing non-member — members still see their own under /account.
+      if (
+        circleData.circleInfo.effectiveCircleStartTime === BigInt(0) &&
+        !circleData.isMember
+      ) {
+        continue;
+      }
+
       const status = getUserCircleStatus({
         circle: circleData,
         now,

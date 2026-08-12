@@ -1,3 +1,9 @@
+import {
+  RegExpMatcher,
+  englishDataset,
+  englishRecommendedTransformers,
+} from "obscenity";
+
 export const ALIAS_MIN_LENGTH = 3;
 export const ALIAS_MAX_LENGTH = 20;
 
@@ -30,10 +36,22 @@ const RESERVED_ALIASES = new Set([
   "stacks",
 ]);
 
+// Built once at module load and reused; matching is stateless.
+const profanityMatcher = new RegExpMatcher({
+  ...englishDataset.build(),
+  ...englishRecommendedTransformers,
+});
+
+// Offensive aliases the profanity dataset doesn't recognise on its own. Append
+// as they turn up; matched case-insensitively like RESERVED_ALIASES.
+const BLOCKED_ALIASES = new Set(["poindexter"]);
+
 /**
  * Validates a display alias. Returns an error message, or null when valid.
- * Mirrors the database constraints (format check + reserved list); uniqueness
- * is enforced only by the case-insensitive unique index in Postgres.
+ * Covers the database constraints (format check + reserved list) plus a
+ * profanity check that only lives here — writes reach `profiles` solely through
+ * POST /api/profile, so this is the effective gate. Uniqueness is enforced only
+ * by the case-insensitive unique index in Postgres.
  */
 export function validateAlias(alias: string): string | null {
   if (alias.length < ALIAS_MIN_LENGTH) {
@@ -50,6 +68,13 @@ export function validateAlias(alias: string): string | null {
 
   if (RESERVED_ALIASES.has(alias.toLowerCase())) {
     return "This alias is reserved";
+  }
+
+  if (
+    BLOCKED_ALIASES.has(alias.toLowerCase()) ||
+    profanityMatcher.hasMatch(alias)
+  ) {
+    return "This alias isn't allowed";
   }
 
   return null;
