@@ -20,7 +20,7 @@ import LocalButton from "@/components/button";
 import { useEffect, useRef, useState } from "react";
 import { usePublicClient } from "wagmi";
 import AddMembersCard from "@/components/add-members/add-members-card";
-import { useIsMiniPay } from "@/hooks/use-is-minipay";
+import { useIsMiniPay } from "@/components/providers/is-minipay";
 import { savingCirclesAbi } from "../../../lib/abis/saving-circles";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../../lib/constants";
 import { useSignTypedData } from "@privy-io/react-auth";

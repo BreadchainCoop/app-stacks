@@ -1,5 +1,5 @@
 import { useGetLastClaimed } from "@/hooks/use-get-last-claimed";
-import { useIsMiniPay } from "@/hooks/use-is-minipay";
+import { useIsMiniPay } from "@/components/providers/is-minipay";
 import { useMemberAliases } from "@/hooks/use-member-aliases";
 import { Body, useConnectedUser } from "@breadcoop/ui";
 import { CalendarDotsIcon } from "@phosphor-icons/react";

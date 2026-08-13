@@ -6,7 +6,7 @@ const HeroBanner = () => {
   return (
     <section
       className="relative mb-12 overflow-hidden bg-cover bg-center md:min-h-95"
-      style={{ backgroundImage: "url('/hands.jpg')" }}
+      style={{ backgroundImage: "url('/hands.webp')" }}
     >
       {/* Branded blue wash over the photo (see Figma 4055:26607) */}
       <div className="absolute inset-0 bg-primary-blue opacity-60 mix-blend-color" />

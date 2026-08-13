@@ -16,7 +16,7 @@ import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { DEPOSIT_ERRORS } from "@/lib/contract-errors";
 import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
-import { useIsMiniPay } from "@/hooks/use-is-minipay";
+import { useIsMiniPay } from "@/components/providers/is-minipay";
 import LocalButton from "./button";
 
 interface DepositButtonProps extends Omit<ButtonProps, "children"> {

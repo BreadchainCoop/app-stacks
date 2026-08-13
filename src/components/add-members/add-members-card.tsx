@@ -72,6 +72,14 @@ const AddMembersCard = ({
     chainId: getDefaultChainId(),
   });
 
+  const { data: circle } = useReadContract({
+    abi: savingCirclesAbi,
+    address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+    functionName: "getCircle",
+    args: [circleId],
+    chainId: getDefaultChainId(),
+  });
+
   const memberCount = members?.length ?? 0;
   const slotsLeft =
     maxMembers !== undefined
@@ -118,9 +126,13 @@ const AddMembersCard = ({
     setPending((prev) => prev.filter((p) => p.address !== address));
   };
 
-  // member[0] is always the owner (from create); everyone after can be
-  // removed on-chain before the circle starts
-  const existingMembers = (members ?? []).slice(1);
+  // Everyone except the owner can be removed on-chain before the circle
+  // starts (the contract rejects removing the owner), so filter by owner
+  // rather than assuming they are still at index 0.
+  const owner = circle?.owner;
+  const existingMembers = owner
+    ? (members ?? []).filter((m) => m.toLowerCase() !== owner.toLowerCase())
+    : [];
 
   const removeExistingMember = async (address: Address) => {
     if (removing) return;

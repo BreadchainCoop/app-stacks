@@ -1,3 +1,7 @@
+// Bundled rather than pulled from unpkg at runtime: a third-party
+// render-blocking stylesheet costs a round trip on first paint and adds an
+// origin to the MiniPay network manifest.
+import "@rainbow-me/rainbowkit/styles.css";
 import "./globals.css";
 import { generateMetadata } from "@/utils/metadata";
 import ModalPresenter from "@/components/modal/presenter";
@@ -19,12 +23,6 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <head>
-        <link
-          rel="stylesheet"
-          href="https://unpkg.com/@rainbow-me/rainbowkit@latest/styles.css"
-        />
-      </head>
       <body className="font-roboto text-text-standard antialiased">
         <div className="body-container">
           <Providers isMobile={isMobile} isMiniPay={isMiniPay}>

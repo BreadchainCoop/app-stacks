@@ -6,7 +6,7 @@ import { useModal } from "../modal/context";
 import { BreadText } from "./bread-text";
 import LocalButton from "../button";
 import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
-import { useIsMiniPay } from "@/hooks/use-is-minipay";
+import { useIsMiniPay } from "@/components/providers/is-minipay";
 import { MINIPAY_ADD_CASH_URL } from "@/utils/minipay";
 
 const ActionItems = () => {

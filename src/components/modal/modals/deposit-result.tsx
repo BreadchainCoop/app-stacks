@@ -5,7 +5,7 @@ import {
 } from "../context";
 import { ModalContainer, ModalHeader, ModalStatus } from "../components";
 import LocalButton from "@/components/button";
-import { useIsMiniPay } from "@/hooks/use-is-minipay";
+import { useIsMiniPay } from "@/components/providers/is-minipay";
 import { MINIPAY_ADD_CASH_URL } from "@/utils/minipay";
 
 const DepositResult = ({
