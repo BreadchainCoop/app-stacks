@@ -35,7 +35,11 @@ export const yieldSavingCirclesAbi = [
     name: "setClaimTiming",
     inputs: [
       { name: "_id", type: "uint256", internalType: "uint256" },
-      { name: "_timing", type: "uint8", internalType: "enum YieldSavingCircles.ClaimTiming" },
+      {
+        name: "_timing",
+        type: "uint8",
+        internalType: "enum YieldSavingCircles.ClaimTiming",
+      },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -51,7 +55,13 @@ export const yieldSavingCirclesAbi = [
     type: "function",
     name: "claimTiming",
     inputs: [{ name: "id", type: "uint256", internalType: "uint256" }],
-    outputs: [{ name: "timing", type: "uint8", internalType: "enum YieldSavingCircles.ClaimTiming" }],
+    outputs: [
+      {
+        name: "timing",
+        type: "uint8",
+        internalType: "enum YieldSavingCircles.ClaimTiming",
+      },
+    ],
     stateMutability: "view",
   },
 ] as const;

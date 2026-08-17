@@ -38,7 +38,7 @@ export default function YieldPanel({
   if (!hasYieldContract) return null;
 
   const amount = Number(formatUnits(claimableYield, 18));
-  const nothingToClaim = claimableYield === 0n;
+  const nothingToClaim = claimableYield === BigInt(0);
 
   const claimYield = async () => {
     if (claiming || !receiver || nothingToClaim) return;
@@ -58,15 +58,17 @@ export default function YieldPanel({
   };
 
   return (
-    <div className={cn("flex flex-col gap-3 rounded-2xl border p-4", className)}>
+    <div
+      className={cn("flex flex-col gap-3 rounded-2xl border p-4", className)}
+    >
       <div className="flex items-center gap-2">
         <CoinsIcon className="size-5" />
         <span className="font-bold">Yield earned</span>
       </div>
       <p className="text-2xl font-bold">{formatAmount(amount, 4)} BREAD</p>
       <p className="text-sm opacity-70">
-        Your deposits earn yield while the circle runs — the earlier you deposit,
-        the more you earn.
+        Your deposits earn yield while the circle runs — the earlier you
+        deposit, the more you earn.
       </p>
       <LocalButton
         className="font-bold w-full"

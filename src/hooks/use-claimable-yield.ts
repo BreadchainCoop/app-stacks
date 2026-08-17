@@ -32,7 +32,7 @@ export function useClaimableYield({ member }: { member?: Address }) {
   });
 
   return {
-    claimableYield: (data as bigint | undefined) ?? 0n,
+    claimableYield: (data as bigint | undefined) ?? BigInt(0),
     isLoading,
     error,
     refetch,

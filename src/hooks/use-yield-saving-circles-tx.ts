@@ -15,10 +15,17 @@ export const useYieldSavingCirclesTx = () => {
   const { sendSponsoredTransaction } = useSponsoredTx();
 
   const sendYieldSavingCirclesTx = async <
-    TFunctionName extends ContractFunctionName<YieldSavingCirclesAbi, "nonpayable">,
+    TFunctionName extends ContractFunctionName<
+      YieldSavingCirclesAbi,
+      "nonpayable"
+    >,
   >(params: {
     functionName: TFunctionName;
-    args: ContractFunctionArgs<YieldSavingCirclesAbi, "nonpayable", TFunctionName>;
+    args: ContractFunctionArgs<
+      YieldSavingCirclesAbi,
+      "nonpayable",
+      TFunctionName
+    >;
     options?: Parameters<typeof sendSponsoredTransaction>[1];
   }) => {
     return simulateAndSponsorTx({
