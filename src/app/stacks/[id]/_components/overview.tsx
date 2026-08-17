@@ -31,6 +31,7 @@ import { useReadContracts } from "wagmi";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useFundsDeposited } from "@/hooks/use-funds-deposited";
 import LocalButton from "@/components/button";
+import YieldPanel from "@/components/yield-panel";
 
 const Overview = ({
   circle,
@@ -336,6 +337,7 @@ const Overview = ({
           </>
         ) : null}
       </div>
+      <YieldPanel member={member} className="mt-4" />
     </section>
   );
 };
