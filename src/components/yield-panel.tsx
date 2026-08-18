@@ -17,9 +17,13 @@ import { useYieldSavingCirclesTx } from "@/hooks/use-yield-saving-circles-tx";
 export default function YieldPanel({
   member,
   className,
+  stubAmount,
 }: {
   member?: Address;
   className?: string;
+  // TEMPORARY: force the panel visible with mock data for preview demos
+  // (feat/yield-ui). Remove before merge. See saving-circles#189.
+  stubAmount?: number;
 }) {
   const queryClient = useQueryClient();
   const [claiming, setClaiming] = useState(false);
@@ -35,12 +39,14 @@ export default function YieldPanel({
   });
   const { sendYieldSavingCirclesTx } = useYieldSavingCirclesTx();
 
-  if (!hasYieldContract) return null;
+  if (stubAmount === undefined && !hasYieldContract) return null;
 
-  const amount = Number(formatUnits(claimableYield, 18));
-  const nothingToClaim = claimableYield === BigInt(0);
+  const amount = stubAmount ?? Number(formatUnits(claimableYield, 18));
+  const nothingToClaim =
+    stubAmount === undefined && claimableYield === BigInt(0);
 
   const claimYield = async () => {
+    if (stubAmount !== undefined) return; // demo mode: no-op
     if (claiming || !receiver || nothingToClaim) return;
     setClaiming(true);
     try {
@@ -73,7 +79,10 @@ export default function YieldPanel({
       <LocalButton
         className="font-bold w-full"
         onClick={claimYield}
-        disabled={claiming || !receiver || nothingToClaim}
+        disabled={
+          claiming ||
+          (stubAmount === undefined && (!receiver || nothingToClaim))
+        }
       >
         {claiming ? "Claiming…" : "Claim yield"}
       </LocalButton>
