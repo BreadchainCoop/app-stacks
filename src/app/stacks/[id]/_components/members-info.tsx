@@ -127,30 +127,37 @@ const MembersInfo = ({
           return (
             <AccordionItem key={member} value={member}>
               <AccordionHeader>
-                <div className="flex items-center justify-start gap-x-4 gap-y-1 flex-wrap">
+                <div className="flex w-full flex-col items-start gap-1 md:flex-row md:items-center md:justify-between md:gap-x-4 md:gap-y-1">
                   <Body bold>
                     <DisplayName address={member} />
                   </Body>
-                  {member === owner && (
-                    <Chip className="font-bold text-blue-1 bg-paper-main border-current text-xs">
-                      Group owner
-                    </Chip>
-                  )}
-                  {showDepositChips &&
-                    (hasDeposited ? (
-                      <Chip className="font-bold border-current! text-system-green text-xs">
-                        Deposited
+                  {/* Chips stack under the name on mobile (they'd otherwise
+                      overflow the row and clip). From md up they sit
+                      right-aligned; the shared AccordionTrigger adds gap-2.5
+                      (10px) before the chevron, so md:mr-1.5 (6px) brings the
+                      group to 16px from the arrow. */}
+                  <div className="flex flex-wrap items-center gap-2 md:shrink-0 md:justify-end md:mr-1.5">
+                    {member === owner && (
+                      <Chip className="font-bold text-blue-1 bg-paper-main border-current text-xs">
+                        Group owner
                       </Chip>
-                    ) : (
-                      <Chip className="font-bold border-current! text-system-warning text-xs">
-                        Not deposited
+                    )}
+                    {showDepositChips &&
+                      (hasDeposited ? (
+                        <Chip className="font-bold border-current! text-system-green text-xs">
+                          Deposited
+                        </Chip>
+                      ) : (
+                        <Chip className="font-bold border-current! text-system-warning text-xs">
+                          Not deposited
+                        </Chip>
+                      ))}
+                    {claimedByMember[member.toLowerCase()] && (
+                      <Chip className="font-bold border-system-green! bg-system-green! text-paper-main text-xs">
+                        Claimed
                       </Chip>
-                    ))}
-                  {claimedByMember[member.toLowerCase()] && (
-                    <Chip className="font-bold border-system-green! bg-system-green! text-paper-main text-xs">
-                      Claimed
-                    </Chip>
-                  )}
+                    )}
+                  </div>
                 </div>
               </AccordionHeader>
               <AccordionContent>
