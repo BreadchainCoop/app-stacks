@@ -51,6 +51,9 @@ const ClaimButton = ({
 
       queryClient.invalidateQueries({ queryKey: ["readContract"] });
       queryClient.invalidateQueries({ queryKey: ["readContracts"] });
+      // Surface the withdrawal in the account history section without waiting
+      // for its 60s stale window.
+      queryClient.invalidateQueries({ queryKey: ["accountHistory"] });
 
       setModal({
         type: "CLAIM_RESULT",
