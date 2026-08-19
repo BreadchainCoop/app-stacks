@@ -2,12 +2,9 @@
 
 import { Switch } from "@/components/switch";
 import { useModal } from "@/components/modal/context";
-import { automaticSavingCirclesAbi } from "@/lib/abis/automatic-saving-circles";
-import { AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { getDefaultChainId } from "@/utils/chain";
+import { useAccountAutoClaimsState } from "@/hooks/use-account-auto-claims-state";
 import { Body } from "@breadcoop/ui";
 import { Address } from "viem";
-import { useReadContracts } from "wagmi";
 
 /**
  * Account-level "automatic claims" toggle. Reflects the aggregate state across
@@ -24,24 +21,12 @@ export function AccountAutomaticClaims({
   circleIds: bigint[];
 }) {
   const { setModal } = useModal();
-
-  const { data, isFetching } = useReadContracts({
-    contracts: circleIds.map((circleId) => ({
-      abi: automaticSavingCirclesAbi,
-      address: AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS,
-      functionName: "isAutomaticClaimsEnabled" as const,
-      args: [circleId, address] as const,
-      chainId: getDefaultChainId(),
-    })),
-    query: { enabled: circleIds.length > 0 },
-  });
+  const { enabledByIndex, allEnabled, isFetching } = useAccountAutoClaimsState(
+    address,
+    circleIds
+  );
 
   if (circleIds.length === 0) return null;
-
-  const enabledByIndex = circleIds.map(
-    (_, i) => data?.[i]?.status === "success" && data[i].result === true
-  );
-  const allEnabled = enabledByIndex.every(Boolean);
 
   const onToggle = () => {
     const target = !allEnabled;

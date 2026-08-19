@@ -14,6 +14,7 @@ import {
 import Link from "next/link";
 import { Address, formatEther } from "viem";
 import { AccountAutomaticClaims } from "./account-automatic-claims";
+import { useAccountAutoClaimsState } from "@/hooks/use-account-auto-claims-state";
 
 // Circle-lifecycle statuses where auto-claims no longer apply (nothing left to
 // claim), so they're excluded from the account-level toggle.
@@ -35,6 +36,23 @@ const AccountBalanceCard = ({
   const { setModal } = useModal();
   const isOwner = useIsOwnAddress(address);
   const { circles, financialSummary, isLoading } = useUserCirclesList(address);
+
+  // Stacks the user is still in (not yet finished/failed/expired) — the ones the
+  // account-level auto-claims toggle can act on. Derived before the early return
+  // so the hook below keeps a stable call order.
+  const activeMemberCircleIds = circles
+    .filter(
+      (circle) =>
+        circle.isMember && !TERMINAL_STATUSES.includes(circle.status ?? "")
+    )
+    .map((circle) => circle.id);
+
+  // Aggregate auto-claim state, shared with the toggle: when every stack already
+  // auto-claims, the bulk-claim shortcut is redundant.
+  const { allEnabled: allAutoClaimsEnabled } = useAccountAutoClaimsState(
+    address,
+    activeMemberCircleIds
+  );
 
   const scrollToStacks = () => {
     document
@@ -67,14 +85,11 @@ const AccountBalanceCard = ({
     0
   );
 
-  // Stacks the user is still in (not yet finished/failed/expired), which are the
-  // ones the account-level auto-claims toggle can act on.
-  const activeMemberCircleIds = circles
-    .filter(
-      (circle) =>
-        circle.isMember && !TERMINAL_STATUSES.includes(circle.status ?? "")
-    )
-    .map((circle) => circle.id);
+  const claimableCount = circles.filter((circle) => circle.canWithdraw).length;
+
+  // The bulk-claim shortcut only helps when payouts are waiting in more than one
+  // stack and auto-claims isn't already covering every stack.
+  const canBulkClaim = claimableCount > 1 && !allAutoClaimsEnabled;
 
   return (
     <div className={`flex flex-col gap-6 ${cardClass}`}>
@@ -136,7 +151,7 @@ const AccountBalanceCard = ({
                   circleIds={activeMemberCircleIds}
                 />
               )}
-              {pendingClaims > 0 ? (
+              {canBulkClaim ? (
                 <LocalButton
                   as={Link}
                   href={`${basePath}?tab=claim`}
