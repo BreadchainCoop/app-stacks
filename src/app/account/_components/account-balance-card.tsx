@@ -6,9 +6,18 @@ import { useModal } from "@/components/modal/context";
 import { useIsOwnAddress } from "@/hooks/use-is-own-address";
 import { useUserCirclesList } from "@/hooks/use-user-circles-list";
 import { Body, Caption, Heading2, formatBalance } from "@breadcoop/ui";
-import { CoinsIcon, HandDepositIcon } from "@phosphor-icons/react";
+import {
+  CoinsIcon,
+  HandDepositIcon,
+  HandWithdrawIcon,
+} from "@phosphor-icons/react";
 import Link from "next/link";
 import { Address, formatEther } from "viem";
+import { AccountAutomaticClaims } from "./account-automatic-claims";
+
+// Circle-lifecycle statuses where auto-claims no longer apply (nothing left to
+// claim), so they're excluded from the account-level toggle.
+const TERMINAL_STATUSES = ["decommissioned", "expired", "failed", "finished"];
 
 const toBread = (value: bigint | undefined) =>
   Number(formatEther(value ?? BigInt(0)));
@@ -49,6 +58,23 @@ const AccountBalanceCard = ({
         : sum,
     0
   );
+
+  // `withdrawAmount` is already denominated in BREAD and only present when the
+  // member can currently claim that circle's payout.
+  const pendingClaims = circles.reduce(
+    (sum, circle) =>
+      circle.canWithdraw ? sum + (circle.withdrawAmount ?? 0) : sum,
+    0
+  );
+
+  // Stacks the user is still in (not yet finished/failed/expired), which are the
+  // ones the account-level auto-claims toggle can act on.
+  const activeMemberCircleIds = circles
+    .filter(
+      (circle) =>
+        circle.isMember && !TERMINAL_STATUSES.includes(circle.status ?? "")
+    )
+    .map((circle) => circle.id);
 
   return (
     <div className={`flex flex-col gap-6 ${cardClass}`}>
@@ -95,6 +121,44 @@ const AccountBalanceCard = ({
       {/* Pending actions */}
       <div className="flex flex-col gap-4">
         <Heading2 className="text-xl">Pending actions</Heading2>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <Body className="text-surface-grey">Pending claims</Body>
+            <p className="text-2xl font-bold text-system-green">
+              ${formatBalance(pendingClaims, 2)}
+            </p>
+          </div>
+          {isOwner && (
+            <div className="flex flex-wrap items-center gap-3">
+              {activeMemberCircleIds.length > 0 && (
+                <AccountAutomaticClaims
+                  address={address}
+                  circleIds={activeMemberCircleIds}
+                />
+              )}
+              {pendingClaims > 0 ? (
+                <LocalButton
+                  as={Link}
+                  href={`${basePath}?tab=claim`}
+                  scroll={false}
+                  onClick={scrollToStacks}
+                  className="font-bold"
+                  leftIcon={<HandWithdrawIcon />}
+                >
+                  Claim funds
+                </LocalButton>
+              ) : (
+                <LocalButton
+                  disabled
+                  className="font-bold opacity-50"
+                  leftIcon={<HandWithdrawIcon />}
+                >
+                  Claim funds
+                </LocalButton>
+              )}
+            </div>
+          )}
+        </div>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
             <Body className="text-surface-grey">Pending deposits</Body>

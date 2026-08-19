@@ -23,6 +23,7 @@ import InstallPeerModal from "../peer/install-modal";
 import FundWithConnectedWalletModalAmount from "./modals/fund-wallet/fund-with-connected-wallet-modal-amount";
 import StartStackWarningModal from "./modals/start-stack-warning";
 import AutomaticClaimsModal from "./modals/automatic-claims";
+import AutomaticClaimsAllModal from "./modals/automatic-claims-all";
 import VisitorOnboarding from "../onboard/visitor-onboard-modal";
 import AutomaticDepositsModal from "@/components/automatic-deposits/modal";
 
@@ -99,6 +100,9 @@ const ModalPresenter = () => {
               )}
               {modalState.type === "AUTOMATIC_CLAIMS" && (
                 <AutomaticClaimsModal modalState={modalState} />
+              )}
+              {modalState.type === "AUTOMATIC_CLAIMS_ALL" && (
+                <AutomaticClaimsAllModal modalState={modalState} />
               )}
               {modalState.type === "VISITOR_ONBOARDING" && (
                 <VisitorOnboarding />
