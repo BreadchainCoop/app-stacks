@@ -87,6 +87,9 @@ importers:
       next:
         specifier: 15.4.10
         version: 15.4.10(@babel/core@7.29.0)(babel-plugin-macros@3.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      obscenity:
+        specifier: ^0.4.1
+        version: 0.4.1
       react:
         specifier: 19.1.0
         version: 19.1.0
@@ -5782,6 +5785,18 @@ packages:
       supports-color:
         optional: true
 
+  debug@4.4.0:
+    resolution:
+      {
+        integrity: sha512-6WTZ/IxCY/T6BALoZHaE4ctp9xm+Z5kY/pzYaCHRFeyVhojxlrm+46y68HA6hr0TcwEssoxNiDEUJQjfPZ/RYA==,
+      }
+    engines: { node: ">=6.0" }
+    peerDependencies:
+      supports-color: "*"
+    peerDependenciesMeta:
+      supports-color:
+        optional: true
+
   debug@4.4.3:
     resolution:
       {
@@ -7529,14 +7544,6 @@ packages:
         integrity: sha512-0wM3YBWtYePOjfyXQH5MWQ8H7sdk5EXSwZvmSLKk2RboVQ2Bu239jycHDz5J/8Blf3K0Qnoy2b6xD+z10MFB+Q==,
       }
 
-  jsesc@3.0.2:
-    resolution:
-      {
-        integrity: sha512-xKqzzWXDttJuOcawBt4KnKHHIf5oQ/Cxax+0PWFG+DFDgHNAdi+TXECADI+RYiFUMmx8792xsMbbgXj4CwnP4g==,
-      }
-    engines: { node: ">=6" }
-    hasBin: true
-
   jsesc@3.1.0:
     resolution:
       {
@@ -8400,6 +8407,13 @@ packages:
         integrity: sha512-gXah6aZrcUxjWg2zR2MwouP2eHlCBzdV4pygudehaKXSGW4v2AsRQUK+lwwXhii6KFZcunEnmSUoYp5CXibxtA==,
       }
     engines: { node: ">= 0.4" }
+
+  obscenity@0.4.1:
+    resolution:
+      {
+        integrity: sha512-hzkBkFsoiOVB1tYCnC3dqh/Y/S+iis0hC6mqexVfg+LRCcVS7GLTcbW14+BuKMNDqPwNJsM7+tCVki7gWq73lw==,
+      }
+    engines: { node: ">=14.0.0" }
 
   ofetch@1.5.1:
     resolution:
@@ -11006,7 +11020,7 @@ snapshots:
       "@babel/types": 7.25.7
       "@jridgewell/gen-mapping": 0.3.5
       "@jridgewell/trace-mapping": 0.3.25
-      jsesc: 3.0.2
+      jsesc: 3.1.0
 
   "@babel/generator@7.29.1":
     dependencies:
@@ -13189,7 +13203,7 @@ snapshots:
   "@react-native/community-cli-plugin@0.85.2(bufferutil@4.1.0)(utf-8-validate@6.0.6)":
     dependencies:
       "@react-native/dev-middleware": 0.85.2(bufferutil@4.1.0)(utf-8-validate@6.0.6)
-      debug: 4.4.3
+      debug: 4.4.0
       invariant: 2.2.4
       metro: 0.84.3(bufferutil@4.1.0)(utf-8-validate@6.0.6)
       metro-config: 0.84.3(bufferutil@4.1.0)(utf-8-validate@6.0.6)
@@ -13205,7 +13219,7 @@ snapshots:
   "@react-native/debugger-shell@0.85.2":
     dependencies:
       cross-spawn: 7.0.6
-      debug: 4.4.3
+      debug: 4.4.0
       fb-dotslash: 0.5.8
     transitivePeerDependencies:
       - supports-color
@@ -13218,7 +13232,7 @@ snapshots:
       chrome-launcher: 0.15.2
       chromium-edge-launcher: 0.3.0
       connect: 3.7.0
-      debug: 4.4.3
+      debug: 4.4.0
       invariant: 2.2.4
       nullthrows: 1.1.1
       open: 7.4.2
@@ -17306,6 +17320,10 @@ snapshots:
     dependencies:
       ms: 2.1.2
 
+  debug@4.4.0:
+    dependencies:
+      ms: 2.1.3
+
   debug@4.4.3:
     dependencies:
       ms: 2.1.3
@@ -18429,8 +18447,6 @@ snapshots:
 
   jsc-safe-url@0.2.4: {}
 
-  jsesc@3.0.2: {}
-
   jsesc@3.1.0: {}
 
   json-buffer@3.0.1: {}
@@ -18701,7 +18717,7 @@ snapshots:
 
   metro-file-map@0.84.3:
     dependencies:
-      debug: 4.4.3
+      debug: 4.4.0
       fb-watchman: 2.0.2
       flow-enums-runtime: 0.0.6
       graceful-fs: 4.2.11
@@ -18796,7 +18812,7 @@ snapshots:
       chalk: 4.1.2
       ci-info: 2.0.0
       connect: 3.7.0
-      debug: 4.4.3
+      debug: 4.4.0
       error-stack-parser: 2.1.4
       flow-enums-runtime: 0.0.6
       graceful-fs: 4.2.11
@@ -18998,6 +19014,8 @@ snapshots:
       call-bound: 1.0.4
       define-properties: 1.2.1
       es-object-atoms: 1.1.1
+
+  obscenity@0.4.1: {}
 
   ofetch@1.5.1:
     dependencies:
