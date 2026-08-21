@@ -1,4 +1,3 @@
-```tsx
 "use client";
 
 import Countdown from "@/components/countdown";
@@ -54,15 +53,15 @@ const DaysLeft = ({
     const timeLeft = currentRoundEnd - now;
 
     roundStartLabel = formatDate(currentRoundStart);
-roundEndLabel = formatDate(currentRoundEnd);
+    roundEndLabel = formatDate(currentRoundEnd);
 
     if (timeLeft > 0) {
       const _daysLeft = Math.floor(timeLeft / (60 * 60 * 24));
-      daysLeft = ${_daysLeft} ${_daysLeft === 1 ? "day" : "days"};
+      daysLeft = `${_daysLeft} ${_daysLeft === 1 ? "day" : "days"}`;
 
       const progressPercent = Math.min(
         100,
-        ((now - currentRoundStart) / totalDuration) * 100,
+        ((now - currentRoundStart) / totalDuration) * 100
       );
       remainingPercent = Math.max(0, 100 - progressPercent);
     } else {
@@ -83,7 +82,7 @@ roundEndLabel = formatDate(currentRoundEnd);
       <div className="w-full h-4 bg-paper-2 mt-4 mb-1 p-0.75">
         <div
           className="h-full bg-primary-blue transition-all"
-          style={{ width: ${remainingPercent}% }}
+          style={{ width: `${remainingPercent}%` }}
         />
       </div>
       <div className="flex items-center justify-between text-sm opacity-70 mb-2">
@@ -103,19 +102,18 @@ roundEndLabel = formatDate(currentRoundEnd);
 };
 
 export default DaysLeft;
-**PR title:**
+// **PR title:**
 
-Fix round-progress bar: show time remaining + add start/end captions
-**PR description:**
+// Fix round-progress bar: show time remaining + add start/end captions
+// **PR description:**
 
-Addresses UX feedback (via Unai): the round-progress bar was unclear.
+// Addresses UX feedback (via Unai): the round-progress bar was unclear.
 
-Problem: the bar filled with time elapsed in the round while the label said "days left" — opposite directions, no captions — so a near-empty bar next to "6 days left" felt contradictory.
+// Problem: the bar filled with time elapsed in the round while the label said "days left" — opposite directions, no captions — so a near-empty bar next to "6 days left" felt contradictory.
 
-Changes:
-Invert the bar to represent time remaining (full at round start, empties to 0 as it counts down), matching the "days left" fra
-ming.
-Add captions under the bar: "Round started {date}" (left) and "Ends {date}" (right).
+// Changes:
+// Invert the bar to represent time remaining (full at round start, empties to 0 as it counts down), matching the "days left" fra
+// ming.
+// Add captions under the bar: "Round started {date}" (left) and "Ends {date}" (right).
 
-Note: not build-tested locally by the author of the change — please review. Color/spacing tokens (opacity-70) may want aligning with the design system.
-```
+// Note: not build-tested locally by the author of the change — please review. Color/spacing tokens (opacity-70) may want aligning with the design system.
