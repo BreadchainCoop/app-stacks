@@ -17,7 +17,6 @@ import {
   WalletListEntry,
 } from "@privy-io/react-auth";
 import SepoliaAutoFund from "./sepolia-auto-fund";
-import LocalUserBootstrap from "./local-user-bootstrap";
 import { networks } from "@/utils/network";
 
 const tokenConfig: ComponentProps<typeof BreadUIKitProvider>["tokenConfig"] = {
@@ -79,7 +78,7 @@ const Providers = ({
               authProvider={isLocalMode() ? "general" : "privy"}
             >
               <ConnectedUserProvider>
-                {isLocalMode() ? <LocalUserBootstrap /> : <SepoliaAutoFund />}
+                {!isLocalMode() && <SepoliaAutoFund />}
                 <ModalProvider>{children}</ModalProvider>
               </ConnectedUserProvider>
             </BreadUIKitProvider>

@@ -68,7 +68,13 @@ This will:
 - Automatically update your `.env.local` with the deployed contract addresses
 - Start the Next.js development server
 
-**Default deployer account**: `0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266` (Anvil's first account)
+**Deployer account**: `0xdcE4807F815737616B6150c5A483AeC83C4FC5a9` — a dedicated
+throwaway key whose nonce is forced to 0 before every deploy, so the contracts always
+land on the same addresses. Those addresses are baked into the app, which is what lets
+the hosted demo site talk to your Anvil node (see "Demo local mode" below). `make
+deploy` verifies them and fails loudly if they drift. The admin (and the account
+`make fund-wallet` sends from) is still Anvil's first account,
+`0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266`.
 
 ### 6. Configure MetaMask
 
@@ -86,6 +92,34 @@ Import the default Anvil account for testing:
 ⚠️ **Never use this account on mainnet or with real funds!**
 
 Open [http://localhost:3000](http://localhost:3000) to see your dApp.
+
+## Demo local mode (no local setup)
+
+The deployed dev/demo sites can run against **your** Anvil node instead of Sepolia, so
+you can demo the full flow without waiting for real round intervals. Open the site,
+pick **Demo local** in the popup, and you get:
+
+- no login — a navbar dropdown switches between the 10 Anvil accounts
+- a **Next round** button on the stack page that warps Anvil's clock past the deposit
+  window (the in-app equivalent of `make warp`)
+- stack creation with a single fixed interval, since rounds only advance via that button
+
+The only prerequisite is a node with the contracts on it:
+
+```bash
+make anvil     # terminal 1
+make deploy    # terminal 2
+make fund-all  # give all 10 Anvil accounts xDAI + BREAD
+```
+
+No `.env.local`, no Supabase and no `pnpm install` needed — the contract addresses are
+deterministic and already baked into the deployed bundle. Stack names and invite
+tracking are kept in the browser's localStorage, so a link opened in a different
+browser shows as `Stack <id>`.
+
+Chrome or Edge only: other browsers block an https page from calling
+`http://localhost:8545`. The mode is remembered, and the navbar chip switches back to
+Demo Sepolia at any time. Production never shows the popup.
 
 ## Development Workflow
 
@@ -171,6 +205,8 @@ make warp TIMESTAMP=1735689600     # Jump to a specific timestamp (January 1, 20
 | `make anvil`                           | Start local blockchain (Gnosis fork)              |
 | `make start-local`                     | Clear off-chain data, deploy contracts, start dev |
 | `make deploy`                          | Deploy contracts and update .env.local            |
+| `make check-deployment`                | Verify the deterministic local addresses          |
+| `make fund-all`                        | Fund all 10 Anvil accounts with xDAI and BREAD    |
 | `make reset-supabase`                  | Wipe off-chain stack data (local env only)        |
 | `make anvil-reset`                     | Reset blockchain to fresh state                   |
 | `make update-contract-submodules`      | Update contract dependencies                      |
@@ -189,9 +225,13 @@ To deploy with custom parameters:
 ```bash
 make deploy \
   RPC_URL=http://localhost:8545 \
-  PRIVATE_KEY=0x... \
+  LOCAL_DEPLOYER_PK=0x... \
   ADMIN_ADDRESS=0x...
 ```
+
+Overriding `LOCAL_DEPLOYER_PK` changes the deployed addresses, so `check-deployment`
+will fail — expected for a one-off deploy, but Demo local mode won't find the
+contracts. `PRIVATE_KEY` is the account `make fund-wallet` sends from.
 
 ## Troubleshooting
 

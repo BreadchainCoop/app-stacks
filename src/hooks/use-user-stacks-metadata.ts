@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createSupabaseClient, SupabaseStackMetadata } from "@/lib/supabase";
+import { getLocalStacksMetadata } from "@/lib/local-metadata";
 import { isLocalMode } from "@/lib/network-mode";
 
 const supabase = createSupabaseClient();
@@ -10,6 +11,8 @@ export const useUserStacksMetadata = (address: string | undefined) => {
     queryFn: async () => {
       const empty: Record<string, SupabaseStackMetadata> = {};
       if (!address) return empty;
+
+      if (isLocalMode()) return getLocalStacksMetadata(address);
 
       // .in() is case-sensitive; match both casings
       const { data: users, error: userError } = await supabase
@@ -37,9 +40,6 @@ export const useUserStacksMetadata = (address: string | undefined) => {
       ) as Record<string, SupabaseStackMetadata>;
     },
     enabled: !!address,
-    // Local supabase is optional; when it isn't running, fail fast so the UI
-    // falls back to on-chain data instead of retrying a dead localhost.
-    retry: isLocalMode() ? false : undefined,
   });
 
   return {

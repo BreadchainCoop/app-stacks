@@ -108,7 +108,7 @@ const localWagmiConfig = createBaseConfig({
     }),
   ],
   transports: {
-    [foundryChain.id]: http(clientEnv.NEXT_PUBLIC_LOCAL_RPC_URL),
+    [foundryChain.id]: http(clientEnv.NEXT_PUBLIC_ANVIL_RPC_URL),
   },
   ssr: true,
 });

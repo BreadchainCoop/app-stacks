@@ -29,8 +29,7 @@ import { shortenUrl } from "@/utils/shorten";
 import { SupabaseInviteLink } from "@/lib/supabase";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { isLocalMode } from "@/lib/network-mode";
-import { createLocalStackMetadata } from "@/lib/local-supabase";
-import { useSupabaseClient } from "@/components/providers/supabase";
+import { createLocalStackMetadata } from "@/lib/local-metadata";
 import { useConnectedUser } from "@breadcoop/ui";
 
 type InviteLink = {
@@ -76,7 +75,6 @@ export const StackSuccessResultModal = ({
   const blockTimestamp = useBlockTimestamp();
   const { user: privyUser } = usePrivy();
   const { user: connectedUser } = useConnectedUser();
-  const supabase = useSupabaseClient();
   const publicClient = usePublicClient({ chainId: getDefaultChainId() });
   const { signTypedData } = useSignTypedData();
   const { signTypedDataAsync: signWagmiTypedData } = useWagmiSignTypedData();
@@ -203,45 +201,34 @@ export const StackSuccessResultModal = ({
         signedInvites.push({ nonce, signature, url, used: false });
       }
 
-      if (isLocal) {
-        // No URL shortener against localhost — keep the long URLs.
-        supabaseInviteLinks.forEach((link) => {
-          link.short = link.long;
-        });
-      } else {
-        setSigningProgress("Shortening invite links...");
+      setSigningProgress("Shortening invite links...");
 
-        const shorteningResults = await Promise.allSettled(
-          signedInvites.map((invite) =>
-            shortenUrl(invite.url, { check: false })
-          )
-        );
+      const shorteningResults = await Promise.allSettled(
+        signedInvites.map((invite) => shortenUrl(invite.url, { check: false }))
+      );
 
-        signedInvites.forEach((invite, index) => {
-          const result = shorteningResults[index];
-          if (result.status === "fulfilled" && result.value !== invite.url) {
-            invite.url = result.value;
-            supabaseInviteLinks[index].short = result.value;
-          } else {
-            supabaseInviteLinks[index].short = supabaseInviteLinks[index].long;
-          }
-        });
-      }
+      signedInvites.forEach((invite, index) => {
+        const result = shorteningResults[index];
+        if (result.status === "fulfilled" && result.value !== invite.url) {
+          invite.url = result.value;
+          supabaseInviteLinks[index].short = result.value;
+        } else {
+          supabaseInviteLinks[index].short = supabaseInviteLinks[index].long;
+        }
+      });
 
       if (isLocal) {
         if (
           connectedUser.status === "CONNECTED" ||
           connectedUser.status === "UNSUPPORTED_CHAIN"
         ) {
-          createLocalStackMetadata(supabase, {
+          createLocalStackMetadata({
             id: modalState.circle.id,
             stackname: modalState.circle.name,
             expected_members: modalState.circle.members,
             invite_links: supabaseInviteLinks,
             address: connectedUser.address,
-          }).catch((err) =>
-            console.error("Failed to save local stack metadata:", err)
-          );
+          });
         }
       } else {
         fetch("/api/stacks/metadata", {

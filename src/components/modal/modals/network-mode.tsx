@@ -24,7 +24,7 @@ const OPTIONS: {
     mode: "local",
     title: "Demo local",
     icon: <FlaskIcon size={32} className="text-primary-blue" />,
-    info: "Runs against an Anvil node on your machine (make anvil + make deploy required; local Supabase optional — without it stack names and invite tracking are disabled). No login, switch between test accounts, and advance rounds instantly with the “Next round” button. From the hosted site this works in Chrome/Edge only.",
+    info: "Runs against an Anvil node on your machine — `make anvil` + `make deploy` is the whole setup. No login: switch between the 10 test accounts from the navbar and advance rounds instantly with the “Next round” button. Stack names and invites are kept in this browser only. From the hosted site this works in Chrome/Edge only.",
   },
   {
     mode: "sepolia",

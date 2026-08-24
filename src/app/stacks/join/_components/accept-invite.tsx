@@ -8,8 +8,7 @@ import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { getDefaultChainId } from "@/utils/chain";
 import { isLocalMode } from "@/lib/network-mode";
-import { redeemLocalInvite } from "@/lib/local-supabase";
-import { useSupabaseClient } from "@/components/providers/supabase";
+import { redeemLocalInvite } from "@/lib/local-metadata";
 import { Body, LoginButton, useConnectedUser } from "@breadcoop/ui";
 import { CheckIcon } from "@phosphor-icons/react";
 import { usePrivy } from "@privy-io/react-auth";
@@ -40,7 +39,6 @@ export default function AcceptInvite({
   const { sendSavingCirclesTx } = useSavingCirclesTx();
   const { activate: enableAutomaticClaims } = useAutomaticClaims();
   const { user: privyUser } = usePrivy();
-  const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
 
   const address = user.status === "CONNECTED" ? user.address : undefined;
@@ -105,14 +103,8 @@ export default function AcceptInvite({
       queryClient.invalidateQueries({ queryKey: isMemberKey });
 
       if (isLocalMode()) {
-        // No API routes in local mode: record the redemption directly.
-        redeemLocalInvite(supabase, {
-          circleId,
-          nonce,
-          address: user.address,
-        }).catch((error) => {
-          console.error("Failed to record local invite redemption:", error);
-        });
+        // No API routes in local mode: record the redemption in localStorage.
+        redeemLocalInvite({ circleId, nonce, address: user.address });
       } else {
         fetch("/api/stacks/invite", {
           method: "PATCH",

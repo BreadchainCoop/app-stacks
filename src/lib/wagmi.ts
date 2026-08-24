@@ -8,7 +8,7 @@ export const foundryChain = defineChain({
   // The wagmi mock connector signs by forwarding raw RPC calls to
   // rpcUrls.default, so the local RPC URL must live on the chain itself.
   rpcUrls: {
-    default: { http: [clientEnv.NEXT_PUBLIC_LOCAL_RPC_URL] },
+    default: { http: [clientEnv.NEXT_PUBLIC_ANVIL_RPC_URL] },
   },
   // contracts: {
   // 	multicall3: {

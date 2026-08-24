@@ -1,6 +1,8 @@
 # Spec: Runtime network mode — "Demo local" vs "Demo Sepolia"
 
-Status: draft — pending team review before implementation.
+Status: implemented. Revised after review — the local Supabase layer was dropped in
+favour of localStorage, and the makefile reuses the existing local-setup targets
+instead of adding parallel ones.
 
 ## Motivation
 
@@ -31,7 +33,11 @@ Much of the local infrastructure is already in place:
   AutomaticSavingCircles + SavingCirclesViewer, writes
   `contracts/out/SAVING_CIRCLES_DEPLOYMENT.json`), `update-env`, `start-local`,
   `reset-supabase`, time helpers (`warp`, `time-increase`, `mine`, `time-reset`),
+  `fund-wallet`. **All of these are reused as-is** — this spec adds only the
+  deterministic deployer on top (see below) and a `fund-all` alias over
   `fund-wallet`.
+- `supabase/`: checked-in migrations and a CLI workflow (`pnpm db:push:*`,
+  `supabase/README.md`). Local mode deliberately does not touch any of it.
 - Frontend: chain 31337 (`foundryChain`) is configured in `src/utils/network.ts` /
   `src/lib/wagmi.ts`; `src/hooks/use-block-timestamp.ts` already reads the block
   timestamp from the chain when the env is `local`, so Anvil time manipulation is
@@ -44,14 +50,15 @@ in the write/data paths.
 ## Agreed decisions
 
 - Local mode works **from the deployed dev/demo sites too**: the browser talks directly
-  to `http://localhost:8545` (Anvil) and `http://127.0.0.1:54321` (local Supabase).
-  Chrome/Edge only — Safari/Firefox block mixed content to localhost.
+  to `http://localhost:8545` (Anvil). Chrome/Edge only — Safari/Firefox block mixed
+  content to localhost.
+- **`make anvil` + `make deploy` is the entire setup.** No `.env.local`, no Supabase,
+  no Docker: the contract addresses are deterministic and baked into the bundle, so
+  the hosted demo site drives a developer's node with zero local configuration.
 - Profile switching: **in-app switcher** using the 10 Anvil accounts via wagmi's `mock`
   connector. Anvil signs server-side (accounts are unlocked) — no private keys in the
   app.
-- Off-chain metadata in local mode: **local Supabase** (standard CLI URL/anon key),
-  accessed directly from the browser with permissive RLS **on the local instance
-  only**.
+- Off-chain metadata in local mode: **localStorage**, not a database (see below).
 
 ## Architecture
 
@@ -84,7 +91,10 @@ addresses must be known ahead of time:
   every saving-circles submodule update). They only change if `Deploy.s.sol`
   adds/reorders deployments; `make deploy` sanity-checks the deployment JSON against
   the expected addresses and fails loudly.
-- The fixed addresses are baked as defaults of the new `NEXT_PUBLIC_LOCAL_*` env vars.
+- The fixed addresses are baked as defaults of the new `NEXT_PUBLIC_ANVIL_*` env vars.
+  (Namespaced `ANVIL_`, not `LOCAL_`, because `NEXT_PUBLIC_LOCAL_BREAD_TOKEN_ADDRESS`
+  already exists in older `.env.local` files from the `NEXT_PUBLIC_TARGET_NETWORK` era
+  and would silently override the default.)
 - `ADMIN_ADDRESS` stays Anvil account 0 so `make fund-wallet` (BREAD transfers from the
   admin) keeps working.
 
@@ -102,36 +112,36 @@ addresses must be known ahead of time:
   typed-data signing in `stack-result.tsx` → wagmi `useSignTypedData` (Anvil supports
   `eth_signTypedData_v4` for unlocked accounts).
 
-### Local Supabase, no auth — and optional
+### Off-chain metadata: localStorage, no Supabase
 
-Local Supabase is **optional**: users without the CLI/Docker still get the full
-on-chain flow (create, join, deposit, "Next round", claim). Without it, only
-the off-chain metadata degrades — stack names fall back to "Stack &lt;id&gt;"
-and invite redemption isn't tracked. Metadata reads fail fast in local mode
-(no react-query retries against a dead localhost), writes are fire-and-forget
-with logged errors, and `make start-local` warns instead of failing when the
-CLI or stack is unavailable. Stated in the popup info.
+Stack names, invite links and stack membership live in the hosted app's Supabase.
+Local mode can reach neither half of that flow: the write paths are API routes using
+the service-role key (a deployed site cannot call them against a developer's machine)
+and there is no Privy identity to attribute writes to.
 
-- Client-side reads already use only the anon key (the Privy sign-in helper in
-  `src/lib/supabase.ts` is never called). Writes go through server API routes with the
-  service-role key — which a deployed site cannot use against a user's localhost
-  instance.
-- Local mode therefore talks **directly from the browser** to the local Supabase.
-  This **includes the existing `NEXT_PUBLIC_NODE_ENV=local` developer workflow**, which
-  today points at the hosted dev instance: in local mode the hosted Supabase URL/anon
-  vars and `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` become unused. Defaults are the
-  standard CLI URL/anon key, overridable via `NEXT_PUBLIC_LOCAL_SUPABASE_*`.
-  - `createSupabaseClient()` gets a mode ternary for URL/anon key (covers all readers).
-  - A small `src/lib/local-supabase.ts` replicates the three API routes' logic
-    (`ensureLocalUser`, `createStackMetadata`, `redeemInvite`), with synthetic identity
-    `privy_user_id = "local:<address>"`.
-  - Permissive RLS policies for the local instance live in `supabase/local-rls.sql`
-    (checked in), applied via `make local-supabase-setup`.
-- **Deliberate, documented guardrail exception**: RLS is relaxed only on the throwaway
-  localhost instance; hosted projects and the service-role boundary are untouched.
-- Reusing the shared dev Supabase was rejected: `stacks_metadata.id` is the raw
-  on-chain circle id, so fresh local deployments (ids 0, 1, 2…) would collide with
-  Sepolia rows.
+An earlier revision of this spec solved that with a **local Supabase instance** the
+browser wrote to directly under permissive RLS. That was dropped in review: it
+duplicated the Supabase tooling the repo already has, and it made Docker + the
+Supabase CLI a prerequisite for what is meant to be a throwaway demo.
+
+Local mode instead keeps this data in **localStorage** (`src/lib/local-metadata.ts`),
+mirroring the three API routes' behaviour:
+
+- `getLocalStackMetadata(id)` / `getLocalStacksMetadata(address)` for the two client
+  read paths (`use-stack-supabase.ts`, `use-user-stacks-metadata.ts`).
+- `createLocalStackMetadata(...)` mirrors `POST /api/stacks/metadata`.
+- `redeemLocalInvite(...)` mirrors `PATCH /api/stacks/invite`.
+
+One store per browser, membership keyed by Anvil account, so switching accounts in
+the navbar behaves like switching users. `createSupabaseClient()` is untouched and
+still points at the hosted project — local mode simply never reads or writes stack
+metadata through it, so no local data can leak into a shared environment.
+
+Limitation: an invite opened in a **different browser** has no stack row to name, so
+it shows as `Stack <id>` there. Everything else — create, join, deposit, "Next round",
+claim — is on-chain and unaffected. Reusing the shared dev Supabase was rejected
+outright: `stacks_metadata.id` is the raw on-chain circle id, so fresh local
+deployments (ids 0, 1, 2…) would collide with Sepolia rows.
 
 ### Fixed interval + "Next round" button
 
@@ -155,8 +165,8 @@ CLI or stack is unavailable. Stated in the popup info.
 - New modal type `NETWORK_MODE_SELECT` following the `NEW_USER_ONBOARDING` pattern
   (`src/components/modal/context.tsx`, `presenter.tsx`, `modals/network-mode.tsx`).
 - Options "Demo local" / "Demo Sepolia" with info icons (local: requires `make anvil` +
-  `make deploy` + `supabase start` on the user's machine, Chrome/Edge only from the
-  hosted site; Sepolia: real testnet, Privy login, multi-device join).
+  `make deploy` on the user's machine, Chrome/Edge only from the hosted site; Sepolia:
+  real testnet, Privy login, multi-device join).
 - Escape-dismissal is blocked (a choice is required). A small chip in the Navbar
   (dev/demo only) shows the active mode and reopens the modal.
 - Trigger: a `network-mode-gate.tsx` component in the root layout opens the modal when
@@ -169,9 +179,9 @@ CLI or stack is unavailable. Stated in the popup info.
    deterministic addresses with a fresh deploy.
 1. `src/lib/network-mode.ts` (new).
 2. Env vars (`src/lib/env.ts`, `.env.local.example`):
-   `NEXT_PUBLIC_LOCAL_{SAVING_CIRCLES,SAVING_CIRCLES_VIEWER,AUTOMATIC_SAVING_CIRCLES,BREAD_TOKEN}_ADDRESS`,
-   `NEXT_PUBLIC_LOCAL_RPC_URL`, `NEXT_PUBLIC_LOCAL_SUPABASE_URL`,
-   `NEXT_PUBLIC_LOCAL_SUPABASE_ANON_KEY` — all optional with defaults.
+   `NEXT_PUBLIC_ANVIL_{SAVING_CIRCLES,SAVING_CIRCLES_VIEWER,AUTOMATIC_SAVING_CIRCLES,BREAD_TOKEN}_ADDRESS`
+   and `NEXT_PUBLIC_ANVIL_RPC_URL` — all optional with defaults, so nothing has to be
+   configured to use the hosted site.
 3. Mode ternaries in `src/lib/constants.ts` and `src/utils/chain.ts` (zero consumer
    changes). Creation block helper: local → memoized `anvil_nodeInfo.forkBlockNumber`;
    update the 4 consumer hooks (`use-get-cricle-created`, `use-get-last-claimed`,
@@ -184,44 +194,38 @@ CLI or stack is unavailable. Stated in the popup info.
    `web3.tsx`, subsumed by the mode branch — `authProvider` switch, skip
    `SepoliaAutoFund` in local mode.
 5. Mode-selection popup + Navbar chip + gate component.
-6. Local write paths (`use-sponsored-tx.ts`, `stack-result.tsx`; skip `shortenUrl`
-   locally, owner identity from `useConnectedUser`).
-7. Local Supabase data layer. First export the schema (none is checked in today):
-   `supabase init` → `supabase link` to the dev project → `supabase db pull`,
-   committing `supabase/config.toml` + `supabase/migrations/0000_baseline.sql`, so
-   `supabase start` gives first-time users the full schema. Then `local-supabase.ts`,
-   client ternary, call-site branches, `supabase/local-rls.sql` applied by
-   `make local-supabase-setup`.
+6. Local write paths (`use-sponsored-tx.ts`, `stack-result.tsx`; owner identity from
+   `useConnectedUser`). `shortenUrl`/`expandShortUrlToken` no-op in local mode — in
+   `src/utils/shorten.ts` itself, so every caller is covered.
+7. localStorage metadata layer (`src/lib/local-metadata.ts`) plus the read branches in
+   `use-stack-supabase.ts` / `use-user-stacks-metadata.ts` and the write branches in
+   `stack-result.tsx` / `accept-invite.tsx`.
 8. Fixed interval + hidden radio (`src/utils/deposit-interval.ts`,
    `src/app/new/_components/form/form.tsx`).
 9. "Next round" button; migrate remaining `env === "local"` checks to `isLocalMode()`
    (`use-block-timestamp.ts`, `features.ts`, `stack-result.tsx`).
-10. Account switcher in Navbar (`local-account-switcher.tsx`), `ensureLocalUser` on
-    connect.
-11. Makefile: deterministic deployer (`LOCAL_DEPLOYER_PK/_ADDRESS`, setBalance +
-    setNonce 0, address sanity check), `start-local` depends on
-    `update-saving-circles-dev`, optional `fund-all`. Replace the curl-based
-    `reset-supabase` (greps the hosted URL + service key from `.env.local`) with
-    `supabase db reset`, which re-applies the checked-in migrations plus
-    `local-rls.sql` and is guaranteed to hit the local instance.
+10. Account switcher in Navbar (`local-account-switcher.tsx`).
+11. Makefile — additive only, every existing target reused unchanged: deterministic
+    deployer (`LOCAL_DEPLOYER_PK/_ADDRESS`, setBalance + setNonce 0), the
+    `check-deployment` guard, and a `fund-all` alias over `fund-wallet`. `deploy`
+    skips `update-env` when there is no `.env.local` (it is only needed to run the
+    dev server yourself).
 
 ## Known risks / limitations
 
-- **Browser support**: https deployed site → http localhost RPC/Supabase relies on the
+- **Browser support**: https deployed site → http localhost RPC relies on the
   mixed-content localhost exemption — Chrome/Edge only. Stated in the popup info.
   Chrome's Local Network Access rollout may additionally show a one-time permission
-  prompt for public-site → localhost requests; Anvil's default CORS (`*`) and local
-  Supabase's Kong should otherwise suffice.
+  prompt for public-site → localhost requests; Anvil's default CORS (`*`) should
+  otherwise suffice.
 - **Hydration warnings**: SSR resolves Sepolia values, client may resolve local.
   Cosmetic; gate specific offenders behind a mounted check only if warnings appear.
 - **Address drift**: deterministic addresses break if `Deploy.s.sol` changes deployment
   order/count — caught loudly by the makefile sanity check; regenerate the env
   defaults then.
-- **Local Supabase prerequisites**: stack names and invite tracking need
-  `supabase start` with the checked-in schema plus `local-rls.sql` (one-time
-  `make local-supabase-setup`); everything else works without it (see "Local
-  Supabase, no auth — and optional"). The schema previously lived only in the
-  hosted dashboard; phase 7 checks it into `supabase/migrations`.
+- **Metadata is per-browser**: stack names and invite-redemption state live in
+  localStorage, so a link opened in another browser shows `Stack <id>`. Clearing site
+  data resets it; the on-chain flow is unaffected.
 
 ## Verification checklist
 
@@ -231,12 +235,13 @@ CLI or stack is unavailable. Stated in the popup info.
 3. Sepolia mode (dev env): popup appears once, choice persists across reloads; Privy
    login, create stack with real intervals, invite/join from a second browser —
    unchanged.
-4. Local mode (Chrome; `make anvil` + `make deploy` + `supabase start`): auto-connected
-   as Anvil account 0 without Privy; addresses in the deployment JSON match
-   `NEXT_PUBLIC_LOCAL_*`; create stack (interval radio hidden); stack name visible
-   (local Supabase); switch to accounts 1–2, redeem invites, deposit from each; "Next
-   round" advances past `depositWindowEnd` and the UI updates without manual refresh;
-   claim as the round's recipient; restart Anvil + redeploy → same addresses.
+4. Local mode (Chrome; `make anvil` + `make deploy` only): auto-connected as Anvil
+   account 0 without Privy; `make deploy` prints "✓ Deployment matches the
+   deterministic local addresses"; create stack (interval radio hidden); stack name
+   visible; switch to accounts 1–2, redeem invites, deposit from each (after
+   `make fund-all`); "Next round" advances past `depositWindowEnd` and the UI updates
+   without manual refresh; claim as the round's recipient; restart Anvil + redeploy →
+   same addresses.
 5. Deployed dev site (or `pnpm build && pnpm start` with dev env) in local mode against
-   the machine's Anvil — same flow as (4), confirming no dependence on local API
-   routes.
+   the machine's Anvil, **in a clone with no `.env.local`** — same flow as (4),
+   confirming no dependence on local API routes or local configuration.

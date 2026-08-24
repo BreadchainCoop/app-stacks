@@ -2,7 +2,6 @@
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { clientEnv } from "@/lib/env";
-import { isLocalMode } from "@/lib/network-mode";
 
 // Must stay type aliases: interfaces break supabase-js's generics and every
 // query silently degrades to never.
@@ -115,12 +114,8 @@ export type AppSupabaseClient = SupabaseClient<Database>;
 
 export const createSupabaseClient = () =>
   createClient<Database>(
-    isLocalMode()
-      ? clientEnv.NEXT_PUBLIC_LOCAL_SUPABASE_URL
-      : clientEnv.NEXT_PUBLIC_SUPABASE_URL,
-    isLocalMode()
-      ? clientEnv.NEXT_PUBLIC_LOCAL_SUPABASE_ANON_KEY
-      : clientEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    clientEnv.NEXT_PUBLIC_SUPABASE_URL,
+    clientEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       auth: {
         persistSession: true,

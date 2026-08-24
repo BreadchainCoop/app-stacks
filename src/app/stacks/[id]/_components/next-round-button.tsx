@@ -34,7 +34,7 @@ const NextRoundButton = ({
       const testClient = createTestClient({
         chain: foundryChain,
         mode: "anvil",
-        transport: http(clientEnv.NEXT_PUBLIC_LOCAL_RPC_URL),
+        transport: http(clientEnv.NEXT_PUBLIC_ANVIL_RPC_URL),
       }).extend(publicActions);
 
       const block = await testClient.getBlock();

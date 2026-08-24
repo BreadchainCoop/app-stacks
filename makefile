@@ -1,4 +1,4 @@
-.PHONY: deploy prepare-deployer check-deployment install-contract-deps anvil update-env update-contract-submodules update-saving-circles-dev reset-supabase local-supabase-setup start-local warp time-increase mine timestamp time-reset fund-all
+.PHONY: deploy prepare-deployer check-deployment install-contract-deps anvil update-env update-contract-submodules update-saving-circles-dev reset-supabase start-local warp time-increase mine timestamp time-reset fund-all
 
 ANVIL_ACCOUNTS := 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 \
 	0x70997970C51812dc3A010C7d01b50e0d17dc79C8 \
@@ -17,11 +17,12 @@ RPC_URL ?= http://localhost:8545
 PRIVATE_KEY ?= 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 ADMIN_ADDRESS ?= 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 
-# Dedicated virgin deployer for deterministic local addresses (NOT a secret —
-# local-only key). With the nonce forced to 0 before deploying, the six CREATEs
-# in Deploy.s.sol land on fixed addresses (nonces 0..5), baked as the
-# NEXT_PUBLIC_LOCAL_* defaults in src/lib/env.ts. They only change if
-# Deploy.s.sol adds/reorders deployments — check-deployment fails loudly then.
+# Dedicated virgin deployer, so the six CREATEs in Deploy.s.sol always land on
+# the same addresses (nonces 0..5) no matter what the forked Gnosis state holds.
+# Those addresses are baked into src/lib/env.ts, which is what lets the hosted
+# demo site talk to your Anvil node without any local env configuration.
+# NOT a secret: local-only key. They only move if Deploy.s.sol adds or reorders
+# deployments - check-deployment fails loudly when that happens.
 LOCAL_DEPLOYER_PK ?= 0x5ca1ab1e5ca1ab1e5ca1ab1e5ca1ab1e5ca1ab1e5ca1ab1e5ca1ab1e5ca1ab1e
 LOCAL_DEPLOYER_ADDRESS ?= 0xdcE4807F815737616B6150c5A483AeC83C4FC5a9
 EXPECTED_BREAD_TOKEN := 0x347eA3E53Bd44bDD16Fe7CeF396a19806E12B686
@@ -50,8 +51,8 @@ reset-nonces:
 install-contract-deps:
 	cd contracts && forge install
 
-# Fund the deterministic deployer and force nonce 0 regardless of the forked
-# Gnosis state, so CREATE addresses always match the EXPECTED_* values.
+# Fund the deterministic deployer and force its nonce to 0, so the CREATE
+# addresses always match the EXPECTED_* values above.
 prepare-deployer:
 	@echo "Preparing deterministic deployer $(LOCAL_DEPLOYER_ADDRESS)..."
 	@cast rpc anvil_setBalance $(LOCAL_DEPLOYER_ADDRESS) 0x21E19E0C9BAB2400000 --rpc-url $(RPC_URL) > /dev/null
@@ -70,11 +71,17 @@ deploy: prepare-deployer
 		--broadcast \
 		--private-key $(LOCAL_DEPLOYER_PK) \
 		--legacy
-	$(MAKE) update-env
+	@# .env.local is only needed to run the dev server yourself; the hosted
+	@# demo site reads the deterministic addresses from src/lib/env.ts.
+	@if [ -f .env.local ]; then \
+		$(MAKE) update-env; \
+	else \
+		echo "• No .env.local - skipping update-env (only needed to run 'pnpm dev' locally)"; \
+	fi
 	$(MAKE) check-deployment
 
-# Sanity-check the deployment JSON against the deterministic addresses baked
-# into src/lib/env.ts (used by the deployed dev/demo sites in local mode).
+# Guards the deterministic addresses baked into src/lib/env.ts. If this fails,
+# the hosted demo site would silently point at the wrong contracts.
 check-deployment:
 	@ok=1; \
 	for entry in \
@@ -90,7 +97,7 @@ check-deployment:
 	done; \
 	if [ "$$ok" != "1" ]; then \
 		echo "Error: deterministic local addresses drifted (did Deploy.s.sol add/reorder deployments?)."; \
-		echo "Regenerate the EXPECTED_* values above and the NEXT_PUBLIC_LOCAL_* defaults in src/lib/env.ts."; \
+		echo "Regenerate the EXPECTED_* values above and the NEXT_PUBLIC_ANVIL_* defaults in src/lib/env.ts."; \
 		exit 1; \
 	fi; \
 	echo "✓ Deployment matches the deterministic local addresses"
@@ -168,28 +175,40 @@ update-saving-circles-dev:
 	git -C contracts/lib/saving-circles checkout $(SAVING_CIRCLES_BRANCH) && \
 	git -C contracts/lib/saving-circles pull --ff-only origin $(SAVING_CIRCLES_BRANCH)
 
-# Resets the LOCAL supabase instance (supabase CLI): drops and re-applies
-# supabase/migrations plus the permissive local RLS seed (local-rls.sql).
-# Targets the CLI's localhost stack by construction — never a hosted project.
-# Supabase is OPTIONAL for local mode (stack names / invite tracking degrade
-# gracefully without it), so this only warns when it's unavailable.
+# Wipes the off-chain stack data so local dev starts from a clean slate.
+# user_stacks is deleted before stacks_metadata to respect the FK (stack_id).
 reset-supabase:
-	@if ! command -v supabase > /dev/null; then \
-		echo "⚠ supabase CLI not installed — skipping local supabase reset (stack names / invite tracking stay disabled)"; \
-	elif ! supabase db reset; then \
-		echo "⚠ local supabase not running — skipping reset (run 'make local-supabase-setup' to enable stack names / invite tracking)"; \
+	@if [ ! -f .env.local ]; then \
+		echo "Error: .env.local not found"; \
+		exit 1; \
 	fi
-
-# First-time setup (optional): start the local supabase stack and apply
-# schema + RLS. Requires the supabase CLI and Docker. Local mode works without
-# this — you just lose stack names and invite tracking.
-local-supabase-setup:
-	supabase start
-	supabase db reset
+	@NODE_ENV=$$(grep -E '^NEXT_PUBLIC_NODE_ENV=' .env.local | cut -d= -f2- | tr -d '"'\'' '); \
+	if [ "$$NODE_ENV" != "local" ]; then \
+		echo "Error: reset-supabase only runs when NEXT_PUBLIC_NODE_ENV=local (got '$$NODE_ENV'). Refusing to wipe a non-local database."; \
+		exit 1; \
+	fi; \
+	SUPABASE_URL=$$(grep -E '^NEXT_PUBLIC_SUPABASE_URL=' .env.local | cut -d= -f2- | tr -d '"'\'' '); \
+	SERVICE_KEY=$$(grep -E '^SUPABASE_SERVICE_ROLE_KEY=' .env.local | cut -d= -f2- | tr -d '"'\'' '); \
+	if [ -z "$$SUPABASE_URL" ] || [ -z "$$SERVICE_KEY" ]; then \
+		echo "Error: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in .env.local"; \
+		exit 1; \
+	fi; \
+	echo "Clearing off-chain stack data (user_stacks, stacks_metadata)..."; \
+	for entry in "user_stacks:user_id" "stacks_metadata:id"; do \
+		table=$${entry%%:*}; col=$${entry##*:}; \
+		status=$$(curl -s -o /dev/null -w '%{http_code}' -X DELETE \
+			"$$SUPABASE_URL/rest/v1/$$table?$$col=not.is.null" \
+			-H "apikey: $$SERVICE_KEY" \
+			-H "Authorization: Bearer $$SERVICE_KEY"); \
+		if [ "$$status" != "200" ] && [ "$$status" != "204" ]; then \
+			echo "Error: failed to clear $$table (HTTP $$status)"; \
+			exit 1; \
+		fi; \
+		echo "✓ Cleared $$table"; \
+	done
 
 # Make sure to start a new anvil instance before running this
 start-local:
-	$(MAKE) update-saving-circles-dev
 	$(MAKE) reset-supabase
 	rm -rf contracts/broadcast contracts/cache contracts/out
 	$(MAKE) deploy
@@ -281,7 +300,7 @@ fund-wallet:
 		echo ""; \
 	done
 
-# Fund all 10 Anvil dev accounts (100 ETH + 100 BREAD each).
+# Fund all 10 Anvil dev accounts (xDAI + BREAD) in one go.
 fund-all:
 	@$(MAKE) fund-wallet $(ANVIL_ACCOUNTS)
 

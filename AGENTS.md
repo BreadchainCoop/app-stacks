@@ -80,6 +80,13 @@ Local blockchain + contract deployment is driven by the `makefile` (`make anvil`
 is documented in [README.md](./README.md) — consult it before touching contract or
 deployment flows.
 
+`make deploy` uses a fixed deployer with its nonce forced to 0, so the contracts always
+land on the same addresses; those are the `NEXT_PUBLIC_ANVIL_*` defaults in
+`src/lib/env.ts` that let the hosted demo site drive a local node ("Demo local" mode).
+Changing the number or order of deployments in `Deploy.s.sol` moves them —
+`make check-deployment` fails when that happens, and both the makefile's `EXPECTED_*`
+values and the env defaults have to be regenerated together.
+
 ## Verification — how to check your work
 
 This project has **no automated test suite**. Do not claim a change "passes tests."
