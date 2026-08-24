@@ -14,8 +14,9 @@ import { SAVING_CIRCLES_ERRORS } from "@/lib/contract-errors";
  *     a. `operationErrors` (caller-supplied, operation-specific map)
  *     b. `SAVING_CIRCLES_ERRORS` (full contract-level fallback)
  *  3. Detect user-rejection strings in the error message.
- *  4. String-match the error message against all known error names.
- *  5. Return `fallback`.
+ *  4. Detect node-level "can't pay for this" errors, which are not reverts.
+ *  5. String-match the error message against all known error names.
+ *  6. Return `fallback`.
  */
 export function parseContractError(
   error: unknown,
@@ -40,7 +41,18 @@ export function parseContractError(
   if (error.message.includes("User rejected"))
     return "Transaction was rejected.";
 
-  // Step 4 — string-match fallback for errors viem couldn't decode
+  // Step 4 — the node refused on cost rather than contract logic. Nodes phrase
+  // this as either "gas required exceeds allowance (N)" — where N is the gas
+  // the sender's balance can buy — or "insufficient funds for gas * price +
+  // value". Both mean the sender cannot pay, and neither is a revert.
+  const message = error.message.toLowerCase();
+  if (
+    message.includes("gas required exceeds allowance") ||
+    message.includes("insufficient funds")
+  )
+    return "Not enough xDAI to cover the network fee. Please top up your wallet and try again.";
+
+  // Step 5 — string-match fallback for errors viem couldn't decode
   const combined = { ...SAVING_CIRCLES_ERRORS, ...operationErrors };
   for (const [name, message] of Object.entries(combined)) {
     if (error.message.includes(name)) return message;

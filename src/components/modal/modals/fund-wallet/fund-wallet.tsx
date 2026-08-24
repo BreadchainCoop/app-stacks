@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useWatchFundedXdai } from "@/hooks/use-watch-funded-xdai";
 import { Body, useConnectedUser } from "@breadcoop/ui";
 import Alert from "@/components/alert";
+import BreadInfoNote from "@/components/bread-info-note";
 import { PeerIntentFulfilledResult } from "@zkp2p/sdk";
 
 const FundWallet = ({ modalState }: { modalState: FundWalletModalState }) => {
@@ -41,6 +42,11 @@ const FundWallet = ({ modalState }: { modalState: FundWalletModalState }) => {
       <Body className="-mt-4">
         Send xDAI to your wallet and automatically get BREAD
       </Body>
+      <BreadInfoNote>
+        You fund with <strong>xDAI</strong> on the Gnosis network, which is
+        automatically converted to <strong>BREAD</strong> — worth $1 each (1:1
+        with USD). Your balance is shown in USD.
+      </BreadInfoNote>
       <div className={result ? "" : ""}>
         {result && (
           <div>

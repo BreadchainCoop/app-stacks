@@ -62,7 +62,17 @@ export type Database = {
           username?: string | null;
           updated_at?: string;
         };
-        Relationships: [];
+        // Declared so `users` can embed `profiles` in one query; user_id is
+        // the primary key, so PostgREST treats the embed as to-one.
+        Relationships: [
+          {
+            foreignKeyName: "profiles_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       stacks_metadata: {
         Row: SupabaseStackMetadata;
@@ -139,13 +149,6 @@ export const getStacksMetadata = (client: AppSupabaseClient) =>
     ascending: false,
   });
 
-export const getProfile = (client: AppSupabaseClient, userId: string) =>
-  client
-    .from("profiles")
-    .select("username")
-    .eq("user_id", userId)
-    .maybeSingle();
-
 export interface MemberAlias {
   walletAddress: string;
   username: string | null;
@@ -163,34 +166,21 @@ export const getMemberAliases = async (
     ...walletAddresses.map((a) => a.toLowerCase()),
   ];
 
-  const { data: users, error: usersError } = await client
+  // profiles is embedded over the profiles.user_id -> users.id foreign key, so
+  // a batch of addresses resolves in a single round-trip.
+  const { data: users, error } = await client
     .from("users")
-    .select("id, wallet_address")
+    .select("wallet_address, profiles(username)")
     .in("wallet_address", candidates);
 
-  if (usersError) throw usersError;
-  if (!users || users.length === 0) return [];
+  if (error) throw error;
 
-  const { data: profiles, error: profilesError } = await client
-    .from("profiles")
-    .select("user_id, username")
-    .in(
-      "user_id",
-      users.map((u) => u.id)
-    );
-
-  if (profilesError) throw profilesError;
-
-  const usernameByUserId = new Map(
-    (profiles ?? []).map((p) => [p.user_id, p.username])
-  );
-
-  return users
+  return (users ?? [])
     .filter((u): u is typeof u & { wallet_address: string } =>
       Boolean(u.wallet_address)
     )
     .map((u) => ({
       walletAddress: u.wallet_address,
-      username: usernameByUserId.get(u.id) ?? null,
+      username: u.profiles?.username ?? null,
     }));
 };

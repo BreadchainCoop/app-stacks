@@ -7,24 +7,23 @@ import {
   AccordionItem,
 } from "@/components/accordion";
 import PendingInviteLink from "@/components/pending-invite-link";
+import { DisplayName } from "@/components/display-name";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useCircleMembersWithBalances } from "@/hooks/use-circle-members";
 import { useGetCircleCreated } from "@/hooks/use-get-cricle-created";
 import { useGetLastDeposit } from "@/hooks/use-get-last-deposit";
 import { useInviteRedeemed } from "@/hooks/use-invite-redeemed";
-import { usePreferredEnsName } from "@/hooks/use-preferred-ens-name";
 import { useUserCircleData } from "@/hooks/use-user-circle-data";
 import { useFundsDeposited } from "@/hooks/use-funds-deposited";
 import { ICircleStatus } from "@/interfaces/circle";
 import { getUserCircleStatus } from "@/lib/get-user-circle-status";
 import { useCircleState } from "@/hooks/use-circles-state";
 import { CircleState } from "@/lib/circle-state";
-import { useMemberAliases } from "@/hooks/use-member-aliases";
 import { useMembersClaimed } from "@/hooks/use-members-claimed";
 import { formatRelativeTime, formatShortDate } from "@/utils/time";
-import { Body, Chip, formatBalance } from "@breadcoop/ui";
+import { formatAmount } from "@/utils/format-amount";
+import { Body, Chip } from "@breadcoop/ui";
 import { Address, formatEther } from "viem";
-import Link from "next/link";
 
 const FAILED_STATUSES: ICircleStatus[] = [
   "decommissioned",
@@ -71,7 +70,6 @@ const MembersInfo = ({
   depositInterval: bigint;
   circleStatus: ICircleStatus | null;
 }) => {
-  const aliases = useMemberAliases(info.members);
   const now = useBlockTimestamp();
   const { claimedByMember } = useMembersClaimed({
     circleId: id,
@@ -116,7 +114,6 @@ const MembersInfo = ({
           const totalDeposits = +formatEther(
             info.memberBalances?.balances[index] || BigInt(0)
           );
-          const alias = aliases[member.toLowerCase()];
 
           const hasDeposited = isFinished
             ? true
@@ -130,30 +127,37 @@ const MembersInfo = ({
           return (
             <AccordionItem key={member} value={member}>
               <AccordionHeader>
-                <div className="flex items-center justify-start gap-x-4 gap-y-1 flex-wrap">
+                <div className="flex w-full flex-col items-start gap-1 md:flex-row md:items-center md:justify-between md:gap-x-4 md:gap-y-1">
                   <Body bold>
-                    <MemberEnsName address={member} alias={alias} />
+                    <DisplayName address={member} />
                   </Body>
-                  {member === owner && (
-                    <Chip className="font-bold text-blue-1 bg-paper-main border-current text-xs">
-                      Group owner
-                    </Chip>
-                  )}
-                  {showDepositChips &&
-                    (hasDeposited ? (
-                      <Chip className="font-bold border-current! text-system-green text-xs">
-                        Deposited
+                  {/* Chips stack under the name on mobile (they'd otherwise
+                      overflow the row and clip). From md up they sit
+                      right-aligned; the shared AccordionTrigger adds gap-2.5
+                      (10px) before the chevron, so md:mr-1.5 (6px) brings the
+                      group to 16px from the arrow. */}
+                  <div className="flex flex-wrap items-center gap-2 md:shrink-0 md:justify-end md:mr-1.5">
+                    {member === owner && (
+                      <Chip className="font-bold text-blue-1 bg-paper-main border-current text-xs">
+                        Group owner
                       </Chip>
-                    ) : (
-                      <Chip className="font-bold border-current! text-system-warning text-xs">
-                        Not deposited
+                    )}
+                    {showDepositChips &&
+                      (hasDeposited ? (
+                        <Chip className="font-bold border-current! text-system-green text-xs">
+                          Deposited
+                        </Chip>
+                      ) : (
+                        <Chip className="font-bold border-current! text-system-warning text-xs">
+                          Not deposited
+                        </Chip>
+                      ))}
+                    {claimedByMember[member.toLowerCase()] && (
+                      <Chip className="font-bold border-system-green! bg-system-green! text-paper-main text-xs">
+                        Claimed
                       </Chip>
-                    ))}
-                  {claimedByMember[member.toLowerCase()] && (
-                    <Chip className="font-bold border-system-green! bg-system-green! text-paper-main text-xs">
-                      Claimed
-                    </Chip>
-                  )}
+                    )}
+                  </div>
                 </div>
               </AccordionHeader>
               <AccordionContent>
@@ -251,7 +255,7 @@ function MemberInfoContent({
 
   if (isFailedStack) {
     if (fundsDeposited.data) {
-      memberTotal = formatBalance(
+      memberTotal = formatAmount(
         +formatEther(
           (
             fundsDeposited.data.depositsByMember[
@@ -310,7 +314,7 @@ function MemberInfoContent({
             ? "Loading"
             : isFailedStack && fundsDeposited.error
               ? "Error"
-              : `${memberTotal} BREAD`
+              : `$${memberTotal}`
         }
       />
       <DepositRow
@@ -320,45 +324,5 @@ function MemberInfoContent({
     </div>
   );
 }
-
-function MemberEnsName({
-  address,
-  alias,
-}: {
-  address: Address;
-  alias?: string | null;
-}) {
-  const { ensName, isLoading } = usePreferredEnsName({ address });
-
-  if (alias) {
-    return <AccountPage address={address} label={alias} />;
-  }
-
-  if (isLoading) {
-    return (
-      <span className="inline-flex items-center justify-start">Loading...</span>
-    );
-  }
-
-  return <AccountPage address={address} label={ensName || address} />;
-}
-
-const AccountPage = ({
-  address,
-  label,
-}: {
-  address: Address;
-  label: string;
-}) => {
-  return (
-    <Link
-      href={`/account/${address}`}
-      className="hover:text-primary-blue"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <span className="inline-flex items-center justify-start">{label}</span>
-    </Link>
-  );
-};
 
 export default MembersInfo;

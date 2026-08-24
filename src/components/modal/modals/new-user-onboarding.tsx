@@ -5,7 +5,6 @@ import { ModalContainer } from "../components";
 import { NewUserOnboardingModalState, useModal } from "../context";
 import {
   Body,
-  formatBalance,
   Heading3,
   Logo,
   useBreadBalance,
@@ -22,6 +21,7 @@ import {
 } from "@phosphor-icons/react";
 import { Address } from "viem";
 import { formatAddress } from "@/utils/address";
+import { formatAmount } from "@/utils/format-amount";
 import Alert from "@/components/alert";
 import Link from "next/link";
 import LocalButton from "@/components/button";
@@ -34,14 +34,14 @@ function BreadBalance({ address }: { address: Address }) {
     <>
       <div className="flex items-center justify-center gap-2">
         <span className="font-breadDisplay text-[3rem] font-black leading-9 text-surface-ink">
-          {formatBalance(parseFloat(BREAD))}
+          {formatAmount(parseFloat(BREAD))}
         </span>
         <span className="bg-paper-main p-1">
           <Logo size={24} variant="square" text="BREAD" />
         </span>
       </div>
       <Body className="text-xs text-surface-grey">
-        ${formatBalance(parseFloat(BREAD))} USD
+        ${formatAmount(parseFloat(BREAD))} USD
       </Body>
     </>
   );

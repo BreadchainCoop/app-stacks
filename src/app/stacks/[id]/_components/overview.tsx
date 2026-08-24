@@ -4,10 +4,8 @@ import { useUserCircleData } from "@/hooks/use-user-circle-data";
 import {
   Body,
   cn,
-  formatBalance,
   Heading3,
   LoginButton,
-  Logo,
   useConnectedUser,
 } from "@breadcoop/ui";
 import DaysLeft from "./days-left";
@@ -28,11 +26,11 @@ import { useStackSupabase } from "@/hooks/use-stack-supabase";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { getDefaultChainId } from "@/utils/chain";
+import { formatAmount } from "@/utils/format-amount";
 import { useReadContracts } from "wagmi";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useFundsDeposited } from "@/hooks/use-funds-deposited";
 import LocalButton from "@/components/button";
-import { FeatureGate } from "@/components/feature-gate";
 
 const Overview = ({
   circle,
@@ -219,12 +217,9 @@ const Overview = ({
         <Body className="flex flex-col justify-start md:items-center md:justify-center">
           <span className="text-surface-grey">Total Deposit</span>
           <span className="inline-flex items-center justify-start">
-            <>
-              <Logo size={24} variant="square" className="mr-1" />
-              <span className="font-bold mt-[0.2rem]">
-                {formatBalance(+formatEther(poolBalance), 2)} BREAD
-              </span>
-            </>
+            <span className="font-bold mt-[0.2rem]">
+              ${formatAmount(+formatEther(poolBalance), 2)}
+            </span>
           </span>
         </Body>
         <Body className="flex flex-col justify-start md:justify-end md:items-end">
@@ -257,7 +252,7 @@ const Overview = ({
         }
       />
       <div className="mt-4">
-        <FeatureGate feature="automaticDeposit">
+        {circle.isMember && (
           <AutomaticDeposit
             stackId={circle.circleId.toString()}
             depositAmount={circle.circleInfo.depositAmount}
@@ -266,7 +261,7 @@ const Overview = ({
             tokenAddress={circle.circleInfo.token}
             disabled={isFailedStack}
           />
-        </FeatureGate>
+        )}
         {formattedCircleStatus.status === "pending-start" ? (
           <>
             {member === circle.circleInfo.owner &&
@@ -300,17 +295,15 @@ const Overview = ({
         ) : depositCircleStatus.status === "payment_due" ? (
           <>
             {connectedUser.user.status === "CONNECTED" ? (
-              <>
-                <DepositButton
-                  className="font-bold w-full"
-                  label={`Deposit ${formatEther(
-                    circle.circleInfo.depositAmount
-                  )} BREAD`}
-                  amount={circle.circleInfo.depositAmount}
-                  tokenAddress={circle.circleInfo.token}
-                  circleId={circle.circleId}
-                />
-              </>
+              <DepositButton
+                className="font-bold w-full"
+                label={`Deposit $${formatAmount(
+                  +formatEther(circle.circleInfo.depositAmount)
+                )}`}
+                amount={circle.circleInfo.depositAmount}
+                tokenAddress={circle.circleInfo.token}
+                circleId={circle.circleId}
+              />
             ) : (
               <LoginButton app="stacks" status={connectedUser.user.status} />
             )}

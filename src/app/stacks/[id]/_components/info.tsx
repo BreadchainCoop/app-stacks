@@ -1,3 +1,4 @@
+import { DisplayName } from "@/components/display-name";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { clientEnv } from "@/lib/env";
 import { formatAddress } from "@/utils/address";
@@ -38,7 +39,7 @@ const StackInfo = ({ owner }: { owner: Address }) => {
       </StackInfoRow>
       <StackInfoRow label="Created by:">
         <Body className="flex items-center justify-end gap-1">
-          {formatAddress(owner)}
+          <DisplayName address={owner} />
           <CopyButtonIcon textToCopy={owner} />
           {/* <CopyButton
             textToCopy={owner}

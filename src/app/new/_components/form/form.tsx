@@ -3,7 +3,7 @@
 import Input, { InputDescription } from "@/components/input";
 import { Label } from "@/components/label";
 import LocalButton from "@/components/button";
-import { Body, Heading3, Logo } from "@breadcoop/ui";
+import { Body, Heading3 } from "@breadcoop/ui";
 import { UsersThreeIcon } from "@phosphor-icons/react";
 import { MouseEventHandler, ReactNode } from "react";
 import { useFormContext } from "react-hook-form";
@@ -80,7 +80,6 @@ const StackForm = ({ onContinue }: { onContinue: () => void }) => {
               </Label>
             </div>
             <InputDescription desc="The total amount of money you want to stack up with friends every week or month." />
-            <InputDescription desc="1 BREAD = 1 USD" className="text-xs" />
             <div className="relative">
               <NumericInput
                 {...form.register("depositAmount", {
@@ -91,7 +90,7 @@ const StackForm = ({ onContinue }: { onContinue: () => void }) => {
                 allowDecimal
               />
               <div className="absolute top-1/2 -translate-y-1/2 right-3 p-1 bg-paper-main">
-                <Logo text="BREAD" className="size-6" variant="square" />
+                <span className="font-bold text-surface-ink">$</span>
               </div>
             </div>
             <ErrorMessage msg={form.formState.errors.depositAmount?.message} />

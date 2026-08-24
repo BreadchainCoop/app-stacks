@@ -28,7 +28,11 @@ export const useSponsoredTx = () => {
 
     return sendTransaction(
       { ...input, chainId: getDefaultChainId() },
-      { ...options, sponsor: clientEnv.NEXT_PUBLIC_CHAIN_ID === 100 }
+      {
+        ...options,
+        sponsor: clientEnv.NEXT_PUBLIC_CHAIN_ID === 100,
+        uiOptions: { showWalletUIs: false, ...options?.uiOptions },
+      }
     );
   };
 

@@ -24,9 +24,7 @@ const AutomaticClaimsModal = ({
   modalState: AutomaticClaimsModalState;
 }) => {
   const modal = useModal();
-  const { activate, status, setStatus } = useAutomaticClaims(
-    stackId.toString()
-  );
+  const { activate, status, setStatus } = useAutomaticClaims();
 
   const closeModal = () => modal.setModal(null);
   const enabling = !currentValue;
@@ -108,7 +106,9 @@ const AutomaticClaimsModal = ({
               : "By deactivating automatic claims you will need to manually claim your funds when it's your turn."}
           </Body>
           <div className="lifted-button-container">
-            <LocalLiftedButton onClick={() => activate(enabling)}>
+            <LocalLiftedButton
+              onClick={() => activate(BigInt(stackId), enabling)}
+            >
               {enabling ? "Activate" : "Deactivate"} automatic claims
             </LocalLiftedButton>
           </div>

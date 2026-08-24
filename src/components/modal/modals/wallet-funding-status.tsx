@@ -1,12 +1,7 @@
 "use client";
 
-import {
-  Body,
-  formatBalance,
-  Heading2,
-  Logo,
-  useConnectedUser,
-} from "@breadcoop/ui";
+import { Body, Heading2, Logo, useConnectedUser } from "@breadcoop/ui";
+import { formatAmount } from "@/utils/format-amount";
 import { useState } from "react";
 import { ModalContainer, ModalHeader, ModalStatus } from "../components";
 import { useModal, WalletFundingStatusModalState } from "../context";
@@ -53,7 +48,7 @@ const WalletFundingStatusModal = ({
 
   const displayedAmount =
     modalState.status === "success"
-      ? formatBalance(+modalState.breadAmount)
+      ? formatAmount(+modalState.breadAmount)
       : "";
 
   return (

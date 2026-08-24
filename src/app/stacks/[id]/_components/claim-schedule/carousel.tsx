@@ -18,7 +18,7 @@ import {
 } from "@/components/carousel";
 import { useCircleMembersWithBalances } from "@/hooks/use-circle-members";
 import { useFundsDeposited } from "@/hooks/use-funds-deposited";
-import { formatAddress } from "@/utils/address";
+import { DisplayName } from "@/components/display-name";
 import { cn } from "@/lib/utils";
 import type { CircleData } from ".";
 
@@ -26,7 +26,8 @@ type RoundState = "completed" | "current" | "upcoming";
 
 interface ScheduleRound {
   round: number;
-  member: string;
+  memberAddress: Address;
+  isYou: boolean;
   dateLabel: string;
   state: RoundState;
 }
@@ -40,7 +41,13 @@ const RoundCardExtraInfo = ({ children }: { children: ReactNode }) => (
   </div>
 );
 
-const RoundCard = ({ round, member, dateLabel, state }: ScheduleRound) => (
+const RoundCard = ({
+  round,
+  memberAddress,
+  isYou,
+  dateLabel,
+  state,
+}: ScheduleRound) => (
   <div
     className={cn(
       "relative shrink-0 w-38.5 h-38.5 flex flex-col items-center justify-center gap-1 p-4 border",
@@ -69,7 +76,8 @@ const RoundCard = ({ round, member, dateLabel, state }: ScheduleRound) => (
     <Body
       className={`text-xs text-center ${state === "upcoming" ? "text-surface-grey" : "text-surface-ink"}`}
     >
-      {member}
+      <DisplayName address={memberAddress} link={false} />
+      {isYou ? " (You)" : ""}
     </Body>
     <div className="flex items-center gap-1">
       <CalendarDotsIcon size={14} className="fill-blue-2" />
@@ -124,9 +132,8 @@ const ClaimScheduleCarousel = ({
 
   const rounds: ScheduleRound[] = members.map((member, i) => ({
     round: i + 1,
-    member:
-      formatAddress(member as Address) +
-      (member.toLowerCase() === address ? " (You)" : ""),
+    memberAddress: member as Address,
+    isYou: member.toLowerCase() === address,
     dateLabel: hasStarted ? formatDate(claimDate(i)) : "-",
     state: stateFor(i),
   }));

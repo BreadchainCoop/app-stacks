@@ -118,6 +118,23 @@ export const getUserCircleStatus = ({
   }
 
   if (circleState === CircleState.NotStarted) {
+    // A cleanly completed circle also reports `NotStarted`: when the final
+    // member claims, the contract sets `isActive = false`, and `circleState()`
+    // has no terminal "completed" value, so a finished circle is neither
+    // decommissioned nor active and falls through to `NotStarted`. Distinguish
+    // the two via `effectiveCircleStartTime`, which is only non-zero once the
+    // circle has actually been started — so `NotStarted` with a start time set
+    // means "finished", not "pending start".
+    if (circle.circleInfo.effectiveCircleStartTime > BigInt(0)) {
+      return {
+        status: "finished",
+        statusLabel: "Finished",
+        variant: "success",
+        title: "Circle completed successfully",
+        desc: "Everyone has deposited and withdrawn their funds. No more actions can be taken.",
+      };
+    }
+
     return {
       status: "pending-start",
       statusLabel: "Not started",

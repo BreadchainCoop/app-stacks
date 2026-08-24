@@ -1,4 +1,5 @@
-import { Body, Heading3, Chip, formatBalance } from "@breadcoop/ui";
+import { Body, Heading3, Chip } from "@breadcoop/ui";
+import { millify } from "@/utils/format-amount";
 import { UsersIcon } from "./icons/users";
 import { CoinIcon, CoinsIcon } from "./icons/coin";
 import { CalendarIcon } from "./icons/calendar";
@@ -93,21 +94,21 @@ const Stack = ({
       className: "",
     },
     {
-      label: `Token: BREAD`,
-      icon: <CoinIcon />,
-      className: "hidden md:flex",
-    },
-    {
-      label: `${formatBalance(Number(depositAmount) * stack.totalMember, 2)} BREAD ${
+      label: `Deposit: $${millify(Number(depositAmount), 2)} ${
         parseCircleIntervalToDate(stack.depositInterval).label
       }`,
       icon: <CoinsIcon />,
       className: "",
     },
     {
-      label: `Goal: ${formatBalance(totalGoal, 2)} BREAD`,
+      label: `Pay out: $${millify(Number(depositAmount) * stack.totalMember, 2)} per member`,
+      icon: <CoinIcon />,
+      className: "",
+    },
+    {
+      label: `Stack volume: $${millify(totalGoal, 2)}`,
       icon: <CalendarIcon />,
-      className: "hidden md:flex",
+      className: "",
     },
   ];
 
@@ -184,14 +185,14 @@ const Stack = ({
               fundsDeposited.isLoading ? (
                 <span className="text-surface-grey text-sm">loading...</span>
               ) : (
-                <>${formatBalance(totalDeposited, 2)}</>
+                <>${millify(totalDeposited, 2)}</>
               )
             ) : (
-              <>${formatBalance(totalDeposited, 2)}</>
+              <>${millify(totalDeposited, 2)}</>
             )}
           </p>
           <Body className="flex items-center justify-start gap-1 text-surface-grey">
-            <span className="text-[0.625rem]">Total BREAD stacked</span>
+            <span className="text-[0.625rem]">Total deposited</span>
             <span>
               <QuestionIcon size={16} className="fill-surface-grey" />
             </span>

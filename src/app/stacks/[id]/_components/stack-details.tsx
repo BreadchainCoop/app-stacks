@@ -13,14 +13,11 @@ import {
   getIntervalBySeconds,
   splitIntervalId,
 } from "@/utils/deposit-interval";
-import {
-  Body,
-  formatBalance,
-  FormattedDecimalNumber,
-  Heading3,
-  Logo,
-  useConnectedUser,
-} from "@breadcoop/ui";
+import { formatAmount } from "@/utils/format-amount";
+import { amountSizeStep } from "@/utils/amount-size";
+import { cn } from "@/lib/utils";
+import { FormattedDecimalNumber } from "@/components/bread-ui-kit/formatted-decimal-number";
+import { Body, Heading3, useConnectedUser } from "@breadcoop/ui";
 import { CalendarDotsIcon } from "@phosphor-icons/react/ssr";
 import { ReactNode } from "react";
 import { formatEther } from "viem";
@@ -32,6 +29,14 @@ const failedStatuses: ICircleStatus[] = [
   "failed",
   "finished",
 ];
+
+// Now that this page shows amounts in full, the hero steps down a size once the
+// figure gets long, so "$1,250,000.00" doesn't run past its container.
+const HERO_SIZES = {
+  base: { integral: "text-[80px]", decimal: "text-[48px]" },
+  sm: { integral: "text-[56px]", decimal: "text-[34px]" },
+  xs: { integral: "text-[40px]", decimal: "text-[24px]" },
+} as const;
 
 const StackDetailsTotal = ({
   intervalLabel,
@@ -62,29 +67,26 @@ const StackDetailsTotal = ({
     );
   }
 
+  const heroSize = HERO_SIZES[amountSizeStep(+depositPerRound)];
+
   return (
     <div className="flex flex-col gap-6 mb-3 md:mb-0 md:flex-1 md:justify-end">
       <div className="flex items-center justify-start gap-x-4 flex-wrap">
         <FormattedDecimalNumber
           value={depositPerRound}
-          integralPartClassName="text-[80px]"
-          decimalPartClassName="text-[48px] text-surface-grey-2"
+          unit="$"
+          integralPartClassName={heroSize.integral}
+          decimalPartClassName={cn(heroSize.decimal, "text-surface-grey-2")}
         />
         <div>
-          <Logo
-            variant="square"
-            text="BREAD"
-            className="[&+span]:font-normal"
-            size={24}
-          />
           <Body className="text-surface-grey-2">
-            Total stacked per {intervalLabel}
+            Total deposited per {intervalLabel}
           </Body>
         </div>
       </div>
       <div className="flex flex-wrap gap-2 flex-row items-center justify-between">
         <Body className="shrink-0 text-surface-grey-2">
-          Overall stacked by members
+          Overall deposited by members
         </Body>
         <div className="shrink-0 flex items-center justify-start flex-wrap gap-2">
           <OverallStacked
@@ -95,7 +97,6 @@ const StackDetailsTotal = ({
             circleStartsTimestamp={circleStartsTimestamp}
             depositInterval={depositInterval}
           />
-          <Body className="mt-[0.2rem]">BREAD</Body>
         </div>
       </div>
     </div>
@@ -144,14 +145,9 @@ const StackDetailsBreakdown = ({
   return (
     <div className="md:flex-1">
       <StackDetailsBreakdownRow label={`${intervalLabel} deposit`}>
-        <>
-          <Logo
-            size={24}
-            text={formatBalance(+formatEther(circle.depositAmount), 2)}
-            variant="square"
-          />
-          <Body className="mt-[0.3rem]">BREAD</Body>
-        </>
+        <p className="text-h2 text-2xl leading-6 tracking-[-2%]">
+          ${formatAmount(+formatEther(circle.depositAmount), 2)}
+        </p>
       </StackDetailsBreakdownRow>
       <StackDetailsBreakdownRow label="Members deposit every">
         <>

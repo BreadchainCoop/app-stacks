@@ -97,7 +97,11 @@ const StackFailed = ({ modalState }: { modalState: StackFailedModalState }) => {
         {feedback.type !== "success" &&
           feedback?.message?.toLowerCase() !== "this circle is not active." && (
             <div className="mb-4">
-              <LocalButton className="w-full" onClick={handleDecommission}>
+              <LocalButton
+                className="w-full"
+                onClick={handleDecommission}
+                disabled={isDecommissioning}
+              >
                 {buttonText}
               </LocalButton>
             </div>

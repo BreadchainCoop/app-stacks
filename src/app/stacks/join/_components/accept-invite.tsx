@@ -2,6 +2,7 @@
 
 import Loading from "@/app/loading";
 import LocalButton from "@/components/button";
+import { useAutomaticClaims } from "@/hooks/use-automatic-claims";
 import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
@@ -37,6 +38,7 @@ export default function AcceptInvite({
   const router = useRouter();
   const { user } = useConnectedUser();
   const { sendSavingCirclesTx } = useSavingCirclesTx();
+  const { activate: enableAutomaticClaims } = useAutomaticClaims();
   const { user: privyUser } = usePrivy();
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
@@ -72,7 +74,14 @@ export default function AcceptInvite({
   });
 
   const redeemInvite = async () => {
-    if (user.status !== "CONNECTED" || !address || !nonce || !signature) return;
+    if (
+      redeeming ||
+      user.status !== "CONNECTED" ||
+      !address ||
+      !nonce ||
+      !signature
+    )
+      return;
 
     setRedeeming(true);
 
@@ -113,6 +122,10 @@ export default function AcceptInvite({
           console.error("Failed to mark invite as used:", error);
         });
       }
+
+      // Not awaited: the redirect above should not wait on the opt-in tx. The
+      // hook primes the toggle's query cache once it lands.
+      enableAutomaticClaims(parsedId, true);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       const contractError =

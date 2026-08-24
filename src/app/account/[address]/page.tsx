@@ -2,9 +2,9 @@ import { notFound } from "next/navigation";
 import { getAddress, isAddress } from "viem";
 import { Metadata } from "next";
 import { generateMetadata as _generateMetadata } from "@/utils/metadata";
-import { Body, Heading1 } from "@breadcoop/ui";
-import ProfileSection from "../_components/profile-section";
-import StacksOverview from "../_components/stacks-overview";
+import AccountHeading from "../_components/account-heading";
+import AccountOverview from "../_components/account-overview";
+import YourStacks from "../_components/your-stacks";
 import SolidarityFundSection from "../_components/solidarity-fund-section";
 
 const shorten = (address: string) =>
@@ -38,13 +38,12 @@ const AccountPage = async ({
 
   return (
     <div className="flex flex-col gap-12">
-      <header className="flex flex-col gap-2">
-        <Heading1 className="text-3xl">Account</Heading1>
-        <Body className="text-surface-grey break-all">{address}</Body>
+      <header>
+        <AccountHeading address={address} />
       </header>
 
-      <ProfileSection address={address} />
-      <StacksOverview address={address} basePath={basePath} />
+      <AccountOverview address={address} basePath={basePath} />
+      <YourStacks address={address} basePath={basePath} />
       <SolidarityFundSection />
     </div>
   );

@@ -5,7 +5,8 @@ import NumericInput from "@/components/numeric-input";
 import { SubmitEventHandler, useState } from "react";
 import { ModalContainer, ModalHeader } from "../../components";
 import LocalButton from "@/components/button";
-import { Body, formatBalance, Logo, useConnectedUser } from "@breadcoop/ui";
+import { Body, Logo, useConnectedUser } from "@breadcoop/ui";
+import { formatAmount } from "@/utils/format-amount";
 import { useModal } from "../../context";
 import { formatEther, parseEther } from "viem";
 import {
@@ -40,6 +41,7 @@ const FundWithConnectedWalletModalAmount = ({
   const { setModal } = useModal();
   const [amount, setAmount] = useState("0");
   const [token, setToken] = useState<FundingToken>("xDAI");
+  const [funding, setFunding] = useState(false);
   const { xDaiBalance, breadBalance, fundWallet } =
     useFundWithConnectedWallet();
 
@@ -64,6 +66,7 @@ const FundWithConnectedWalletModalAmount = ({
   })();
 
   const disabled =
+    funding ||
     parsedAmount === null ||
     parsedAmount <= BigInt(0) ||
     (tokenBalance.data ? parsedAmount > tokenBalance.data.value : false);
@@ -73,7 +76,13 @@ const FundWithConnectedWalletModalAmount = ({
 
     if (disabled) return;
 
-    await fundWallet({ token, amount, wallet: modalState.wallet });
+    setFunding(true);
+
+    try {
+      await fundWallet({ token, amount, wallet: modalState.wallet });
+    } finally {
+      setFunding(false);
+    }
   };
 
   return (
@@ -147,7 +156,7 @@ const FundWithConnectedWalletModalAmount = ({
           Balance:{" "}
           {tokenBalance.isLoading
             ? "Loading..."
-            : formatBalance(formattedBalance)}
+            : formatAmount(formattedBalance)}
         </Body>
         <div className="lifted-button-container mt-6">
           <LocalButton

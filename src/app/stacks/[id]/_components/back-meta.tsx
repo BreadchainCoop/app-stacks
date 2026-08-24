@@ -10,6 +10,7 @@ import { ICircleStatus } from "@/interfaces/circle";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useCircleState } from "@/hooks/use-circles-state";
 import { CircleState } from "@/lib/circle-state";
+import { formatAmount } from "@/utils/format-amount";
 
 type CircleData = Exclude<
   ReturnType<typeof useUserCircleData>["circleData"],
@@ -37,9 +38,9 @@ const BackMeta = ({
   const nowSeconds = BigInt(Math.floor(now / 1000));
   const { circleState } = useCircleState(circle?.circleId);
 
-  const depositAmount = `${formatEther(
-    circle?.circleInfo.depositAmount ?? BigInt(0)
-  )} BREAD`;
+  const depositAmount = `$${formatAmount(
+    +formatEther(circle?.circleInfo.depositAmount ?? BigInt(0))
+  )}`;
 
   const circleStatus: ICircleStatus = circle
     ? getUserCircleStatus({

@@ -1,11 +1,5 @@
 import LocalButton from "@/components/button";
-import {
-  Body,
-  Heading3,
-  LoginButton,
-  Logo,
-  useConnectedUser,
-} from "@breadcoop/ui";
+import { Body, Heading3, LoginButton, useConnectedUser } from "@breadcoop/ui";
 import {
   ArrowLeftIcon,
   ArrowsClockwiseIcon,
@@ -28,11 +22,13 @@ import { sleep } from "@/utils/sleep";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { wagmiConfig } from "@/components/providers/web3";
 import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
+import { useAutomaticClaims } from "@/hooks/use-automatic-claims";
 import { simulateContract } from "@wagmi/core";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { getIntervalById, splitIntervalId } from "@/utils/deposit-interval";
 import { CREATE_ERRORS } from "@/lib/contract-errors";
 import { getDefaultChainId } from "@/utils/chain";
+import { formatAmount } from "@/utils/format-amount";
 
 const parseCreateError = (error: unknown) =>
   parseContractError(
@@ -52,8 +48,11 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
   const total = (members || 0) * (freqDeposit || 0);
   const { user } = useConnectedUser();
   const { sendSponsoredTransaction } = useSponsoredTx();
+  const { activate: enableAutomaticClaims } = useAutomaticClaims();
 
   const createStack = async (data: StackFormSchemaData) => {
+    if (form.formState.isSubmitting) return;
+
     try {
       // This is just for typescript check. user is available at this point
       if (user.status !== "CONNECTED") return;
@@ -131,6 +130,8 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
         status: "successful",
       });
 
+      await enableAutomaticClaims(newCircleId, true);
+
       const parsedInterval = splitIntervalId(interval.id);
       const duration = `${data.members * parsedInterval[0]} ${parsedInterval[1]}`;
 
@@ -189,7 +190,6 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
         />
       </div>
       <div className="flex flex-col gap-2">
-        <Body className="text-sm text-surface-grey">1 BREAD = 1 USD</Body>
         <BreadRow
           label={
             <>
@@ -198,11 +198,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
           }
           amount={freqDeposit}
         />
-        <BreadRow
-          label="Total Stacked per member"
-          amount={total.toFixed(2)}
-          colored
-        />
+        <BreadRow label="Total Deposited per member" amount={total} colored />
       </div>
       <div className="px-6 py-3 bg-paper-1">
         <Body className="text-xs text-surface-grey-2">
@@ -219,6 +215,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
           <LocalButton
             leftIcon={<SparkleIcon size={24} />}
             onClick={form.handleSubmit(createStack)}
+            disabled={form.formState.isSubmitting}
             type="submit"
           >
             Create Stack
@@ -284,7 +281,7 @@ function BreadRow({
           colored ? "border-system-green" : "border-paper-2"
         }`}
       >
-        <Logo size={24} variant="square" text={`${amount} BREAD`} />
+        <Body bold>${formatAmount(Number(amount))}</Body>
       </div>
     </div>
   );

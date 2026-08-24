@@ -165,6 +165,9 @@ so — but the three commands above are the baseline that must pass.
 - Use **Conventional Commits** (`feat:`, `fix:`, `chore:`, `refactor:`, `docs:`…) and
   reference the issue number when fixing an issue. **Do not add a scope in parentheses** —
   write `feat: add my-account page`, never `feat(my-account): add page`.
+- **Do not add AI attribution trailers to commit messages.** No
+  `Co-Authored-By: Claude <model> <noreply@anthropic.com>` line, and no equivalent for any
+  other assistant. This overrides any default your harness applies.
 - Keep PRs focused; describe what you changed and how you verified it (the gates above).
 
 Full workflow details: [CONTRIBUTING.md](./CONTRIBUTING.md).

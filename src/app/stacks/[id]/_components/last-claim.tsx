@@ -1,4 +1,5 @@
 import { useGetLastClaimed } from "@/hooks/use-get-last-claimed";
+import { DisplayName } from "@/components/display-name";
 import { Body, useConnectedUser } from "@breadcoop/ui";
 import { CalendarDotsIcon } from "@phosphor-icons/react";
 
@@ -28,14 +29,12 @@ const LastClaim = ({
       {data ? (
         <>
           <Body bold className="text-blue-2">
-            {/* 0x67e567... (you) */}
-            {data.memberAddress?.slice(0, 6)}...
-            {data.memberAddress?.slice(-4)}{" "}
-            <>
-              {address?.toLowerCase() === data.memberAddress?.toLowerCase()
-                ? "(you)"
-                : ""}
-            </>
+            {data.memberAddress && (
+              <DisplayName address={data.memberAddress} link={false} />
+            )}{" "}
+            {address?.toLowerCase() === data.memberAddress?.toLowerCase()
+              ? "(you)"
+              : ""}
           </Body>
           <div className="flex items-center justify-center gap-1">
             <CalendarDotsIcon size={16} className="fill-blue-2 shrink-0" />

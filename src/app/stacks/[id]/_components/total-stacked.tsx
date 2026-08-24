@@ -1,11 +1,5 @@
-import {
-  Body,
-  formatBalance,
-  FormattedDecimalNumber,
-  Heading3,
-  LoginButton,
-  useConnectedUser,
-} from "@breadcoop/ui";
+import { Body, Heading3, LoginButton, useConnectedUser } from "@breadcoop/ui";
+import { FormattedDecimalNumber } from "@/components/bread-ui-kit/formatted-decimal-number";
 import { useCircleStatus } from "@/hooks/use-circle-status";
 import Loading from "@/app/loading";
 import { cn } from "@/lib/utils";
@@ -16,15 +10,24 @@ import { Address, formatEther } from "viem";
 import ClaimButton from "@/components/claim-button";
 import { useGetLastClaimed } from "@/hooks/use-get-last-claimed";
 import { formatRelativeTime } from "@/utils/time";
+import { formatAmount } from "@/utils/format-amount";
+import { amountSizeStep } from "@/utils/amount-size";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { AutomaticClaim } from "./automatic-claim";
-import { FeatureGate } from "@/components/feature-gate";
 import { useCircleState } from "@/hooks/use-circles-state";
 import { CircleState } from "@/lib/circle-state";
 import {
   FAILED_STACK_STATUSES,
   getUserCircleStatus,
 } from "@/lib/get-user-circle-status";
+
+// Steps down a size once the claimable figure gets long, so it doesn't run past
+// the card. See stack-details for the same ladder at the larger hero size.
+const CLAIM_SIZES = {
+  base: { integral: "text-[3rem]", decimal: "text-[2.21rem]" },
+  sm: { integral: "text-[2.25rem]", decimal: "text-[1.66rem]" },
+  xs: { integral: "text-[1.6rem]", decimal: "text-[1.2rem]" },
+} as const;
 
 const TotalStacked = ({
   id,
@@ -73,6 +76,8 @@ const TotalStacked = ({
     }
   }
 
+  const claimSize = CLAIM_SIZES[amountSizeStep(Number(amount))];
+
   return (
     <section
       className={cn(
@@ -81,7 +86,7 @@ const TotalStacked = ({
       )}
     >
       <Heading3 className="pb-3.5 border-b border-paper-2 text-center mb-4.25 text-2xl font-bold w-full">
-        Total stacked for you
+        Total deposited for you
       </Heading3>
       {!address ? (
         <div className="h-full w-full flex items-center justify-center">
@@ -106,16 +111,21 @@ const TotalStacked = ({
                   <FormattedDecimalNumber
                     value={amount}
                     unit="$"
-                    integralPartClassName="text-[3rem] text-surface-ink"
-                    decimalPartClassName="text-[2.21rem] text-surface-grey-2"
+                    integralPartClassName={cn(
+                      claimSize.integral,
+                      "text-surface-ink"
+                    )}
+                    decimalPartClassName={cn(
+                      claimSize.decimal,
+                      "text-surface-grey-2"
+                    )}
                   />
                 )}
                 <div className="flex flex-col gap-2 items-center -mt-4">
                   <Body className="text-surface-grey-2">
                     {amount === "-"
                       ? "-"
-                      : `${formatBalance(Number(amount), 2)}`}{" "}
-                    $BREAD
+                      : `$${formatAmount(Number(amount), 2)}`}
                   </Body>
                   <Body className="text-xs">{msg}</Body>
                 </div>
@@ -159,9 +169,7 @@ const TotalStacked = ({
                 <LastClaimStatus address={address} circleId={id} />
               )}
               {userCircleData.circleData?.isMember && (
-                <FeatureGate feature="automaticClaim">
-                  <AutomaticClaim stackId={id} disabled={isFailedStack} />
-                </FeatureGate>
+                <AutomaticClaim stackId={id} disabled={isFailedStack} />
               )}
             </>
           )}
