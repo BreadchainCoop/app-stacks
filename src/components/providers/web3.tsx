@@ -13,7 +13,12 @@ import {
   safeWallet,
   // walletConnectWallet,
 } from "@rainbow-me/rainbowkit/wallets";
-import { http } from "wagmi";
+import {
+  http,
+  WagmiProvider as BaseWagmiProvider,
+  createConfig as createBaseConfig,
+} from "wagmi";
+import { mock } from "wagmi/connectors";
 import {
   arbitrum,
   base,
@@ -27,6 +32,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { foundryChain } from "@/lib/wagmi";
 import { WagmiProvider, createConfig } from "@privy-io/wagmi";
 import { hashFn } from "wagmi/query";
+import { clientEnv } from "@/lib/env";
+import {
+  LOCAL_ANVIL_ACCOUNTS,
+  getLocalAccountIndex,
+  isLocalMode,
+} from "@/lib/network-mode";
+import type { Address } from "viem";
+import type { Config } from "wagmi";
 
 // https://github.com/rainbow-me/rainbowkit/issues/2476#issuecomment-3117608183
 export function getWallets() {
@@ -60,19 +73,11 @@ const connectors = connectorsForWallets(
   }
 );
 
-export const wagmiConfig = createConfig({
+const privyWagmiConfig = createConfig({
   connectors,
-  // @ts-expect-error Correct
-  chains: (() => {
-    const _chains = [gnosis, sepolia, mainnet, arbitrum, base, bsc, optimism];
-    // @ts-expect-error Correct
-    if (process.env.NODE_ENV === "development") _chains.push(foundryChain);
-
-    return _chains;
-  })(),
+  chains: [gnosis, sepolia, mainnet, arbitrum, base, bsc, optimism],
   transports: {
     [gnosis.id]: http(),
-    [foundryChain.id]: http(),
     [sepolia.id]: http(),
     // for lifi
     [mainnet.id]: http(),
@@ -84,6 +89,34 @@ export const wagmiConfig = createConfig({
   ssr: true,
 });
 
+// Active account first so the mock connector connects as it; Anvil signs
+// server-side (accounts are unlocked), no private keys in the app.
+const localAccounts = (() => {
+  const active = getLocalAccountIndex();
+  return [
+    LOCAL_ANVIL_ACCOUNTS[active],
+    ...LOCAL_ANVIL_ACCOUNTS.filter((_, i) => i !== active),
+  ] as unknown as readonly [Address, ...Address[]];
+})();
+
+const localWagmiConfig = createBaseConfig({
+  chains: [foundryChain],
+  connectors: [
+    mock({
+      accounts: localAccounts,
+      features: { defaultConnected: true, reconnect: true },
+    }),
+  ],
+  transports: {
+    [foundryChain.id]: http(clientEnv.NEXT_PUBLIC_ANVIL_RPC_URL),
+  },
+  ssr: true,
+});
+
+export const wagmiConfig = (
+  isLocalMode() ? localWagmiConfig : privyWagmiConfig
+) as Config;
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -93,20 +126,24 @@ const queryClient = new QueryClient({
   },
 });
 
-// export function Web3Provider({ children }: { children: React.ReactNode }) {
-// 	return (
-// 		<WagmiProvider config={wagmiConfig}>
-// 			<QueryClientProvider client={queryClient}>
-// 				<RainbowKitProvider>{children}</RainbowKitProvider>
-// 			</QueryClientProvider>
-// 		</WagmiProvider>
-// 	);
-// }
-
 export function Web3Provider({ children }: { children: React.ReactNode }) {
+  if (isLocalMode()) {
+    // Plain wagmi provider: @privy-io/wagmi's wallet-sync effect wipes
+    // non-Privy connector state, which would disconnect the mock connector.
+    return (
+      <QueryClientProvider client={queryClient}>
+        <BaseWagmiProvider config={localWagmiConfig}>
+          {/* Still needed here: @breadcoop/ui's LoginButton (rendered by the
+              navbar on every page) reads RainbowKit's context. */}
+          <RainbowKitProvider>{children}</RainbowKitProvider>
+        </BaseWagmiProvider>
+      </QueryClientProvider>
+    );
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
-      <WagmiProvider config={wagmiConfig}>
+      <WagmiProvider config={privyWagmiConfig}>
         <RainbowKitProvider>{children}</RainbowKitProvider>
       </WagmiProvider>
     </QueryClientProvider>

@@ -69,6 +69,22 @@ const envSchema = z.object({
       }
     })
     .pipe(featuresSchema),
+  // Local (Anvil) mode — all optional. The defaults match the deterministic
+  // deployer in the makefile (LOCAL_DEPLOYER_ADDRESS, nonces 0..5), so the
+  // hosted demo site can drive a developer's Anvil node with no env setup.
+  NEXT_PUBLIC_ANVIL_SAVING_CIRCLES_ADDRESS: z
+    .string()
+    .default("0x7E2F05576D57cfa6617172ab3Df276fDfa02fA3e"),
+  NEXT_PUBLIC_ANVIL_SAVING_CIRCLES_VIEWER_ADDRESS: z
+    .string()
+    .default("0xea06eDD211228a9eB7Af1Da186081ec00Ca7c009"),
+  NEXT_PUBLIC_ANVIL_AUTOMATIC_SAVING_CIRCLES_ADDRESS: z
+    .string()
+    .default("0x565f8CD37c6085831b15A36D51c6b15d48a8FEde"),
+  NEXT_PUBLIC_ANVIL_BREAD_TOKEN_ADDRESS: z
+    .string()
+    .default("0x347eA3E53Bd44bDD16Fe7CeF396a19806E12B686"),
+  NEXT_PUBLIC_ANVIL_RPC_URL: z.string().default("http://localhost:8545"),
 });
 
 const parsedSchema = envSchema.safeParse({
@@ -94,6 +110,15 @@ const parsedSchema = envSchema.safeParse({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   NEXT_PUBLIC_DEPOSIT_INTERVALS: process.env.NEXT_PUBLIC_DEPOSIT_INTERVALS,
   NEXT_PUBLIC_FEATURES: process.env.NEXT_PUBLIC_FEATURES,
+  NEXT_PUBLIC_ANVIL_SAVING_CIRCLES_ADDRESS:
+    process.env.NEXT_PUBLIC_ANVIL_SAVING_CIRCLES_ADDRESS,
+  NEXT_PUBLIC_ANVIL_SAVING_CIRCLES_VIEWER_ADDRESS:
+    process.env.NEXT_PUBLIC_ANVIL_SAVING_CIRCLES_VIEWER_ADDRESS,
+  NEXT_PUBLIC_ANVIL_AUTOMATIC_SAVING_CIRCLES_ADDRESS:
+    process.env.NEXT_PUBLIC_ANVIL_AUTOMATIC_SAVING_CIRCLES_ADDRESS,
+  NEXT_PUBLIC_ANVIL_BREAD_TOKEN_ADDRESS:
+    process.env.NEXT_PUBLIC_ANVIL_BREAD_TOKEN_ADDRESS,
+  NEXT_PUBLIC_ANVIL_RPC_URL: process.env.NEXT_PUBLIC_ANVIL_RPC_URL,
 });
 
 if (!parsedSchema.success) {

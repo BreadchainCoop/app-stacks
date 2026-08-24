@@ -22,12 +22,15 @@ import { usePublicClient } from "wagmi";
 import { savingCirclesAbi } from "../../../lib/abis/saving-circles";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../../lib/constants";
 import { usePrivy, useSignTypedData } from "@privy-io/react-auth";
+import { useSignTypedData as useWagmiSignTypedData } from "wagmi";
 import { getDefaultChainId } from "@/utils/chain";
 import { formatAmount } from "@/utils/format-amount";
 import { shortenUrl } from "@/utils/shorten";
 import { SupabaseInviteLink } from "@/lib/supabase";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
-import { clientEnv } from "@/lib/env";
+import { isLocalMode } from "@/lib/network-mode";
+import { createLocalStackMetadata } from "@/lib/local-metadata";
+import { useConnectedUser } from "@breadcoop/ui";
 
 type InviteLink = {
   nonce: bigint;
@@ -62,7 +65,7 @@ function buildInviteUrl(
   return url.toString();
 }
 
-const isLocal = clientEnv.NEXT_PUBLIC_NODE_ENV === "local";
+const isLocal = isLocalMode();
 
 export const StackSuccessResultModal = ({
   modalState,
@@ -71,8 +74,10 @@ export const StackSuccessResultModal = ({
 }) => {
   const blockTimestamp = useBlockTimestamp();
   const { user: privyUser } = usePrivy();
+  const { user: connectedUser } = useConnectedUser();
   const publicClient = usePublicClient({ chainId: getDefaultChainId() });
   const { signTypedData } = useSignTypedData();
+  const { signTypedDataAsync: signWagmiTypedData } = useWagmiSignTypedData();
   const modal = useModal();
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -129,31 +134,56 @@ export const StackSuccessResultModal = ({
             ? Number(nonce)
             : nonce.toString();
 
-        const typedData = {
-          domain: {
-            name: INVITE_DOMAIN_NAME,
-            version: INVITE_DOMAIN_VERSION,
-            chainId: DEFAULT_CHAIN,
-            verifyingContract: SAVING_CIRCLES_CONTRACT_ADDRESS,
-          },
-          types: {
-            Invite: [
-              { name: "id", type: "uint256" },
-              { name: "nonce", type: "uint256" },
-            ],
-          },
-          primaryType: "Invite" as const,
-          message: {
-            id: circleIdNum,
-            nonce: nonceNum,
-          },
-        };
+        let signature: string;
 
-        const { signature } = await signTypedData(typedData, {
-          uiOptions: {
-            showWalletUIs: false,
-          },
-        });
+        if (isLocal) {
+          // Anvil signs for the unlocked mock-connector account.
+          signature = await signWagmiTypedData({
+            domain: {
+              name: INVITE_DOMAIN_NAME,
+              version: INVITE_DOMAIN_VERSION,
+              chainId: DEFAULT_CHAIN,
+              verifyingContract: SAVING_CIRCLES_CONTRACT_ADDRESS,
+            },
+            types: {
+              Invite: [
+                { name: "id", type: "uint256" },
+                { name: "nonce", type: "uint256" },
+              ],
+            },
+            primaryType: "Invite",
+            message: {
+              id: circleId,
+              nonce,
+            },
+          });
+        } else {
+          const typedData = {
+            domain: {
+              name: INVITE_DOMAIN_NAME,
+              version: INVITE_DOMAIN_VERSION,
+              chainId: DEFAULT_CHAIN,
+              verifyingContract: SAVING_CIRCLES_CONTRACT_ADDRESS,
+            },
+            types: {
+              Invite: [
+                { name: "id", type: "uint256" },
+                { name: "nonce", type: "uint256" },
+              ],
+            },
+            primaryType: "Invite" as const,
+            message: {
+              id: circleIdNum,
+              nonce: nonceNum,
+            },
+          };
+
+          ({ signature } = await signTypedData(typedData, {
+            uiOptions: {
+              showWalletUIs: false,
+            },
+          }));
+        }
 
         const url = buildInviteUrl(
           baseUrl,
@@ -187,17 +217,32 @@ export const StackSuccessResultModal = ({
         }
       });
 
-      fetch("/api/stacks/metadata", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: modalState.circle.id,
-          stackname: modalState.circle.name,
-          expected_members: modalState.circle.members,
-          invite_links: supabaseInviteLinks,
-          privyUserId: privyUser?.id,
-        }),
-      });
+      if (isLocal) {
+        if (
+          connectedUser.status === "CONNECTED" ||
+          connectedUser.status === "UNSUPPORTED_CHAIN"
+        ) {
+          createLocalStackMetadata({
+            id: modalState.circle.id,
+            stackname: modalState.circle.name,
+            expected_members: modalState.circle.members,
+            invite_links: supabaseInviteLinks,
+            address: connectedUser.address,
+          });
+        }
+      } else {
+        fetch("/api/stacks/metadata", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: modalState.circle.id,
+            stackname: modalState.circle.name,
+            expected_members: modalState.circle.members,
+            invite_links: supabaseInviteLinks,
+            privyUserId: privyUser?.id,
+          }),
+        });
+      }
 
       setSigningProgress("");
       setInvites(signedInvites);

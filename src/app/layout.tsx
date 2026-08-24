@@ -4,6 +4,7 @@ import ModalPresenter from "@/components/modal/presenter";
 import { Navbar } from "@/components/Navbar/Navbar";
 import Providers from "@/components/providers";
 import LoginTracker from "@/components/login-tracker";
+import NetworkModeGate from "@/components/network-mode-gate";
 import { isServerMobile } from "@/lib/server-mobile";
 import { Footer } from "@breadcoop/ui";
 import { OnboardVisitorTracker } from "@/components/onboard/visitor-tracker";
@@ -30,6 +31,7 @@ export default async function RootLayout({
           <Providers isMobile={isMobile}>
             <OnboardVisitorTracker />
             <LoginTracker />
+            <NetworkModeGate />
             <ModalPresenter />
             <Navbar />
             <main className="page-layout py-8">{children}</main>

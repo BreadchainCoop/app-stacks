@@ -7,6 +7,8 @@ import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { getDefaultChainId } from "@/utils/chain";
+import { isLocalMode } from "@/lib/network-mode";
+import { redeemLocalInvite } from "@/lib/local-metadata";
 import { Body, LoginButton, useConnectedUser } from "@breadcoop/ui";
 import { CheckIcon } from "@phosphor-icons/react";
 import { usePrivy } from "@privy-io/react-auth";
@@ -100,13 +102,18 @@ export default function AcceptInvite({
       queryClient.setQueryData(isMemberKey, true);
       queryClient.invalidateQueries({ queryKey: isMemberKey });
 
-      fetch("/api/stacks/invite", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ circleId, nonce, privyUserId: privyUser?.id }),
-      }).catch((error) => {
-        console.error("Failed to mark invite as used:", error);
-      });
+      if (isLocalMode()) {
+        // No API routes in local mode: record the redemption in localStorage.
+        redeemLocalInvite({ circleId, nonce, address: user.address });
+      } else {
+        fetch("/api/stacks/invite", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ circleId, nonce, privyUserId: privyUser?.id }),
+        }).catch((error) => {
+          console.error("Failed to mark invite as used:", error);
+        });
+      }
 
       // Not awaited: the redirect above should not wait on the opt-in tx. The
       // hook primes the toggle's query cache once it lands.

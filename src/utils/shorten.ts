@@ -1,4 +1,5 @@
 // import { clientEnv } from "@/lib/env";
+import { isLocalMode } from "@/lib/network-mode";
 
 interface ShortenUrlErrorRes {
   success: false;
@@ -43,6 +44,11 @@ export async function shortenUrl(
   //   return long_url;
   // }
 
+  // Local mode: the link points at a throwaway Anvil stack, so there is nothing
+  // worth persisting in the shortener - and locally the route just logs
+  // "URL shortening failed" on every call. Keep the long URL.
+  if (isLocalMode()) return long_url;
+
   try {
     const response = await fetch("/api/shorten", {
       method: "POST",
@@ -71,6 +77,9 @@ export async function expandShortUrlToken(
   config: { signal?: AbortSignal } = {}
 ): Promise<string> {
   const { signal } = config;
+
+  // Nothing was shortened in local mode, so there is nothing to expand.
+  if (isLocalMode()) return short_url;
 
   try {
     const response = await fetch("/api/shorten/expand", {

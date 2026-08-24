@@ -17,6 +17,11 @@ contract Deploy is Script {
     function run() external {
         // Admin that will own SavingCircles + ProxyAdmin
         address admin = vm.envAddress("ADMIN_ADDRESS");
+        // The broadcaster may differ from the admin (the deterministic local
+        // deployer): initialize with the deployer as owner so setTokenAllowed
+        // can run, then hand ownership to the admin. Extra transactions after
+        // the six CREATEs don't shift the deterministic addresses.
+        address deployer = vm.addr(vm.envUint("PRIVATE_KEY"));
 
         uint256 initialBreadSupply = 1_000_000e18;
 
@@ -28,7 +33,7 @@ contract Deploy is Script {
         ProxyAdmin proxyAdmin = new ProxyAdmin(admin);
 
         bytes memory initData =
-            abi.encodeWithSelector(SavingCircles.initialize.selector, admin);
+            abi.encodeWithSelector(SavingCircles.initialize.selector, deployer);
 
         TransparentUpgradeableProxy proxy =
             new TransparentUpgradeableProxy(
@@ -46,6 +51,10 @@ contract Deploy is Script {
             new SavingCirclesViewer(address(savingCircles));
 
         savingCircles.setTokenAllowed(address(bread), true);
+
+        if (deployer != admin) {
+            savingCircles.transferOwnership(admin);
+        }
 
         require(savingCircles.owner() == admin, "SavingCircles owner != admin");
         require(savingCircles.allowedTokens(address(bread)) == true, "BREAD not allowed");

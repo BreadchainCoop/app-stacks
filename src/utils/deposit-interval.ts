@@ -1,8 +1,17 @@
 import { DepositInterval } from "@/interfaces/deposit-interval";
 import { clientEnv } from "@/lib/env";
+import { isLocalMode } from "@/lib/network-mode";
 
-export const DEPOSIT_INTERVALS: DepositInterval[] =
-  clientEnv.NEXT_PUBLIC_DEPOSIT_INTERVALS;
+// Hardcoded (NOT env-driven — the env schema requires >= 2 entries): one
+// 30-day interval, long enough that local rounds only ever advance via the
+// "Next round" button.
+const LOCAL_DEPOSIT_INTERVALS: DepositInterval[] = [
+  { id: "1month", label: "monthly", seconds: 2592000, description: "30 days" },
+];
+
+export const DEPOSIT_INTERVALS: DepositInterval[] = isLocalMode()
+  ? LOCAL_DEPOSIT_INTERVALS
+  : clientEnv.NEXT_PUBLIC_DEPOSIT_INTERVALS;
 
 export const getIntervalById = (id: string) =>
   DEPOSIT_INTERVALS.find((i) => i.id === id);

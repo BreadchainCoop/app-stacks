@@ -17,6 +17,7 @@ import { zeroAddress } from "viem";
 import { getUserCircleStatus } from "@/lib/get-user-circle-status";
 import { useModal } from "@/components/modal/context";
 import BackMeta from "./back-meta";
+import NextRoundButton from "./next-round-button";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useCircleState } from "@/hooks/use-circles-state";
 import { CircleState } from "@/lib/circle-state";
@@ -78,6 +79,9 @@ const PageContent = ({ id }: { id: string }) => {
       {circleExists && userCircleData.circleData ? (
         <>
           <div className="*:mb-4 last:mb-0 md:mb-6 md:last:mb-0">
+            <NextRoundButton
+              depositWindowEnd={userCircleData.circleData.depositWindowEnd}
+            />
             <StackedStatus
               id={id}
               circle={userCircleData.circleData}

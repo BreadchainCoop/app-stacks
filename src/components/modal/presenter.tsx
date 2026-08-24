@@ -16,6 +16,7 @@ import WithdrawBreadModal from "./modals/withdraw-bread";
 import WalletFundingStatusModal from "./modals/wallet-funding-status";
 import ReminderModal from "@/components/reminder/modal";
 import NewUserOnboarding from "./modals/new-user-onboarding";
+import NetworkModeModal from "./modals/network-mode";
 import SetAliasModal from "./modals/set-alias";
 import FundWallet from "./modals/fund-wallet/fund-wallet";
 import LiFiSwapModal from "../lifi/swap-modal";
@@ -30,7 +31,14 @@ const ModalPresenter = () => {
   const { modalState, setModal } = useModal();
 
   return (
-    <Dialog.Root open={!!modalState} onOpenChange={() => setModal(null)}>
+    <Dialog.Root
+      open={!!modalState}
+      onOpenChange={() => {
+        // A network mode must be chosen; block Escape/overlay dismissal.
+        if (modalState?.type === "NETWORK_MODE_SELECT") return;
+        setModal(null);
+      }}
+    >
       <Dialog.Portal forceMount>
         {modalState && (
           <>
@@ -71,6 +79,9 @@ const ModalPresenter = () => {
               {modalState.type === "WITHDRAW_BREAD" && <WithdrawBreadModal />}
               {modalState.type === "NEW_USER_ONBOARDING" && (
                 <NewUserOnboarding modalState={modalState} />
+              )}
+              {modalState.type === "NETWORK_MODE_SELECT" && (
+                <NetworkModeModal />
               )}
               {modalState.type === "SET_ALIAS" && (
                 <SetAliasModal modalState={modalState} />

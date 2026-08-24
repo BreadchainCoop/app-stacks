@@ -1,4 +1,4 @@
-.PHONY: deploy install-contract-deps anvil update-env update-contract-submodules update-saving-circles-dev reset-supabase start-local warp time-increase mine timestamp time-reset
+.PHONY: deploy prepare-deployer check-deployment install-contract-deps anvil update-env update-contract-submodules update-saving-circles-dev reset-supabase start-local warp time-increase mine timestamp time-reset fund-all
 
 ANVIL_ACCOUNTS := 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 \
 	0x70997970C51812dc3A010C7d01b50e0d17dc79C8 \
@@ -16,6 +16,19 @@ RPC_URL ?= http://localhost:8545
 # first anvil's account
 PRIVATE_KEY ?= 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 ADMIN_ADDRESS ?= 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+
+# Dedicated virgin deployer, so the six CREATEs in Deploy.s.sol always land on
+# the same addresses (nonces 0..5) no matter what the forked Gnosis state holds.
+# Those addresses are baked into src/lib/env.ts, which is what lets the hosted
+# demo site talk to your Anvil node without any local env configuration.
+# NOT a secret: local-only key. They only move if Deploy.s.sol adds or reorders
+# deployments - check-deployment fails loudly when that happens.
+LOCAL_DEPLOYER_PK ?= 0x5ca1ab1e5ca1ab1e5ca1ab1e5ca1ab1e5ca1ab1e5ca1ab1e5ca1ab1e5ca1ab1e
+LOCAL_DEPLOYER_ADDRESS ?= 0xdcE4807F815737616B6150c5A483AeC83C4FC5a9
+EXPECTED_BREAD_TOKEN := 0x347eA3E53Bd44bDD16Fe7CeF396a19806E12B686
+EXPECTED_SAVING_CIRCLES_PROXY := 0x7E2F05576D57cfa6617172ab3Df276fDfa02fA3e
+EXPECTED_AUTOMATIC_SAVING_CIRCLES := 0x565f8CD37c6085831b15A36D51c6b15d48a8FEde
+EXPECTED_SAVING_CIRCLES_VIEWER := 0xea06eDD211228a9eB7Af1Da186081ec00Ca7c009
 OZ_UPGRADEABLE_REENTRANCY_COMMIT ?= 5c4c29275d02e06265ce1cfcad5a420b58a5ca02
 SAVING_CIRCLES_BRANCH ?= dev
 SOLC_OPTIMIZER_RUNS ?= 200
@@ -38,19 +51,66 @@ reset-nonces:
 install-contract-deps:
 	cd contracts && forge install
 
-deploy:
+# Fund the deterministic deployer and force its nonce to 0, so the CREATE
+# addresses always match the EXPECTED_* values above.
+prepare-deployer:
+	@echo "Preparing deterministic deployer $(LOCAL_DEPLOYER_ADDRESS)..."
+	@# Fixed nonce means a redeploy would hit CreateCollision on the addresses
+	@# the previous one already occupies. Say so, instead of letting forge fail
+	@# with an undecoded revert.
+	@if [ "$$(cast code $(EXPECTED_SAVING_CIRCLES_PROXY) --rpc-url $(RPC_URL))" != "0x" ]; then \
+		echo "Error: contracts are already deployed on this node."; \
+		echo "The deterministic deployer always uses nonce 0, so a redeploy needs a chain"; \
+		echo "with no code at those addresses. 'make anvil-reset' does not clear deployed"; \
+		echo "code - stop 'make anvil' and start it again, then re-run this."; \
+		exit 1; \
+	fi
+	@cast rpc anvil_setBalance $(LOCAL_DEPLOYER_ADDRESS) 0x21E19E0C9BAB2400000 --rpc-url $(RPC_URL) > /dev/null
+	@cast rpc anvil_setNonce $(LOCAL_DEPLOYER_ADDRESS) 0 --rpc-url $(RPC_URL) > /dev/null
+	@echo "✓ Deployer funded, nonce reset to 0"
+
+deploy: prepare-deployer
 	cd contracts && \
 	export RPC_URL=$(RPC_URL) && \
-	export PRIVATE_KEY=$(PRIVATE_KEY) && \
+	export PRIVATE_KEY=$(LOCAL_DEPLOYER_PK) && \
 	export ADMIN_ADDRESS=$(ADMIN_ADDRESS) && \
 	forge script script/Deploy.s.sol:Deploy \
 		--optimize \
 		--optimizer-runs $(SOLC_OPTIMIZER_RUNS) \
 		--rpc-url $(RPC_URL) \
 		--broadcast \
-		--private-key $(PRIVATE_KEY) \
+		--private-key $(LOCAL_DEPLOYER_PK) \
 		--legacy
-	$(MAKE) update-env
+	@# .env.local is only needed to run the dev server yourself; the hosted
+	@# demo site reads the deterministic addresses from src/lib/env.ts.
+	@if [ -f .env.local ]; then \
+		$(MAKE) update-env; \
+	else \
+		echo "• No .env.local - skipping update-env (only needed to run 'pnpm dev' locally)"; \
+	fi
+	$(MAKE) check-deployment
+
+# Guards the deterministic addresses baked into src/lib/env.ts. If this fails,
+# the hosted demo site would silently point at the wrong contracts.
+check-deployment:
+	@ok=1; \
+	for entry in \
+		"breadToken:$(EXPECTED_BREAD_TOKEN)" \
+		"savingCirclesProxy:$(EXPECTED_SAVING_CIRCLES_PROXY)" \
+		"automaticSavingCircles:$(EXPECTED_AUTOMATIC_SAVING_CIRCLES)" \
+		"savingCirclesViewer:$(EXPECTED_SAVING_CIRCLES_VIEWER)"; do \
+		key=$${entry%%:*}; expected=$${entry##*:}; \
+		actual=$$(jq -r ".$$key" contracts/out/SAVING_CIRCLES_DEPLOYMENT.json); \
+		if [ "$$(echo $$actual | tr '[:upper:]' '[:lower:]')" != "$$(echo $$expected | tr '[:upper:]' '[:lower:]')" ]; then \
+			echo "✗ $$key drifted: expected $$expected, got $$actual"; ok=0; \
+		fi; \
+	done; \
+	if [ "$$ok" != "1" ]; then \
+		echo "Error: deterministic local addresses drifted (did Deploy.s.sol add/reorder deployments?)."; \
+		echo "Regenerate the EXPECTED_* values above and the NEXT_PUBLIC_ANVIL_* defaults in src/lib/env.ts."; \
+		exit 1; \
+	fi; \
+	echo "✓ Deployment matches the deterministic local addresses"
 
 update-env:
 	@echo "Updating .env.local with deployed contract addresses..."
@@ -249,6 +309,10 @@ fund-wallet:
 		echo "  BREAD: $$BREAD_BAL BREAD"; \
 		echo ""; \
 	done
+
+# Fund all 10 Anvil dev accounts (xDAI + BREAD) in one go.
+fund-all:
+	@$(MAKE) fund-wallet $(ANVIL_ACCOUNTS)
 
 0x%:
 	@:

@@ -95,31 +95,33 @@ const StackForm = ({ onContinue }: { onContinue: () => void }) => {
             </div>
             <ErrorMessage msg={form.formState.errors.depositAmount?.message} />
           </Field>
-          <Field>
-            <div>
-              <Label htmlFor="depositInterval">Deposit Interval</Label>
-            </div>
-            <div className="flex flex-col gap-2">
-              {DEPOSIT_INTERVALS.map((interval) => (
-                <RadioButton
-                  key={interval.id}
-                  id={interval.id}
-                  checked={depositInterval === interval.id}
-                  label={interval.label}
-                  description={` (every ${(interval.description || interval.label).toLowerCase()})`}
-                  name="depositInterval"
-                  onChange={() => {
-                    form.setValue("depositInterval", interval.id);
-                    form.clearErrors("depositInterval");
-                  }}
-                  value={interval.id}
-                />
-              ))}
-            </div>
-            <ErrorMessage
-              msg={form.formState.errors.depositInterval?.message}
-            />
-          </Field>
+          {DEPOSIT_INTERVALS.length > 1 && (
+            <Field>
+              <div>
+                <Label htmlFor="depositInterval">Deposit Interval</Label>
+              </div>
+              <div className="flex flex-col gap-2">
+                {DEPOSIT_INTERVALS.map((interval) => (
+                  <RadioButton
+                    key={interval.id}
+                    id={interval.id}
+                    checked={depositInterval === interval.id}
+                    label={interval.label}
+                    description={` (every ${(interval.description || interval.label).toLowerCase()})`}
+                    name="depositInterval"
+                    onChange={() => {
+                      form.setValue("depositInterval", interval.id);
+                      form.clearErrors("depositInterval");
+                    }}
+                    value={interval.id}
+                  />
+                ))}
+              </div>
+              <ErrorMessage
+                msg={form.formState.errors.depositInterval?.message}
+              />
+            </Field>
+          )}
         </div>
         <LocalButton
           variant="secondary"

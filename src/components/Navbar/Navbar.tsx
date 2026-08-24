@@ -6,6 +6,8 @@ import { useModal } from "../modal/context";
 import WidgetItems from "./widget-items";
 import ActionItems from "./action-items";
 import NavLinks from "./nav-links";
+import NetworkModeChip from "./network-mode-chip";
+import LocalAccountSwitcher from "./local-account-switcher";
 import NavDepositButton from "../bread-ui-kit/navbar/nav-deposit-button";
 
 export function Navbar() {
@@ -32,6 +34,10 @@ export function Navbar() {
       onWithdraw={openWithdrawFlow}
     >
       <NavLinks />
+      <div className="flex flex-col gap-2 md:mr-4 md:flex-row md:items-center md:gap-3">
+        <NetworkModeChip />
+        <LocalAccountSwitcher />
+      </div>
     </BreadNavbar>
   );
 }
