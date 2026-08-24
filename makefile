@@ -55,6 +55,16 @@ install-contract-deps:
 # addresses always match the EXPECTED_* values above.
 prepare-deployer:
 	@echo "Preparing deterministic deployer $(LOCAL_DEPLOYER_ADDRESS)..."
+	@# Fixed nonce means a redeploy would hit CreateCollision on the addresses
+	@# the previous one already occupies. Say so, instead of letting forge fail
+	@# with an undecoded revert.
+	@if [ "$$(cast code $(EXPECTED_SAVING_CIRCLES_PROXY) --rpc-url $(RPC_URL))" != "0x" ]; then \
+		echo "Error: contracts are already deployed on this node."; \
+		echo "The deterministic deployer always uses nonce 0, so a redeploy needs a chain"; \
+		echo "with no code at those addresses. 'make anvil-reset' does not clear deployed"; \
+		echo "code - stop 'make anvil' and start it again, then re-run this."; \
+		exit 1; \
+	fi
 	@cast rpc anvil_setBalance $(LOCAL_DEPLOYER_ADDRESS) 0x21E19E0C9BAB2400000 --rpc-url $(RPC_URL) > /dev/null
 	@cast rpc anvil_setNonce $(LOCAL_DEPLOYER_ADDRESS) 0 --rpc-url $(RPC_URL) > /dev/null
 	@echo "✓ Deployer funded, nonce reset to 0"

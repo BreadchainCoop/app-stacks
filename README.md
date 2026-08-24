@@ -135,16 +135,14 @@ make start-local
 
 ### Resetting the Local Blockchain
 
-If you need a fresh state:
+`make anvil-reset` rewinds the fork, but it does **not** clear code that was already
+deployed. Since `make deploy` uses a fixed deployer nonce, redeploying onto a node that
+still has the contracts fails with a "contracts are already deployed" error. For a
+genuinely fresh state, stop `make anvil` (Ctrl-C) and start it again:
 
 ```bash
-make anvil-reset
-```
-
-Then redeploy:
-
-```bash
-make start-local
+make anvil        # terminal 1, restarted
+make start-local  # terminal 2
 ```
 
 ### Funding a Wallet

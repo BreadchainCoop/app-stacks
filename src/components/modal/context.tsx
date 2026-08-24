@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { PeerExtensionSdk } from "@zkp2p/sdk";
+import { storedNetworkMode } from "@/lib/network-mode";
 import { Address } from "viem";
 import { FundWithConnectedWalletModalAmountModalState } from "./modals/fund-wallet/fund-with-connected-wallet-modal-amount";
 import { AutomaticClaimsModalState } from "./modals/automatic-claims";
@@ -180,8 +181,20 @@ const ModalContext = createContext<ModalContext>({
 function ModalProvider({ children }: { children: ReactNode }) {
   const [modalState, setModalState] = useState<ModalState>(null);
 
-  function setModal(modalState: ModalState) {
-    setModalState(modalState);
+  function setModal(next: ModalState) {
+    // The first-visit mode prompt outranks every other modal: chain,
+    // contracts and connector are all configured from that choice, and the
+    // answer is required. Without this it loses the race against modals
+    // opened from an async effect (Privy readiness, onboarding trackers).
+    if (
+      modalState?.type === "NETWORK_MODE_SELECT" &&
+      storedNetworkMode === null &&
+      next !== null
+    ) {
+      return;
+    }
+
+    setModalState(next);
   }
 
   return (

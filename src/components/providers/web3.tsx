@@ -133,7 +133,9 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
     return (
       <QueryClientProvider client={queryClient}>
         <BaseWagmiProvider config={localWagmiConfig}>
-          {children}
+          {/* Still needed here: @breadcoop/ui's LoginButton (rendered by the
+              navbar on every page) reads RainbowKit's context. */}
+          <RainbowKitProvider>{children}</RainbowKitProvider>
         </BaseWagmiProvider>
       </QueryClientProvider>
     );
