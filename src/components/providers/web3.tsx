@@ -60,6 +60,16 @@ const connectors = connectorsForWallets(
   }
 );
 
+// Route the primary chain's reads through the app's own /api/rpc proxy when an
+// app URL is configured, so VPN/DNS/CORS filtering of the public RPC can't
+// break on-chain reads (the browser only talks to our own origin). Needs an
+// ABSOLUTE base so it works during SSR prefetch too; falls back to a direct
+// http() transport when NEXT_PUBLIC_APP_URL is unset (behavior unchanged).
+const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+const gnosisTransport = appUrl
+  ? http(`${appUrl.replace(/\/$/, "")}/api/rpc?chainId=${gnosis.id}`)
+  : http();
+
 export const wagmiConfig = createConfig({
   connectors,
   // @ts-expect-error Correct
@@ -71,7 +81,7 @@ export const wagmiConfig = createConfig({
     return _chains;
   })(),
   transports: {
-    [gnosis.id]: http(),
+    [gnosis.id]: gnosisTransport,
     [foundryChain.id]: http(),
     [sepolia.id]: http(),
     // for lifi
