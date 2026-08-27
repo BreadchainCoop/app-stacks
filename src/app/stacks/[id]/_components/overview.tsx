@@ -31,6 +31,7 @@ import { useReadContracts } from "wagmi";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useFundsDeposited } from "@/hooks/use-funds-deposited";
 import LocalButton from "@/components/button";
+import YieldPanel from "@/components/yield-panel";
 
 const Overview = ({
   circle,
@@ -336,6 +337,10 @@ const Overview = ({
           </>
         ) : null}
       </div>
+      {/* TEMP preview stub: force the panel visible with mock yield on every
+          stack screen (no contract/login needed). Remove before merge — the
+          real mount is just `<YieldPanel member={member} className="mt-4" />`. */}
+      <YieldPanel member={member} stubAmount={12.3456} className="mt-4" />
     </section>
   );
 };
