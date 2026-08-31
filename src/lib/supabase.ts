@@ -30,18 +30,21 @@ export type Database = {
           privy_user_id: string;
           wallet_address: string | null;
           created_at: string;
+          transferred_to_wallet_at: string | null;
         };
         Insert: {
           id: string;
           privy_user_id: string;
           wallet_address?: string | null;
           created_at?: string;
+          transferred_to_wallet_at?: string | null;
         };
         Update: {
           id?: string;
           privy_user_id?: string;
           wallet_address?: string | null;
           created_at?: string;
+          transferred_to_wallet_at?: string | null;
         };
         Relationships: [];
       };

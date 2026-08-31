@@ -7,6 +7,7 @@ import LoginTracker from "@/components/login-tracker";
 import { isServerMobile } from "@/lib/server-mobile";
 import { Footer } from "@breadcoop/ui";
 import { OnboardVisitorTracker } from "@/components/onboard/visitor-tracker";
+import MigrateAndTransferBanner from "@/components/migrate-and-transfer-banner";
 
 export const metadata = generateMetadata();
 
@@ -32,6 +33,7 @@ export default async function RootLayout({
             <LoginTracker />
             <ModalPresenter />
             <Navbar />
+            <MigrateAndTransferBanner />
             <main className="page-layout py-8">{children}</main>
             <Footer mode="transparent" className="page-layout mt-auto" />
           </Providers>
