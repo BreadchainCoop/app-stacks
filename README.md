@@ -46,19 +46,26 @@ make anvil
 
 This will:
 
-- Fork Gnosis Chain at the latest block
+- Fork Gnosis Chain at the latest block (first run only — see below)
 - Run on `http://localhost:8545`
 - Use chain ID `31337`
 - Mine blocks every 5 seconds
+- Persist state to `.anvil/state/app-stacks.json`, so the next `make anvil` resumes right where you left off (deployed contracts, stacks, deposits, etc.) instead of starting from an empty fork
 
-**Keep this terminal running** throughout your development session.
+**Keep this terminal running** throughout your development session. State is saved to disk automatically when you stop it (Ctrl+C).
 
-### 5. Deploy Contracts
-
-In another terminal, deploy the smart contracts and start the development server:
+Want a completely clean chain instead, discarding any persisted state?
 
 ```bash
-make start-local
+make fresh-anvil
+```
+
+### 5. Deploy Contracts and Start the App
+
+First time running the project (or whenever you want a clean off-chain + on-chain slate), in another terminal:
+
+```bash
+make start-fresh-local
 ```
 
 This will:
@@ -69,6 +76,12 @@ This will:
 - Start the Next.js development server
 
 **Default deployer account**: `0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266` (Anvil's first account)
+
+On later runs, once Anvil (with its persisted state) and Supabase already have what you need, just start the dev server:
+
+```bash
+make start-local
+```
 
 ### 6. Configure MetaMask
 
@@ -96,7 +109,7 @@ If the contract submodules are out of date, update them and redeploy:
 ```bash
 make update-contract-submodules
 make anvil-reset
-make start-local
+make start-fresh-local
 ```
 
 ### Resetting the Local Blockchain
@@ -110,7 +123,7 @@ make anvil-reset
 Then redeploy:
 
 ```bash
-make start-local
+make start-fresh-local
 ```
 
 ### Funding a Wallet
@@ -166,21 +179,23 @@ make warp TIMESTAMP=1735689600     # Jump to a specific timestamp (January 1, 20
 
 ## Useful Make Commands
 
-| Command                                | Description                                       |
-| -------------------------------------- | ------------------------------------------------- |
-| `make anvil`                           | Start local blockchain (Gnosis fork)              |
-| `make start-local`                     | Clear off-chain data, deploy contracts, start dev |
-| `make deploy`                          | Deploy contracts and update .env.local            |
-| `make reset-supabase`                  | Wipe off-chain stack data (local env only)        |
-| `make anvil-reset`                     | Reset blockchain to fresh state                   |
-| `make update-contract-submodules`      | Update contract dependencies                      |
-| `make fund-wallet 0xAddr [0xAddr ...]` | Fund one or more wallets with ETH and BREAD       |
-| `make fund-wallet 0xAddr eth=N`        | Fund the wallet(s) with N ETH only                |
-| `make fund-wallet 0xAddr bread=N`      | Fund the wallet(s) with N BREAD only              |
-| `make mine`                            | Mine a single block                               |
-| `make timestamp`                       | Show current block timestamp                      |
-| `make time-increase SECONDS=N`         | Advance Anvil time by N seconds                   |
-| `make warp TIMESTAMP=N`                | Set Anvil time to a specific timestamp            |
+| Command                                | Description                                                 |
+| -------------------------------------- | ----------------------------------------------------------- |
+| `make anvil`                           | Start/resume local blockchain (Gnosis fork, persisted)      |
+| `make fresh-anvil`                     | Start local blockchain from a clean fork, discarding state  |
+| `make start-local`                     | Just start the dev server (anvil + Supabase already set up) |
+| `make start-fresh-local`               | Clear off-chain data, deploy contracts, start dev           |
+| `make deploy`                          | Deploy contracts and update .env.local                      |
+| `make reset-supabase`                  | Wipe off-chain stack data (local env only)                  |
+| `make anvil-reset`                     | Reset blockchain to fresh state                             |
+| `make update-contract-submodules`      | Update contract dependencies                                |
+| `make fund-wallet 0xAddr [0xAddr ...]` | Fund one or more wallets with ETH and BREAD                 |
+| `make fund-wallet 0xAddr eth=N`        | Fund the wallet(s) with N ETH only                          |
+| `make fund-wallet 0xAddr bread=N`      | Fund the wallet(s) with N BREAD only                        |
+| `make mine`                            | Mine a single block                                         |
+| `make timestamp`                       | Show current block timestamp                                |
+| `make time-increase SECONDS=N`         | Advance Anvil time by N seconds                             |
+| `make warp TIMESTAMP=N`                | Set Anvil time to a specific timestamp                      |
 
 ## Custom Deployment
 
