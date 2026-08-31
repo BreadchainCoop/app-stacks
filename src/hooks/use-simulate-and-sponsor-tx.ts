@@ -27,13 +27,21 @@ interface ContractTxParams<
   functionName: TFunctionName;
   args: ContractFunctionArgs<TAbi, "nonpayable" | "payable", TFunctionName>;
   value?: bigint; // xDAI to send with the call
+  /**
+   * Override the account the simulation runs as. Defaults to the connected
+   * user — pass this when the tx must originate from a specific wallet
+   * (e.g. transferring funds out of a user's embedded wallet) rather than
+   * whichever wallet useConnectedUser() currently resolves to.
+   */
+  account?: Address;
 }
 
 export const useSimulateAndSponsorTx = () => {
   const { sendSponsoredTransaction } = useSponsoredTx();
   const { waitForTxReceipt } = useWaitForTxReceipt();
   const { user } = useConnectedUser();
-  const account = user.status === "CONNECTED" ? user.address : undefined;
+  const connectedAccount =
+    user.status === "CONNECTED" ? user.address : undefined;
 
   const simulateAndSponsorTx = async <
     TAbi extends Abi,
@@ -44,6 +52,7 @@ export const useSimulateAndSponsorTx = () => {
     functionName,
     args,
     value,
+    account = connectedAccount,
     options,
   }: ContractTxParams<TAbi, TFunctionName> & {
     options?: Parameters<typeof sendSponsoredTransaction>[1];
