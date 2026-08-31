@@ -7,7 +7,7 @@ import {
   StackInitSuccessModalState,
   useModal,
 } from "../context";
-import { Body, Heading2, Heading3 } from "@breadcoop/ui";
+import { Body, formatBalance, Heading2, Heading3 } from "@breadcoop/ui";
 import PendingInviteLink from "@/components/pending-invite-link";
 import {
   Accordion,
@@ -17,201 +17,80 @@ import {
 } from "@/components/accordion";
 import Link from "next/link";
 import LocalButton from "@/components/button";
-import { useEffect, useState } from "react";
-import { usePublicClient } from "wagmi";
-import { savingCirclesAbi } from "../../../lib/abis/saving-circles";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../../lib/constants";
-import { usePrivy, useSignTypedData } from "@privy-io/react-auth";
-import { getDefaultChainId } from "@/utils/chain";
-import { formatAmount } from "@/utils/format-amount";
+import { useEffect, useRef, useState } from "react";
+import { usePrivy } from "@privy-io/react-auth";
 import { shortenUrl } from "@/utils/shorten";
-import { SupabaseInviteLink } from "@/lib/supabase";
-import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
-import { clientEnv } from "@/lib/env";
 
-type InviteLink = {
-  nonce: bigint;
-  signature: string;
-  url: string;
-  used: boolean;
-};
-
-const INVITE_DOMAIN_NAME = "StacksInvite";
-const INVITE_DOMAIN_VERSION = "1";
-const DEFAULT_CHAIN = getDefaultChainId();
-
-function buildInviteUrl(
-  baseUrl: string,
-  circleId: string,
-  nonce: bigint,
-  signature: string,
-  name: string,
-  members: number,
-  duration: string,
-  deposit: string
-): string {
+export function buildInviteUrl(baseUrl: string, circleId: string): string {
   const url = new URL(baseUrl);
   url.searchParams.set("circleId", circleId);
-  url.searchParams.set("nonce", nonce.toString());
-  url.searchParams.set("signature", signature);
-  url.searchParams.set("name", name);
-  url.searchParams.set("members", String(members));
-  url.searchParams.set("duration", duration);
-  url.searchParams.set("deposit", deposit);
 
   return url.toString();
 }
-
-const isLocal = clientEnv.NEXT_PUBLIC_NODE_ENV === "local";
 
 export const StackSuccessResultModal = ({
   modalState,
 }: {
   modalState: StackInitSuccessModalState;
 }) => {
-  const blockTimestamp = useBlockTimestamp();
   const { user: privyUser } = usePrivy();
-  const publicClient = usePublicClient({ chainId: getDefaultChainId() });
-  const { signTypedData } = useSignTypedData();
   const modal = useModal();
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [signingProgress, setSigningProgress] = useState("");
-  const [invites, setInvites] = useState<InviteLink[]>([]);
+  const [generalInviteUrl, setGeneralInviteUrl] = useState("");
+  const hasStartedRef = useRef(false);
 
-  const generateInvites = async () => {
-    if (!publicClient) return;
-
+  const createInviteLink = async () => {
     setIsGenerating(true);
     setError(null);
-    setSigningProgress("Preparing invites...");
 
     try {
-      const circleId = BigInt(modalState.circle.id);
-      const inviteCount = Math.max(1, modalState.circle.members - 1);
-
-      const supabaseInviteLinks: SupabaseInviteLink[] = [];
-      // Generate unique nonces
-      const invitePayloads: {
-        nonce: bigint;
-      }[] = [];
-      let candidate = BigInt(isLocal ? blockTimestamp : Date.now());
-
-      while (invitePayloads.length < inviteCount) {
-        const alreadyUsed = await publicClient.readContract({
-          address: SAVING_CIRCLES_CONTRACT_ADDRESS,
-          abi: savingCirclesAbi,
-          functionName: "usedNonces",
-          args: [circleId, candidate],
-        });
-
-        if (!alreadyUsed) {
-          invitePayloads.push({ nonce: candidate });
-        }
-        candidate += BigInt(1);
-      }
-
-      const signedInvites: InviteLink[] = [];
       const baseUrl = `${window.location.origin}/stacks/join`;
+      const url = buildInviteUrl(baseUrl, modalState.circle.id);
 
-      for (let i = 0; i < invitePayloads.length; i++) {
-        setSigningProgress(
-          `Creating invite ${i + 1} of ${invitePayloads.length}...`
-        );
-        const { nonce } = invitePayloads[i];
-
-        const circleIdNum =
-          circleId < BigInt(Number.MAX_SAFE_INTEGER)
-            ? Number(circleId)
-            : circleId.toString();
-        const nonceNum =
-          nonce < BigInt(Number.MAX_SAFE_INTEGER)
-            ? Number(nonce)
-            : nonce.toString();
-
-        const typedData = {
-          domain: {
-            name: INVITE_DOMAIN_NAME,
-            version: INVITE_DOMAIN_VERSION,
-            chainId: DEFAULT_CHAIN,
-            verifyingContract: SAVING_CIRCLES_CONTRACT_ADDRESS,
-          },
-          types: {
-            Invite: [
-              { name: "id", type: "uint256" },
-              { name: "nonce", type: "uint256" },
-            ],
-          },
-          primaryType: "Invite" as const,
-          message: {
-            id: circleIdNum,
-            nonce: nonceNum,
-          },
-        };
-
-        const { signature } = await signTypedData(typedData, {
-          uiOptions: {
-            showWalletUIs: false,
-          },
-        });
-
-        const url = buildInviteUrl(
-          baseUrl,
-          modalState.circle.id,
-          nonce,
-          signature,
-          modalState.circle.name,
-          modalState.circle.members,
-          modalState.circle.duration,
-          // Raw, not formatted: the join page parses this back into a number.
-          String(modalState.circle.deposit)
-        );
-
-        supabaseInviteLinks.push({ long: url, short: "", used: false });
-        signedInvites.push({ nonce, signature, url, used: false });
+      let shortUrl = url;
+      try {
+        shortUrl = await shortenUrl(url, { check: false });
+      } catch {
+        shortUrl = url;
       }
 
-      setSigningProgress("Shortening invite links...");
-
-      const shorteningResults = await Promise.allSettled(
-        signedInvites.map((invite) => shortenUrl(invite.url, { check: false }))
-      );
-
-      signedInvites.forEach((invite, index) => {
-        const result = shorteningResults[index];
-        if (result.status === "fulfilled" && result.value !== invite.url) {
-          invite.url = result.value;
-          supabaseInviteLinks[index].short = result.value;
-        } else {
-          supabaseInviteLinks[index].short = supabaseInviteLinks[index].long;
-        }
-      });
-
-      fetch("/api/stacks/metadata", {
+      const res = await fetch("/api/stacks/metadata", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: modalState.circle.id,
           stackname: modalState.circle.name,
           expected_members: modalState.circle.members,
-          invite_links: supabaseInviteLinks,
           privyUserId: privyUser?.id,
         }),
       });
 
-      setSigningProgress("");
-      setInvites(signedInvites);
+      const body = await res.json();
+
+      if (!res.ok || !body.success) {
+        throw new Error(body.error ?? "Failed to save stack metadata");
+      }
+
+      setGeneralInviteUrl(shortUrl);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      console.error("Invite generation failed:", err);
-      setError(err?.message || "Failed to generate invite links");
+      console.error("Invite link creation failed:", err);
+      setError(err?.message || "Failed to create invite link");
     } finally {
       setIsGenerating(false);
     }
   };
 
   useEffect(() => {
-    generateInvites();
+    // Guards against React Strict Mode's dev-only double-invocation of this
+    // effect, which would otherwise POST the same on-chain circle id twice
+    // and hit stacks_metadata's unique constraint on the second call. Doesn't
+    // affect the manual "Retry" button below, which calls createInviteLink
+    // directly.
+    if (hasStartedRef.current) return;
+    hasStartedRef.current = true;
+    createInviteLink();
   }, []);
 
   return (
@@ -221,29 +100,24 @@ export const StackSuccessResultModal = ({
         <Heading2 className="text-2xl leading-6">
           &quot;{modalState.circle.name}&ldquo;
         </Heading2>
-        <Body className="text-surface-ink">Stacks group created!</Body>
+        <Body className="text-surface-ink">Your Stack is ready!</Body>
       </div>
 
       <div className="*:mb-4 *:last:mb-0 border-t border-primary-blue pt-6">
         <Body>
-          Your Stacks has 1 member (you). Invite others with a link. To deposit,
-          it needs 2 or more members.
+          Your Stack has 1 member (you). Share the invite link below to invite
+          members. You can remove members you don&apos;t recognize before
+          launching the Stack.
         </Body>
 
         <section>
           <Heading3 className="mb-2 text-2xl leading-[100%]">
-            Member invite links
+            Invite link
           </Heading3>
-          <div className="flex items-center justify-between mb-2">
-            <Body>Pending: {modalState.circle.members - 1}</Body>
-            <Body bold>Invite accepted: 0</Body>
-          </div>
 
           {isGenerating && (
             <div className="p-4 bg-primary-blue/10 rounded-lg mb-2">
-              {signingProgress && (
-                <Body className="text-primary-blue">{signingProgress}</Body>
-              )}
+              <Body className="text-primary-blue">Creating invite link...</Body>
             </div>
           )}
 
@@ -251,7 +125,7 @@ export const StackSuccessResultModal = ({
             <div className="p-4 bg-system-warning/10 rounded-lg mb-2">
               <Body className="text-system-warning">Error: {error}</Body>
               <button
-                onClick={generateInvites}
+                onClick={createInviteLink}
                 className="mt-2 text-sm underline"
               >
                 Retry
@@ -259,35 +133,17 @@ export const StackSuccessResultModal = ({
             </div>
           )}
 
-          <div className="*:mb-2 *:last:mb-0 max-h-96 overflow-y-auto">
-            {invites.length > 0
-              ? invites.map((invite, i) => (
-                  <PendingInviteLink
-                    key={invite.nonce.toString()}
-                    link={invite.url}
-                    label={i >= 9 ? `${i + 1}` : `0${i + 1}`}
-                    shorten={false}
-                  />
-                ))
-              : !isGenerating && !error
-                ? Array.from(
-                    {
-                      length: modalState.circle.members - 1,
-                    },
-                    (_, i) => i + 1
-                  ).map((m) => (
-                    <PendingInviteLink
-                      key={m}
-                      link=""
-                      label={m >= 10 ? `${m}` : `0${m}`}
-                    />
-                  ))
-                : null}
-          </div>
+          {generalInviteUrl && (
+            <PendingInviteLink
+              link={generalInviteUrl}
+              label="Invite link"
+              shorten={false}
+            />
+          )}
 
-          <Body className="text-system-warning mt-4">
-            <span className="font-bold">Reminder: </span>
-            <span>Each Invite is unique and can only be accepted once.</span>
+          <Body className="text-surface-grey-2 mt-4">
+            Anyone with this link can join your Stack. You can manage members on
+            your Stack page before launching.
           </Body>
         </section>
 
@@ -304,11 +160,11 @@ export const StackSuccessResultModal = ({
                 <RowDetail label="Duration" body={modalState.circle.duration} />
                 <RowDetail
                   label="Est. Deposit amount"
-                  body={`$${formatAmount(modalState.circle.deposit, 2)}`}
+                  body={`$${formatBalance(modalState.circle.deposit, 2)}`}
                 />
                 <RowDetail
                   label="Stack goal"
-                  body={`$${formatAmount(modalState.circle.total, 2)}`}
+                  body={`$${formatBalance(modalState.circle.total, 2)}`}
                 />
               </div>
             </AccordionContent>
@@ -325,8 +181,7 @@ export const StackSuccessResultModal = ({
         Visit stacks detail page
       </LocalButton>
       <Body className="text-surface-grey-2">
-        Note: You can also access your member invite links through your Stacks
-        details page.
+        Note: You can always find the invite link on your Stack page.
       </Body>
     </ModalContainer>
   );

@@ -1,19 +1,12 @@
 import { Body, Heading3 } from "@breadcoop/ui";
 import { Icon } from "@phosphor-icons/react";
-import {
-  EnvelopeOpenIcon,
-  HourglassIcon,
-  UsersIcon,
-} from "@phosphor-icons/react/ssr";
+import { HourglassIcon, UsersIcon } from "@phosphor-icons/react/ssr";
 import MembersInfo from "./members-info";
+import PendingInviteLink from "@/components/pending-invite-link";
 import { Address, formatEther } from "viem";
 import { useCircleMembersWithBalances } from "@/hooks/use-circle-members";
-import { useReadContracts } from "wagmi";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { savingCirclesAbi } from "@/lib/abis/saving-circles";
+import { useJoinRequests } from "@/hooks/use-join-requests";
 import { ICircleStatus, MemberCircleInfo } from "@/interfaces/circle";
-import { getDefaultChainId } from "@/utils/chain";
-import { useStackSupabase } from "@/hooks/use-stack-supabase";
 
 const TopRowInfo = ({
   LIcon,
@@ -33,72 +26,36 @@ const TopRowInfo = ({
   );
 };
 
-const savingCircleContract = {
-  address: SAVING_CIRCLES_CONTRACT_ADDRESS,
-  abi: savingCirclesAbi,
-  functionName: "usedNonces",
-} as const;
-
 const StackMembers = ({
   circle,
   id,
   member,
-  isMember,
   totalRounds,
   circleStatus,
 }: {
   id: string;
   member: Address;
   circle: MemberCircleInfo;
-  isMember: boolean;
   totalRounds: number;
   circleStatus: ICircleStatus | null;
 }) => {
   const info = useCircleMembersWithBalances(BigInt(id));
   const isOwner = circle.owner === member;
 
-  const { data: stackMetadata } = useStackSupabase(id, isMember);
-
   const totalMembers = info.isLoading ? "-" : info.members.length;
   const totalBaseDeposit =
     +formatEther(circle.depositAmount) * Number(circle.currentIndex);
 
-  const nonceChecks = (stackMetadata?.invite_links ?? [])
-    .map((link) => {
-      try {
-        const url = new URL(link.long);
-        const nonceStr = url.searchParams.get("nonce");
-        if (!nonceStr) return null;
-        return { nonce: BigInt(nonceStr), short: link.short };
-      } catch {
-        return null;
-      }
-    })
-    .filter((n): n is { nonce: bigint; short: string } => n !== null);
+  const isPendingStart = circleStatus === "pending-start";
 
-  const contracts = nonceChecks.map(({ nonce }) => ({
-    ...savingCircleContract,
-    args: [BigInt(id), nonce],
-    chainId: getDefaultChainId(),
-  }));
+  const { data: joinRequestsData, isLoading: isLoadingRequests } =
+    useJoinRequests(id, circle.owner, isOwner && isPendingStart);
+  const pendingJoinRequests = joinRequestsData?.requests ?? [];
 
-  const { data: nonceResults, isLoading: isCheckingNonces } = useReadContracts({
-    contracts,
-    query: {
-      enabled: isMember && contracts.length > 0,
-    },
-  });
-
-  const pendingInviteLinks = nonceChecks
-    .filter((_, index) => {
-      if (!nonceResults || nonceResults.length <= index) return false;
-      const result = nonceResults[index];
-      if (result.status !== "success") return false;
-      return result.result === false;
-    })
-    .map((link) => link.short);
-
-  const pendingCount = pendingInviteLinks.length;
+  const generalInviteUrl =
+    isOwner && isPendingStart
+      ? `${typeof window !== "undefined" ? window.location.origin : ""}/stacks/join?circleId=${id}`
+      : null;
 
   return (
     <section className="p-4 flex flex-col gap-4">
@@ -115,21 +72,29 @@ const StackMembers = ({
           value={totalMembers}
         />
 
-        {isMember && (
-          <>
-            <TopRowInfo
-              LIcon={EnvelopeOpenIcon}
-              title="Invited:"
-              value={stackMetadata?.invite_links.length || "..."}
-            />
-            <TopRowInfo
-              LIcon={HourglassIcon}
-              title="Pending:"
-              value={isCheckingNonces ? "..." : pendingCount}
-            />
-          </>
+        {isOwner && (
+          <TopRowInfo
+            LIcon={HourglassIcon}
+            title="Pending:"
+            value={isLoadingRequests ? "..." : pendingJoinRequests.length}
+          />
         )}
       </div>
+
+      {generalInviteUrl && (
+        <div className="flex flex-col gap-2">
+          <Body bold>Invite link</Body>
+          <PendingInviteLink
+            link={generalInviteUrl}
+            label="Invite link"
+            shorten={false}
+          />
+          <Body className="text-surface-grey-2 text-xs">
+            Share this link to invite members. You can remove members before
+            launching.
+          </Body>
+        </div>
+      )}
 
       <MembersInfo
         owner={circle.owner}
@@ -137,11 +102,12 @@ const StackMembers = ({
         info={info}
         totalBaseDeposit={totalBaseDeposit}
         depositAmount={circle.depositAmount}
-        pendingInviteLinks={isOwner ? pendingInviteLinks : []}
+        pendingJoinRequests={isOwner ? pendingJoinRequests : []}
         totalRounds={totalRounds}
         circleStartsTimestamp={circle.effectiveCircleStartTime}
         depositInterval={circle.depositInterval}
         circleStatus={circleStatus}
+        isOwner={isOwner}
       />
     </section>
   );
