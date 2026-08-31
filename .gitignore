@@ -36,6 +36,9 @@ next-env.d.ts
 out/
 cache/
 broadcast/
+
+# Local anvil chain state (make anvil / make fresh-anvil)
+/.anvil/
 # Local Netlify folder
 .netlify
 

@@ -1,4 +1,4 @@
-.PHONY: deploy install-contract-deps anvil update-env update-contract-submodules update-saving-circles-dev reset-supabase start-local warp time-increase mine timestamp time-reset
+.PHONY: deploy install-contract-deps anvil fresh-anvil update-env update-contract-submodules update-saving-circles-dev reset-supabase start-local start-fresh-local warp time-increase mine timestamp time-reset
 
 ANVIL_ACCOUNTS := 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 \
 	0x70997970C51812dc3A010C7d01b50e0d17dc79C8 \
@@ -19,9 +19,24 @@ ADMIN_ADDRESS ?= 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 OZ_UPGRADEABLE_REENTRANCY_COMMIT ?= 5c4c29275d02e06265ce1cfcad5a420b58a5ca02
 SAVING_CIRCLES_BRANCH ?= dev
 SOLC_OPTIMIZER_RUNS ?= 200
+ANVIL_STATE_FILE ?= .anvil/state/app-stacks.json
 
+# Resumes the previous local chain (deployed contracts, stacks, deposits,
+# etc.) if ANVIL_STATE_FILE exists; otherwise starts fresh and begins
+# persisting to it. State is dumped to disk on exit (Ctrl+C) and loaded back
+# on the next `make anvil`. Path is repo-relative and project-named, so it
+# won't collide with another project's own anvil state.
 anvil:
-	anvil --fork-url https://rpc.gnosischain.com --chain-id 31337 --block-time 5
+	@mkdir -p $(dir $(ANVIL_STATE_FILE))
+	anvil --fork-url https://rpc.gnosischain.com --chain-id 31337 --block-time 5 --state $(ANVIL_STATE_FILE)
+
+# Always starts a clean local chain, discarding any previously persisted
+# state. Still persists going forward, so a later `make anvil` resumes from
+# here.
+fresh-anvil:
+	@mkdir -p $(dir $(ANVIL_STATE_FILE))
+	rm -f $(ANVIL_STATE_FILE)
+	anvil --fork-url https://rpc.gnosischain.com --chain-id 31337 --block-time 5 --state $(ANVIL_STATE_FILE)
 
 anvil-reset:
 	@cast rpc anvil_reset --rpc-url $(RPC_URL)
@@ -157,8 +172,15 @@ reset-supabase:
 		echo "✓ Cleared $$table"; \
 	done
 
-# Make sure to start a new anvil instance before running this
+# Just starts the dev server — use this when anvil (make anvil) and Supabase
+# already have the state you want (contracts deployed, stacks in place).
 start-local:
+	pnpm run dev
+
+# Wipes off-chain data and redeploys contracts before starting dev — use this
+# for first-time setup, after `make fresh-anvil`, or whenever you want a
+# clean slate. Make sure anvil is already running.
+start-fresh-local:
 	$(MAKE) reset-supabase
 	rm -rf contracts/broadcast contracts/cache contracts/out
 	$(MAKE) deploy
