@@ -29,3 +29,59 @@ export async function GET(req: NextRequest) {
     username: data.profiles?.username ?? null,
   });
 }
+
+interface UpdateUserRequestBody {
+  privyUserId: string;
+  markTransferred?: boolean;
+  walletAddress?: string;
+}
+
+export async function PATCH(req: NextRequest) {
+  let body: unknown;
+
+  try {
+    body = await req.json();
+  } catch {
+    return createErrorResponse("Invalid JSON in request body");
+  }
+
+  if (!body || typeof body !== "object") {
+    return createErrorResponse("Invalid request body");
+  }
+
+  const { privyUserId, markTransferred, walletAddress } =
+    body as UpdateUserRequestBody;
+
+  if (!privyUserId || typeof privyUserId !== "string") {
+    return createErrorResponse("privyUserId is required and must be a string");
+  }
+
+  const updates: {
+    transferred_to_wallet_at?: string;
+    wallet_address?: string;
+  } = {};
+
+  if (markTransferred)
+    updates.transferred_to_wallet_at = new Date().toISOString();
+  if (walletAddress && typeof walletAddress === "string") {
+    updates.wallet_address = walletAddress;
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return createErrorResponse(
+      "At least one of markTransferred, walletAddress is required"
+    );
+  }
+
+  const { error } = await supabaseAdmin
+    .from("users")
+    .update(updates)
+    .eq("privy_user_id", privyUserId);
+
+  if (error) {
+    console.error("Failed to update user:", error);
+    return createErrorResponse("Failed to update user", 500);
+  }
+
+  return NextResponse.json({ success: true });
+}
