@@ -23,11 +23,14 @@ export const useAutoBakeBread = () => {
       args: [receiver],
     });
 
-    const { hash } = await sendSponsoredTransaction({
-      to: BREAD_TOKEN_ADDRESS,
-      data,
-      value: amount,
-    });
+    const { hash } = await sendSponsoredTransaction(
+      {
+        to: BREAD_TOKEN_ADDRESS,
+        data,
+        value: amount,
+      },
+      { address: receiver, uiOptions: { showWalletUIs: false } }
+    );
 
     await waitForTxReceipt(hash);
   };
