@@ -52,7 +52,7 @@ export default function Bridge({ userAddress }: { userAddress: Address }) {
             data,
             value: BigInt(route.toAmountMin),
           },
-          { uiOptions: { showWalletUIs: false } }
+          { address: userAddress, uiOptions: { showWalletUIs: false } }
         );
 
         setModal({
