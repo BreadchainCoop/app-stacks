@@ -21,7 +21,7 @@
     "db:push:prod": "dotenv -e .env.local -- sh -c 'supabase db push --db-url \"$SUPABASE_DB_URL_PROD\"'"
   },
   "dependencies": {
-    "@breadcoop/ui": "2.0.2",
+    "@breadcoop/ui": "file:./vendor/breadcoop-ui",
     "@duneanalytics/client-sdk": "^0.2.5",
     "@hookform/resolvers": "^5.2.2",
     "@lifi/sdk": "^3.16.3",
