@@ -10,6 +10,7 @@ const envSchema = z.object({
   AUTOMATIC_FUNDING_PRIVATE_KEY: z.string(),
   NEXT_PUBLIC_CHAIN_ID: z.coerce.number(),
   NEXT_PUBLIC_BREAD_TOKEN_ADDRESS: z.string(),
+  NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS: z.string(),
   NEXT_PUBLIC_PRIVY_APP_ID: z.string(),
 });
 

@@ -143,6 +143,13 @@ export type VisitorOnboardingModalState = {
   type: "VISITOR_ONBOARDING";
 };
 
+export type RemoveMemberWarningModalState = {
+  type: "REMOVE_MEMBER_WARNING";
+  memberAddress: Address;
+  memberName: string;
+  circleId: bigint;
+};
+
 export type ModalState =
   | DepositInitModalState
   | DepositLoadingModalState
@@ -166,6 +173,7 @@ export type ModalState =
   | AutomaticClaimsModalState
   | VisitorOnboardingModalState
   | AutomaticDepositsModalState
+  | RemoveMemberWarningModalState
   | MigrateAndTransferModalState
   | null;
 
