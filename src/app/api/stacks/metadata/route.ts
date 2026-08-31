@@ -2,7 +2,6 @@ import { serverEnv } from "@/lib/envs/server";
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { createErrorResponse } from "../../utils";
-import { SupabaseInviteLink } from "@/lib/supabase";
 
 const supabaseAdmin = createClient(
   serverEnv.NEXT_PUBLIC_SUPABASE_URL,
@@ -13,7 +12,6 @@ interface CreateStackRequestBody {
   id: string;
   stackname: string;
   expected_members: number;
-  invite_links: SupabaseInviteLink[];
   privyUserId: string;
 }
 
@@ -31,7 +29,7 @@ export async function POST(req: NextRequest) {
       return createErrorResponse("Invalid request body");
     }
 
-    const { id, stackname, expected_members, invite_links, privyUserId } =
+    const { id, stackname, expected_members, privyUserId } =
       body as CreateStackRequestBody;
 
     if (!id || typeof id !== "string") {
@@ -48,12 +46,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!Array.isArray(invite_links) || invite_links.length === 0) {
-      return createErrorResponse(
-        "invite_links is required and must be a non-empty array"
-      );
-    }
-
     if (!privyUserId || typeof privyUserId !== "string") {
       return createErrorResponse(
         "privyUserId is required and must be a string"
@@ -62,9 +54,12 @@ export async function POST(req: NextRequest) {
 
     const { error: stackError } = await supabaseAdmin
       .from("stacks_metadata")
-      .insert({ id, stackname, expected_members, invite_links });
+      .insert({ id, stackname, expected_members });
 
-    if (stackError) {
+    // 23505 = unique_violation: this circle id was already saved by an
+    // earlier call (e.g. a duplicate submission) — treat as success and
+    // continue rather than failing a request that already succeeded once.
+    if (stackError && stackError.code !== "23505") {
       console.error("Failed to insert stack metadata:", stackError);
       return createErrorResponse("Failed to save stack metadata", 500);
     }
@@ -84,7 +79,7 @@ export async function POST(req: NextRequest) {
       .from("user_stacks")
       .insert({ user_id: user.id, stack_id: id });
 
-    if (userStackError) {
+    if (userStackError && userStackError.code !== "23505") {
       console.error("Failed to insert user_stacks:", userStackError);
       return createErrorResponse("Failed to save user stack", 500);
     }

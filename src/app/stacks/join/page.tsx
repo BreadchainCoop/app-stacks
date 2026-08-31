@@ -4,8 +4,7 @@ import { ConfettiIcon } from "@phosphor-icons/react/dist/ssr";
 import { JoinPageSettings } from "./_components/settings";
 import { CircleParams } from "./_components/interface";
 import InviteDetails from "./_components/invite-details";
-import Alert from "@/components/alert";
-import AcceptInvite from "./_components/accept-invite";
+import RequestToJoin from "./_components/request-to-join";
 
 export const metadata = generateMetadata({
   title: "Join a Stack - Bread Cooperative",
@@ -33,23 +32,13 @@ export default async function Page(props: {
           </Body>
         </div>
 
-        <InviteDetails {...searchParams} />
+        <InviteDetails circleId={searchParams.circleId} />
 
-        <Alert
-          closeAble={false}
-          variant="warning"
-          title="IMPORTANT: This invite can only be accepted once!"
-          description="Each invite is unique and can only be accepted once."
-        />
-        <AcceptInvite
-          circleId={searchParams.circleId}
-          nonce={searchParams.nonce}
-          signature={searchParams.signature}
-        />
+        <RequestToJoin circleId={searchParams.circleId} />
 
         <Body>
-          Note: You can also access your member invite links through your Stacks
-          details page.
+          Note: You can also find this Stack&apos;s invite link on its details
+          page.
         </Body>
       </div>
     </>

@@ -91,7 +91,6 @@ const PageContent = ({ id }: { id: string }) => {
               id={id}
               circle={userCircleData.circleData.circleInfo}
               member={member}
-              isMember={userCircleData.circleData?.isMember}
               totalRounds={+userCircleData.circleData.totalRounds.toString()}
               circleStatus={circleStatus?.status ?? null}
             />

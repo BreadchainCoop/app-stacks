@@ -19,6 +19,24 @@ export const savingCirclesAbi = [
   },
   {
     type: "function",
+    name: "addMembers",
+    inputs: [
+      {
+        name: "_id",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "_members",
+        type: "address[]",
+        internalType: "address[]",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "allowedTokens",
     inputs: [
       {
@@ -540,56 +558,19 @@ export const savingCirclesAbi = [
     name: "isDecommissioned",
     inputs: [
       {
-        name: "_circle",
-        type: "tuple",
-        internalType: "struct ISavingCircles.Circle",
-        components: [
-          {
-            name: "owner",
-            type: "address",
-            internalType: "address",
-          },
-          {
-            name: "currentIndex",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "depositAmount",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "token",
-            type: "address",
-            internalType: "address",
-          },
-          {
-            name: "depositInterval",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "effectiveCircleStartTime",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "circleEnd",
-            type: "uint256",
-            internalType: "uint256",
-          },
-        ],
+        name: "id",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
     outputs: [
       {
-        name: "",
+        name: "status",
         type: "bool",
         internalType: "bool",
       },
     ],
-    stateMutability: "pure",
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -745,6 +726,24 @@ export const savingCirclesAbi = [
         name: "_signature",
         type: "bytes",
         internalType: "bytes",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "removeMember",
+    inputs: [
+      {
+        name: "_id",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "_member",
+        type: "address",
+        internalType: "address",
       },
     ],
     outputs: [],
@@ -1013,6 +1012,44 @@ export const savingCirclesAbi = [
       },
       {
         name: "redeemer",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "MemberAdded",
+    inputs: [
+      {
+        name: "id",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "member",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "MemberRemoved",
+    inputs: [
+      {
+        name: "id",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "member",
         type: "address",
         indexed: true,
         internalType: "address",
