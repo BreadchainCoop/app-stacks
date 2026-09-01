@@ -23,6 +23,7 @@ const ClaimButton = ({
   nextDeposit,
   roundsLeft,
   nextDepositAddress,
+  depositInterval,
 }: {
   amount: number;
   circleId: bigint;
@@ -31,6 +32,7 @@ const ClaimButton = ({
   nextDeposit: bigint;
   roundsLeft: bigint;
   nextDepositAddress: Address;
+  depositInterval: bigint;
 }) => {
   const queryClient = useQueryClient();
   const { setModal } = useModal();
@@ -60,6 +62,7 @@ const ClaimButton = ({
         roundsLeft,
         nextDepositAddress,
         circleId,
+        depositInterval,
       });
     } catch (error) {
       console.error("__ ERROR __", error);
