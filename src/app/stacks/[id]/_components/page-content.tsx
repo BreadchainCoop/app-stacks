@@ -12,6 +12,7 @@ import LocalButton from "@/components/button";
 import { CircularProgressIcon } from "@/components/icons/circular-progress";
 import { Body, useConnectedUser } from "@breadcoop/ui";
 import StackedStatus from "./stacked-status";
+import OwedRefunds from "./owed-refunds";
 import { useUserCircleData } from "@/hooks/use-user-circle-data";
 import { zeroAddress } from "viem";
 import { getUserCircleStatus } from "@/lib/get-user-circle-status";
@@ -95,6 +96,26 @@ const PageContent = ({ id }: { id: string }) => {
               totalRounds={+userCircleData.circleData.totalRounds.toString()}
               circleStatus={circleStatus?.status ?? null}
             />
+            {userCircleData.circleData.isMember &&
+              (circleStatus?.status === "failed" ||
+                userCircleData.circleData.isDecommissioned) && (
+                <OwedRefunds
+                  id={id}
+                  depositAmount={
+                    userCircleData.circleData.circleInfo.depositAmount
+                  }
+                  totalRounds={
+                    +userCircleData.circleData.totalRounds.toString()
+                  }
+                  circleStartsTimestamp={
+                    userCircleData.circleData.circleInfo
+                      .effectiveCircleStartTime
+                  }
+                  depositInterval={
+                    userCircleData.circleData.circleInfo.depositInterval
+                  }
+                />
+              )}
             <StackInfo owner={userCircleData.circleData.circleInfo.owner} />
           </div>
         </>
