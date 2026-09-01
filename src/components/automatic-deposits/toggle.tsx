@@ -1,6 +1,7 @@
 "use client";
 
 import { Label } from "@/components/label";
+import { cn } from "@/lib/utils";
 import { useModal } from "@/components/modal/context";
 import { Switch } from "@/components/switch";
 import { automaticSavingCirclesAbi } from "@/lib/abis/automatic-saving-circles";
@@ -18,6 +19,7 @@ export function AutomaticDeposit({
   depositInterval,
   tokenAddress,
   disabled = false,
+  className,
 }: {
   stackId: string;
   depositAmount: bigint;
@@ -25,6 +27,7 @@ export function AutomaticDeposit({
   depositInterval: bigint;
   tokenAddress: Address;
   disabled?: boolean;
+  className?: string;
 }) {
   const { setModal } = useModal();
   const { user } = useConnectedUser();
@@ -51,7 +54,7 @@ export function AutomaticDeposit({
   if (!address) return null;
 
   return (
-    <div className="mt-4 py-4 border-t border-paper-2">
+    <div className={cn("mt-4 py-4 border-t border-paper-2", className)}>
       <Label className="flex items-center justify-start flex-wrap gap-1">
         <HandDepositIcon size={24} />
         <span className="mr-auto flex items-center gap-1">

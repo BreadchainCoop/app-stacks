@@ -164,6 +164,10 @@ const TotalStacked = ({
                     (userCircleData.circleData?.completedRounds || BigInt(0)) -
                     BigInt(1)
                   }
+                  depositInterval={
+                    userCircleData.circleData?.circleInfo.depositInterval ||
+                    BigInt(0)
+                  }
                 />
               ) : (
                 <LastClaimStatus address={address} circleId={id} />
