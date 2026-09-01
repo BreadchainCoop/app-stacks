@@ -4,8 +4,7 @@ import { Body } from "@breadcoop/ui";
 import { ModalContainer, ModalHeader, ModalStatus } from "../components";
 import { ClaimInitModalState, ClaimResultModalState } from "../context";
 import Alert from "@/components/alert";
-import DepositButton from "@/components/deposit-button";
-import { formatEther } from "viem";
+import { AutomaticDeposit } from "@/components/automatic-deposits/toggle";
 import LocalButton from "@/components/button";
 
 const ClaimModal = ({
@@ -46,7 +45,7 @@ const ClaimModal = ({
             <Alert
               className="-mt-4"
               closeAble={false}
-              title="IMPORTANT: Secure next deposit"
+              title="IMPORTANT: Secure your next deposits"
               description={
                 <>
                   <Body>
@@ -57,18 +56,21 @@ const ClaimModal = ({
                     remain.
                   </Body>
                   <Body>
-                    To avoid stack failure, deposit for the next round.
+                    The next deposit window opens when the next round starts. To
+                    avoid stack failure, activate automatic deposits and we
+                    deposit for you in every upcoming round of this stack.
                   </Body>
                 </>
               }
               variant="warning"
             />
-            <DepositButton
-              className="font-bold w-full"
-              label={`Deposit ${formatEther(modalState.nextDeposit!)} BREAD`}
-              amount={modalState.nextDeposit!}
+            <AutomaticDeposit
+              className="mt-0 border-t-0"
+              stackId={modalState.circleId!.toString()}
+              depositAmount={modalState.nextDeposit!}
+              remainingRounds={Number(modalState.roundsLeft ?? BigInt(0))}
+              depositInterval={modalState.depositInterval ?? BigInt(0)}
               tokenAddress={modalState.nextDepositAddress!}
-              circleId={modalState.circleId!}
             />
           </>
         )}

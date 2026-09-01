@@ -229,6 +229,7 @@ const Stack = ({
                 : BigInt(0)
             }
             nextDepositAddress={stack.token}
+            depositInterval={stack.depositInterval}
           />
         ) : stack.status === "payment_due" && !readOnly ? (
           <DepositButton
