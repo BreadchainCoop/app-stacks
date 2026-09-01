@@ -11,14 +11,18 @@ const LoginButtonPrivy = ({
   label = "Sign In",
   rightIcon
 }) => {
+  var _a;
   const { chainId } = useBreadUIKitContext();
   const className = app === "fund" ? "bg-primary-orange" : app === "stacks" ? "bg-primary-blue" : "bg-primary-jade";
-  const { login, ready } = usePrivy();
+  const { login, ready, user: privyUser } = usePrivy();
   const { wallets } = useWallets();
   if (status === "CONNECTED") return null;
   if (status === "LOADING" || !ready) return /* @__PURE__ */ jsx(ButtonShell, {});
   if (status === "UNSUPPORTED_CHAIN") {
-    const activeWallet = wallets[0];
+    const accountAddress = (_a = privyUser == null ? void 0 : privyUser.wallet) == null ? void 0 : _a.address;
+    const activeWallet = accountAddress ? wallets.find(
+      (w) => w.address.toLowerCase() === accountAddress.toLowerCase()
+    ) : void 0;
     return /* @__PURE__ */ jsx(
       SwitchNetwork,
       {
