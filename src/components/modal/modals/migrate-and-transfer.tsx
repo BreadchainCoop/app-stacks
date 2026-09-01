@@ -11,9 +11,12 @@ import {
 } from "@breadcoop/ui";
 import { erc20Abi, formatEther } from "viem";
 import { usePrivy } from "@privy-io/react-auth";
+import { getGasPrice } from "@wagmi/core";
 import LocalButton from "@/components/button";
 import BreadInfoNote from "@/components/bread-info-note";
 import { BREAD_TOKEN_ADDRESS } from "@/lib/constants";
+import { clientEnv } from "@/lib/env";
+import { wagmiConfig } from "@/components/providers/web3";
 import { useEmbeddedWalletBalances } from "@/hooks/use-embedded-wallet-balances";
 import { useSimulateAndSponsorTx } from "@/hooks/use-simulate-and-sponsor-tx";
 import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
@@ -21,6 +24,9 @@ import { useWaitForTxReceipt } from "@/hooks/use-wait-for-tx-receipt";
 import { useInvalidateHasTransferredToWallet } from "@/hooks/use-has-transferred-to-wallet";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { formatAddress } from "@/utils/address";
+
+// Gas for a plain native-token transfer to an EOA is always exactly this.
+const NATIVE_TRANSFER_GAS = BigInt(21000);
 
 const parseTransferError = (error: unknown) =>
   parseContractError(
@@ -61,6 +67,7 @@ const MigrateAndTransferModal = ({
     setTransferStatus("running");
 
     let transferSucceeded = false;
+    let xdaiSent = BigInt(0);
 
     try {
       if (breadBalance && breadBalance.value > BigInt(0)) {
@@ -78,22 +85,45 @@ const MigrateAndTransferModal = ({
       }
 
       if (xdaiBalance && xdaiBalance.value > BigInt(0)) {
-        const { hash } = await sendSponsoredTransaction(
-          {
-            to: externalAddress,
-            value: xdaiBalance.value,
-          },
-          {
-            address: embeddedAddress,
-            uiOptions: { showWalletUIs: false },
-          }
-        );
-        await waitForTxReceipt(hash);
+        // Sponsored chains (Gnosis) cover gas separately, so the full
+        // balance can move. Elsewhere the embedded wallet pays its own gas,
+        // so sweeping the full balance as `value` leaves nothing for it and
+        // the tx fails with "insufficient funds for gas" — reserve an
+        // estimated gas cost (with a buffer for price movement) first.
+        const isSponsored = clientEnv.NEXT_PUBLIC_CHAIN_ID === 100;
+        let amountToSend = xdaiBalance.value;
+
+        if (!isSponsored) {
+          const gasPrice = await getGasPrice(wagmiConfig, {
+            chainId: clientEnv.NEXT_PUBLIC_CHAIN_ID,
+          });
+          const gasReserve =
+            (NATIVE_TRANSFER_GAS * gasPrice * BigInt(3)) / BigInt(2);
+          amountToSend =
+            xdaiBalance.value > gasReserve
+              ? xdaiBalance.value - gasReserve
+              : BigInt(0);
+        }
+
+        if (amountToSend > BigInt(0)) {
+          const { hash } = await sendSponsoredTransaction(
+            {
+              to: externalAddress,
+              value: amountToSend,
+            },
+            {
+              address: embeddedAddress,
+              uiOptions: { showWalletUIs: false },
+            }
+          );
+          await waitForTxReceipt(hash);
+          xdaiSent = amountToSend;
+        }
       }
 
       setSentAmounts({
         bread: breadBalance ? formatEther(breadBalance.value) : "0",
-        xdai: xdaiBalance ? formatEther(xdaiBalance.value) : "0",
+        xdai: formatEther(xdaiSent),
       });
       setTransferStatus("success");
       transferSucceeded = true;
