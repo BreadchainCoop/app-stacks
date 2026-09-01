@@ -90,7 +90,7 @@ export function AutoDepositActivation({ stackId }: { stackId: string }) {
           <CheckCircleIcon
             size={24}
             weight="fill"
-            className="text-system-green"
+            className="text-system-green shrink-0"
           />
           <Body bold className="text-system-green">
             Automatic deposits activated
@@ -106,7 +106,7 @@ export function AutoDepositActivation({ stackId }: { stackId: string }) {
   return (
     <div className={wrapper}>
       <div className="flex items-center gap-2">
-        <HandDepositIcon size={24} className="fill-primary-blue" />
+        <HandDepositIcon size={24} className="fill-primary-blue shrink-0" />
         <Body bold>Activate automatic deposits</Body>
       </div>
 
