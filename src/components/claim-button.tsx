@@ -6,7 +6,6 @@ import { HandWithdrawIcon } from "@phosphor-icons/react";
 import { useModal } from "./modal/context";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import { Address } from "viem";
 import { formatAmount } from "@/utils/format-amount";
 import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
 import { parseContractError } from "@/utils/parse-contract-error";
@@ -20,19 +19,11 @@ const ClaimButton = ({
   circleId,
   label,
   className,
-  nextDeposit,
-  roundsLeft,
-  nextDepositAddress,
-  depositInterval,
 }: {
   amount: number;
   circleId: bigint;
   label?: string;
   className?: string;
-  nextDeposit: bigint;
-  roundsLeft: bigint;
-  nextDepositAddress: Address;
-  depositInterval: bigint;
 }) => {
   const queryClient = useQueryClient();
   const { setModal } = useModal();
@@ -58,11 +49,7 @@ const ClaimButton = ({
         type: "CLAIM_RESULT",
         result: "success",
         amount,
-        nextDeposit,
-        roundsLeft,
-        nextDepositAddress,
         circleId,
-        depositInterval,
       });
     } catch (error) {
       console.error("__ ERROR __", error);

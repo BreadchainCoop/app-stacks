@@ -146,28 +146,6 @@ const TotalStacked = ({
                   circleId={BigInt(id)}
                   amount={amount}
                   label="Claim funds"
-                  nextDeposit={
-                    (userCircleData.circleData?.circleInfo.currentIndex ||
-                      BigInt(0)) +
-                      BigInt(1) <
-                    (userCircleData.circleData?.totalRounds || BigInt(0))
-                      ? userCircleData.circleData?.circleInfo.depositAmount ||
-                        BigInt(0)
-                      : BigInt(0)
-                  }
-                  nextDepositAddress={
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-                    userCircleData.circleData?.circleInfo.token!
-                  }
-                  roundsLeft={
-                    (userCircleData.circleData?.totalRounds || BigInt(0)) -
-                    (userCircleData.circleData?.completedRounds || BigInt(0)) -
-                    BigInt(1)
-                  }
-                  depositInterval={
-                    userCircleData.circleData?.circleInfo.depositInterval ||
-                    BigInt(0)
-                  }
                 />
               ) : (
                 <LastClaimStatus address={address} circleId={id} />
