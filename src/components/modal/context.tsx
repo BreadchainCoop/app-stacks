@@ -56,6 +56,7 @@ export type DepositResultModalState = {
   result: "success" | "error";
   msg?: string;
   amount?: number;
+  circleId?: bigint;
 };
 
 export type ClaimInitModalState = {
