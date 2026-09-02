@@ -10,4 +10,6 @@ export interface AutomaticDepositsModalState {
   tokenAddress: Address;
   address: Address;
   balance: bigint;
+  /** Skip the intro when the caller has already made the pitch. */
+  startAtSummary?: boolean;
 }

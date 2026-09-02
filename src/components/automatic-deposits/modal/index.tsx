@@ -26,6 +26,7 @@ const AutomaticDepositsModal = ({
     tokenAddress,
     address,
     balance,
+    startAtSummary,
   } = modalState;
 
   const modal = useModal();
@@ -33,7 +34,9 @@ const AutomaticDepositsModal = ({
     useAutomaticDeposits(stackId);
 
   const enabling = !currentValue;
-  const [step, setStep] = useState<"intro" | "summary">("intro");
+  const [step, setStep] = useState<"intro" | "summary">(
+    startAtSummary ? "summary" : "intro"
+  );
   const [insufficientBalance, setInsufficientBalance] = useState(false);
 
   const totalDeposit = depositAmount * BigInt(Math.max(0, remainingRounds));

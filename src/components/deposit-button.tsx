@@ -102,7 +102,7 @@ const DepositButton = ({
 
       queryClient.invalidateQueries({ queryKey: ["readContract"] });
       queryClient.invalidateQueries({ queryKey: ["readContracts"] });
-      modal.setModal({ type: "DEPOSIT_RESULT", result: "success" });
+      modal.setModal({ type: "DEPOSIT_RESULT", result: "success", circleId });
     } catch (error) {
       modal.setModal({
         type: "DEPOSIT_RESULT",
