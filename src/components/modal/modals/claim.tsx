@@ -2,7 +2,7 @@
 
 import { ModalContainer, ModalHeader, ModalStatus } from "../components";
 import { ClaimInitModalState, ClaimResultModalState } from "../context";
-import { PostClaimAutomaticDeposits } from "@/components/automatic-deposits/post-claim-prompt";
+import { AutomaticDepositsPrompt } from "@/components/automatic-deposits/activation-prompt";
 import LocalButton from "@/components/button";
 
 const ClaimModal = ({
@@ -40,7 +40,10 @@ const ClaimModal = ({
       {modalState.type === "CLAIM_RESULT" &&
         modalState.result === "success" &&
         modalState.circleId !== undefined && (
-          <PostClaimAutomaticDeposits circleId={modalState.circleId} />
+          <AutomaticDepositsPrompt
+            circleId={modalState.circleId}
+            context="post-claim"
+          />
         )}
     </ModalContainer>
   );

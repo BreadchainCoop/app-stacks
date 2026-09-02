@@ -4,6 +4,7 @@ import {
   TModalStatus,
 } from "../context";
 import { ModalContainer, ModalHeader, ModalStatus } from "../components";
+import { AutomaticDepositsPrompt } from "@/components/automatic-deposits/activation-prompt";
 
 const DepositResult = ({
   modalState,
@@ -36,6 +37,14 @@ const DepositResult = ({
     >
       <ModalHeader title={title} />
       <ModalStatus status={status} msg={msg} />
+      {modalState.type === "DEPOSIT_RESULT" &&
+        modalState.result === "success" &&
+        modalState.circleId !== undefined && (
+          <AutomaticDepositsPrompt
+            circleId={modalState.circleId}
+            context="post-deposit"
+          />
+        )}
     </ModalContainer>
   );
 };
