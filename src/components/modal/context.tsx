@@ -56,6 +56,7 @@ export type DepositResultModalState = {
   result: "success" | "error";
   msg?: string;
   amount?: number;
+  circleId?: bigint;
 };
 
 export type ClaimInitModalState = {
@@ -68,9 +69,6 @@ export type ClaimResultModalState = {
   result: "success" | "error";
   msg?: string;
   amount?: number;
-  nextDeposit?: bigint;
-  roundsLeft?: bigint;
-  nextDepositAddress?: Address;
   circleId?: bigint;
 };
 

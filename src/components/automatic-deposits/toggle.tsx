@@ -1,15 +1,14 @@
 "use client";
 
 import { Label } from "@/components/label";
+import { cn } from "@/lib/utils";
 import { useModal } from "@/components/modal/context";
 import { Switch } from "@/components/switch";
-import { automaticSavingCirclesAbi } from "@/lib/abis/automatic-saving-circles";
-import { AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { getDefaultChainId } from "@/utils/chain";
-import { useConnectedUser } from "@breadcoop/ui";
 import { HandDepositIcon } from "@phosphor-icons/react";
 import { Address, erc20Abi } from "viem";
 import { useReadContract } from "wagmi";
+import { useAutomaticDepositsEnabled } from "./use-automatic-deposits-enabled";
 
 export function AutomaticDeposit({
   stackId,
@@ -18,6 +17,7 @@ export function AutomaticDeposit({
   depositInterval,
   tokenAddress,
   disabled = false,
+  className,
 }: {
   stackId: string;
   depositAmount: bigint;
@@ -25,19 +25,11 @@ export function AutomaticDeposit({
   depositInterval: bigint;
   tokenAddress: Address;
   disabled?: boolean;
+  className?: string;
 }) {
   const { setModal } = useModal();
-  const { user } = useConnectedUser();
-  const address = user.status === "CONNECTED" ? user.address : undefined;
-
-  const { data: isEnabled = false, isFetching } = useReadContract({
-    abi: automaticSavingCirclesAbi,
-    address: AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS,
-    functionName: "isAutomaticDepositsEnabled",
-    args: [BigInt(stackId), address!],
-    query: { enabled: !!address },
-    chainId: getDefaultChainId(),
-  });
+  const { address, isEnabled, isFetching } =
+    useAutomaticDepositsEnabled(stackId);
 
   const { data: balance = BigInt(0) } = useReadContract({
     abi: erc20Abi,
@@ -51,7 +43,7 @@ export function AutomaticDeposit({
   if (!address) return null;
 
   return (
-    <div className="mt-4 py-4 border-t border-paper-2">
+    <div className={cn("mt-4 py-4 border-t border-paper-2", className)}>
       <Label className="flex items-center justify-start flex-wrap gap-1">
         <HandDepositIcon size={24} />
         <span className="mr-auto flex items-center gap-1">

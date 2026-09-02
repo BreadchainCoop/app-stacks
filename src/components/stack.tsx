@@ -218,17 +218,6 @@ const Stack = ({
               Number(formatEther(stack.depositAmount)) * stack.totalMember
             }
             circleId={stack.id}
-            nextDeposit={
-              Number(stack.currentIndex) + 1 < stack.totalMember
-                ? stack.depositAmount
-                : BigInt(0)
-            }
-            roundsLeft={
-              Number(stack.currentIndex) + 1 < stack.totalMember
-                ? BigInt(stack.totalMember - 1) - stack.currentIndex
-                : BigInt(0)
-            }
-            nextDepositAddress={stack.token}
           />
         ) : stack.status === "payment_due" && !readOnly ? (
           <DepositButton

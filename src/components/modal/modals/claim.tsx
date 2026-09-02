@@ -1,11 +1,8 @@
 "use client";
 
-import { Body } from "@breadcoop/ui";
 import { ModalContainer, ModalHeader, ModalStatus } from "../components";
 import { ClaimInitModalState, ClaimResultModalState } from "../context";
-import Alert from "@/components/alert";
-import DepositButton from "@/components/deposit-button";
-import { formatEther } from "viem";
+import { AutomaticDepositsPrompt } from "@/components/automatic-deposits/activation-prompt";
 import LocalButton from "@/components/button";
 
 const ClaimModal = ({
@@ -41,36 +38,12 @@ const ClaimModal = ({
         </LocalButton>
       )}
       {modalState.type === "CLAIM_RESULT" &&
-        Boolean(modalState.nextDeposit) && (
-          <>
-            <Alert
-              className="-mt-4"
-              closeAble={false}
-              title="IMPORTANT: Secure next deposit"
-              description={
-                <>
-                  <Body>
-                    <span className="font-bold">{modalState.roundsLeft} </span>
-                    {modalState.roundsLeft === BigInt(1)
-                      ? "round"
-                      : "rounds"}{" "}
-                    remain.
-                  </Body>
-                  <Body>
-                    To avoid stack failure, deposit for the next round.
-                  </Body>
-                </>
-              }
-              variant="warning"
-            />
-            <DepositButton
-              className="font-bold w-full"
-              label={`Deposit ${formatEther(modalState.nextDeposit!)} BREAD`}
-              amount={modalState.nextDeposit!}
-              tokenAddress={modalState.nextDepositAddress!}
-              circleId={modalState.circleId!}
-            />
-          </>
+        modalState.result === "success" &&
+        modalState.circleId !== undefined && (
+          <AutomaticDepositsPrompt
+            circleId={modalState.circleId}
+            context="post-claim"
+          />
         )}
     </ModalContainer>
   );
