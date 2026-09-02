@@ -17,8 +17,8 @@ import { useAutomaticDepositsEnabled } from "./use-automatic-deposits-enabled";
  *
  * After a claim there is nothing the member can deposit yet: rounds are
  * time-based and `withdraw()` does not open a deposit window, so the only
- * action that keeps the stack alive is letting the keeper deposit for them
- * once each future round opens.
+ * action that keeps the stack alive is letting the automation deposit for
+ * them once each future round opens.
  *
  * The button hands off to the activation modal rather than approving inline —
  * activating grants an ERC20 spending permission, which the member should see
@@ -52,9 +52,9 @@ export function AutomaticDepositsPrompt({
   if (!address || !circleData || !isKnown || isEnabled) return null;
 
   const { circleInfo, totalRounds, userBalance } = circleData;
-  // Deposits the keeper would still owe: every round after the current one,
-  // plus the current one when the member has not paid it yet — which is the
-  // case when they claim late, after their own round has already passed.
+  // Deposits still to be made on the member's behalf: every round after the
+  // current one, plus the current one when they have not paid it yet — which
+  // is the case when they claim late, after their own round has passed.
   const hasDepositedThisRound = userBalance >= circleInfo.depositAmount;
   const pendingDeposits =
     Number(totalRounds) -
