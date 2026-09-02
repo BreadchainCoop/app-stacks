@@ -56,6 +56,8 @@ export type DepositResultModalState = {
   result: "success" | "error";
   msg?: string;
   amount?: number;
+  // Set on success so the modal can offer automatic-deposit activation.
+  circleId?: bigint;
 };
 
 export type ClaimInitModalState = {
