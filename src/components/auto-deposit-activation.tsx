@@ -3,6 +3,7 @@
 import { useModal } from "@/components/modal/context";
 import LocalButton from "@/components/button";
 import { useAutomaticDeposits } from "@/components/automatic-deposits/use-automatic-deposits";
+import { CircularProgressIcon } from "@/components/icons/circular-progress";
 import { useUserCircleData } from "@/hooks/use-user-circle-data";
 import { automaticSavingCirclesAbi } from "@/lib/abis/automatic-saving-circles";
 import { AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
@@ -23,8 +24,10 @@ import { useReadContract } from "wagmi";
  * needs from the circle id: per-round deposit, remaining rounds, token, and the
  * member's balance — so the caller only has to pass the id.
  *
- * Renders nothing when auto-deposits are already on, or when the member's
- * balance can't cover a single round it surfaces a top-up prompt instead.
+ * Coverage is expressed against this stack's remaining rounds (the auto-deposit
+ * only runs for those), not a generic balance figure. Renders nothing when
+ * auto-deposits are already on; when the balance can't cover a single round it
+ * surfaces a top-up prompt instead.
  */
 export function AutoDepositActivation({ stackId }: { stackId: string }) {
   const { setModal } = useModal();
@@ -54,31 +57,20 @@ export function AutoDepositActivation({ stackId }: { stackId: string }) {
     chainId: getDefaultChainId(),
   });
 
-  // Already opted in, not connected, or circle not loaded yet — nothing to offer.
-  if (!address || !circleData || isEnabled) return null;
-
-  const depositAmount = circleData.circleInfo.depositAmount;
-  const remainingRounds = Math.max(
-    0,
-    Number(circleData.totalRounds) - Number(circleData.circleInfo.currentIndex)
-  );
-
-  // No future rounds left to automate.
-  if (remainingRounds < 1) return null;
-
-  const depositUsd = Number(formatEther(depositAmount));
-  const balanceUsd = Number(formatEther(balance));
-  const roundsCovered =
-    depositUsd > 0 ? Math.floor(balanceUsd / depositUsd) : 0;
-
   const wrapper = "mt-6 border-t border-paper-2 pt-4 flex flex-col gap-3";
 
+  // The loader and success confirmation render regardless of `isEnabled`:
+  // activate() flips that cache to true on success, but the member should still
+  // see the step through to completion.
   if (status === "loading") {
     return (
       <div className={wrapper}>
-        <Body className="text-surface-grey">
-          Activating automatic deposits…
-        </Body>
+        <div className="flex items-center gap-2">
+          <CircularProgressIcon />
+          <Body className="text-surface-grey">
+            Activating automatic deposits…
+          </Body>
+        </div>
       </div>
     );
   }
@@ -102,6 +94,26 @@ export function AutoDepositActivation({ stackId }: { stackId: string }) {
       </div>
     );
   }
+
+  // Not connected, circle not loaded yet, or already opted in — nothing to offer.
+  if (!address || !circleData || isEnabled) return null;
+
+  const depositAmount = circleData.circleInfo.depositAmount;
+  const remainingRounds = Math.max(
+    0,
+    Number(circleData.totalRounds) - Number(circleData.circleInfo.currentIndex)
+  );
+
+  // No future rounds left to automate.
+  if (remainingRounds < 1) return null;
+
+  const depositUsd = Number(formatEther(depositAmount));
+  const balanceUsd = Number(formatEther(balance));
+  const roundsCovered =
+    depositUsd > 0 ? Math.floor(balanceUsd / depositUsd) : 0;
+  // The auto-deposit only runs for the member's remaining rounds in THIS stack,
+  // so cap the coverage there rather than showing a generic balance ÷ deposit.
+  const coveredRounds = Math.min(roundsCovered, remainingRounds);
 
   return (
     <div className={wrapper}>
@@ -142,9 +154,10 @@ export function AutoDepositActivation({ stackId }: { stackId: string }) {
       ) : (
         <>
           <Body className="text-surface-grey">
-            Balance ${formatBalance(balanceUsd, 2)} — covers {roundsCovered}{" "}
-            {roundsCovered === 1 ? "round" : "rounds"}. We&apos;ll only move the
-            exact deposit each round.
+            Balance ${formatBalance(balanceUsd, 2)} — covers {coveredRounds} of{" "}
+            {remainingRounds} remaining{" "}
+            {remainingRounds === 1 ? "round" : "rounds"} in this stack.
+            We&apos;ll only move the exact deposit each round.
           </Body>
           <div className="lifted-button-container">
             <LocalButton
