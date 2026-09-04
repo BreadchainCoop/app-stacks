@@ -1,4 +1,4 @@
-import { clientEnv } from "./env";
+import { clientEnv, isLocalEnv } from "./env";
 
 /**
  * All gateable features. Add a feature here, configure it per deployment via
@@ -22,7 +22,7 @@ export function isFeatureVisible(
   feature: Feature,
   connectedAddress?: string
 ): boolean {
-  if (clientEnv.NEXT_PUBLIC_NODE_ENV === "local") return true;
+  if (isLocalEnv) return true;
 
   const config = clientEnv.NEXT_PUBLIC_FEATURES[feature];
   if (!config?.enabled) return false;

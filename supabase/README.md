@@ -16,22 +16,27 @@ supabase login
 
 ## Applying migrations to an environment
 
-Each environment (local, development, demo, production) is its own Supabase
-project. Put each project's database URL in `.env.local` (see
+Gnosis and Celo are separate deployments (see docs/ARCHITECTURE.md), each with
+its own Supabase project per tier — six projects total: local, local-celo,
+development, development-celo, prod, prod-celo. (The former "demo" project has
+been retired.) Put each project's database URL in `.env.local` (see
 `.env.local.example`; Dashboard -> Settings -> Database -> Connection string),
 then:
 
 ```bash
 pnpm db:push:local
 pnpm db:push:development
-pnpm db:push:demo
 pnpm db:push:prod
 ```
 
+The `-celo` projects don't have dedicated `pnpm` scripts yet — push them with
+the equivalent manual flow: `supabase link --project-ref <ref> && supabase db
+push`, or add `SUPABASE_DB_URL_*_CELO` vars and matching `db:push:*-celo`
+scripts to `package.json` if these become routine enough to script.
+
 `db push` runs only the migrations that project hasn't seen yet, in filename
 order. Push each environment after a schema change lands on the branch it
-deploys from. (The equivalent manual flow is
-`supabase link --project-ref <ref> && supabase db push`.)
+deploys from.
 
 ## Adding a new migration
 

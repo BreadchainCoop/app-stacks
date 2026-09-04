@@ -42,9 +42,16 @@ const envSchema = z.object({
   NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK: z.string(),
   NEXT_PUBLIC_SEPOLIA_RPC_URL: z.string().optional().default(""),
   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: z.string(),
-  NEXT_PUBLIC_NODE_ENV: z
-    .enum(["development", "demo", "production", "local"])
-    .default("production"),
+  // Tier and chain in one value, e.g. "prod-celo" — required, no default, so a
+  // deployment that omits it fails to boot instead of silently defaulting.
+  NEXT_PUBLIC_NODE_ENV: z.enum([
+    "local",
+    "local-celo",
+    "development",
+    "development-celo",
+    "prod",
+    "prod-celo",
+  ]),
   NEXT_PUBLIC_PRIVY_APP_ID: z.string(),
   NEXT_PUBLIC_PRIVY_CLIENT_ID: z.string(),
   NEXT_PUBLIC_ALCHEMY_API_KEY_ETHEREUM_MAINNET: z.string(),
@@ -122,3 +129,7 @@ if (!parsedSchema.success) {
 }
 
 export const clientEnv = parsedSchema.data;
+
+// "local" and "local-celo" are both local-tier — match either rather than
+// repeating this everywhere NEXT_PUBLIC_NODE_ENV is checked for that.
+export const isLocalEnv = clientEnv.NEXT_PUBLIC_NODE_ENV.startsWith("local");
