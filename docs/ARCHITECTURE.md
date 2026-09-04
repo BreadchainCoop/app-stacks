@@ -121,5 +121,12 @@ Do not edit anything under `contracts/lib/**`.
   anything required is missing.
 - Chain selection is driven by `NEXT_PUBLIC_CHAIN_ID` (`src/utils/network.ts`,
   `src/utils/chain.ts`). The app targets a single chain at a time (local Anvil/Gnosis fork,
-  Sepolia, or Gnosis mainnet).
+  Sepolia, Gnosis mainnet, Celo Sepolia, or Celo mainnet) — Gnosis and Celo are separate
+  deployments (own domain, own Supabase project, own contract addresses), not one
+  deployment serving both.
+- `NEXT_PUBLIC_NODE_ENV` names the deployment's tier _and_ chain, required with no
+  default: `local`, `local-celo`, `development`, `development-celo`, `prod`, `prod-celo`.
+  Code that only cares about tier (not chain) should check `isLocalEnv` (`src/lib/env.ts`)
+  rather than comparing the raw value, since e.g. `local` and `local-celo` are both
+  local-tier.
 - When adding an env var, update the Zod schema **and** `.env.local.example`.

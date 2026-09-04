@@ -29,7 +29,7 @@ import { getDefaultChainId } from "@/utils/chain";
 import { shortenUrl } from "@/utils/shorten";
 import { SupabaseInviteLink } from "@/lib/supabase";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
-import { clientEnv } from "@/lib/env";
+import { isLocalEnv as isLocal } from "@/lib/env";
 import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
 
 type InviteLink = {
@@ -64,8 +64,6 @@ function buildInviteUrl(
 
   return url.toString();
 }
-
-const isLocal = clientEnv.NEXT_PUBLIC_NODE_ENV === "local";
 
 /**
  * MiniPay cannot sign EIP-712 invites, so it never renders the Privy variant
