@@ -16,9 +16,18 @@ export default async function Page(props: {
   searchParams: Promise<CircleParams>;
 }) {
   const searchParams = await props.searchParams;
-  const circleId = searchParams.circleId
-    ? BigInt(searchParams.circleId)
-    : undefined;
+
+  // A hand-edited/corrupted invite link shouldn't crash the whole page —
+  // InviteDetails/RequestToJoin below handle a bad or missing circleId with
+  // their own "invalid link" messaging.
+  let circleId: bigint | undefined;
+  try {
+    circleId = searchParams.circleId
+      ? BigInt(searchParams.circleId)
+      : undefined;
+  } catch {
+    circleId = undefined;
+  }
 
   return (
     <>

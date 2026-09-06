@@ -11,7 +11,7 @@ import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useCircleMembersWithBalances } from "@/hooks/use-circle-members";
 import { useGetCircleCreated } from "@/hooks/use-get-cricle-created";
 import { useGetLastDeposit } from "@/hooks/use-get-last-deposit";
-import { useInviteRedeemed } from "@/hooks/use-invite-redeemed";
+import { useMemberAdded } from "@/hooks/use-member-added";
 import { useUserCircleData } from "@/hooks/use-user-circle-data";
 import { useFundsDeposited } from "@/hooks/use-funds-deposited";
 import { JoinRequest } from "@/hooks/use-join-requests";
@@ -27,6 +27,7 @@ import { formatRelativeTime, formatShortDate } from "@/utils/time";
 import { formatAmount } from "@/utils/format-amount";
 import { Body, Chip } from "@breadcoop/ui";
 import { CheckIcon, XCircleIcon } from "@phosphor-icons/react/ssr";
+import { usePrivy } from "@privy-io/react-auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Address, formatEther } from "viem";
@@ -310,6 +311,7 @@ function JoinRequestsBulkBar({
   onSelectedRequestIdsChange: (ids: Set<string>) => void;
 }) {
   const { sendSavingCirclesTx } = useSavingCirclesTx();
+  const { getAccessToken } = usePrivy();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -339,11 +341,17 @@ function JoinRequestsBulkBar({
       queryClient.invalidateQueries({ queryKey: ["readContract"] });
       queryClient.invalidateQueries({ queryKey: ["readContracts"] });
 
+      const token = await getAccessToken();
+      if (!token) throw new Error("Not signed in");
+
       const results = await Promise.all(
         selected.map((r) =>
           fetch("/api/stacks/join-request", {
             method: "PATCH",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
             body: JSON.stringify({ requestId: r.id, status: "added" }),
           }).then((res) => res.json())
         )
@@ -404,14 +412,21 @@ function JoinRequestItem({
   onToggleSelected: () => void;
 }) {
   const { sendSavingCirclesTx } = useSavingCirclesTx();
+  const { getAccessToken } = usePrivy();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState<"accepting" | "dismissing" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const decide = async (status: "added" | "dismissed") => {
+    const token = await getAccessToken();
+    if (!token) throw new Error("Not signed in");
+
     const res = await fetch("/api/stacks/join-request", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({ requestId: request.id, status }),
     });
     const body = await res.json();
@@ -539,7 +554,7 @@ function MemberInfoContent({
     circleId,
     enabled: isOWner,
   });
-  const { data: redeemedTimestamp } = useInviteRedeemed({
+  const { data: memberAddedTimestamp } = useMemberAdded({
     circleId,
     member,
     enabled: !isOWner,
@@ -594,7 +609,7 @@ function MemberInfoContent({
     memberTotal = totalDeposits;
   }
 
-  const joinedTimestamp = creationTimestamp || redeemedTimestamp;
+  const joinedTimestamp = creationTimestamp || memberAddedTimestamp;
 
   let daysNextDeposit: number | undefined;
 
