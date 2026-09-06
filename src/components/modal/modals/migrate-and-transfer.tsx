@@ -60,6 +60,8 @@ const MigrateAndTransferModal = ({
     xdaiBalance,
     isLoading: isLoadingBalances,
     hasFunds,
+    refetchBreadBalance,
+    refetchXdaiBalance,
   } = useEmbeddedWalletBalances(embeddedAddress);
 
   const runTransfer = async () => {
@@ -67,6 +69,7 @@ const MigrateAndTransferModal = ({
     setTransferStatus("running");
 
     let transferSucceeded = false;
+    let breadSent = BigInt(0);
     let xdaiSent = BigInt(0);
 
     try {
@@ -82,16 +85,23 @@ const MigrateAndTransferModal = ({
             uiOptions: { showWalletUIs: false },
           },
         });
+        breadSent = breadBalance.value;
       }
 
-      if (xdaiBalance && xdaiBalance.value > BigInt(0)) {
+      // Re-fetch rather than reuse the balance captured when the modal
+      // opened — the BREAD transfer above (on a non-sponsored chain) just
+      // spent real gas out of this same native balance, so the pre-transfer
+      // snapshot would overestimate what's actually left.
+      const { data: currentXdaiBalance } = await refetchXdaiBalance();
+
+      if (currentXdaiBalance && currentXdaiBalance.value > BigInt(0)) {
         // Sponsored chains (Gnosis) cover gas separately, so the full
         // balance can move. Elsewhere the embedded wallet pays its own gas,
         // so sweeping the full balance as `value` leaves nothing for it and
         // the tx fails with "insufficient funds for gas" — reserve an
         // estimated gas cost (with a buffer for price movement) first.
         const isSponsored = clientEnv.NEXT_PUBLIC_CHAIN_ID === 100;
-        let amountToSend = xdaiBalance.value;
+        let amountToSend = currentXdaiBalance.value;
 
         if (!isSponsored) {
           const gasPrice = await getGasPrice(wagmiConfig, {
@@ -100,8 +110,8 @@ const MigrateAndTransferModal = ({
           const gasReserve =
             (NATIVE_TRANSFER_GAS * gasPrice * BigInt(3)) / BigInt(2);
           amountToSend =
-            xdaiBalance.value > gasReserve
-              ? xdaiBalance.value - gasReserve
+            currentXdaiBalance.value > gasReserve
+              ? currentXdaiBalance.value - gasReserve
               : BigInt(0);
         }
 
@@ -122,7 +132,7 @@ const MigrateAndTransferModal = ({
       }
 
       setSentAmounts({
-        bread: breadBalance ? formatEther(breadBalance.value) : "0",
+        bread: formatEther(breadSent),
         xdai: formatEther(xdaiSent),
       });
       setTransferStatus("success");
@@ -149,6 +159,12 @@ const MigrateAndTransferModal = ({
         .then(() => invalidateHasTransferred(privyUser.id))
         .catch((err) => console.error("Failed to update user record:", err));
     }
+
+    // Whether this succeeded or failed partway, the balances above are now
+    // stale (a leg may have already moved funds) — refetch so a "Try Again"
+    // sees the true current state and doesn't re-attempt an already-done leg.
+    refetchBreadBalance();
+    refetchXdaiBalance();
 
     setLevel("done");
   };

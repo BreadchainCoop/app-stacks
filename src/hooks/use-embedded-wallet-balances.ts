@@ -5,14 +5,22 @@ import { useBalance } from "wagmi";
 
 /** BREAD + xDAI balances sitting in a given (typically embedded) wallet. */
 export const useEmbeddedWalletBalances = (address: Address | undefined) => {
-  const { data: breadBalance, isLoading: isLoadingBread } = useBalance({
+  const {
+    data: breadBalance,
+    isLoading: isLoadingBread,
+    refetch: refetchBreadBalance,
+  } = useBalance({
     address,
     token: BREAD_TOKEN_ADDRESS,
     chainId: clientEnv.NEXT_PUBLIC_CHAIN_ID,
     query: { enabled: Boolean(address) },
   });
 
-  const { data: xdaiBalance, isLoading: isLoadingXdai } = useBalance({
+  const {
+    data: xdaiBalance,
+    isLoading: isLoadingXdai,
+    refetch: refetchXdaiBalance,
+  } = useBalance({
     address,
     chainId: clientEnv.NEXT_PUBLIC_CHAIN_ID,
     query: { enabled: Boolean(address) },
@@ -23,5 +31,12 @@ export const useEmbeddedWalletBalances = (address: Address | undefined) => {
     (breadBalance?.value ?? BigInt(0)) > BigInt(0) ||
     (xdaiBalance?.value ?? BigInt(0)) > BigInt(0);
 
-  return { breadBalance, xdaiBalance, isLoading, hasFunds };
+  return {
+    breadBalance,
+    xdaiBalance,
+    isLoading,
+    hasFunds,
+    refetchBreadBalance,
+    refetchXdaiBalance,
+  };
 };
