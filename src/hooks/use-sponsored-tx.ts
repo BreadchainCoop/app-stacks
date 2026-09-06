@@ -7,7 +7,9 @@ export const useSponsoredTx = () => {
   const { sendTransaction } = useSendTransaction();
   const { user } = useConnectedUser();
   const connectedAddress =
-    user.status === "CONNECTED" ? user.address : undefined;
+    user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
+      ? user.address
+      : undefined;
 
   const sendSponsoredTransaction: typeof sendTransaction = async (
     input,
