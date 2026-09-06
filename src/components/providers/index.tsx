@@ -47,6 +47,12 @@ const privyConfig = (isMobile: boolean): PrivyClientConfig => ({
   },
   walletConnectCloudProjectId: clientEnv.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
   appearance: {
+    // Without this, ordering falls back to the Privy Dashboard's
+    // show_wallet_login_first setting, and a previously-connected wallet
+    // (detected via Privy's own persisted state / a silent eth_accounts
+    // probe) gets prioritized to the point of burying/skipping email login
+    // on repeat visits. Force email/social first regardless.
+    showWalletLoginFirst: false,
     walletList: isMobile
       ? [...walletLists, "wallet_connect"]
       : [...walletLists, "wallet_connect_qr"],
