@@ -1,18 +1,17 @@
 "use client";
 
-import { useUserCirclesList } from "@/hooks/use-user-circles-list";
+import { useMyCirclesList } from "@/hooks/use-user-circles-list";
 import { FormattedDecimalNumber } from "@/components/bread-ui-kit/formatted-decimal-number";
 import { NavAccountWidgetItem, useConnectedUser } from "@breadcoop/ui";
 import { HandArrowDownIcon } from "@phosphor-icons/react";
-import { zeroAddress } from "viem";
 
 const ClaimableWidget = () => {
   const { user } = useConnectedUser();
-  const { circles } = useUserCirclesList(
+  const address =
     user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
       ? user.address
-      : zeroAddress
-  );
+      : undefined;
+  const { circles } = useMyCirclesList(address, true);
 
   let withdrawableAmount = 0;
   circles.forEach((circle) => {

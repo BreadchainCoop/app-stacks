@@ -1,7 +1,7 @@
 "use client";
 
 import Loading from "@/app/loading";
-import { useUserCirclesList } from "@/hooks/use-user-circles-list";
+import { useMyCirclesList } from "@/hooks/use-user-circles-list";
 import { Address } from "viem";
 import CardCarousel from "@/components/card-carousel";
 import { useSearchParams } from "next/navigation";
@@ -52,8 +52,8 @@ const hasFailedClaim = (circle: {
   Boolean(circle.userBalance && circle.userBalance > BigInt(0));
 
 const AccountUserStacks = ({ address }: { address: Address }) => {
-  const { isLoading, circles } = useUserCirclesList(address);
   const isOwner = useIsOwnAddress(address);
+  const { isLoading, circles } = useMyCirclesList(address, isOwner);
   const { user } = useConnectedUser();
 
   // Stack names are member-only info: resolve them from the *viewer's* own

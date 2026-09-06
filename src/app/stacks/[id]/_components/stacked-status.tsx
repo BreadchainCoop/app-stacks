@@ -22,7 +22,7 @@ const StackedStatus = ({
 
   return (
     <div className="md:flex md:justify-between md:gap-6">
-      <TotalStacked id={id} status={status} />
+      <TotalStacked id={id} status={status} member={member} />
       <Overview circle={circle} member={member} status={status} />
     </div>
   );

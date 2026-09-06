@@ -10,9 +10,10 @@ import Link from "next/link";
 import { PlusIcon } from "@phosphor-icons/react/dist/ssr";
 import LocalButton from "@/components/button";
 import { CircularProgressIcon } from "@/components/icons/circular-progress";
-import { Body, useConnectedUser } from "@breadcoop/ui";
+import { Body } from "@breadcoop/ui";
 import StackedStatus from "./stacked-status";
 import { useUserCircleData } from "@/hooks/use-user-circle-data";
+import { useEffectiveMemberAddress } from "@/hooks/use-effective-member-address";
 import { zeroAddress } from "viem";
 import { getUserCircleStatus } from "@/lib/get-user-circle-status";
 import { useModal } from "@/components/modal/context";
@@ -24,11 +25,7 @@ import { CircleState } from "@/lib/circle-state";
 const PageContent = ({ id }: { id: string }) => {
   const now = useBlockTimestamp();
   const { setModal } = useModal();
-  const { user } = useConnectedUser();
-  const address =
-    user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
-      ? user.address
-      : undefined;
+  const address = useEffectiveMemberAddress(BigInt(id));
   const member = address || zeroAddress;
   const userCircleData = useUserCircleData({
     circleId: BigInt(id),

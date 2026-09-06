@@ -10,6 +10,7 @@ import { getUserCircleStatus } from "@/lib/get-user-circle-status";
 import { useCirclesState } from "./use-circles-state";
 import { CircleState } from "@/lib/circle-state";
 import { useConnectedUser } from "@breadcoop/ui";
+import { useLinkedExternalWallet } from "./use-linked-external-wallet";
 
 const PAGE_SIZE = 40;
 type UserCircleData = Parameters<typeof getUserCircleStatus>[0]["circle"];
@@ -22,6 +23,14 @@ export function useAllCircles(page: number = 0) {
     user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
       ? user.address
       : zeroAddress;
+
+  // A member added under their linked external wallet (rather than their
+  // Privy embedded wallet, which memberAddress normally is) would otherwise
+  // never show as a member/withdrawable here for that row.
+  const externalAddress = useLinkedExternalWallet();
+  const shouldMergeExternal =
+    !!externalAddress &&
+    externalAddress.toLowerCase() !== memberAddress.toLowerCase();
 
   const { total: totalCircles, isLoading: loadingTotal } = useTotalCircles();
 
@@ -45,6 +54,19 @@ export function useAllCircles(page: number = 0) {
     },
   });
 
+  const { data: externalResults } = useReadContracts({
+    contracts: circleIds.map((id) => ({
+      address: SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS,
+      abi: savingCirclesViewerAbi,
+      functionName: "getUserCircleData",
+      args: [shouldMergeExternal ? externalAddress : zeroAddress, id],
+      chainId: getDefaultChainId(),
+    })),
+    query: {
+      enabled: circleIds.length > 0 && shouldMergeExternal,
+    },
+  });
+
   const { stateById } = useCirclesState(circleIds);
 
   const circles: ICircleList[] = [];
@@ -59,7 +81,19 @@ export function useAllCircles(page: number = 0) {
         continue;
       }
 
-      const circleData = circleResult.result as unknown as UserCircleData;
+      let circleData = circleResult.result as unknown as UserCircleData;
+
+      // Prefer the external wallet's data when it's the actual on-chain
+      // member for this circle and the embedded wallet isn't.
+      const externalResult = externalResults?.[i];
+      if (shouldMergeExternal && externalResult?.status === "success") {
+        const externalData = externalResult.result as unknown as
+          | UserCircleData
+          | undefined;
+        if (externalData?.isMember && !circleData.isMember) {
+          circleData = externalData;
+        }
+      }
       const status = getUserCircleStatus({
         circle: circleData,
         now,
