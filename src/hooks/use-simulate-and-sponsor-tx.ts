@@ -41,7 +41,9 @@ export const useSimulateAndSponsorTx = () => {
   const { waitForTxReceipt } = useWaitForTxReceipt();
   const { user } = useConnectedUser();
   const connectedAccount =
-    user.status === "CONNECTED" ? user.address : undefined;
+    user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
+      ? user.address
+      : undefined;
 
   const simulateAndSponsorTx = async <
     TAbi extends Abi,
