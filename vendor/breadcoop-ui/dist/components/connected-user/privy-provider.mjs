@@ -33,6 +33,9 @@ function ConnectedUserProviderPrivy({
     if (!authenticated || !accountAddress) {
       return { status: "NOT_CONNECTED" };
     }
+    if (!connectedWallet) {
+      return { status: "NOT_CONNECTED" };
+    }
     const address = accountAddress;
     const walletChainId = connectedWallet == null ? void 0 : connectedWallet.chainId;
     const parsedChainId = walletChainId ? parseInt(walletChainId.split(":")[1]) : void 0;

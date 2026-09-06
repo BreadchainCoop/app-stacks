@@ -1,6 +1,6 @@
 {
   "name": "@breadcoop/ui",
-  "version": "2.0.4-connected-user-eoa-fallback.b6f7b18",
+  "version": "2.0.4-connected-user-eoa-fallback.d0b1462",
   "description": "A component library for implementing Bread Coop branding in JS/TS projects",
   "sideEffects": false,
   "main": "./dist/index.mjs",

@@ -14,7 +14,7 @@ const LoginButtonPrivy = ({
   var _a;
   const { chainId } = useBreadUIKitContext();
   const className = app === "fund" ? "bg-primary-orange" : app === "stacks" ? "bg-primary-blue" : "bg-primary-jade";
-  const { login, ready, user: privyUser } = usePrivy();
+  const { login, connectWallet, ready, authenticated, user: privyUser } = usePrivy();
   const { wallets } = useWallets();
   if (status === "CONNECTED") return null;
   if (status === "LOADING" || !ready) return /* @__PURE__ */ jsx(ButtonShell, {});
@@ -35,7 +35,7 @@ const LoginButtonPrivy = ({
   return /* @__PURE__ */ jsx("div", { className: "[&>*]:w-full", children: /* @__PURE__ */ jsx(
     LiftedButton,
     {
-      onClick: login,
+      onClick: authenticated ? () => connectWallet() : login,
       rightIcon,
       className: `w-full ${className}`,
       children: label
