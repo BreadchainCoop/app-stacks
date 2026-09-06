@@ -1,7 +1,7 @@
 import { serverEnv } from "@/lib/envs/server";
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
-import { createErrorResponse } from "../../utils";
+import { createErrorResponse, verifyPrivyToken } from "../../utils";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { networks } from "@/utils/network";
 import { createPublicClient, fallback, http, type Address } from "viem";
@@ -28,14 +28,38 @@ const getPublicClient = () => {
   return createPublicClient({ chain, transport });
 };
 
+/**
+ * Verifies the caller is actually the circle's owner: their Privy token
+ * resolves to a `users` row whose stored wallet_address matches
+ * `ownerAddress`. Never trust a client-supplied address for this - a
+ * circle's owner is public, so anyone could otherwise claim to be it.
+ */
+const isVerifiedOwner = async (req: NextRequest, ownerAddress: Address) => {
+  const privyUserId = await verifyPrivyToken(req);
+  if (!privyUserId) return false;
+
+  const { data: callerUser } = await supabaseAdmin
+    .from("users")
+    .select("wallet_address")
+    .eq("privy_user_id", privyUserId)
+    .maybeSingle();
+
+  return (
+    !!callerUser?.wallet_address &&
+    callerUser.wallet_address.toLowerCase() === ownerAddress.toLowerCase()
+  );
+};
+
 interface CreateJoinRequestBody {
   circleId: string;
-  privyUserId: string;
   walletAddress: string;
 }
 
 export async function POST(req: NextRequest) {
   try {
+    const privyUserId = await verifyPrivyToken(req);
+    if (!privyUserId) return createErrorResponse("Unauthorized", 401);
+
     let body: unknown;
 
     try {
@@ -48,17 +72,10 @@ export async function POST(req: NextRequest) {
       return createErrorResponse("Invalid request body");
     }
 
-    const { circleId, privyUserId, walletAddress } =
-      body as CreateJoinRequestBody;
+    const { circleId, walletAddress } = body as CreateJoinRequestBody;
 
     if (!circleId || typeof circleId !== "string") {
       return createErrorResponse("circleId is required and must be a string");
-    }
-
-    if (!privyUserId || typeof privyUserId !== "string") {
-      return createErrorResponse(
-        "privyUserId is required and must be a string"
-      );
     }
 
     if (!walletAddress || typeof walletAddress !== "string") {
@@ -152,11 +169,10 @@ export async function GET(req: NextRequest) {
       args: [BigInt(circleId)],
     });
 
-    const isOwner =
-      circle.owner.toLowerCase() === requesterWalletAddress.toLowerCase();
+    const isOwner = await isVerifiedOwner(req, circle.owner);
 
     // Anyone can check their own request status — this doesn't leak anyone
-    // else's. Only the owner gets the full pending list below.
+    // else's. Only the verified owner gets the full pending list below.
     const { data: ownRequest, error: ownRequestError } = await supabaseAdmin
       .from("join_requests")
       .select("status")
@@ -242,9 +258,20 @@ export async function PATCH(req: NextRequest) {
       return createErrorResponse("Join request not found", 404);
     }
 
-    if (status === "added") {
-      const publicClient = getPublicClient();
+    const publicClient = getPublicClient();
 
+    const circle = await publicClient.readContract({
+      address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+      abi: savingCirclesAbi,
+      functionName: "getCircle",
+      args: [BigInt(joinRequest.stack_id)],
+    });
+
+    if (!(await isVerifiedOwner(req, circle.owner))) {
+      return createErrorResponse("Only the circle owner can do this", 403);
+    }
+
+    if (status === "added") {
       const isMember = await publicClient.readContract({
         address: SAVING_CIRCLES_CONTRACT_ADDRESS,
         abi: savingCirclesAbi,

@@ -9,6 +9,7 @@ import { useEffectiveMemberAddress } from "@/hooks/use-effective-member-address"
 import { useAutomaticClaims } from "@/hooks/use-automatic-claims";
 import { useCirclePreview } from "@/hooks/use-circle-preview";
 import { useJoinRequests } from "@/hooks/use-join-requests";
+import { useStackSupabase } from "@/hooks/use-stack-supabase";
 import { Body, LoginButton, useConnectedUser } from "@breadcoop/ui";
 import { CheckIcon } from "@phosphor-icons/react";
 import { usePrivy } from "@privy-io/react-auth";
@@ -20,12 +21,23 @@ type RequestToJoinProps = {
   circleId: string;
 };
 
+// A hand-edited/corrupted invite link can hand us a non-numeric circleId —
+// BigInt() throws synchronously, so validate before parsing it for real.
+const isValidCircleId = (circleId: string) => {
+  try {
+    BigInt(circleId);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export default function RequestToJoin({ circleId }: RequestToJoinProps) {
   const router = useRouter();
   const { user } = useConnectedUser();
-  const { user: privyUser } = usePrivy();
+  const { getAccessToken } = usePrivy();
 
-  if (!circleId) {
+  if (!circleId || !isValidCircleId(circleId)) {
     return (
       <Body className="text-system-warning text-center">
         This invite link is invalid or missing a Stack ID.
@@ -37,7 +49,7 @@ export default function RequestToJoin({ circleId }: RequestToJoinProps) {
     <RequestToJoinWithCircleId
       circleId={circleId}
       user={user}
-      privyUserId={privyUser?.id}
+      getAccessToken={getAccessToken}
       router={router}
     />
   );
@@ -46,18 +58,24 @@ export default function RequestToJoin({ circleId }: RequestToJoinProps) {
 function RequestToJoinWithCircleId({
   circleId,
   user,
-  privyUserId,
+  getAccessToken,
   router,
 }: {
   circleId: string;
   user: ReturnType<typeof useConnectedUser>["user"];
-  privyUserId: string | undefined;
+  getAccessToken: ReturnType<typeof usePrivy>["getAccessToken"];
   router: ReturnType<typeof useRouter>;
 }) {
   const parsedId = BigInt(circleId);
   const address = useEffectiveMemberAddress(parsedId);
   const { activate: enableAutomaticClaims } = useAutomaticClaims();
   const hasEnabledAutoClaims = useRef(false);
+
+  // InviteDetails (rendered alongside this component) already shows "This
+  // stack does not exist." for a bogus circleId - don't also render a live
+  // "Request to join" button underneath it.
+  const { data: stackMetadata, isLoading: isLoadingMetadata } =
+    useStackSupabase(circleId);
 
   const [status, setStatus] = useState<"idle" | "requesting" | "requested">(
     "idle"
@@ -123,12 +141,17 @@ function RequestToJoinWithCircleId({
     setError(null);
 
     try {
+      const token = await getAccessToken();
+      if (!token) throw new Error("Not signed in");
+
       const res = await fetch("/api/stacks/join-request", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           circleId,
-          privyUserId,
           walletAddress: address,
         }),
       });
@@ -145,6 +168,10 @@ function RequestToJoinWithCircleId({
       setStatus("idle");
     }
   };
+
+  if (!isLoadingMetadata && !stackMetadata) {
+    return null;
+  }
 
   if (user.status !== "CONNECTED") {
     return <LoginButton app="stacks" status={user.status} />;
