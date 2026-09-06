@@ -4,7 +4,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Address, parseAbiItem } from "viem";
 import { usePublicClient } from "wagmi";
 
-export const useInviteRedeemed = ({
+export const useMemberAdded = ({
   circleId,
   member,
   enabled,
@@ -16,7 +16,7 @@ export const useInviteRedeemed = ({
   const publicClient = usePublicClient();
 
   return useQuery({
-    queryKey: ["inviteRedeemed", circleId, member],
+    queryKey: ["memberAdded", circleId, member],
     enabled,
     placeholderData: keepPreviousData,
     refetchOnWindowFocus: false,
@@ -26,7 +26,7 @@ export const useInviteRedeemed = ({
       const logs = await publicClient.getLogs({
         address: SAVING_CIRCLES_CONTRACT_ADDRESS,
         event: parseAbiItem(
-          "event InviteRedeemed(uint256 indexed id, address indexed member)"
+          "event MemberAdded(uint256 indexed id, address indexed member)"
         ),
         args: { id: BigInt(circleId), member },
         fromBlock: BigInt(
