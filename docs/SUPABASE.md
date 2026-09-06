@@ -1,8 +1,8 @@
 # Supabase & data privacy
 
 App-Stacks uses Supabase (Postgres) for the **off-chain** metadata that doesn't belong
-on-chain — stack names, invite links, and user profiles. The on-chain Saving Circles
-contracts remain the source of truth for membership, deposits, and funds.
+on-chain — stack names, pending join requests, and user profiles. The on-chain Saving
+Circles contracts remain the source of truth for membership, deposits, and funds.
 
 The core privacy requirement: **non-members of a circle must not be able to read that
 circle's private information.** This is enforced by Postgres **Row Level Security (RLS)**,
@@ -62,9 +62,15 @@ The `Database` type is the contract between the app and Postgres. Current tables
 - **`users`** — `id`, `privy_user_id`, `wallet_address`, `created_at`. Links a Privy
   account to an app user. Created during onboarding via the service role.
 - **`profiles`** — `user_id`, `username`, `updated_at`. Public-ish display info for a user.
-- **`stacks_metadata`** — `id`, `stackname`, `created_at`, `expected_members`,
-  `invite_links` (`{ short, long, used }[]`). Off-chain metadata for a circle; the
-  `invite_links` array carries the shareable join links and their used state.
+- **`stacks_metadata`** — `id`, `stackname`, `created_at`, `expected_members`. Off-chain
+  metadata for a circle. The invite link itself is just `?circleId=` — no per-link state to
+  store here.
+- **`join_requests`** — `id`, `stack_id`, `user_id`, `wallet_address`, `status`
+  (`pending` | `added` | `dismissed`), `created_at`. Records who has asked to join a stack
+  via its invite link, so the owner can review and accept them with `addMembers`. Unlike
+  the other tables, this one has **no anon/authenticated grants at all** — a requester's
+  wallet shouldn't be visible to non-owners, so every read and write goes through the
+  service-role API route (`src/app/api/stacks/join-request`).
 
 Helper queries live alongside the client in `src/lib/supabase.ts`
 (`getStacksMetadata`, `getProfile`, …).

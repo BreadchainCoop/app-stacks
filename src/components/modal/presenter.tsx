@@ -25,6 +25,8 @@ import StartStackWarningModal from "./modals/start-stack-warning";
 import AutomaticClaimsModal from "./modals/automatic-claims";
 import VisitorOnboarding from "../onboard/visitor-onboard-modal";
 import AutomaticDepositsModal from "@/components/automatic-deposits/modal";
+import RemoveMemberWarningModal from "./modals/remove-member-warning";
+import MigrateAndTransferModal from "./modals/migrate-and-transfer";
 
 const ModalPresenter = () => {
   const { modalState, setModal } = useModal();
@@ -105,6 +107,12 @@ const ModalPresenter = () => {
               )}
               {modalState.type === "AUTOMATIC_DEPOSITS" && (
                 <AutomaticDepositsModal modalState={modalState} />
+              )}
+              {modalState.type === "REMOVE_MEMBER_WARNING" && (
+                <RemoveMemberWarningModal modalState={modalState} />
+              )}
+              {modalState.type === "MIGRATE_AND_TRANSFER" && (
+                <MigrateAndTransferModal modalState={modalState} />
               )}
             </Dialog.Content>
           </>

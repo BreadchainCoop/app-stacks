@@ -1,18 +1,6 @@
 packages:
   - "."
 
-blockExoticSubdeps: true
-minimumReleaseAge: 864000 # 10 days
-minimumReleaseAgeExclude:
-  - "@breadcoop/ui"
-strictDepBuilds: true
-trustPolicy: no-downgrade
-trustPolicyExclude:
-  # @privy-io/react-auth pins jose@4.15.9, an unsigned backport published
-  # after signed 5.x releases (a "downgrade" by publish date). Our own
-  # top-level jose (5.x) is provenance-signed.
-  - "jose"
-
 # pnpm v11: explicit per-package build script approval
 allowBuilds:
   "@reown/appkit": true
@@ -22,7 +10,18 @@ allowBuilds:
   unrs-resolver: true
   utf-8-validate: true
 
+blockExoticSubdeps: true
+minimumReleaseAge: 864000 # 10 days
+minimumReleaseAgeExclude:
+  - "@breadcoop/ui"
+
 overrides:
   "@noble/curves": ">=1.9.0"
   "semver": ">=6.3.2"
-  "@breadcoop/ui": "2.0.2"
+strictDepBuilds: true
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  # @privy-io/react-auth pins jose@4.15.9, an unsigned backport published
+  # after signed 5.x releases (a "downgrade" by publish date). Our own
+  # top-level jose (5.x) is provenance-signed.
+  - "jose"

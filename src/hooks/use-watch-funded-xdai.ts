@@ -48,6 +48,7 @@ export function useWatchFundedXdai(
               value: balance - prevBalance.current,
             },
             {
+              address,
               uiOptions: {
                 showWalletUIs: false,
               },

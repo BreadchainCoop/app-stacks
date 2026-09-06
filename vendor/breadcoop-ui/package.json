@@ -1,0 +1,98 @@
+{
+  "name": "@breadcoop/ui",
+  "version": "2.0.4-connected-user-eoa-fallback.d0b1462",
+  "description": "A component library for implementing Bread Coop branding in JS/TS projects",
+  "sideEffects": false,
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./tailwind-preset": "./tailwind-preset.js",
+    "./theme": "./dist/theme.css",
+    "./fonts": "./dist/fonts/fonts.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "tailwind-preset.js",
+    "theme.css",
+    "fonts"
+  ],
+  "scripts": {
+    "build": "tsup && npm run copy-files",
+    "build:all": "npm run build && npm run build-storybook",
+    "copy-files": "cp tailwind-preset.js dist/ && cp theme.css dist/ && cp -r src/fonts dist/",
+    "dev": "tsup --watch",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "test": "jest",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
+    "type-check": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "react",
+    "typescript",
+    "ui",
+    "components",
+    "bread",
+    "coop"
+  ],
+  "author": "Bread Coop",
+  "license": "P2P",
+  "peerDependencies": {
+    "@phosphor-icons/react": "^2.1.1",
+    "@privy-io/react-auth": "^3.13.1",
+    "@rainbow-me/rainbowkit": "^2",
+    "@tanstack/react-query": "^5",
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0",
+    "viem": "^2",
+    "wagmi": "^2"
+  },
+  "dependencies": {
+    "@radix-ui/react-navigation-menu": "^1.2.14",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.4.0"
+  },
+  "devDependencies": {
+    "@rainbow-me/rainbowkit": "^2.2.5",
+    "@storybook/addon-docs": "^9.1.8",
+    "@storybook/addon-webpack5-compiler-swc": "^4.0.1",
+    "@storybook/react-vite": "^9.1.8",
+    "@storybook/react-webpack5": "^9.1.8",
+    "@swc/core": "^1.3.100",
+    "@tailwindcss/postcss": "^4.1.13",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "autoprefixer": "^10.4.21",
+    "esbuild-fix-imports-plugin": "^1.0.23",
+    "eslint": "^8.56.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-storybook": "^9.1.8",
+    "postcss": "^8.5.6",
+    "postcss-loader": "^8.2.0",
+    "storybook": "^9.1.8",
+    "tailwindcss": "^4.1.13",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "viem": "^2.30.1",
+    "wagmi": "^2.16.9"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BreadchainCoop/bread-ui-kit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BreadchainCoop/bread-ui-kit/issues"
+  },
+  "homepage": "https://github.com/BreadchainCoop/bread-ui-kit#readme"
+}

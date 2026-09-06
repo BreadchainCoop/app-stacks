@@ -1,28 +1,49 @@
+"use client";
+
 import {
   Accordion,
   AccordionContent,
   AccordionHeader,
   AccordionItem,
 } from "@/components/accordion";
-import { formatAmount } from "@/utils/format-amount";
-import { Body } from "@breadcoop/ui";
-import { CircleParams } from "./interface";
+import Loading from "@/app/loading";
+import { useCirclePreview } from "@/hooks/use-circle-preview";
+import { useStackSupabase } from "@/hooks/use-stack-supabase";
+import { getIntervalBySeconds } from "@/utils/deposit-interval";
+import { Body, formatBalance } from "@breadcoop/ui";
+import { formatEther } from "viem";
 
-type InviteDetailsProps = Pick<
-  CircleParams,
-  "circleId" | "name" | "duration" | "members" | "deposit"
->;
+type InviteDetailsProps = {
+  circleId: string;
+};
 
-export default function InviteDetails({
-  name: circleName,
-  circleId,
-  duration,
-  members,
-  deposit,
-}: InviteDetailsProps) {
-  // Invites generated before the deposit was written raw carry a comma-grouped
-  // amount (e.g. "90,999,999.00"), which Number() alone reads as NaN.
-  const depositAmount = Number((deposit ?? "").replace(/,/g, ""));
+export default function InviteDetails({ circleId }: InviteDetailsProps) {
+  const { data: stackMetadata, isLoading: isLoadingMetadata } =
+    useStackSupabase(circleId);
+  const { data: circle, isLoading: isLoadingCircle } =
+    useCirclePreview(circleId);
+
+  if (isLoadingMetadata || isLoadingCircle) {
+    return (
+      <div className="flex items-center justify-center">
+        <Loading />
+      </div>
+    );
+  }
+
+  if (!stackMetadata || !circle) {
+    return (
+      <Body className="text-system-red text-center">
+        This stack does not exist.
+      </Body>
+    );
+  }
+
+  const circleName = stackMetadata.stackname;
+  const members = stackMetadata.expected_members;
+  const duration =
+    getIntervalBySeconds(Number(circle.depositInterval))?.label ?? "-";
+  const deposit = formatEther(circle.depositAmount);
 
   return (
     <div className="border-t border-blue-0 pt-6">
@@ -44,11 +65,11 @@ export default function InviteDetails({
               <RowDetail label="Duration" body={duration} />
               <RowDetail
                 label="Est. Deposit amount"
-                body={`$${formatAmount(depositAmount)}`}
+                body={`$${formatBalance(+deposit)}`}
               />
               <RowDetail
                 label="Stack goal"
-                body={`$${formatAmount(Number(members) ** 2 * depositAmount, 2)}`}
+                body={`$${formatBalance(members ** 2 * +deposit, 2)}`}
               />
             </div>
           </AccordionContent>

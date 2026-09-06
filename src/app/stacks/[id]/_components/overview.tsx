@@ -23,11 +23,8 @@ import DepositButton from "@/components/deposit-button";
 import { AutomaticDeposit } from "@/components/automatic-deposits/toggle";
 import { useModal } from "@/components/modal/context";
 import { useStackSupabase } from "@/hooks/use-stack-supabase";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { savingCirclesAbi } from "@/lib/abis/saving-circles";
-import { getDefaultChainId } from "@/utils/chain";
 import { formatAmount } from "@/utils/format-amount";
-import { useReadContracts } from "wagmi";
+import { useJoinRequests } from "@/hooks/use-join-requests";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useFundsDeposited } from "@/hooks/use-funds-deposited";
 import LocalButton from "@/components/button";
@@ -81,64 +78,39 @@ const Overview = ({
     depositInterval: circle.circleInfo.depositInterval,
   });
 
-  const nonceChecks = (stackMetadata?.invite_links ?? [])
-    .map((link) => {
-      try {
-        const url = new URL(link.long);
-        const nonceStr = url.searchParams.get("nonce");
-        if (!nonceStr) return null;
-        return BigInt(nonceStr);
-      } catch {
-        return null;
-      }
-    })
-    .filter((n): n is bigint => n !== null);
+  const isOwner = member === circle.circleInfo.owner;
 
-  const contracts = nonceChecks.map((nonce) => ({
-    address: SAVING_CIRCLES_CONTRACT_ADDRESS,
-    abi: savingCirclesAbi,
-    functionName: "usedNonces" as const,
-    args: [circle.circleId, nonce],
-    chainId: getDefaultChainId(),
-  }));
-
-  const { data: nonceResults } = useReadContracts({
-    contracts,
-    query: {
-      enabled: circle.isMember && contracts.length > 0,
-    },
-  });
+  const { data: joinRequestsData, isLoading: isLoadingJoinRequests } =
+    useJoinRequests(
+      circle.circleId.toString(),
+      circle.circleInfo.owner,
+      isOwner && formattedCircleStatus.status === "pending-start"
+    );
+  const pendingRequestsCount = joinRequestsData?.requests.length ?? 0;
 
   const expectedMembers = stackMetadata?.expected_members ?? 0;
   const acceptedMembers = Number(circle.totalRounds);
   const hasEnoughMembersToStart = acceptedMembers >= 2;
   const membersNeededToStart = Math.max(2 - acceptedMembers, 0);
-  const hasInviteMetadata = expectedMembers > 0 || nonceChecks.length > 0;
-  const inviteStatusReady =
-    nonceChecks.length === 0 || nonceResults?.length === nonceChecks.length;
+  const hasInviteMetadata = expectedMembers > 0;
 
-  const pendingInvites = inviteStatusReady
-    ? nonceChecks.filter((_, index) => {
-        const result = nonceResults?.[index];
-        if (result?.status !== "success") return true;
-        return result.result === false;
-      }).length
-    : nonceChecks.length;
   const expectedPendingMembers = Math.max(expectedMembers - acceptedMembers, 0);
   const pendingMembersToJoin = Math.max(
-    pendingInvites,
     expectedPendingMembers,
     membersNeededToStart
   );
-  const missingExpectedOrInvitedMembers = Math.max(
-    pendingInvites,
-    expectedPendingMembers
-  );
+  // Non-owners can't see pending join requests (owner-only data), so their
+  // "missing members" figure is expected-vs-joined only; the owner also
+  // factors in requests still awaiting their review.
+  const missingExpectedOrInvitedMembers = isOwner
+    ? Math.max(pendingRequestsCount, expectedPendingMembers)
+    : expectedPendingMembers;
 
   const invitesComplete = hasInviteMetadata
-    ? hasEnoughMembersToStart && inviteStatusReady && pendingMembersToJoin === 0
+    ? hasEnoughMembersToStart && pendingMembersToJoin === 0
     : hasEnoughMembersToStart;
-  const canResolveMissingMembers = !isStackMetadataLoading && inviteStatusReady;
+  const canResolveMissingMembers =
+    !isStackMetadataLoading && (!isOwner || !isLoadingJoinRequests);
   const shouldWarnBeforeStart =
     hasInviteMetadata && missingExpectedOrInvitedMembers > 0;
 

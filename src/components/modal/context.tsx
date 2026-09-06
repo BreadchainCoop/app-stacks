@@ -89,6 +89,12 @@ export type WithdrawBreadModalState = {
   type: "WITHDRAW_BREAD";
 };
 
+export type MigrateAndTransferModalState = {
+  type: "MIGRATE_AND_TRANSFER";
+  embeddedAddress: Address;
+  externalAddress: Address;
+};
+
 export type NewUserOnboardingModalState = {
   type: "NEW_USER_ONBOARDING";
   fundingStatus: "idle" | "loading" | "success" | "error";
@@ -137,6 +143,13 @@ export type VisitorOnboardingModalState = {
   type: "VISITOR_ONBOARDING";
 };
 
+export type RemoveMemberWarningModalState = {
+  type: "REMOVE_MEMBER_WARNING";
+  memberAddress: Address;
+  memberName: string;
+  circleId: bigint;
+};
+
 export type ModalState =
   | DepositInitModalState
   | DepositLoadingModalState
@@ -160,6 +173,8 @@ export type ModalState =
   | AutomaticClaimsModalState
   | VisitorOnboardingModalState
   | AutomaticDepositsModalState
+  | RemoveMemberWarningModalState
+  | MigrateAndTransferModalState
   | null;
 
 export type ModalContext = {

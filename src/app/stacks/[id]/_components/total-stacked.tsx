@@ -32,16 +32,16 @@ const CLAIM_SIZES = {
 const TotalStacked = ({
   id,
   status,
+  member,
 }: {
   id: string;
   status: ReturnType<typeof useCircleStatus>;
+  member: Address;
 }) => {
-  const userCircleData = useUserCircleData({ circleId: BigInt(id) });
+  const userCircleData = useUserCircleData({ circleId: BigInt(id), member });
   const { user } = useConnectedUser();
-  const address =
-    user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
-      ? user.address
-      : undefined;
+  const isConnected =
+    user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN";
 
   const now = useBlockTimestamp();
   const { circleState } = useCircleState(BigInt(id));
@@ -82,13 +82,13 @@ const TotalStacked = ({
     <section
       className={cn(
         "border border-[#CBE9E5] bg-paper-0 py-8 px-5 mb-4.25 md:mb-0 md:order-2 md:flex-1 md:max-w-112.75",
-        !address && "flex flex-col items-center justify-center"
+        !isConnected && "flex flex-col items-center justify-center"
       )}
     >
       <Heading3 className="pb-3.5 border-b border-paper-2 text-center mb-4.25 text-2xl font-bold w-full">
         Total deposited for you
       </Heading3>
-      {!address ? (
+      {!isConnected ? (
         <div className="h-full w-full flex items-center justify-center">
           <LoginButton app="stacks" status={user.status} />
         </div>
@@ -166,7 +166,7 @@ const TotalStacked = ({
                   }
                 />
               ) : (
-                <LastClaimStatus address={address} circleId={id} />
+                <LastClaimStatus address={member} circleId={id} />
               )}
               {userCircleData.circleData?.isMember && (
                 <AutomaticClaim stackId={id} disabled={isFailedStack} />

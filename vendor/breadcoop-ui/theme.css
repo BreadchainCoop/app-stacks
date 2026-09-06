@@ -1,0 +1,218 @@
+@import "tailwindcss";
+
+/* Bread Coop Fonts - Hosted by bread-ui-kit package */
+@font-face {
+  font-family: "Bread Display";
+  src: url("./fonts/PogacaDisplayBlack.woff2") format("woff2");
+  font-weight: 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Bread Display";
+  src: url("./fonts/PogacaDisplayBold.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Bread Display";
+  src: url("./fonts/PogacaDisplayRegular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Bread Body";
+  src: url("./fonts/PogacaBodyRegular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Bread Body";
+  src: url("./fonts/PogacaBodyBold.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --font-breadDisplay: "Bread Display", ui-sans-serif, system-ui, sans-serif;
+  --font-breadBody: "Bread Body", ui-sans-serif, system-ui, sans-serif;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-breadDisplay:
+    var(--font-breadDisplay), ui-sans-serif, system-ui, sans-serif;
+  --font-breadBody: var(--font-breadBody), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-roboto);
+
+  /* Custom Colors */
+  --color-core-orange: #ea5817;
+  --color-primary-orange: #ea6023;
+  --color-orange-0: #ffc080;
+  --color-orange-1: #d14a0f;
+  --color-orange-2: #b83c08;
+  --color-primary-jade: #286b63;
+  --color-jade-0: #9cacc6;
+  --color-jade-1: #72849d;
+  --color-jade-2: #134a44;
+  --color-primary-blue: #1c5bb9;
+  --color-blue-0: #a8c3ea;
+  --color-blue-1: #588ddb;
+  --color-blue-2: #1b4a90;
+  --color-paper-main: #f6f3eb;
+  --color-paper-0: #fdfcf9;
+  --color-paper-1: #f0ebe0;
+  --color-paper-2: #eae2d6;
+  --color-surface-ink: #1b201a;
+  --color-surface-grey: #808080;
+  --color-surface-grey-2: #595959;
+  --color-surface-brown: #513c35;
+  --color-surface-brown-1: #301f18;
+  --color-system-green: #32a800;
+  --color-system-red: #df0b00;
+  --color-system-warning: #ce7f00;
+  --color-red-0: #f7cac2;
+  --color-red-1: #f4b8ad;
+  --color-red-main: #df0b00;
+  --color-text-standard: #171414;
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  /* Custom Fonts */
+  --font-roboto: var(--font-roboto);
+  --font-breadDisplay: var(--font-breadDisplay);
+  --font-breadBody: var(--font-breadBody);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+@layer components {
+  .text-h1 {
+    @apply font-breadDisplay font-[900] text-[3rem] leading-[36px] md:text-[96px] md:leading-[76px] xl:text-[7rem] xl:leading-[83px] tracking-tight uppercase;
+  }
+  .text-h2 {
+    @apply font-breadDisplay font-[900] text-[3rem] xl:text-[80px] leading-[36px] xl:leading-[63px] tracking-tighter;
+  }
+  .text-h3 {
+    @apply font-breadDisplay font-[900] text-[1.5rem] leading-[20px] md:text-[2.5rem] md:leading-[36px] xl:text-[3rem] xl:leading-[48px] tracking-tight;
+  }
+  .text-h4 {
+    @apply font-breadBody font-[700] text-[24px] xl:text-[2rem] leading-[24px] xl:leading-[2rem];
+  }
+  .text-h5 {
+    @apply font-breadBody font-[400] text-[1rem] xl:text-[1.5rem] xl:leading-[24px];
+  }
+  .text-body {
+    @apply font-breadBody text-base;
+  }
+
+  .text-breadDisplay-bold {
+    @apply font-breadDisplay font-[700];
+  }
+  .text-breadDisplay {
+    @apply font-breadDisplay font-[500];
+  }
+  .text-body-bold {
+    @apply font-breadBody text-base font-[700];
+  }
+  .text-caption {
+    @apply font-breadBody text-[0.7rem];
+  }
+
+  /* Button Components */
+  .bread-button {
+    @apply font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .bread-button-primary {
+    @apply bg-primary-orange text-white hover:bg-orange-1 focus:ring-primary-orange;
+  }
+
+  .bread-button-secondary {
+    @apply bg-primary-jade text-white hover:bg-jade-2 focus:ring-primary-jade;
+  }
+
+  .bread-button-outline {
+    @apply border-2 border-primary-orange text-primary-orange hover:bg-orange-0 focus:ring-primary-orange;
+  }
+
+  .bread-button-small {
+    @apply px-3 py-1.5 text-sm;
+  }
+
+  .bread-button-medium {
+    @apply px-4 py-2 text-base;
+  }
+
+  .bread-button-large {
+    @apply px-6 py-3 text-lg;
+  }
+
+  .bread-button-disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
+  .bread-button-enabled {
+    @apply cursor-pointer;
+  }
+
+  /* LiftedButton Components */
+  .lifted-button-base {
+    @apply mb-1 relative z-10 inline-flex items-center justify-center gap-[8px] font-breadBody text-base px-[37px] h-14 cursor-pointer;
+  }
+
+  .lifted-button {
+    background-color: var(--btn-bg);
+    color: var(--btn-text);
+  }
+
+  .lifted-button:hover {
+    background-color: var(--btn-hover-bg);
+    color: var(--btn-hover-text);
+  }
+
+  .lifted-button-disabled {
+    @apply bg-surface-grey opacity-50 cursor-not-allowed;
+  }
+
+  .lifted-button-shadow {
+    @apply absolute mb-1 inset-0 bg-surface-grey-2;
+  }
+
+  .lifted-button-motion {
+    @apply transition-all ease-out;
+  }
+
+  .lifted-button-lifted {
+    @apply -translate-x-0.5 -translate-y-0.5;
+  }
+
+  .lifted-button-active {
+    @apply group-active:translate-x-0.5 group-active:translate-y-0.5;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+}
+
+.nav-account-menu {
+  @apply z-20!;
+}
+
+.nav-account-menu > div {
+  @apply w-auto md:w-max;
+}

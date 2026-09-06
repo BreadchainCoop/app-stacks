@@ -5,18 +5,22 @@ import { clientEnv } from "@/lib/env";
 
 // Must stay type aliases: interfaces break supabase-js's generics and every
 // query silently degrades to never.
-export type SupabaseInviteLink = {
-  short: string;
-  long: string;
-  used: boolean;
-};
-
 export type SupabaseStackMetadata = {
   id: string;
   stackname: string;
   created_at: string;
   expected_members: number;
-  invite_links: SupabaseInviteLink[];
+};
+
+export type SupabaseJoinRequestStatus = "pending" | "added" | "dismissed";
+
+export type SupabaseJoinRequest = {
+  id: string;
+  stack_id: string;
+  user_id: string;
+  wallet_address: string;
+  status: SupabaseJoinRequestStatus;
+  created_at: string;
 };
 
 // Mirror the supabase generated-types shape (Relationships per table,
@@ -30,18 +34,21 @@ export type Database = {
           privy_user_id: string;
           wallet_address: string | null;
           created_at: string;
+          transferred_to_wallet_at: string | null;
         };
         Insert: {
           id: string;
           privy_user_id: string;
           wallet_address?: string | null;
           created_at?: string;
+          transferred_to_wallet_at?: string | null;
         };
         Update: {
           id?: string;
           privy_user_id?: string;
           wallet_address?: string | null;
           created_at?: string;
+          transferred_to_wallet_at?: string | null;
         };
         Relationships: [];
       };
@@ -76,7 +83,7 @@ export type Database = {
       stacks_metadata: {
         Row: SupabaseStackMetadata;
         Insert: SupabaseStackMetadata;
-        Update: Pick<SupabaseStackMetadata, "invite_links">;
+        Update: Partial<SupabaseStackMetadata>;
         Relationships: [];
       };
       user_stacks: {
@@ -98,6 +105,29 @@ export type Database = {
             columns: ["stack_id"];
             isOneToOne: false;
             referencedRelation: "stacks_metadata";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      join_requests: {
+        Row: SupabaseJoinRequest;
+        Insert: Omit<SupabaseJoinRequest, "id" | "created_at" | "status"> & {
+          status?: SupabaseJoinRequestStatus;
+        };
+        Update: Pick<SupabaseJoinRequest, "status">;
+        Relationships: [
+          {
+            foreignKeyName: "join_requests_stack_id_fkey";
+            columns: ["stack_id"];
+            isOneToOne: false;
+            referencedRelation: "stacks_metadata";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "join_requests_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
             referencedColumns: ["id"];
           },
         ];

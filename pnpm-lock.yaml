@@ -7,14 +7,13 @@ settings:
 overrides:
   "@noble/curves": ">=1.9.0"
   semver: ">=6.3.2"
-  "@breadcoop/ui": 2.0.2
 
 importers:
   .:
     dependencies:
       "@breadcoop/ui":
-        specifier: 2.0.2
-        version: 2.0.2(a42f1bd46a91f3e083f3bbbf6d88fc00)
+        specifier: file:./vendor/breadcoop-ui
+        version: file:vendor/breadcoop-ui(a42f1bd46a91f3e083f3bbbf6d88fc00)
       "@duneanalytics/client-sdk":
         specifier: ^0.2.5
         version: 0.2.5
@@ -525,11 +524,8 @@ packages:
         integrity: sha512-jeujZSzb3JOZfmJYI0ph1PVpCRV5oaexCgy+RvCXV8XlY+XFB/2n3WOcvBsKLsOw78KYgnQrQWb2HrKE4be88Q==,
       }
 
-  "@breadcoop/ui@2.0.2":
-    resolution:
-      {
-        integrity: sha512-5HDWww1REKLV2YN2qSmk/rzxohtll2MgK5bxufy3s7ycCUONxcJU1m+9I0ALfdrmaTWA+6KiSz2NwhyuJ3TfBw==,
-      }
+  "@breadcoop/ui@file:vendor/breadcoop-ui":
+    resolution: { directory: vendor/breadcoop-ui, type: directory }
     peerDependencies:
       "@phosphor-icons/react": ^2.1.1
       "@privy-io/react-auth": ^3.13.1
@@ -5782,6 +5778,18 @@ packages:
       supports-color:
         optional: true
 
+  debug@4.4.0:
+    resolution:
+      {
+        integrity: sha512-6WTZ/IxCY/T6BALoZHaE4ctp9xm+Z5kY/pzYaCHRFeyVhojxlrm+46y68HA6hr0TcwEssoxNiDEUJQjfPZ/RYA==,
+      }
+    engines: { node: ">=6.0" }
+    peerDependencies:
+      supports-color: "*"
+    peerDependenciesMeta:
+      supports-color:
+        optional: true
+
   debug@4.4.3:
     resolution:
       {
@@ -7528,14 +7536,6 @@ packages:
       {
         integrity: sha512-0wM3YBWtYePOjfyXQH5MWQ8H7sdk5EXSwZvmSLKk2RboVQ2Bu239jycHDz5J/8Blf3K0Qnoy2b6xD+z10MFB+Q==,
       }
-
-  jsesc@3.0.2:
-    resolution:
-      {
-        integrity: sha512-xKqzzWXDttJuOcawBt4KnKHHIf5oQ/Cxax+0PWFG+DFDgHNAdi+TXECADI+RYiFUMmx8792xsMbbgXj4CwnP4g==,
-      }
-    engines: { node: ">=6" }
-    hasBin: true
 
   jsesc@3.1.0:
     resolution:
@@ -10974,7 +10974,7 @@ snapshots:
       "@babel/traverse": 7.25.7
       "@babel/types": 7.25.7
       convert-source-map: 2.0.0
-      debug: 4.3.4
+      debug: 4.4.0
       gensync: 1.0.0-beta.2
       json5: 2.2.3
       semver: 7.6.3
@@ -10994,7 +10994,7 @@ snapshots:
       "@babel/types": 7.29.0
       "@jridgewell/remapping": 2.3.5
       convert-source-map: 2.0.0
-      debug: 4.3.4
+      debug: 4.4.0
       gensync: 1.0.0-beta.2
       json5: 2.2.3
       semver: 7.6.3
@@ -11006,7 +11006,7 @@ snapshots:
       "@babel/types": 7.25.7
       "@jridgewell/gen-mapping": 0.3.5
       "@jridgewell/trace-mapping": 0.3.25
-      jsesc: 3.0.2
+      jsesc: 3.1.0
 
   "@babel/generator@7.29.1":
     dependencies:
@@ -11136,7 +11136,7 @@ snapshots:
       "@babel/parser": 7.25.7
       "@babel/template": 7.25.7
       "@babel/types": 7.25.7
-      debug: 4.3.4
+      debug: 4.4.0
       globals: 11.12.0
     transitivePeerDependencies:
       - supports-color
@@ -11338,7 +11338,7 @@ snapshots:
     dependencies:
       "@noble/curves": 1.9.7
 
-  "@breadcoop/ui@2.0.2(a42f1bd46a91f3e083f3bbbf6d88fc00)":
+  "@breadcoop/ui@file:vendor/breadcoop-ui(a42f1bd46a91f3e083f3bbbf6d88fc00)":
     dependencies:
       "@phosphor-icons/react": 2.1.10(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       "@privy-io/react-auth": 3.18.0(@react-native-async-storage/async-storage@1.24.0(react-native@0.85.2(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6)))(@solana-program/system@0.10.0(@solana/kit@5.5.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)))(@solana-program/token@0.9.0(@solana/kit@5.5.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)))(@solana/kit@5.5.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6))(@solana/sysvars@5.5.1(typescript@5.9.3))(@tanstack/query-core@5.91.2)(@tanstack/react-query@5.91.2(react@19.1.0))(@types/react@19.2.14)(@upstash/redis@1.37.0)(bufferutil@4.1.0)(react-dom@19.1.0(react@19.1.0))(react-native@0.85.2(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6))(react@19.1.0)(typescript@5.9.3)(use-sync-external-store@1.4.0(react@19.1.0))(utf-8-validate@6.0.6)(zod@4.3.6)
@@ -12179,7 +12179,7 @@ snapshots:
     dependencies:
       "@ethereumjs/tx": 4.2.0
       "@types/debug": 4.1.12
-      debug: 4.3.4
+      debug: 4.4.0
       semver: 7.6.3
       superstruct: 1.0.4
     transitivePeerDependencies:
@@ -12206,7 +12206,7 @@ snapshots:
       "@noble/hashes": 1.8.0
       "@scure/base": 1.2.6
       "@types/debug": 4.1.12
-      debug: 4.3.4
+      debug: 4.4.0
       pony-cause: 2.1.11
       semver: 7.6.3
       uuid: 9.0.1
@@ -13189,7 +13189,7 @@ snapshots:
   "@react-native/community-cli-plugin@0.85.2(bufferutil@4.1.0)(utf-8-validate@6.0.6)":
     dependencies:
       "@react-native/dev-middleware": 0.85.2(bufferutil@4.1.0)(utf-8-validate@6.0.6)
-      debug: 4.4.3
+      debug: 4.4.0
       invariant: 2.2.4
       metro: 0.84.3(bufferutil@4.1.0)(utf-8-validate@6.0.6)
       metro-config: 0.84.3(bufferutil@4.1.0)(utf-8-validate@6.0.6)
@@ -13205,7 +13205,7 @@ snapshots:
   "@react-native/debugger-shell@0.85.2":
     dependencies:
       cross-spawn: 7.0.6
-      debug: 4.4.3
+      debug: 4.4.0
       fb-dotslash: 0.5.8
     transitivePeerDependencies:
       - supports-color
@@ -13218,7 +13218,7 @@ snapshots:
       chrome-launcher: 0.15.2
       chromium-edge-launcher: 0.3.0
       connect: 3.7.0
-      debug: 4.4.3
+      debug: 4.4.0
       invariant: 2.2.4
       nullthrows: 1.1.1
       open: 7.4.2
@@ -16788,7 +16788,7 @@ snapshots:
 
   agent-base@7.1.1:
     dependencies:
-      debug: 4.3.4
+      debug: 4.4.0
     transitivePeerDependencies:
       - supports-color
 
@@ -17305,6 +17305,10 @@ snapshots:
   debug@4.3.4:
     dependencies:
       ms: 2.1.2
+
+  debug@4.4.0:
+    dependencies:
+      ms: 2.1.3
 
   debug@4.4.3:
     dependencies:
@@ -18142,7 +18146,7 @@ snapshots:
   https-proxy-agent@7.0.5:
     dependencies:
       agent-base: 7.1.1
-      debug: 4.3.4
+      debug: 4.4.0
     transitivePeerDependencies:
       - supports-color
 
@@ -18429,8 +18433,6 @@ snapshots:
 
   jsc-safe-url@0.2.4: {}
 
-  jsesc@3.0.2: {}
-
   jsesc@3.1.0: {}
 
   json-buffer@3.0.1: {}
@@ -18701,7 +18703,7 @@ snapshots:
 
   metro-file-map@0.84.3:
     dependencies:
-      debug: 4.4.3
+      debug: 4.4.0
       fb-watchman: 2.0.2
       flow-enums-runtime: 0.0.6
       graceful-fs: 4.2.11
@@ -18796,7 +18798,7 @@ snapshots:
       chalk: 4.1.2
       ci-info: 2.0.0
       connect: 3.7.0
-      debug: 4.4.3
+      debug: 4.4.0
       error-stack-parser: 2.1.4
       flow-enums-runtime: 0.0.6
       graceful-fs: 4.2.11
