@@ -62,6 +62,7 @@ const MembersInfo = ({
   totalBaseDeposit,
   depositAmount,
   pendingJoinRequests,
+  remainingSlots,
   totalRounds,
   circleStartsTimestamp,
   depositInterval,
@@ -74,6 +75,9 @@ const MembersInfo = ({
   totalBaseDeposit: number;
   depositAmount: bigint;
   pendingJoinRequests?: JoinRequest[];
+  // undefined = no cap configured/known (e.g. legacy stack with no
+  // expected_members recorded) - don't restrict accepting in that case.
+  remainingSlots?: number;
   totalRounds: number;
   circleStartsTimestamp: bigint;
   depositInterval: bigint;
@@ -142,6 +146,7 @@ const MembersInfo = ({
           requests={pendingJoinRequests}
           selectedRequestIds={selectedRequestIds}
           onSelectedRequestIdsChange={setSelectedRequestIds}
+          remainingSlots={remainingSlots}
         />
       )}
       <Accordion>
@@ -191,6 +196,7 @@ const MembersInfo = ({
             selectable={pendingJoinRequests.length > 1}
             selected={selectedRequestIds.has(request.id)}
             onToggleSelected={() => toggleRequestSelected(request.id)}
+            atCapacity={remainingSlots === 0}
           />
         ))}
       </Accordion>
@@ -304,11 +310,13 @@ function JoinRequestsBulkBar({
   requests,
   selectedRequestIds,
   onSelectedRequestIdsChange,
+  remainingSlots,
 }: {
   id: string;
   requests: JoinRequest[];
   selectedRequestIds: Set<string>;
   onSelectedRequestIdsChange: (ids: Set<string>) => void;
+  remainingSlots?: number;
 }) {
   const { sendSavingCirclesTx } = useSavingCirclesTx();
   const { getAccessToken } = usePrivy();
@@ -316,12 +324,20 @@ function JoinRequestsBulkBar({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const selectableCount =
+    remainingSlots === undefined
+      ? requests.length
+      : Math.min(requests.length, remainingSlots);
   const allSelected =
-    requests.length > 0 && selectedRequestIds.size === requests.length;
+    selectableCount > 0 && selectedRequestIds.size === selectableCount;
+  const overCapacity =
+    remainingSlots !== undefined && selectedRequestIds.size > remainingSlots;
 
   const toggleSelectAll = () => {
     onSelectedRequestIdsChange(
-      allSelected ? new Set() : new Set(requests.map((r) => r.id))
+      allSelected
+        ? new Set()
+        : new Set(requests.slice(0, selectableCount).map((r) => r.id))
     );
   };
 
@@ -366,6 +382,7 @@ function JoinRequestsBulkBar({
       queryClient.invalidateQueries({ queryKey: ["join-requests", id] });
       onSelectedRequestIdsChange(new Set());
     } catch (err) {
+      console.log("__ ERROR __", err);
       setError(parseContractError(err));
     } finally {
       setBusy(false);
@@ -380,19 +397,26 @@ function JoinRequestsBulkBar({
             type="checkbox"
             className="accent-primary-blue"
             checked={allSelected}
+            disabled={selectableCount === 0}
             onChange={toggleSelectAll}
           />
           Select all ({requests.length})
         </label>
         <button
           className="flex items-center gap-1 text-system-green text-xs font-bold disabled:opacity-50"
-          disabled={busy || selectedRequestIds.size === 0}
+          disabled={busy || selectedRequestIds.size === 0 || overCapacity}
           onClick={acceptSelected}
         >
           <CheckIcon size={16} />
           {busy ? "Adding..." : `Accept selected (${selectedRequestIds.size})`}
         </button>
       </div>
+      {overCapacity && (
+        <Body className="text-system-warning text-xs">
+          Only {remainingSlots} spot{remainingSlots === 1 ? "" : "s"} left —
+          deselect some requests to continue.
+        </Body>
+      )}
       {error && <Body className="text-system-red text-xs">{error}</Body>}
     </div>
   );
@@ -404,12 +428,14 @@ function JoinRequestItem({
   selectable,
   selected,
   onToggleSelected,
+  atCapacity,
 }: {
   id: string;
   request: JoinRequest;
   selectable: boolean;
   selected: boolean;
   onToggleSelected: () => void;
+  atCapacity: boolean;
 }) {
   const { sendSavingCirclesTx } = useSavingCirclesTx();
   const { getAccessToken } = usePrivy();
@@ -496,7 +522,8 @@ function JoinRequestItem({
           <div className="ml-auto flex items-center gap-3">
             <button
               className="flex items-center gap-1 text-system-green hover:text-system-green text-xs font-bold disabled:opacity-50"
-              disabled={busy !== null}
+              disabled={busy !== null || atCapacity}
+              title={atCapacity ? "This Stack is full" : undefined}
               onClick={(e) => {
                 e.stopPropagation();
                 accept();
