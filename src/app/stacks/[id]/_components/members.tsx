@@ -6,6 +6,7 @@ import PendingInviteLink from "@/components/pending-invite-link";
 import { Address, formatEther } from "viem";
 import { useCircleMembersWithBalances } from "@/hooks/use-circle-members";
 import { useJoinRequests } from "@/hooks/use-join-requests";
+import { useStackSupabase } from "@/hooks/use-stack-supabase";
 import { ICircleStatus, MemberCircleInfo } from "@/interfaces/circle";
 
 const TopRowInfo = ({
@@ -52,6 +53,16 @@ const StackMembers = ({
     useJoinRequests(id, circle.owner, isOwner && isPendingStart);
   const pendingJoinRequests = joinRequestsData?.requests ?? [];
 
+  // Caps how many pending requests the owner can accept: the contract itself
+  // only enforces a global 25-member ceiling, not the size the owner actually
+  // configured when creating the stack.
+  const { data: stackMetadata } = useStackSupabase(id, isOwner);
+  const expectedMembers = stackMetadata?.expected_members ?? 0;
+  const remainingSlots =
+    expectedMembers > 0
+      ? Math.max(expectedMembers - info.members.length, 0)
+      : undefined;
+
   const generalInviteUrl =
     isOwner && isPendingStart
       ? `${typeof window !== "undefined" ? window.location.origin : ""}/stacks/join?circleId=${id}`
@@ -93,6 +104,12 @@ const StackMembers = ({
             Share this link to invite members. You can remove members before
             launching.
           </Body>
+          {remainingSlots === 0 && (
+            <Body className="text-system-warning text-xs">
+              This Stack is full ({expectedMembers}/{expectedMembers} members) —
+              dismiss a pending request to free up a spot.
+            </Body>
+          )}
         </div>
       )}
 
@@ -103,6 +120,7 @@ const StackMembers = ({
         totalBaseDeposit={totalBaseDeposit}
         depositAmount={circle.depositAmount}
         pendingJoinRequests={isOwner ? pendingJoinRequests : []}
+        remainingSlots={remainingSlots}
         totalRounds={totalRounds}
         circleStartsTimestamp={circle.effectiveCircleStartTime}
         depositInterval={circle.depositInterval}
