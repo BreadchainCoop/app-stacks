@@ -5,7 +5,6 @@ import LocalButton from "@/components/button";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { getDefaultChainId } from "@/utils/chain";
-import { useEffectiveMemberAddress } from "@/hooks/use-effective-member-address";
 import { useAutomaticClaims } from "@/hooks/use-automatic-claims";
 import { useCirclePreview } from "@/hooks/use-circle-preview";
 import { useJoinRequests } from "@/hooks/use-join-requests";
@@ -67,7 +66,10 @@ function RequestToJoinWithCircleId({
   router: ReturnType<typeof useRouter>;
 }) {
   const parsedId = BigInt(circleId);
-  const address = useEffectiveMemberAddress(parsedId);
+  const address =
+    user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
+      ? user.address
+      : undefined;
   const { activate: enableAutomaticClaims } = useAutomaticClaims();
   const hasEnabledAutoClaims = useRef(false);
 
