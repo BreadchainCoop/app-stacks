@@ -87,7 +87,9 @@ hook (see [AGENTS.md](../AGENTS.md)). The ABIs in `src/lib/abis/` mirror it.
 
 - Contract addresses come from validated env (`src/lib/constants.ts` →
   `clientEnv`): `SAVING_CIRCLES_CONTRACT_ADDRESS`,
-  `SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS`, `BREAD_TOKEN_ADDRESS`.
+  `SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS`. The deposit token address comes from
+  `DEPOSIT_TOKEN` in `src/lib/deposit-token.ts`
+  (`NEXT_PUBLIC_DEPOSIT_TOKEN_ADDRESS`).
 - ABIs live in `src/lib/abis/` (`saving-circles`, `saving-circles-viewers`, `bread-abi`,
   `erc20-abi`).
 - **Reads** use `useReadContract` wrapped in a `use-*.ts` hook that passes

@@ -1,5 +1,6 @@
 import { breadAbi } from "@/lib/abis/bread-abi";
 import { clientEnv } from "@/lib/env";
+import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
 import { useEffect, useRef } from "react";
 import { encodeFunctionData } from "viem";
 import { usePublicClient } from "wagmi";
@@ -46,7 +47,7 @@ export function useWatchFundedXdai(
           });
           const { hash } = await sendSponsoredTransaction(
             {
-              to: clientEnv.NEXT_PUBLIC_BREAD_TOKEN_ADDRESS,
+              to: DEPOSIT_TOKEN.address,
               data,
               value: balance - prevBalance.current,
             },

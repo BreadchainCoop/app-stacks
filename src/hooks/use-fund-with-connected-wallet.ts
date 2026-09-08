@@ -20,8 +20,7 @@ import { useWaitForTxReceipt } from "@/hooks/use-wait-for-tx-receipt";
 import { useSimulateAndSponsorTx } from "@/hooks/use-simulate-and-sponsor-tx";
 import { getDefaultChainDetail } from "@/utils/chain";
 import { clientEnv } from "@/lib/env";
-import { BREAD_TOKEN_ADDRESS } from "@/lib/constants";
-import { parseDepositAmount } from "@/lib/deposit-token";
+import { DEPOSIT_TOKEN, parseDepositAmount } from "@/lib/deposit-token";
 import { isCeloChain } from "@/utils/celo";
 import { breadAbi } from "@/lib/abis/bread-abi";
 
@@ -59,7 +58,7 @@ export const useFundWithConnectedWallet = () => {
 
   const breadBalance = useBalance({
     address: externalAccount,
-    token: BREAD_TOKEN_ADDRESS,
+    token: DEPOSIT_TOKEN.address,
     chainId: clientEnv.NEXT_PUBLIC_CHAIN_ID,
     query: {
       enabled: Boolean(externalAccount),
@@ -104,7 +103,7 @@ export const useFundWithConnectedWallet = () => {
 
         if (token === "BREAD") {
           depositHash = await writeContractAsync({
-            address: BREAD_TOKEN_ADDRESS,
+            address: DEPOSIT_TOKEN.address,
             abi: erc20Abi,
             functionName: "transfer",
             args: [user.address as Address, formattedAmount],
@@ -146,7 +145,7 @@ export const useFundWithConnectedWallet = () => {
         if (token === "BREAD") {
           depositHash = await walletClient.writeContract({
             account,
-            address: BREAD_TOKEN_ADDRESS,
+            address: DEPOSIT_TOKEN.address,
             abi: erc20Abi,
             functionName: "transfer",
             args: [user.address as Address, formattedAmount],
@@ -166,7 +165,7 @@ export const useFundWithConnectedWallet = () => {
 
       if (token === "xDAI") {
         await simulateAndSponsorTx({
-          address: BREAD_TOKEN_ADDRESS,
+          address: DEPOSIT_TOKEN.address,
           abi: breadAbi,
           functionName: "mint",
           args: [user.address],

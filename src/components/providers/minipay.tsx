@@ -21,6 +21,7 @@ import { hashFn } from "wagmi/query";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { BreadUIKitProvider, ConnectedUserProvider } from "@breadcoop/ui";
 import { clientEnv } from "@/lib/env";
+import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
 import { SupabaseProvider } from "./supabase";
 import { ModalProvider, useModal } from "../modal/context";
 import { TxSender, TxSenderProvider } from "./tx-sender";
@@ -54,7 +55,7 @@ const queryClient = new QueryClient({
 
 const tokenConfig = {
   BREAD: {
-    address: clientEnv.NEXT_PUBLIC_BREAD_TOKEN_ADDRESS as Address,
+    address: DEPOSIT_TOKEN.address,
     abi: erc20Abi,
   },
 };

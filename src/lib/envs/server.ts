@@ -11,7 +11,7 @@ const envSchema = z.object({
   // HMAC secret for MiniPay session JWTs; only required when serving MiniPay
   MINIPAY_SESSION_SECRET: z.string().optional(),
   NEXT_PUBLIC_CHAIN_ID: z.coerce.number(),
-  NEXT_PUBLIC_BREAD_TOKEN_ADDRESS: z.string(),
+  NEXT_PUBLIC_DEPOSIT_TOKEN_ADDRESS: z.string(),
   NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS: z.string(),
   NEXT_PUBLIC_PRIVY_APP_ID: z.string(),
 });

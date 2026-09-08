@@ -1,15 +1,15 @@
 import { useModal } from "@/components/modal/context";
 import { clientEnv } from "@/lib/env";
+import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
 import { useConnectedUser } from "@breadcoop/ui";
 import { useFundWallet as useFundPrivyWallet } from "@privy-io/react-auth";
-import { Address } from "viem";
 
 const tokens = {
   xdai: {
     receiveFundsTitle: "xDAI",
   },
   bread: {
-    erc20: clientEnv.NEXT_PUBLIC_BREAD_TOKEN_ADDRESS as Address,
+    erc20: DEPOSIT_TOKEN.address,
     receiveFundsTitle: "BREAD",
   },
 };

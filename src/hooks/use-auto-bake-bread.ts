@@ -1,4 +1,4 @@
-import { BREAD_TOKEN_ADDRESS } from "@/lib/constants";
+import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
 import { breadAbi } from "@/lib/abis/bread-abi";
 import { useSponsoredTx } from "./use-sponsored-tx";
 import { useWaitForTxReceipt } from "./use-wait-for-tx-receipt";
@@ -30,7 +30,7 @@ export const useAutoBakeBread = () => {
 
     const { hash } = await sendSponsoredTransaction(
       {
-        to: BREAD_TOKEN_ADDRESS,
+        to: DEPOSIT_TOKEN.address,
         data,
         value: amount,
       },

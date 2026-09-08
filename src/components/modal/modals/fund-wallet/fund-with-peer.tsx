@@ -57,7 +57,7 @@ const FundWithPeer = ({
 
   //     const { hash } = await sendSponsoredTransaction(
   //       {
-  //         to: clientEnv.NEXT_PUBLIC_BREAD_TOKEN_ADDRESS,
+  //         to: clientEnv.NEXT_PUBLIC_DEPOSIT_TOKEN_ADDRESS,
   //         data,
   //         value: amount,
   //       },
