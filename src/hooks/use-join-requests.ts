@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { usePrivy } from "@privy-io/react-auth";
+import { useUserIdentity } from "@/components/providers/user-identity";
 import { Address } from "viem";
 
 export interface JoinRequest {
@@ -26,7 +26,7 @@ export const useJoinRequests = (
   requesterAddress: Address | undefined,
   enabled: boolean
 ) => {
-  const { getAccessToken } = usePrivy();
+  const { getAuthToken } = useUserIdentity();
 
   return useQuery<JoinRequestsResult>({
     queryKey: ["join-requests", circleId, requesterAddress?.toLowerCase()],
@@ -34,7 +34,7 @@ export const useJoinRequests = (
       // Only the owner branch needs this — the API verifies it server-side
       // rather than trusting requesterAddress, since a circle's owner
       // address is public.
-      const token = await getAccessToken();
+      const token = await getAuthToken();
 
       const res = await fetch(
         `/api/stacks/join-request?circleId=${circleId}&requesterWalletAddress=${requesterAddress}`,

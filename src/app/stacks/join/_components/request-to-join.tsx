@@ -11,7 +11,7 @@ import { useJoinRequests } from "@/hooks/use-join-requests";
 import { useStackSupabase } from "@/hooks/use-stack-supabase";
 import { Body, LoginButton, useConnectedUser } from "@breadcoop/ui";
 import { CheckIcon } from "@phosphor-icons/react";
-import { usePrivy } from "@privy-io/react-auth";
+import { useUserIdentity } from "@/components/providers/user-identity";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useReadContract } from "wagmi";
@@ -34,7 +34,7 @@ const isValidCircleId = (circleId: string) => {
 export default function RequestToJoin({ circleId }: RequestToJoinProps) {
   const router = useRouter();
   const { user } = useConnectedUser();
-  const { getAccessToken } = usePrivy();
+  const { getAuthToken } = useUserIdentity();
 
   if (!circleId || !isValidCircleId(circleId)) {
     return (
@@ -48,7 +48,7 @@ export default function RequestToJoin({ circleId }: RequestToJoinProps) {
     <RequestToJoinWithCircleId
       circleId={circleId}
       user={user}
-      getAccessToken={getAccessToken}
+      getAuthToken={getAuthToken}
       router={router}
     />
   );
@@ -57,12 +57,12 @@ export default function RequestToJoin({ circleId }: RequestToJoinProps) {
 function RequestToJoinWithCircleId({
   circleId,
   user,
-  getAccessToken,
+  getAuthToken,
   router,
 }: {
   circleId: string;
   user: ReturnType<typeof useConnectedUser>["user"];
-  getAccessToken: ReturnType<typeof usePrivy>["getAccessToken"];
+  getAuthToken: ReturnType<typeof useUserIdentity>["getAuthToken"];
   router: ReturnType<typeof useRouter>;
 }) {
   const parsedId = BigInt(circleId);
@@ -143,7 +143,7 @@ function RequestToJoinWithCircleId({
     setError(null);
 
     try {
-      const token = await getAccessToken();
+      const token = await getAuthToken();
       if (!token) throw new Error("Not signed in");
 
       const res = await fetch("/api/stacks/join-request", {
