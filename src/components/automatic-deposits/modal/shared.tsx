@@ -2,13 +2,12 @@
 
 import { ModalCloseIcon } from "@/components/modal/components";
 import { AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { getDefaultChainId } from "@/utils/chain";
+import { getDefaultChainId, networks } from "@/utils/chain";
 import {
   formatSecondsHuman,
   getIntervalBySeconds,
 } from "@/utils/deposit-interval";
 import { formatAmount } from "@/utils/format-amount";
-import { networks } from "@/utils/network";
 import { Body, Logo } from "@breadcoop/ui";
 import { ReactNode } from "react";
 import { formatEther } from "viem";

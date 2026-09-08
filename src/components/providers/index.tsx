@@ -14,7 +14,7 @@ import {
   WalletListEntry,
 } from "@privy-io/react-auth";
 import SepoliaAutoFund from "./sepolia-auto-fund";
-import { networks } from "@/utils/network";
+import { networks } from "@/utils/chain";
 
 const tokenConfig: ComponentProps<typeof BreadUIKitProvider>["tokenConfig"] = {
   BREAD: {

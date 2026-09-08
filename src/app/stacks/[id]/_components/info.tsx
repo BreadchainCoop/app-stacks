@@ -2,7 +2,7 @@ import { DisplayName } from "@/components/display-name";
 import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { clientEnv } from "@/lib/env";
 import { formatAddress } from "@/utils/address";
-import { networks } from "@/utils/network";
+import { networks } from "@/utils/chain";
 import { Body, CopyButtonIcon } from "@breadcoop/ui";
 import { ArrowUpRightIcon } from "@phosphor-icons/react/ssr";
 import { ReactNode } from "react";

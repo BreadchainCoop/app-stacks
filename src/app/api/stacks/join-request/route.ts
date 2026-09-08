@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { createErrorResponse, verifyPrivyToken } from "../../utils";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
-import { networks } from "@/utils/network";
+import { networks } from "@/utils/chain";
 import { createPublicClient, fallback, http, type Address } from "viem";
 
 const supabaseAdmin = createClient(
