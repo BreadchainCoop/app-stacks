@@ -21,8 +21,12 @@ import { useSimulateAndSponsorTx } from "@/hooks/use-simulate-and-sponsor-tx";
 import { getDefaultChainDetail } from "@/utils/chain";
 import { clientEnv } from "@/lib/env";
 import { BREAD_TOKEN_ADDRESS } from "@/lib/constants";
+import { parseDepositAmount } from "@/lib/deposit-token";
+import { isCeloChain } from "@/utils/celo";
 import { breadAbi } from "@/lib/abis/bread-abi";
 
+// "BREAD" is the deposit-token option (whatever this deployment's token is);
+// the native xDAI option only exists on Gnosis.
 export const FUNDING_TOKENS = ["BREAD", "xDAI"] as const;
 
 export type FundingToken = (typeof FUNDING_TOKENS)[number];
@@ -79,10 +83,17 @@ export const useFundWithConnectedWallet = () => {
     if (!(user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"))
       return;
 
+    if (token === "xDAI" && isCeloChain(clientEnv.NEXT_PUBLIC_CHAIN_ID)) {
+      console.error("Native xDAI funding is not available on Celo");
+      return;
+    }
+
     try {
       setModal({ type: "WALLET_FUNDING_STATUS", status: "loading" });
 
-      const formattedAmount = parseEther(amount);
+      // Deposit-token amounts use the token's decimals; native xDAI is 18
+      const formattedAmount =
+        token === "BREAD" ? parseDepositAmount(amount) : parseEther(amount);
 
       let depositHash: Hex;
 

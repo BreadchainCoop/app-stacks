@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { usePrivy } from "@privy-io/react-auth";
+import { useUserIdentity } from "@/components/providers/user-identity";
 import { useAutomaticSavingCirclesTx } from "./use-automatic-saving-circles-tx";
 import { useQueryClient } from "@tanstack/react-query";
 import { readContractQueryKey } from "wagmi/query";
@@ -19,14 +19,14 @@ export type AutomaticClaimsStatus = "idle" | "loading" | "success" | "error";
  */
 export function useAutomaticClaims() {
   const { sendAutomaticSavingCirclesTx } = useAutomaticSavingCirclesTx();
-  const { user: privyUser } = usePrivy();
+  const { userId } = useUserIdentity();
   const { user } = useConnectedUser();
   const address = user.status === "CONNECTED" ? user.address : undefined;
   const [status, setStatus] = useState<AutomaticClaimsStatus>("idle");
   const queryClient = useQueryClient();
 
   const activate = async (circleId: bigint, enabled: boolean) => {
-    if (status === "loading" || !privyUser?.id) return;
+    if (status === "loading" || !userId) return;
     setStatus("loading");
 
     try {

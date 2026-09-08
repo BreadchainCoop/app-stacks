@@ -3,13 +3,7 @@
 import CopyButton from "@/components/copy-button";
 import { ModalContainer } from "../components";
 import { NewUserOnboardingModalState, useModal } from "../context";
-import {
-  Body,
-  Heading3,
-  Logo,
-  useBreadBalance,
-  useConnectedUser,
-} from "@breadcoop/ui";
+import { Body, Heading3, Logo, useConnectedUser } from "@breadcoop/ui";
 import {
   ArrowRightIcon,
   CoinsIcon,
@@ -19,29 +13,45 @@ import {
   WalletIcon,
   XIcon,
 } from "@phosphor-icons/react";
-import { Address } from "viem";
+import { Address, erc20Abi } from "viem";
+import { useReadContract } from "wagmi";
 import { formatAddress } from "@/utils/address";
 import { formatAmount } from "@/utils/format-amount";
 import Alert from "@/components/alert";
 import Link from "next/link";
 import LocalButton from "@/components/button";
 import { usePathname } from "next/navigation";
+import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
+import { getDefaultChainId } from "@/utils/chain";
+import { isCeloChain } from "@/utils/celo";
+
+const isCelo = isCeloChain(getDefaultChainId());
 
 function BreadBalance({ address }: { address: Address }) {
-  const { BREAD } = useBreadBalance({ address });
+  // Read directly instead of @breadcoop/ui's useBreadBalance, which hardcodes
+  // 18 decimals and misreports 6-decimal deposit tokens (USDT/USDC on Celo).
+  const { data } = useReadContract({
+    address: DEPOSIT_TOKEN.address,
+    abi: erc20Abi,
+    functionName: "balanceOf",
+    args: [address],
+    chainId: getDefaultChainId(),
+  });
+
+  const balance = formatDepositAmount(data ?? BigInt(0));
 
   return (
     <>
       <div className="flex items-center justify-center gap-2">
         <span className="font-breadDisplay text-[3rem] font-black leading-9 text-surface-ink">
-          {formatAmount(parseFloat(BREAD))}
+          {formatAmount(parseFloat(balance))}
         </span>
         <span className="bg-paper-main p-1">
-          <Logo size={24} variant="square" text="BREAD" />
+          <Logo size={24} variant="square" text={DEPOSIT_TOKEN.symbol} />
         </span>
       </div>
       <Body className="text-xs text-surface-grey">
-        ${formatAmount(parseFloat(BREAD))} USD
+        ${formatAmount(parseFloat(balance))} USD
       </Body>
     </>
   );
@@ -102,12 +112,16 @@ const NewUserOnboarding = ({
           <Body bold className="text-surface-grey-2">
             {fundingStatus === "success"
               ? "With funds in your wallet you can join a Stack or create one."
-              : "Send xDAI to your wallet and automatically get BREAD"}
+              : isCelo
+                ? `Send ${DEPOSIT_TOKEN.symbol} to your wallet to use Stacks`
+                : "Send xDAI to your wallet and automatically get BREAD"}
           </Body>
           <Body className="max-w-140 text-sm leading-normal text-surface-grey">
             {fundingStatus === "success"
               ? "You can always visit your wallet to check your balance or withdrawal your money by clicking on the menu bar."
-              : "You can send xDAI from an external wallet or the wallet you connected when you signed up and we will automatically get you BREAD."}
+              : isCelo
+                ? `You can send ${DEPOSIT_TOKEN.symbol} on the Celo network from an external wallet to your Stacks wallet address below.`
+                : "You can send xDAI from an external wallet or the wallet you connected when you signed up and we will automatically get you BREAD."}
           </Body>
 
           <div className="flex w-full max-w-121 flex-col gap-4 bg-paper-1 p-4">
@@ -126,7 +140,11 @@ const NewUserOnboarding = ({
                       0
                     </span>
                     <span className="bg-paper-main p-1">
-                      <Logo size={24} variant="square" text="BREAD" />
+                      <Logo
+                        size={24}
+                        variant="square"
+                        text={DEPOSIT_TOKEN.symbol}
+                      />
                     </span>
                   </div>
                   <Body className="text-xs text-surface-grey">$0.00 USD</Body>
@@ -157,8 +175,16 @@ const NewUserOnboarding = ({
             {fundingStatus !== "success" && (
               <Alert
                 variant="warning"
-                title="IMPORTANT: Always get xDAI"
-                description="The token you need to send to your wallet is xDAI from Gnosis chain."
+                title={
+                  isCelo
+                    ? `IMPORTANT: Always send ${DEPOSIT_TOKEN.symbol}`
+                    : "IMPORTANT: Always get xDAI"
+                }
+                description={
+                  isCelo
+                    ? `The token you need to send to your wallet is ${DEPOSIT_TOKEN.symbol} on the Celo network.`
+                    : "The token you need to send to your wallet is xDAI from Gnosis chain."
+                }
                 closeAble={false}
                 descClassName="text-left"
               />

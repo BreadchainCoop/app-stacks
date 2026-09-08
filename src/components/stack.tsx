@@ -7,7 +7,7 @@ import LocalButton from "./button";
 import { QuestionIcon } from "@phosphor-icons/react/ssr";
 import ClaimButton from "./claim-button";
 import { ICircleList, ICircleStatus } from "@/interfaces/circle";
-import { formatEther } from "viem";
+import { formatDepositAmount } from "@/lib/deposit-token";
 import DepositButton from "./deposit-button";
 import { HandWithdrawIcon } from "@phosphor-icons/react";
 import { parseCircleIntervalToDate } from "@/utils/stacks";
@@ -38,7 +38,7 @@ const Stack = ({
 }) => {
   const { setModal } = useModal();
   const stackMeta = stacksMap[String(stack.id)];
-  const depositAmount = formatEther(stack.depositAmount);
+  const depositAmount = formatDepositAmount(stack.depositAmount);
   const totalGoal =
     Number(depositAmount) * stack.totalMember * stack.totalMember;
 
@@ -54,7 +54,7 @@ const Stack = ({
 
   const totalDeposited = isFailedStack
     ? Number(
-        formatEther(
+        formatDepositAmount(
           fundsDeposited.data?.totalDepositInCurrentRound ?? BigInt(0)
         )
       ) +
@@ -66,7 +66,7 @@ const Stack = ({
       ) *
         Number(depositAmount) *
         Number(stack.totalMember) +
-      Number(formatEther(stack.totalPoolBalance || BigInt(0)));
+      Number(formatDepositAmount(stack.totalPoolBalance || BigInt(0)));
 
   let percentageDone = 0;
   if (totalDeposited !== 0 && totalGoal !== 0) {
@@ -215,7 +215,8 @@ const Stack = ({
         {stack.canWithdraw && !readOnly ? (
           <ClaimButton
             amount={
-              Number(formatEther(stack.depositAmount)) * stack.totalMember
+              Number(formatDepositAmount(stack.depositAmount)) *
+              stack.totalMember
             }
             circleId={stack.id}
           />

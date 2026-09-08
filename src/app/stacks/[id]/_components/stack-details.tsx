@@ -20,7 +20,7 @@ import { FormattedDecimalNumber } from "@/components/bread-ui-kit/formatted-deci
 import { Body, Heading3, useConnectedUser } from "@breadcoop/ui";
 import { CalendarDotsIcon } from "@phosphor-icons/react/ssr";
 import { ReactNode } from "react";
-import { formatEther } from "viem";
+import { formatDepositAmount } from "@/lib/deposit-token";
 import OverallStacked from "./overall-stacked";
 
 const failedStatuses: ICircleStatus[] = [
@@ -146,7 +146,7 @@ const StackDetailsBreakdown = ({
     <div className="md:flex-1">
       <StackDetailsBreakdownRow label={`${intervalLabel} deposit`}>
         <p className="text-h2 text-2xl leading-6 tracking-[-2%]">
-          ${formatAmount(+formatEther(circle.depositAmount), 2)}
+          ${formatAmount(+formatDepositAmount(circle.depositAmount), 2)}
         </p>
       </StackDetailsBreakdownRow>
       <StackDetailsBreakdownRow label="Members deposit every">
@@ -249,8 +249,8 @@ const StackDetails = ({
               ? intervalLabel.slice(0, -2)
               : intervalLabel
           }
-          depositPerRound={formatEther(depositPerRound)}
-          poolBalance={formatEther(_circle.totalPoolBalance)}
+          depositPerRound={formatDepositAmount(depositPerRound)}
+          poolBalance={formatDepositAmount(_circle.totalPoolBalance)}
           completedRounds={_circle.completedRounds}
           circleStatus={circleStatus}
           circleId={id}

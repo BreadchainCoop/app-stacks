@@ -18,6 +18,8 @@ import {
   arbitrum,
   base,
   bsc,
+  celo,
+  celoSepolia,
   gnosis,
   mainnet,
   optimism,
@@ -64,7 +66,17 @@ export const wagmiConfig = createConfig({
   connectors,
   // @ts-expect-error Correct
   chains: (() => {
-    const _chains = [gnosis, sepolia, mainnet, arbitrum, base, bsc, optimism];
+    const _chains = [
+      gnosis,
+      sepolia,
+      celo,
+      celoSepolia,
+      mainnet,
+      arbitrum,
+      base,
+      bsc,
+      optimism,
+    ];
     // @ts-expect-error Correct
     if (process.env.NODE_ENV === "development") _chains.push(foundryChain);
 
@@ -74,6 +86,8 @@ export const wagmiConfig = createConfig({
     [gnosis.id]: http(),
     [foundryChain.id]: http(),
     [sepolia.id]: http(),
+    [celo.id]: http(),
+    [celoSepolia.id]: http(),
     // for lifi
     [mainnet.id]: http(),
     [arbitrum.id]: http(),

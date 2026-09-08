@@ -14,6 +14,13 @@ import {
 import { ModalContainer } from "../modal/components";
 import { Body, Heading3 } from "@breadcoop/ui";
 import LocalButton from "../button";
+import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
+import { getDefaultChainId } from "@/utils/chain";
+import { isCeloChain } from "@/utils/celo";
+
+// The xDAI/bake mechanic is Gnosis-only; on Celo funding is a plain
+// deposit-token transfer.
+const isCelo = isCeloChain(getDefaultChainId());
 
 const steps = [
   {
@@ -27,10 +34,12 @@ const steps = [
   {
     icon: CoinsIcon,
     title: "Fund your wallet",
-    boldText:
-      "You can fund your wallet by sending BREAD or xDAI from your wallet.",
-    regularText:
-      "Or you can buy xDAI from other distributors. Just click on Fund your wallet button on the menu bar wallet section.",
+    boldText: isCelo
+      ? `You can fund your wallet by sending ${DEPOSIT_TOKEN.symbol} from another wallet.`
+      : "You can fund your wallet by sending BREAD or xDAI from your wallet.",
+    regularText: isCelo
+      ? "Just click on Fund your wallet button on the menu bar wallet section."
+      : "Or you can buy xDAI from other distributors. Just click on Fund your wallet button on the menu bar wallet section.",
   },
   {
     icon: UsersThreeIcon,
