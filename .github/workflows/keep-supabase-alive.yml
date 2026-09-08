@@ -15,12 +15,15 @@ jobs:
       fail-fast: false # one project failing should not skip the others
       matrix:
         include:
-          - name: demo
-            url_secret: SUPABASE_URL_DEMO
-            key_secret: SUPABASE_ANON_KEY_DEMO
           - name: development
             url_secret: SUPABASE_URL_DEVELOPMENT
             key_secret: SUPABASE_ANON_KEY_DEVELOPMENT
+          - name: development-celo
+            url_secret: SUPABASE_URL_DEVELOPMENT_CELO
+            key_secret: SUPABASE_ANON_KEY_DEVELOPMENT_CELO
+          - name: celo
+            url_secret: SUPABASE_URL_PROD_CELO
+            key_secret: SUPABASE_ANON_KEY_PROD_CELO
     steps:
       - name: Query the ${{ matrix.name }} database
         env:

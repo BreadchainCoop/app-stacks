@@ -16,9 +16,14 @@
     "lint-staged": "lint-staged",
     "db:migration": "supabase migration new",
     "db:push:local": "dotenv -e .env.local -- sh -c 'supabase db push --db-url \"$SUPABASE_DB_URL_LOCAL\"'",
+    "db:push:local-celo": "dotenv -e .env.local -- sh -c 'supabase db push --db-url \"$SUPABASE_DB_URL_LOCAL_CELO\"'",
+    "db:push:local-all": "pnpm db:push:local && pnpm db:push:local-celo",
     "db:push:development": "dotenv -e .env.local -- sh -c 'supabase db push --db-url \"$SUPABASE_DB_URL_DEVELOPMENT\"'",
-    "db:push:demo": "dotenv -e .env.local -- sh -c 'supabase db push --db-url \"$SUPABASE_DB_URL_DEMO\"'",
-    "db:push:prod": "dotenv -e .env.local -- sh -c 'supabase db push --db-url \"$SUPABASE_DB_URL_PROD\"'"
+    "db:push:development-celo": "dotenv -e .env.local -- sh -c 'supabase db push --db-url \"$SUPABASE_DB_URL_DEVELOPMENT_CELO\"'",
+    "db:push:development-all": "pnpm db:push:development && pnpm db:push:development-celo",
+    "db:push:prod": "dotenv -e .env.local -- sh -c 'supabase db push --db-url \"$SUPABASE_DB_URL_PROD\"'",
+    "db:push:celo": "dotenv -e .env.local -- sh -c 'supabase db push --db-url \"$SUPABASE_DB_URL_PROD_CELO\"'",
+    "db:push:prod-all": "pnpm db:push:prod && pnpm db:push:celo"
   },
   "dependencies": {
     "@breadcoop/ui": "^2.0.5",
