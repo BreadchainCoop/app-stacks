@@ -1,7 +1,7 @@
 "use client";
 
 import { ButtonProps } from "@breadcoop/ui";
-import { formatEther } from "viem";
+import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
 import LocalButton from "./button";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -85,7 +85,10 @@ const StartCircleButton = ({
             <Loading />
           </span>
         ) : (
-          <>Start Stacks - {formatAmount(+formatEther(amount))} BREAD</>
+          <>
+            Start Stacks - {formatAmount(+formatDepositAmount(amount))}{" "}
+            {DEPOSIT_TOKEN.symbol}
+          </>
         )}
       </LocalButton>
     </div>

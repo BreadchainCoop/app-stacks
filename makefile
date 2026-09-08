@@ -67,6 +67,11 @@ deploy:
 		--legacy
 	$(MAKE) update-env
 
+# Celo mainnet deployment lives in the saving-circles repo (its own Foundry
+# deploy framework): run `yarn deploy:celo` there, then point this app's
+# NEXT_PUBLIC_* env vars (chain 42220, deposit token symbol/decimals, and the
+# deployed contract addresses) at the result.
+
 update-env:
 	@echo "Updating .env.local with deployed contract addresses..."
 	@if [ ! -f contracts/out/SAVING_CIRCLES_DEPLOYMENT.json ]; then \
@@ -98,7 +103,7 @@ update-env:
 		echo "Error: Could not parse automaticSavingCircles from JSON file"; \
 		exit 1; \
 	fi
-	@sed -i.bak 's|^NEXT_PUBLIC_BREAD_TOKEN_ADDRESS=.*|NEXT_PUBLIC_BREAD_TOKEN_ADDRESS=$(BREAD_TOKEN)|' .env.local
+	@sed -i.bak 's|^NEXT_PUBLIC_DEPOSIT_TOKEN_ADDRESS=.*|NEXT_PUBLIC_DEPOSIT_TOKEN_ADDRESS=$(BREAD_TOKEN)|' .env.local
 	@sed -i.bak 's|^NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS=.*|NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS=$(SAVING_CIRCLES_PROXY)|' .env.local
 	@sed -i.bak 's|^NEXT_PUBLIC_SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS=.*|NEXT_PUBLIC_SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS=$(SAVING_CIRCLES_VIEWER)|' .env.local
 	@sed -i.bak 's|^NEXT_PUBLIC_AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS=.*|NEXT_PUBLIC_AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS=$(AUTOMATIC_SAVING_CIRCLES)|' .env.local

@@ -1,7 +1,7 @@
 import { serverEnv } from "@/lib/envs/server";
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
-import { createErrorResponse, verifyPrivyToken } from "../../utils";
+import { createErrorResponse, verifyUserToken } from "../../utils";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { networks } from "@/utils/chain";
 import { createPublicClient, fallback, http, type Address } from "viem";
@@ -35,7 +35,7 @@ const getPublicClient = () => {
  * circle's owner is public, so anyone could otherwise claim to be it.
  */
 const isVerifiedOwner = async (req: NextRequest, ownerAddress: Address) => {
-  const privyUserId = await verifyPrivyToken(req);
+  const privyUserId = await verifyUserToken(req);
   if (!privyUserId) return false;
 
   const { data: callerUser } = await supabaseAdmin
@@ -57,7 +57,7 @@ interface CreateJoinRequestBody {
 
 export async function POST(req: NextRequest) {
   try {
-    const privyUserId = await verifyPrivyToken(req);
+    const privyUserId = await verifyUserToken(req);
     if (!privyUserId) return createErrorResponse("Unauthorized", 401);
 
     let body: unknown;

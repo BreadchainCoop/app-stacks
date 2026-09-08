@@ -16,22 +16,37 @@ supabase login
 
 ## Applying migrations to an environment
 
-Each environment (local, development, demo, production) is its own Supabase
-project. Put each project's database URL in `.env.local` (see
+Gnosis and Celo are separate deployments (see docs/ARCHITECTURE.md), each with
+its own Supabase project per tier — six projects total: local, local-celo,
+development, development-celo, prod, celo. (Celo production is named for its
+branch, `celo`; its env vars keep the `PROD_CELO` suffix. The former "demo"
+project has been retired.) Put each project's database URL in `.env.local` (see
 `.env.local.example`; Dashboard -> Settings -> Database -> Connection string),
 then:
 
 ```bash
 pnpm db:push:local
+pnpm db:push:local-celo
 pnpm db:push:development
-pnpm db:push:demo
+pnpm db:push:development-celo
 pnpm db:push:prod
+pnpm db:push:celo
 ```
 
+Each tier also has an `-all` script (`db:push:local-all`,
+`db:push:development-all`, `db:push:prod-all`) that pushes both chains in one
+go, stopping if the first fails.
+
+The two chains share one migration set — Celo needs no schema of its own,
+since a MiniPay user is an ordinary row in `users` with `privy_user_id` set to
+`minipay:<address>`. A newly created project therefore takes the whole set
+from the baseline; there is no Celo-specific catch-up.
+
 `db push` runs only the migrations that project hasn't seen yet, in filename
-order. Push each environment after a schema change lands on the branch it
-deploys from. (The equivalent manual flow is
-`supabase link --project-ref <ref> && supabase db push`.)
+order, so re-running it against an up-to-date project is a no-op. Push each
+environment after a schema change lands on the branch it deploys from. (The
+equivalent manual flow is `supabase link --project-ref <ref> && supabase db
+push`.)
 
 ## Adding a new migration
 

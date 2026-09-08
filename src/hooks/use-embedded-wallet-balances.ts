@@ -1,4 +1,4 @@
-import { BREAD_TOKEN_ADDRESS } from "@/lib/constants";
+import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
 import { clientEnv } from "@/lib/env";
 import { Address } from "viem";
 import { useBalance } from "wagmi";
@@ -11,7 +11,7 @@ export const useEmbeddedWalletBalances = (address: Address | undefined) => {
     refetch: refetchBreadBalance,
   } = useBalance({
     address,
-    token: BREAD_TOKEN_ADDRESS,
+    token: DEPOSIT_TOKEN.address,
     chainId: clientEnv.NEXT_PUBLIC_CHAIN_ID,
     query: { enabled: Boolean(address) },
   });

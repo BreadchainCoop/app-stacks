@@ -30,8 +30,9 @@ import { CheckIcon, XCircleIcon } from "@phosphor-icons/react/ssr";
 import { usePrivy } from "@privy-io/react-auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Address, formatEther } from "viem";
+import { Address } from "viem";
 import { ModalState, useModal } from "@/components/modal/context";
+import { formatDepositAmount } from "@/lib/deposit-token";
 
 const FAILED_STATUSES: ICircleStatus[] = [
   "decommissioned",
@@ -151,7 +152,7 @@ const MembersInfo = ({
       )}
       <Accordion>
         {info.members.map((member, index) => {
-          const totalDeposits = +formatEther(
+          const totalDeposits = +formatDepositAmount(
             info.memberBalances?.balances[index] || BigInt(0)
           );
 
@@ -622,7 +623,7 @@ function MemberInfoContent({
   if (isFailedStack) {
     if (fundsDeposited.data) {
       memberTotal = formatAmount(
-        +formatEther(
+        +formatDepositAmount(
           (
             fundsDeposited.data.depositsByMember[
               member.toLowerCase() as Address

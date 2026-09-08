@@ -8,12 +8,12 @@ import {
   getIntervalBySeconds,
 } from "@/utils/deposit-interval";
 import { formatAmount } from "@/utils/format-amount";
+import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
 import { Body, Logo } from "@breadcoop/ui";
 import { ReactNode } from "react";
-import { formatEther } from "viem";
 
 export const breadLabel = (value: bigint) =>
-  `${formatAmount(Number(formatEther(value)), 2)} BREAD`;
+  `${formatAmount(Number(formatDepositAmount(value)), 2)} ${DEPOSIT_TOKEN.symbol}`;
 
 export const getIntervalLabels = (depositInterval: bigint) => {
   const seconds = Number(depositInterval);

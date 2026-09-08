@@ -1,8 +1,6 @@
 import { useBlock } from "wagmi";
-import { clientEnv } from "@/lib/env";
+import { isLocalEnv as isLocal } from "@/lib/env";
 import { getDefaultChainId } from "@/utils/chain";
-
-const isLocal = clientEnv.NEXT_PUBLIC_NODE_ENV === "local";
 
 /**
  * Returns the current timestamp in milliseconds.

@@ -14,7 +14,7 @@ import { usePrivy } from "@privy-io/react-auth";
 import { getGasPrice } from "@wagmi/core";
 import LocalButton from "@/components/button";
 import BreadInfoNote from "@/components/bread-info-note";
-import { BREAD_TOKEN_ADDRESS } from "@/lib/constants";
+import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
 import { clientEnv } from "@/lib/env";
 import { wagmiConfig } from "@/components/providers/web3";
 import { useEmbeddedWalletBalances } from "@/hooks/use-embedded-wallet-balances";
@@ -75,7 +75,7 @@ const MigrateAndTransferModal = ({
     try {
       if (breadBalance && breadBalance.value > BigInt(0)) {
         await simulateAndSponsorTx({
-          address: BREAD_TOKEN_ADDRESS,
+          address: DEPOSIT_TOKEN.address,
           abi: erc20Abi,
           functionName: "transfer",
           args: [externalAddress, breadBalance.value],

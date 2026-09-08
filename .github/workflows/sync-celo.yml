@@ -1,0 +1,60 @@
+name: Sync Celo branches
+
+# The Celo build is the same code as the Gnosis one — it differs only in
+# environment (own Netlify site, own Supabase project, own contract addresses,
+# see docs/MINIPAY.md). So each Celo branch is a plain mirror of its Gnosis
+# counterpart, existing only to give the Celo Netlify site something to build.
+#
+#   development -> development-celo
+#   main        -> celo
+#
+# Because it is a mirror, anything committed onto a Celo branch directly is
+# discarded on the next push upstream. Celo-only changes belong in that
+# deployment's env vars, not in a branch.
+
+on:
+  push:
+    branches:
+      - development
+      - main
+  # Run it by hand from the Actions tab to seed a Celo branch without waiting
+  # for the next push; dispatch it from development or main, since the target
+  # is chosen from the branch it runs on.
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Mirror onto the matching Celo branch
+        env:
+          # Via env rather than inline interpolation, so a branch name is never
+          # pasted into the shell.
+          SOURCE_BRANCH: ${{ github.ref_name }}
+        run: |
+          case "$SOURCE_BRANCH" in
+            development) target=development-celo ;;
+            main) target=celo ;;
+            *)
+              echo "No Celo branch is mapped to $SOURCE_BRANCH"
+              exit 1
+              ;;
+          esac
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Pushing the commit straight at the target ref creates the branch if
+          # it does not exist yet and force-updates it if it does, so no local
+          # checkout of the target is needed (and none exists on a first run).
+          git push --force origin "HEAD:refs/heads/$target"
+
+          echo "✓ $target now matches $SOURCE_BRANCH ($(git rev-parse --short HEAD))"

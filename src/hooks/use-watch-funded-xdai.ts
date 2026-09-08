@@ -1,10 +1,13 @@
 import { breadAbi } from "@/lib/abis/bread-abi";
 import { clientEnv } from "@/lib/env";
+import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
 import { useEffect, useRef } from "react";
 import { encodeFunctionData } from "viem";
 import { usePublicClient } from "wagmi";
 import { useSponsoredTx } from "./use-sponsored-tx";
 import { useWaitForTxReceipt } from "./use-wait-for-tx-receipt";
+import { isCeloChain } from "@/utils/celo";
+import { getDefaultChainId } from "@/utils/chain";
 
 export function useWatchFundedXdai(
   address: `0x${string}` | undefined,
@@ -19,6 +22,7 @@ export function useWatchFundedXdai(
   const { waitForTxReceipt } = useWaitForTxReceipt();
 
   useEffect(() => {
+    if (isCeloChain(getDefaultChainId())) return;
     if (!address || !publicClient) return;
 
     publicClient.getBalance({ address }).then((bal) => {
@@ -43,7 +47,7 @@ export function useWatchFundedXdai(
           });
           const { hash } = await sendSponsoredTransaction(
             {
-              to: clientEnv.NEXT_PUBLIC_BREAD_TOKEN_ADDRESS,
+              to: DEPOSIT_TOKEN.address,
               data,
               value: balance - prevBalance.current,
             },

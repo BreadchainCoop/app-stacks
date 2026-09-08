@@ -9,6 +9,13 @@ import { Body, useConnectedUser } from "@breadcoop/ui";
 import Alert from "@/components/alert";
 import BreadInfoNote from "@/components/bread-info-note";
 import { PeerIntentFulfilledResult } from "@zkp2p/sdk";
+import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
+import { isCeloChain } from "@/utils/celo";
+import { getDefaultChainId } from "@/utils/chain";
+
+// The xDAI/bake mechanic and the LiFi bridge are Gnosis-only rails; on Celo
+// the modal is a plain deposit-token transfer.
+const isCelo = isCeloChain(getDefaultChainId());
 
 const FundWallet = ({ modalState }: { modalState: FundWalletModalState }) => {
   const [result, _setResult] = useState<PeerIntentFulfilledResult | null>(null);
@@ -40,7 +47,9 @@ const FundWallet = ({ modalState }: { modalState: FundWalletModalState }) => {
     <ModalContainer className="bg-[#FDFAF3]! border-paper-1! shadow-[0px_4px_12px_0px_#1B201A26] max-w-140.75!">
       <ModalHeader title={result ? "Peer Successful" : "Fund your account"} />
       <Body className="-mt-4">
-        Send xDAI to your wallet and automatically get BREAD
+        {isCelo
+          ? `Send ${DEPOSIT_TOKEN.symbol} to your wallet to deposit into your Stacks`
+          : "Send xDAI to your wallet and automatically get BREAD"}
       </Body>
       <BreadInfoNote>
         You fund with <strong>xDAI</strong> on the Gnosis network, which is
@@ -58,19 +67,29 @@ const FundWallet = ({ modalState }: { modalState: FundWalletModalState }) => {
       <div className={result ? "h-0 overflow-hidden" : ""}>
         <StacksBalance address={modalState.address} />
         <FundWithConnectedWallet handleListerForXDai={handleListerForXDai} />
-        <div className="*:mb-2">
-          <FundWithLifi address={modalState.address} />
-          {/* <FundWithPeer
+        {!isCelo && (
+          <div className="*:mb-2">
+            <FundWithLifi address={modalState.address} />
+            {/* <FundWithPeer
             address={modalState.address}
             onFunded={modalState.onFunded}
             showSkipProcess={modalState.showSkipProcess}
             setResult={setResult}
           /> */}
-        </div>
+          </div>
+        )}
         <Alert
           variant="warning"
-          title="IMPORTANT: Always get xDAI"
-          description="The token you need to send to your wallet is xDAI from Gnosis chain."
+          title={
+            isCelo
+              ? `IMPORTANT: Always send ${DEPOSIT_TOKEN.symbol}`
+              : "IMPORTANT: Always get xDAI"
+          }
+          description={
+            isCelo
+              ? `The token you need to send to your wallet is ${DEPOSIT_TOKEN.symbol} on the Celo network.`
+              : "The token you need to send to your wallet is xDAI from Gnosis chain."
+          }
           closeAble={false}
           descClassName="text-surface-ink text-left"
         />

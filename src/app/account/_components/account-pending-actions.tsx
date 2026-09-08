@@ -7,10 +7,11 @@ import { useUserCirclesList } from "@/hooks/use-user-circles-list";
 import { Body, Heading2, formatBalance } from "@breadcoop/ui";
 import { HandDepositIcon } from "@phosphor-icons/react";
 import Link from "next/link";
-import { Address, formatEther } from "viem";
+import { Address } from "viem";
+import { formatDepositAmount } from "@/lib/deposit-token";
 
 const toBread = (value: bigint | undefined) =>
-  Number(formatEther(value ?? BigInt(0)));
+  Number(formatDepositAmount(value ?? BigInt(0)));
 
 const scrollToStacks = () => {
   document
