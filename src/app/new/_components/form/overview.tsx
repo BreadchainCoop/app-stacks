@@ -12,12 +12,9 @@ import { ReactNode } from "react";
 import { useFormContext } from "react-hook-form";
 import { StackFormSchemaData } from "./schema";
 import { savingCirclesAbi } from "../../../../lib/abis/saving-circles";
-import {
-  BREAD_TOKEN_ADDRESS,
-  SAVING_CIRCLES_CONTRACT_ADDRESS,
-} from "../../../../lib/constants";
+import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../../../lib/constants";
 import { encodeFunctionData, parseEventLogs } from "viem";
-import { parseDepositAmount } from "@/lib/deposit-token";
+import { DEPOSIT_TOKEN, parseDepositAmount } from "@/lib/deposit-token";
 import { useModal } from "@/components/modal/context";
 import { sleep } from "@/utils/sleep";
 import { waitForTransactionReceipt } from "@wagmi/core";
@@ -70,7 +67,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
         owner: user.address,
         currentIndex: BigInt(0),
         depositAmount: parseDepositAmount(String(data.depositAmount)),
-        token: BREAD_TOKEN_ADDRESS,
+        token: DEPOSIT_TOKEN.address,
         depositInterval: BigInt(interval.seconds),
         effectiveCircleStartTime: BigInt(0),
         circleEnd: BigInt(0),

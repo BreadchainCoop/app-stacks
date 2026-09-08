@@ -6,7 +6,8 @@ import { SupabaseProvider } from "./supabase";
 import { ModalProvider } from "../modal/context";
 import { BreadUIKitProvider, ConnectedUserProvider } from "@breadcoop/ui";
 import { clientEnv } from "@/lib/env";
-import { Address, erc20Abi } from "viem";
+import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
+import { erc20Abi } from "viem";
 import {
   PrivyClientConfig,
   PrivyProvider,
@@ -21,7 +22,7 @@ import { OnboardVisitorTracker } from "@/components/onboard/visitor-tracker";
 
 const tokenConfig: ComponentProps<typeof BreadUIKitProvider>["tokenConfig"] = {
   BREAD: {
-    address: clientEnv.NEXT_PUBLIC_BREAD_TOKEN_ADDRESS as Address,
+    address: DEPOSIT_TOKEN.address,
     abi: erc20Abi,
   },
 };

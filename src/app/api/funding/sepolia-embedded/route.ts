@@ -18,8 +18,8 @@ import { createErrorResponse } from "../../utils";
 import { serverEnv } from "@/lib/envs/server";
 
 const SEPOLIA_CHAIN_ID = 11155111;
-const BREAD_TOKEN_ADDRESS =
-  serverEnv.NEXT_PUBLIC_BREAD_TOKEN_ADDRESS as Address;
+const DEPOSIT_TOKEN_ADDRESS =
+  serverEnv.NEXT_PUBLIC_DEPOSIT_TOKEN_ADDRESS as Address;
 
 const BREAD_FUND_AMOUNT = parseEther("50");
 const BREAD_MINIMUM_THRESHOLD = parseEther("20");
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
   const [ethBalance, breadBalance, currentNonce] = await Promise.all([
     publicClient.getBalance({ address: recipient }),
     publicClient.readContract({
-      address: BREAD_TOKEN_ADDRESS,
+      address: DEPOSIT_TOKEN_ADDRESS,
       abi: erc20Abi,
       functionName: "balanceOf",
       args: [recipient],
@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
     const breadPromise = (async () => {
       try {
         const txHash = await walletClient.writeContract({
-          address: BREAD_TOKEN_ADDRESS,
+          address: DEPOSIT_TOKEN_ADDRESS,
           abi: erc20Abi,
           functionName: "transfer",
           args: [recipient, BREAD_FUND_AMOUNT],

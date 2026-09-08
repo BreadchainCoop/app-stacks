@@ -2,11 +2,9 @@ import { Address, formatUnits, parseUnits } from "viem";
 import { clientEnv } from "./env";
 
 // The deposit currency for this deployment: BREAD on Gnosis (18 decimals),
-// USDT/USDC/USDm on Celo (6/6/18 decimals). The address stays in
-// NEXT_PUBLIC_BREAD_TOKEN_ADDRESS so the existing `make deploy` env flow
-// keeps working; symbol and decimals come from their own env vars.
+// USDT/USDC/USDm on Celo (6/6/18 decimals).
 export const DEPOSIT_TOKEN = {
-  address: clientEnv.NEXT_PUBLIC_BREAD_TOKEN_ADDRESS as Address,
+  address: clientEnv.NEXT_PUBLIC_DEPOSIT_TOKEN_ADDRESS as Address,
   symbol: clientEnv.NEXT_PUBLIC_DEPOSIT_TOKEN_SYMBOL,
   decimals: clientEnv.NEXT_PUBLIC_DEPOSIT_TOKEN_DECIMALS,
 } as const;

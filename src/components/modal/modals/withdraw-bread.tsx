@@ -19,7 +19,6 @@ import LocalButton from "@/components/button";
 import Loading from "@/app/loading";
 import BreadInfoNote from "@/components/bread-info-note";
 import { cn } from "@/lib/utils";
-import { BREAD_TOKEN_ADDRESS } from "@/lib/constants";
 import {
   DEPOSIT_TOKEN,
   formatDepositAmount,
@@ -100,7 +99,7 @@ const WithdrawBreadModal = () => {
   });
 
   const { data, isLoading, error } = useReadContract({
-    address: BREAD_TOKEN_ADDRESS,
+    address: DEPOSIT_TOKEN.address,
     abi: erc20Abi,
     functionName: "balanceOf",
     args: [connectedAddress],
@@ -164,7 +163,7 @@ const WithdrawBreadModal = () => {
       const amountToSend = parseDepositAmount(form.amount);
 
       const hash = await simulateAndSponsorTx({
-        address: BREAD_TOKEN_ADDRESS,
+        address: DEPOSIT_TOKEN.address,
         abi: erc20Abi,
         functionName: "transfer",
         args: [recipientAddress, amountToSend],

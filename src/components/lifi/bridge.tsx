@@ -15,7 +15,7 @@ import { Address, encodeFunctionData, formatEther } from "viem";
 import { useModal } from "../modal/context";
 import { breadAbi } from "@/lib/abis/bread-abi";
 import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
-import { clientEnv } from "@/lib/env";
+import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
 import { useWaitForTxReceipt } from "@/hooks/use-wait-for-tx-receipt";
 
 export default function Bridge({ userAddress }: { userAddress: Address }) {
@@ -48,7 +48,7 @@ export default function Bridge({ userAddress }: { userAddress: Address }) {
 
         const { hash } = await sendSponsoredTransaction(
           {
-            to: clientEnv.NEXT_PUBLIC_BREAD_TOKEN_ADDRESS,
+            to: DEPOSIT_TOKEN.address,
             data,
             value: BigInt(route.toAmountMin),
           },
