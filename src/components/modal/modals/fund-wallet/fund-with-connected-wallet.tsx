@@ -6,7 +6,12 @@ import { Body } from "@breadcoop/ui";
 import { formatAmount } from "@/utils/format-amount";
 import { usePublicClient } from "wagmi";
 import { clientEnv } from "@/lib/env";
+import { isCeloChain } from "@/utils/celo";
 import { useModal } from "../../context";
+
+// Native-balance hint and the "More" (LiFi) section are Gnosis-only; on Celo
+// the native token is CELO, which MiniPay rules say must never be shown.
+const isCelo = isCeloChain(clientEnv.NEXT_PUBLIC_CHAIN_ID);
 
 const walletIconMap = {
   binance: "/public/binance.svg",
@@ -49,7 +54,7 @@ const FundWithConnectedWalletContent = ({
     fetchBalance();
   }, [walletAddress, publicClient]);
 
-  if (wallet) {
+  if (wallet && !isCelo) {
     walletInfos.unshift({
       label: xDaiBalance ? `$${xDaiBalance} xDai` : "Loading...",
     });
@@ -102,11 +107,13 @@ const FundWithConnectedWallet = ({
         wallet={walletClient?.walletClientType}
         walletAddress={walletClient?.address as undefined | Address}
       />
-      <div className="flex items-center justify-center my-6">
-        <div className="w-full h-px bg-blue-0" />
-        <Body className="mx-4 text-surface-grey text-xs">More</Body>
-        <div className="w-full h-px bg-blue-0" />
-      </div>
+      {!isCelo && (
+        <div className="flex items-center justify-center my-6">
+          <div className="w-full h-px bg-blue-0" />
+          <Body className="mx-4 text-surface-grey text-xs">More</Body>
+          <div className="w-full h-px bg-blue-0" />
+        </div>
+      )}
     </>
   );
 };

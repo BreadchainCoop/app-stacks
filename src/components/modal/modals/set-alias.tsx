@@ -1,7 +1,7 @@
 "use client";
 
 import { SubmitEventHandler, useState } from "react";
-import { usePrivy } from "@privy-io/react-auth";
+import { useUserIdentity } from "@/components/providers/user-identity";
 import { ModalContainer, ModalHeader } from "../components";
 import { Label } from "@/components/label";
 import Input, { InputDescription } from "@/components/input";
@@ -14,9 +14,9 @@ const UNIQUE_VIOLATION = "23505";
 
 const SetAliasModal = ({ modalState }: { modalState: SetAliasModalState }) => {
   const { setModal } = useModal();
-  const { user: privyUser } = usePrivy();
-  const { alias, isLoading } = useMyProfile(privyUser?.id);
-  const { setAlias, isSaving } = useSetAlias(privyUser?.id);
+  const { userId } = useUserIdentity();
+  const { alias, isLoading } = useMyProfile(userId);
+  const { setAlias, isSaving } = useSetAlias(userId);
   const [error, setError] = useState<string | null>(null);
 
   const close = () => {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { serverEnv } from "@/lib/envs/server";
+import { verifyMiniPaySessionToken } from "./minipay/auth";
 
 export function createErrorResponse(error: string, status: number = 400) {
   return NextResponse.json({ success: false, error }, { status });
@@ -29,4 +30,22 @@ export const verifyPrivyToken = async (
   } catch {
     return null;
   }
+};
+
+/**
+ * Verifies the bearer token — a MiniPay session token or a Privy access
+ * token — and returns the caller's external user id (users.privy_user_id).
+ * MiniPay has no Privy session, so its stack mints its own HMAC token.
+ */
+export const verifyUserToken = async (
+  req: NextRequest
+): Promise<string | null> => {
+  const header = req.headers.get("authorization");
+  if (!header?.startsWith("Bearer ")) return null;
+
+  // MiniPay first: local HMAC check, no network round-trip
+  const miniPayUserId = await verifyMiniPaySessionToken(header.slice(7));
+  if (miniPayUserId) return miniPayUserId;
+
+  return verifyPrivyToken(req);
 };

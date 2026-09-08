@@ -16,7 +16,8 @@ import {
   HandDepositIcon,
   HandWithdrawIcon,
 } from "@phosphor-icons/react";
-import { Address, formatEther } from "viem";
+import { Address } from "viem";
+import { formatDepositAmount } from "@/lib/deposit-token";
 import { explorerTxUrl } from "@/utils/network";
 
 const cardClass =
@@ -52,7 +53,10 @@ const AccountHistoryCard = ({ address }: { address: Address }) => {
           {history.map((entry) => {
             const isDeposit = entry.type === "deposit";
             const stackName = getName(entry.circleId.toString());
-            const amount = formatBalance(Number(formatEther(entry.amount)), 2);
+            const amount = formatBalance(
+              Number(formatDepositAmount(entry.amount)),
+              2
+            );
 
             return (
               <li

@@ -1,89 +1,70 @@
 "use client";
 
-import { ComponentProps, ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 // import ToolsProviders from "./tools";
-import { Web3Provider } from "./web3";
-import { SupabaseProvider } from "./supabase";
-import { ModalProvider } from "../modal/context";
-import { BreadUIKitProvider, ConnectedUserProvider } from "@breadcoop/ui";
+import dynamic from "next/dynamic";
 import { clientEnv } from "@/lib/env";
-import { Address, erc20Abi } from "viem";
-import {
-  PrivyClientConfig,
-  PrivyProvider,
-  WalletListEntry,
-} from "@privy-io/react-auth";
-import SepoliaAutoFund from "./sepolia-auto-fund";
-import { networks } from "@/utils/chain";
+import { isMiniPayBrowser } from "@/utils/minipay";
+import { isCeloChain } from "@/utils/celo";
+import { IsMiniPayProvider } from "./is-minipay";
 
-const tokenConfig: ComponentProps<typeof BreadUIKitProvider>["tokenConfig"] = {
-  BREAD: {
-    address: clientEnv.NEXT_PUBLIC_BREAD_TOKEN_ADDRESS as Address,
-    abi: erc20Abi,
-  },
-};
+// Only one of these stacks ever mounts, so each is code-split: a MiniPay user
+// never downloads Privy/RainbowKit, and the web build never downloads the
+// MiniPay wagmi config. Both still render on the server (the UA hint below
+// picks the branch), so the initial HTML is unaffected.
+const MiniPayProviders = dynamic(() =>
+  import("./minipay").then((m) => m.MiniPayProviders)
+);
+const PrivyProviders = dynamic(() => import("./privy"));
 
-// TODO: Provide our RPC_URL -> gnosis / sepolia / depending on the NEXT_PUBLIC_CHAIN_ID
-// const gnosisOverride = addRpcUrlOverrideToChain(gnosis, "")
-
-const _chain =
-  networks[clientEnv.NEXT_PUBLIC_CHAIN_ID as keyof typeof networks].chain;
-
-const walletLists: WalletListEntry[] = [
-  "metamask",
-  "coinbase_wallet",
-  "rainbow",
-  "detected_ethereum_wallets",
-];
-
-const privyConfig = (isMobile: boolean): PrivyClientConfig => ({
-  defaultChain: _chain,
-  supportedChains: [_chain],
-  embeddedWallets: {
-    showWalletUIs: false,
-    ethereum: {
-      createOnLogin: "users-without-wallets",
-    },
-  },
-  walletConnectCloudProjectId: clientEnv.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
-  appearance: {
-    walletList: isMobile
-      ? [...walletLists, "wallet_connect"]
-      : [...walletLists, "wallet_connect_qr"],
-  },
-});
+// The MiniPay stack only makes sense on a Celo-configured deployment; a
+// Gnosis deployment opened inside MiniPay's browser keeps the Privy stack.
+const miniPaySupported = isCeloChain(clientEnv.NEXT_PUBLIC_CHAIN_ID);
 
 const Providers = ({
   children,
   isMobile,
+  isMiniPay,
 }: {
   children: ReactNode;
   isMobile: boolean;
+  isMiniPay: boolean;
 }) => {
+  // Server-side UA hint keeps hydration consistent; the injected
+  // window.ethereum.isMiniPay flag is authoritative and corrects the hint
+  // after mount (MiniPay's UA and injected flag agree in practice).
+  const [miniPay, setMiniPay] = useState(isMiniPay);
+
+  useEffect(() => {
+    if (isMiniPayBrowser()) {
+      setMiniPay(true);
+      return;
+    }
+
+    // window.ethereum can be injected after hydration, so an immediate
+    // "not MiniPay" reading is not yet conclusive — give the provider a
+    // chance to announce itself before falling back to the Privy stack.
+    const recheck = () => setMiniPay(isMiniPayBrowser());
+
+    window.addEventListener("ethereum#initialized", recheck, { once: true });
+    const timer = setTimeout(recheck, 500);
+
+    return () => {
+      window.removeEventListener("ethereum#initialized", recheck);
+      clearTimeout(timer);
+    };
+  }, []);
+
+  const useMiniPayStack = miniPay && miniPaySupported;
+
   return (
-    <>
-      <PrivyProvider
-        appId={clientEnv.NEXT_PUBLIC_PRIVY_APP_ID}
-        clientId={clientEnv.NEXT_PUBLIC_PRIVY_CLIENT_ID}
-        config={privyConfig(isMobile)}
-      >
-        <SupabaseProvider>
-          <Web3Provider>
-            <BreadUIKitProvider
-              app="stacks"
-              chainId={clientEnv.NEXT_PUBLIC_CHAIN_ID}
-              tokenConfig={tokenConfig}
-              authProvider="privy"
-            >
-              <ConnectedUserProvider>
-                <SepoliaAutoFund />
-                <ModalProvider>{children}</ModalProvider>
-              </ConnectedUserProvider>
-            </BreadUIKitProvider>
-          </Web3Provider>
-        </SupabaseProvider>
-      </PrivyProvider>
-    </>
+    <IsMiniPayProvider value={useMiniPayStack}>
+      {useMiniPayStack ? (
+        <MiniPayProviders>{children}</MiniPayProviders>
+      ) : (
+        <PrivyProviders isMobile={isMobile}>{children}</PrivyProviders>
+      )}
+    </IsMiniPayProvider>
   );
 };
 

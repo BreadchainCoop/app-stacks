@@ -2,7 +2,7 @@
 
 import { Body, CopyButtonIcon } from "@breadcoop/ui";
 import { ArrowUpRightIcon, UserCircleIcon } from "@phosphor-icons/react";
-import { usePrivy } from "@privy-io/react-auth";
+import { useUserIdentity } from "@/components/providers/user-identity";
 import { Address } from "viem";
 import { useModal } from "@/components/modal/context";
 import { useMyProfile } from "@/hooks/use-my-profile";
@@ -13,12 +13,12 @@ import { explorerAddressUrl } from "@/utils/network";
 
 const AccountProfileCard = ({ address }: { address: Address }) => {
   const isOwner = useIsOwnAddress(address);
-  const { user: privyUser } = usePrivy();
+  const { userId } = useUserIdentity();
   const { setModal } = useModal();
 
   // Own alias comes from the profile query (fresh after edits); other members'
   // from the public wallet -> alias lookup. Mirrors the old ProfileSection.
-  const myProfile = useMyProfile(isOwner ? privyUser?.id : undefined);
+  const myProfile = useMyProfile(isOwner ? userId : undefined);
   const memberAlias = useMemberAlias(isOwner ? undefined : address);
 
   const alias = isOwner ? myProfile.alias : memberAlias.alias;

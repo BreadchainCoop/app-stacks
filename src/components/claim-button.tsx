@@ -10,6 +10,7 @@ import { formatAmount } from "@/utils/format-amount";
 import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { CLAIM_ERRORS } from "@/lib/contract-errors";
+import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
 
 const parseClaimError = (error: unknown) =>
   parseContractError(error, CLAIM_ERRORS, "Failed to claim. Please try again.");
@@ -70,7 +71,7 @@ const ClaimButton = ({
       onClick={claim}
       disabled={claiming}
     >
-      {label || `Claim ${formatAmount(amount, 2)} BREAD`}
+      {label || `Claim ${formatAmount(amount, 2)} ${DEPOSIT_TOKEN.symbol}`}
     </LocalButton>
   );
 };

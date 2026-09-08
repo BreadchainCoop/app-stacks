@@ -11,7 +11,7 @@ import { useCirclePreview } from "@/hooks/use-circle-preview";
 import { useStackSupabase } from "@/hooks/use-stack-supabase";
 import { getIntervalBySeconds } from "@/utils/deposit-interval";
 import { Body, formatBalance } from "@breadcoop/ui";
-import { formatEther } from "viem";
+import { formatDepositAmount } from "@/lib/deposit-token";
 
 type InviteDetailsProps = {
   circleId: string;
@@ -43,7 +43,7 @@ export default function InviteDetails({ circleId }: InviteDetailsProps) {
   const members = stackMetadata.expected_members;
   const duration =
     getIntervalBySeconds(Number(circle.depositInterval))?.label ?? "-";
-  const deposit = formatEther(circle.depositAmount);
+  const deposit = formatDepositAmount(circle.depositAmount);
 
   return (
     <div className="border-t border-blue-0 pt-6">

@@ -3,7 +3,8 @@ import { Icon } from "@phosphor-icons/react";
 import { HourglassIcon, UsersIcon } from "@phosphor-icons/react/ssr";
 import MembersInfo from "./members-info";
 import PendingInviteLink from "@/components/pending-invite-link";
-import { Address, formatEther } from "viem";
+import { Address } from "viem";
+import { formatDepositAmount } from "@/lib/deposit-token";
 import { useCircleMembersWithBalances } from "@/hooks/use-circle-members";
 import { useJoinRequests } from "@/hooks/use-join-requests";
 import { useStackSupabase } from "@/hooks/use-stack-supabase";
@@ -45,7 +46,7 @@ const StackMembers = ({
 
   const totalMembers = info.isLoading ? "-" : info.members.length;
   const totalBaseDeposit =
-    +formatEther(circle.depositAmount) * Number(circle.currentIndex);
+    +formatDepositAmount(circle.depositAmount) * Number(circle.currentIndex);
 
   const isPendingStart = circleStatus === "pending-start";
 

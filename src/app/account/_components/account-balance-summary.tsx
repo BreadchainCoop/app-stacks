@@ -8,9 +8,12 @@ import { useIsOwnAddress } from "@/hooks/use-is-own-address";
 import { Body, Caption, formatBalance, useBreadBalance } from "@breadcoop/ui";
 import { CoinsIcon } from "@phosphor-icons/react";
 import { Address } from "viem";
+import { useIsMiniPay } from "@/components/providers/is-minipay";
+import { MINIPAY_ADD_CASH_URL } from "@/utils/minipay";
 
 const AccountBalanceSummary = ({ address }: { address: Address }) => {
   const { setModal } = useModal();
+  const isMiniPay = useIsMiniPay();
   const isOwner = useIsOwnAddress(address);
   const balance = useBreadBalance({ address });
 
@@ -44,7 +47,15 @@ const AccountBalanceSummary = ({ address }: { address: Address }) => {
             type="button"
             size="sm"
             variant="light"
-            onClick={() => setModal({ type: "FUND_WALLET", address })}
+            onClick={() => {
+              // MiniPay users top up through MiniPay's own rails; the Privy
+              // funding modal is not available in that stack.
+              if (isMiniPay) {
+                window.location.href = MINIPAY_ADD_CASH_URL;
+                return;
+              }
+              setModal({ type: "FUND_WALLET", address });
+            }}
             className="border-primary-blue text-sm font-bold text-primary-blue"
           >
             Deposit

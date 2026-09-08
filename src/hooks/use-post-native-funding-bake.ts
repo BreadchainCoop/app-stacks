@@ -1,4 +1,6 @@
 import { useAutoBakeBread } from "./use-auto-bake-bread";
+import { isCeloChain } from "@/utils/celo";
+import { getDefaultChainId } from "@/utils/chain";
 import { Address } from "viem";
 
 type RefetchResult = {
@@ -21,6 +23,14 @@ export const usePostNativeFundingBake = () => {
     refetchEmbeddedNativeBalance: () => Promise<RefetchResult>;
     refetchEmbeddedBreadBalance: () => Promise<RefetchResult>;
   }) => {
+    if (isCeloChain(getDefaultChainId())) {
+      return {
+        embeddedBreadAfterFunding: ZERO,
+        embeddedNativeAfterFunding: ZERO,
+        baked: false,
+      };
+    }
+
     const [embeddedBreadRefetch, embeddedNativeRefetch] = await Promise.all([
       refetchEmbeddedBreadBalance(),
       refetchEmbeddedNativeBalance(),

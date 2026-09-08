@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { serverEnv } from "@/lib/envs/server";
 import { validateAlias } from "@/lib/alias";
-import { createErrorResponse, verifyPrivyToken } from "../utils";
+import { createErrorResponse, verifyUserToken } from "../utils";
 
 const supabaseAdmin = createClient(
   serverEnv.NEXT_PUBLIC_SUPABASE_URL,
@@ -11,7 +11,7 @@ const supabaseAdmin = createClient(
 
 export async function POST(req: NextRequest) {
   try {
-    const privyUserId = await verifyPrivyToken(req);
+    const privyUserId = await verifyUserToken(req);
     if (!privyUserId) return createErrorResponse("Unauthorized", 401);
 
     let body: unknown;

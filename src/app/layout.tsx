@@ -1,12 +1,15 @@
+// Bundled rather than pulled from unpkg at runtime: a third-party
+// render-blocking stylesheet costs a round trip on first paint and adds an
+// origin to the MiniPay network manifest.
+import "@rainbow-me/rainbowkit/styles.css";
 import "./globals.css";
 import { generateMetadata } from "@/utils/metadata";
 import ModalPresenter from "@/components/modal/presenter";
 import { Navbar } from "@/components/Navbar/Navbar";
 import Providers from "@/components/providers";
-import LoginTracker from "@/components/login-tracker";
 import { isServerMobile } from "@/lib/server-mobile";
+import { isServerMiniPay } from "@/lib/server-minipay";
 import { Footer } from "@breadcoop/ui";
-import { OnboardVisitorTracker } from "@/components/onboard/visitor-tracker";
 import MigrateAndTransferBanner from "@/components/migrate-and-transfer-banner";
 
 export const metadata = generateMetadata();
@@ -17,20 +20,13 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const isMobile = await isServerMobile();
+  const isMiniPay = await isServerMiniPay();
 
   return (
     <html lang="en">
-      <head>
-        <link
-          rel="stylesheet"
-          href="https://unpkg.com/@rainbow-me/rainbowkit@latest/styles.css"
-        />
-      </head>
       <body className="font-roboto text-text-standard antialiased">
         <div className="body-container">
-          <Providers isMobile={isMobile}>
-            <OnboardVisitorTracker />
-            <LoginTracker />
+          <Providers isMobile={isMobile} isMiniPay={isMiniPay}>
             <ModalPresenter />
             <Navbar />
             <MigrateAndTransferBanner />
