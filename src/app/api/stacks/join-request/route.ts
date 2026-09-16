@@ -2,9 +2,9 @@ import { serverEnv } from "@/lib/envs/server";
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { createErrorResponse, verifyUserToken } from "../../utils";
+import { callerOwnsWallet, getPublicClient } from "../authorize";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
-import { networks } from "@/utils/chain";
-import { createPublicClient, fallback, http, type Address } from "viem";
+import { type Address } from "viem";
 
 const supabaseAdmin = createClient(
   serverEnv.NEXT_PUBLIC_SUPABASE_URL,
@@ -14,41 +14,8 @@ const supabaseAdmin = createClient(
 const SAVING_CIRCLES_CONTRACT_ADDRESS =
   serverEnv.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS as Address;
 
-const SEPOLIA_CHAIN_ID = 11155111;
-
-const getPublicClient = () => {
-  const chain =
-    networks[serverEnv.NEXT_PUBLIC_CHAIN_ID as keyof typeof networks].chain;
-
-  const transport =
-    chain.id === SEPOLIA_CHAIN_ID
-      ? fallback([http(serverEnv.SEPOLIA_RPC_URL), http()])
-      : http();
-
-  return createPublicClient({ chain, transport });
-};
-
-/**
- * Verifies the caller is actually the circle's owner: their Privy token
- * resolves to a `users` row whose stored wallet_address matches
- * `ownerAddress`. Never trust a client-supplied address for this - a
- * circle's owner is public, so anyone could otherwise claim to be it.
- */
-const isVerifiedOwner = async (req: NextRequest, ownerAddress: Address) => {
-  const privyUserId = await verifyUserToken(req);
-  if (!privyUserId) return false;
-
-  const { data: callerUser } = await supabaseAdmin
-    .from("users")
-    .select("wallet_address")
-    .eq("privy_user_id", privyUserId)
-    .maybeSingle();
-
-  return (
-    !!callerUser?.wallet_address &&
-    callerUser.wallet_address.toLowerCase() === ownerAddress.toLowerCase()
-  );
-};
+const isVerifiedOwner = (req: NextRequest, ownerAddress: Address) =>
+  callerOwnsWallet(req, ownerAddress);
 
 interface CreateJoinRequestBody {
   circleId: string;
