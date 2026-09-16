@@ -13,19 +13,21 @@ import { Address, formatEther } from "viem";
 /**
  * On a failed (decommissionable) stack, lists every member who never claimed
  * and the amount they're owed back, so they know what they'll recover when the
- * stack is retired. Owed = the per-round deposit amount × the number of rounds
- * that member deposited into (they never claimed a payout). BREAD is USD-pegged
- * 1:1, so the figure is shown in USD.
+ * stack is retired.
+ *
+ * Only deposits into rounds that never completed are refundable — that's what
+ * `decommission()` returns. Deposits into rounds where everyone paid (index <
+ * `lastActiveRound`) were paid out to that round's claimer and are lost. So owed
+ * = the member's actual deposits from `lastActiveRound` onward. BREAD is
+ * USD-pegged 1:1, so the figure is shown in USD.
  */
 const OwedRefunds = ({
   id,
-  depositAmount,
   totalRounds,
   circleStartsTimestamp,
   depositInterval,
 }: {
   id: string;
-  depositAmount: bigint;
   totalRounds: number;
   circleStartsTimestamp: bigint;
   depositInterval: bigint;
@@ -43,18 +45,25 @@ const OwedRefunds = ({
     depositInterval,
   });
 
-  const depositAmountUsd = Number(formatEther(depositAmount));
-
   const isLoading =
     info.isLoading || claimedLoading || fundsDeposited.isLoading;
+
+  // Rounds before this index completed (everyone deposited) and paid out, so
+  // deposits there are gone; deposits from here on never paid out and come back.
+  const lastActiveRound = fundsDeposited.data?.lastActiveRound ?? 0;
 
   const rows = info.members
     .filter((member) => !claimedByMember[member.toLowerCase()])
     .map((member) => {
-      const rounds =
-        fundsDeposited.data?.depositsByMember[member.toLowerCase() as Address]
-          ?.length ?? 0;
-      return { member, rounds, owed: rounds * depositAmountUsd };
+      const reclaimable =
+        fundsDeposited.data?.depositsByMember[
+          member.toLowerCase() as Address
+        ]?.slice(lastActiveRound) ?? [];
+      const owed = reclaimable.reduce(
+        (sum, entry) => sum + Number(formatEther(entry.amount)),
+        0
+      );
+      return { member, rounds: reclaimable.length, owed };
     })
     .filter((row) => row.owed > 0);
 
@@ -89,8 +98,7 @@ const OwedRefunds = ({
                 <DisplayName address={member} />
               </Body>
               <Caption className="text-surface-grey">
-                {rounds} {rounds === 1 ? "round" : "rounds"} × $
-                {formatBalance(depositAmountUsd, 2)}
+                {rounds} unreclaimed {rounds === 1 ? "round" : "rounds"}
               </Caption>
             </div>
             <Body bold className="text-system-red shrink-0">
