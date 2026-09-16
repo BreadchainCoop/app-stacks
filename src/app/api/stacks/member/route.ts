@@ -1,18 +1,32 @@
 import { serverEnv } from "@/lib/envs/server";
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { isAddress, type Address } from "viem";
 import { createErrorResponse } from "../../utils";
+import { callerOwnsWallet, getPublicClient } from "../authorize";
+import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 
 const supabaseAdmin = createClient(
   serverEnv.NEXT_PUBLIC_SUPABASE_URL,
   serverEnv.SUPABASE_SERVICE_ROLE_KEY
 );
 
+const SAVING_CIRCLES_CONTRACT_ADDRESS =
+  serverEnv.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS as Address;
+
 interface RemoveMemberRequestBody {
   circleId: string;
   walletAddress: string;
 }
 
+/**
+ * Clears a removed member's dashboard link after the on-chain removal.
+ *
+ * Authorized to the same people `SavingCircles.removeMember` allows: the
+ * circle's owner, or the member dropping themselves. Without that check any
+ * caller could delete anyone's stack from their dashboard, since circle
+ * members are public on-chain.
+ */
 export async function DELETE(req: NextRequest) {
   try {
     let body: unknown;
@@ -33,16 +47,36 @@ export async function DELETE(req: NextRequest) {
       return createErrorResponse("circleId is required and must be a string");
     }
 
-    if (!walletAddress || typeof walletAddress !== "string") {
+    if (!walletAddress || !isAddress(walletAddress)) {
       return createErrorResponse(
-        "walletAddress is required and must be a string"
+        "walletAddress is required and must be an address"
       );
     }
 
+    const circle = await getPublicClient().readContract({
+      address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+      abi: savingCirclesAbi,
+      functionName: "getCircle",
+      args: [BigInt(circleId)],
+    });
+
+    const authorized =
+      (await callerOwnsWallet(req, circle.owner)) ||
+      (await callerOwnsWallet(req, walletAddress));
+
+    if (!authorized) {
+      return createErrorResponse(
+        "Only the circle owner or the member themselves can do this",
+        403
+      );
+    }
+
+    // Case-insensitive: addresses are stored as the client sent them, so a
+    // checksummed address and its lowercase form must find the same row.
     const { data: user, error: userFetchError } = await supabaseAdmin
       .from("users")
       .select("id")
-      .eq("wallet_address", walletAddress)
+      .ilike("wallet_address", walletAddress)
       .maybeSingle();
 
     if (userFetchError) {
