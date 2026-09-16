@@ -10,6 +10,10 @@ const envSchema = z.object({
   AUTOMATIC_FUNDING_PRIVATE_KEY: z.string(),
   // HMAC secret for MiniPay session JWTs; only required when serving MiniPay
   MINIPAY_SESSION_SECRET: z.string().optional(),
+  // Privy app secret, for the server-side user lookup that resolves which
+  // wallets a Privy account owns. Never NEXT_PUBLIC_ — that would inline it
+  // into the client bundle.
+  PRIVY_APP_SECRET: z.string().optional(),
   NEXT_PUBLIC_CHAIN_ID: z.coerce.number(),
   NEXT_PUBLIC_DEPOSIT_TOKEN_ADDRESS: z.string(),
   NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS: z.string(),
