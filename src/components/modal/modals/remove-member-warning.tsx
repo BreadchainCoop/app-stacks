@@ -9,6 +9,7 @@ import { parseContractError } from "@/utils/parse-contract-error";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { useUserIdentity } from "@/components/providers/user-identity";
 
 const REMOVE_MEMBER_ERRORS: Record<string, string> = {
   NotOwner: "Only the Stack owner (or the member themselves) can remove them.",
@@ -25,6 +26,7 @@ const RemoveMemberWarningModal = ({
 }) => {
   const { setModal } = useModal();
   const { sendSavingCirclesTx } = useSavingCirclesTx();
+  const { getAuthToken } = useUserIdentity();
   const queryClient = useQueryClient();
   const [isRemoving, setIsRemoving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,9 +45,15 @@ const RemoveMemberWarningModal = ({
       queryClient.invalidateQueries({ queryKey: ["readContract"] });
       queryClient.invalidateQueries({ queryKey: ["readContracts"] });
 
+      // The route authorizes the caller as owner-or-self, so it needs the token.
+      const token = await getAuthToken();
+
       await fetch("/api/stacks/member", {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           circleId: modalState.circleId.toString(),
           walletAddress: modalState.memberAddress,
