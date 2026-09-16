@@ -3,12 +3,12 @@ import { serverEnv } from "@/lib/envs/server";
 /**
  * Server-side lookup of the wallets a Privy account owns.
  *
- * `users.wallet_address` stores a single address, but a Privy account can hold
- * several — an embedded wallet plus any linked external ones — and the wallet
- * that acts on-chain may be either (see useEffectiveMemberAddress). Anything
- * authorizing against an on-chain address therefore cannot rely on the cached
- * column alone. Privy is the authority on which wallets belong to an account,
- * so ask it.
+ * `users.wallet_address` stores a single address — written once at onboard and
+ * never updated — but a Privy account can hold several (an embedded wallet plus
+ * any linked external ones, see use-linked-external-wallet.ts), and the wallet
+ * that acts on-chain may be either. Anything authorizing against an on-chain
+ * address therefore cannot rely on the cached column alone. Privy is the
+ * authority on which wallets belong to an account, so ask it.
  *
  * Docs: https://docs.privy.io/api-reference/users/get
  */
