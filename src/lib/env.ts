@@ -22,11 +22,20 @@ const featuresSchema = z.record(
   })
 );
 
+// New-stack-type contracts are optional so existing deployments keep working;
+// the zero-address default means "not deployed here" (surfaces stay
+// feature-gated anyway).
+const zeroAddress = "0x0000000000000000000000000000000000000000";
+
 const envSchema = z.object({
   NEXT_PUBLIC_CHAIN_ID: z.coerce.number(),
   NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS: z.string(),
   NEXT_PUBLIC_SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS: z.string(),
   NEXT_PUBLIC_AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS: z.string(),
+  NEXT_PUBLIC_GOAL_SAVINGS_CONTRACT_ADDRESS: z
+    .string()
+    .optional()
+    .default(zeroAddress),
   NEXT_PUBLIC_DEPOSIT_TOKEN_ADDRESS: z.string(),
   // Empty string (e.g. a blank line copied from .env.local.example) must
   // fall back to the default, not coerce to ""/0
@@ -97,6 +106,8 @@ const parsedSchema = envSchema.safeParse({
     process.env.NEXT_PUBLIC_SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS,
   NEXT_PUBLIC_AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS:
     process.env.NEXT_PUBLIC_AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS,
+  NEXT_PUBLIC_GOAL_SAVINGS_CONTRACT_ADDRESS:
+    process.env.NEXT_PUBLIC_GOAL_SAVINGS_CONTRACT_ADDRESS,
   NEXT_PUBLIC_DEPOSIT_TOKEN_ADDRESS:
     process.env.NEXT_PUBLIC_DEPOSIT_TOKEN_ADDRESS,
   NEXT_PUBLIC_DEPOSIT_TOKEN_SYMBOL:

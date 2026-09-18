@@ -37,6 +37,29 @@ export function formatRelativeTime(
   return diffInYears === 1 ? "1 year ago" : `${diffInYears} years ago`;
 }
 
+/**
+ * Parse a `YYYY-MM-DD` value from a `<input type="date">` as local midnight.
+ * `new Date("2026-08-15")` would parse as UTC midnight, which lands on the
+ * previous day for anyone west of UTC.
+ */
+export const dateInputToMs = (value: string): number => {
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return NaN;
+
+  return new Date(year, month - 1, day).getTime();
+};
+
+/**
+ * The earliest date a user may pick as a deadline, as a `YYYY-MM-DD` value.
+ * Midnight today has already passed, so the first valid deadline is tomorrow.
+ */
+export const earliestDeadlineDate = (): string => {
+  const date = new Date();
+  date.setDate(date.getDate() + 1);
+
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+};
+
 export const formatShortDate = (date: Date | string | number): string => {
   date = typeof date === "object" ? date : new Date(date);
 
