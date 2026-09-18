@@ -5,6 +5,8 @@ import { JoinPageSettings } from "./_components/settings";
 import { CircleParams } from "./_components/interface";
 import InviteDetails from "./_components/invite-details";
 import RequestToJoin from "./_components/request-to-join";
+import GoalInvite from "./_components/goal-invite";
+import { FeatureGate } from "@/components/feature-gate";
 
 export const metadata = generateMetadata({
   title: "Join a Stack - Bread Cooperative",
@@ -16,6 +18,16 @@ export default async function Page(props: {
   searchParams: Promise<CircleParams>;
 }) {
   const searchParams = await props.searchParams;
+
+  // Invite URLs carry type=<stack type>; ROSCA invites stay bare for back-compat.
+  if (searchParams.type === "goal") {
+    return (
+      <FeatureGate feature="goalSavings">
+        <JoinPageSettings />
+        <GoalInvite goalId={searchParams.circleId} />
+      </FeatureGate>
+    );
+  }
 
   // A hand-edited/corrupted invite link shouldn't crash the whole page —
   // InviteDetails/RequestToJoin below handle a bad or missing circleId with
