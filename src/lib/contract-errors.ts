@@ -58,6 +58,51 @@ export const SAVING_CIRCLES_ERRORS: Record<string, string> = {
   ECDSAInvalidSignatureS: "Invalid signature parameter.",
 };
 
+/**
+ * Human-readable messages for every custom error in the
+ * GoalSavingCircles contract ABI.
+ */
+export const GOAL_SAVINGS_ERRORS: Record<string, string> = {
+  // ── Membership / invites ──────────────────────────────────────────
+  NotMember: "You are not a member of this goal.",
+  AlreadyMember: "This address is already a member of this goal.",
+  NotOwner: "Only the goal organizer can perform this action.",
+  InvalidSigner: "The invite signature is invalid.",
+  InviteAlreadyUsed: "This invite has already been used.",
+
+  // ── Lifecycle / configuration ─────────────────────────────────────
+  GoalNotFound: "This goal does not exist.",
+  GoalNotOpen: "This goal is no longer accepting deposits or members.",
+  InvalidGoalAmount: "The goal amount must be greater than zero.",
+  InvalidDeadline: "The deadline must be in the future.",
+  InvalidBeneficiary:
+    "The beneficiary can't be the goal contract or the goal token.",
+  TokenNotAllowed: "This token is not allowed for goals.",
+
+  // ── Deposits & withdrawals ────────────────────────────────────────
+  InvalidDeposit: "The deposit amount must be greater than zero.",
+  NotWithdrawable: "Contributions are still locked — you can't withdraw yet.",
+  NothingToWithdraw: "You have no contribution to withdraw.",
+  NotReleasable: "The pot can't be released yet.",
+  NotCancellable: "This goal can only be cancelled while it's still funding.",
+
+  // ── OpenZeppelin / low-level ──────────────────────────────────────
+  InvalidInitialization: "Contract initialisation error.",
+  NotInitializing: "Contract is not in an initialisation state.",
+  ReentrancyGuardReentrantCall: "Reentrant call detected — please try again.",
+  OwnableInvalidOwner: "Invalid owner address.",
+  OwnableUnauthorizedAccount:
+    "Your account is not authorised to perform this action.",
+  ECDSAInvalidSignature: "Invalid cryptographic signature.",
+  ECDSAInvalidSignatureLength: "Invalid signature length.",
+  ECDSAInvalidSignatureS: "Invalid signature parameter.",
+  SafeERC20FailedOperation: "Token transfer failed — check your balance.",
+};
+
+/**
+ * Human-readable messages for every custom error in the
+ * CollectiveFundCircles contract ABI.
+
 // ── Operation-scoped subsets ────────────────────────────────────────────────
 // Components import these instead of defining their own local maps, so every
 // error message lives in one place.
@@ -106,12 +151,62 @@ export const DECOMMISSION_ERRORS: Record<string, string> = pick([
   "NotCommissioned",
 ]);
 
+// ── Goal-savings operation subsets ──────────────────────────────────────────
+
+/** Errors that can surface when creating a goal. */
+export const GOAL_CREATE_ERRORS: Record<string, string> = pick(
+  [
+    "TokenNotAllowed",
+    "InvalidGoalAmount",
+    "InvalidDeadline",
+    "InvalidBeneficiary",
+  ],
+  GOAL_SAVINGS_ERRORS
+);
+
+/** Errors that can surface when the goal owner adds members. */
+export const GOAL_ADD_MEMBERS_ERRORS: Record<string, string> = pick(
+  ["GoalNotFound", "GoalNotOpen", "NotOwner", "AlreadyMember"],
+  GOAL_SAVINGS_ERRORS
+);
+
+/** Errors that can surface when depositing toward a goal. */
+export const GOAL_DEPOSIT_ERRORS: Record<string, string> = pick(
+  [
+    "GoalNotFound",
+    "GoalNotOpen",
+    "NotMember",
+    "InvalidDeposit",
+    "SafeERC20FailedOperation",
+  ],
+  GOAL_SAVINGS_ERRORS
+);
+
+/** Errors that can surface when withdrawing a goal contribution. */
+export const GOAL_WITHDRAW_ERRORS: Record<string, string> = pick(
+  ["GoalNotFound", "NotMember", "NotWithdrawable", "NothingToWithdraw"],
+  GOAL_SAVINGS_ERRORS
+);
+
+/** Errors that can surface when releasing a goal pot to the beneficiary. */
+export const GOAL_RELEASE_ERRORS: Record<string, string> = pick(
+  ["GoalNotFound", "NotReleasable"],
+  GOAL_SAVINGS_ERRORS
+);
+
+/** Errors that can surface when cancelling a goal. */
+export const GOAL_CANCEL_ERRORS: Record<string, string> = pick(
+  ["GoalNotFound", "NotOwner", "NotCancellable"],
+  GOAL_SAVINGS_ERRORS
+);
+
 // ── Internal helper ─────────────────────────────────────────────────────────
 
-function pick(keys: string[]): Record<string, string> {
+function pick(
+  keys: string[],
+  source: Record<string, string> = SAVING_CIRCLES_ERRORS
+): Record<string, string> {
   return Object.fromEntries(
-    keys
-      .filter((k) => k in SAVING_CIRCLES_ERRORS)
-      .map((k) => [k, SAVING_CIRCLES_ERRORS[k]])
+    keys.filter((k) => k in source).map((k) => [k, source[k]])
   );
 }

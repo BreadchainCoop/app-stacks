@@ -17,6 +17,11 @@ const envSchema = z.object({
   NEXT_PUBLIC_CHAIN_ID: z.coerce.number(),
   NEXT_PUBLIC_DEPOSIT_TOKEN_ADDRESS: z.string(),
   NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS: z.string(),
+  // Optional: deployments without Goal savings leave it unset
+  NEXT_PUBLIC_GOAL_SAVINGS_CONTRACT_ADDRESS: z
+    .string()
+    .optional()
+    .default("0x0000000000000000000000000000000000000000"),
   NEXT_PUBLIC_PRIVY_APP_ID: z.string(),
 });
 

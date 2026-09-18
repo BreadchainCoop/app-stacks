@@ -4,6 +4,9 @@ import { createPublicClient, fallback, http, type Address } from "viem";
 import { serverEnv } from "@/lib/envs/server";
 import { networks } from "@/utils/chain";
 import { privyUserOwnsWallet } from "@/lib/privy-server";
+import { savingCirclesAbi } from "@/lib/abis/saving-circles";
+import { goalSavingCirclesAbi } from "@/lib/abis/goal-saving-circles";
+import { parseStackMetadataId } from "@/lib/stack-types";
 import { verifyUserToken } from "../utils";
 
 const supabaseAdmin = createClient(
@@ -23,6 +26,71 @@ export const getPublicClient = () => {
       : http();
 
   return createPublicClient({ chain, transport });
+};
+
+const SAVING_CIRCLES_CONTRACT_ADDRESS =
+  serverEnv.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS as Address;
+const GOAL_SAVINGS_CONTRACT_ADDRESS =
+  serverEnv.NEXT_PUBLIC_GOAL_SAVINGS_CONTRACT_ADDRESS as Address;
+
+/**
+ * The on-chain owner of a stack, read from the contract behind its type.
+ * `stackId` is a stacks_metadata id (bare for ROSCA, `goal:<id>` for goals).
+ */
+export const getStackOwner = async (stackId: string): Promise<Address> => {
+  const parsed = parseStackMetadataId(stackId);
+  if (!parsed) throw new Error(`Invalid stack id: ${stackId}`);
+
+  const id = BigInt(parsed.onChainId);
+  const publicClient = getPublicClient();
+
+  if (parsed.type === "goal") {
+    const goal = await publicClient.readContract({
+      address: GOAL_SAVINGS_CONTRACT_ADDRESS,
+      abi: goalSavingCirclesAbi,
+      functionName: "getGoal",
+      args: [id],
+    });
+
+    return goal.owner;
+  }
+
+  const circle = await publicClient.readContract({
+    address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+    abi: savingCirclesAbi,
+    functionName: "getCircle",
+    args: [id],
+  });
+
+  return circle.owner;
+};
+
+/** Whether `wallet` is a member of the stack on the contract behind its type. */
+export const isStackMember = async (
+  stackId: string,
+  wallet: Address
+): Promise<boolean> => {
+  const parsed = parseStackMetadataId(stackId);
+  if (!parsed) throw new Error(`Invalid stack id: ${stackId}`);
+
+  const id = BigInt(parsed.onChainId);
+  const publicClient = getPublicClient();
+
+  if (parsed.type === "goal") {
+    return publicClient.readContract({
+      address: GOAL_SAVINGS_CONTRACT_ADDRESS,
+      abi: goalSavingCirclesAbi,
+      functionName: "isMember",
+      args: [id, wallet],
+    });
+  }
+
+  return publicClient.readContract({
+    address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+    abi: savingCirclesAbi,
+    functionName: "isMember",
+    args: [id, wallet],
+  });
 };
 
 /**
