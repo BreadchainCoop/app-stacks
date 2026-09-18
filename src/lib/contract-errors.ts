@@ -66,6 +66,7 @@ export const GOAL_SAVINGS_ERRORS: Record<string, string> = {
   // ── Membership / invites ──────────────────────────────────────────
   NotMember: "You are not a member of this goal.",
   AlreadyMember: "This address is already a member of this goal.",
+  InvalidMemberAddress: "One of these addresses is invalid.",
   NotOwner: "Only the goal organizer can perform this action.",
   InvalidSigner: "The invite signature is invalid.",
   InviteAlreadyUsed: "This invite has already been used.",
@@ -166,7 +167,13 @@ export const GOAL_CREATE_ERRORS: Record<string, string> = pick(
 
 /** Errors that can surface when the goal owner adds members. */
 export const GOAL_ADD_MEMBERS_ERRORS: Record<string, string> = pick(
-  ["GoalNotFound", "GoalNotOpen", "NotOwner", "AlreadyMember"],
+  [
+    "GoalNotFound",
+    "GoalNotOpen",
+    "NotOwner",
+    "AlreadyMember",
+    "InvalidMemberAddress",
+  ],
   GOAL_SAVINGS_ERRORS
 );
 

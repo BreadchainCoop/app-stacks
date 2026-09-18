@@ -869,6 +869,25 @@ export const goalSavingCirclesAbi = [
   },
   {
     type: "event",
+    name: "MemberAdded",
+    inputs: [
+      {
+        name: "id",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "member",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
     name: "OwnershipTransferred",
     inputs: [
       {
@@ -970,6 +989,11 @@ export const goalSavingCirclesAbi = [
   {
     type: "error",
     name: "InvalidInitialization",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidMemberAddress",
     inputs: [],
   },
   {
