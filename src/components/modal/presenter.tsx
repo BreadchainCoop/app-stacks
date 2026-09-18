@@ -27,6 +27,12 @@ import VisitorOnboarding from "../onboard/visitor-onboard-modal";
 import AutomaticDepositsModal from "@/components/automatic-deposits/modal";
 import RemoveMemberWarningModal from "./modals/remove-member-warning";
 import MigrateAndTransferModal from "./modals/migrate-and-transfer";
+import GoalInitModal from "./modals/goal-init";
+import {
+  GoalFailedResultModal,
+  GoalSuccessResultModal,
+} from "./modals/goal-result";
+import { StackTxInitModal, StackTxStatusModal } from "./modals/stack-tx";
 
 const ModalPresenter = () => {
   const { modalState, setModal } = useModal();
@@ -113,6 +119,22 @@ const ModalPresenter = () => {
               )}
               {modalState.type === "MIGRATE_AND_TRANSFER" && (
                 <MigrateAndTransferModal modalState={modalState} />
+              )}
+              {modalState.type === "GOAL_CREATION_INIT" && (
+                <GoalInitModal modalState={modalState} />
+              )}
+              {modalState.type === "GOAL_CREATION_SUCCESS" && (
+                <GoalSuccessResultModal modalState={modalState} />
+              )}
+              {modalState.type === "GOAL_CREATION_FAILED" && (
+                <GoalFailedResultModal modalState={modalState} />
+              )}
+              {modalState.type === "STACK_TX_INIT" && (
+                <StackTxInitModal modalState={modalState} />
+              )}
+              {(modalState.type === "STACK_TX_LOADING" ||
+                modalState.type === "STACK_TX_RESULT") && (
+                <StackTxStatusModal modalState={modalState} />
               )}
             </Dialog.Content>
           </>

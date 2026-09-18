@@ -13,6 +13,7 @@ import { Address } from "viem";
 import { FundWithConnectedWalletModalAmountModalState } from "./modals/fund-wallet/fund-with-connected-wallet-modal-amount";
 import { AutomaticClaimsModalState } from "./modals/automatic-claims";
 import type { AutomaticDepositsModalState } from "@/components/automatic-deposits/types";
+import { NewStackType } from "@/lib/stack-types";
 
 export type TModalStatus = "loading" | "success" | "error";
 
@@ -150,6 +151,62 @@ export type RemoveMemberWarningModalState = {
   circleId: bigint;
 };
 
+// ── Goal stack creation flow ────────────────────────────────────────────────
+
+export type GoalCreationInitModalState = {
+  type: "GOAL_CREATION_INIT";
+  name: string;
+  status: "awaiting" | "approved" | "successful";
+};
+
+export type GoalCreationSuccessModalState = {
+  type: "GOAL_CREATION_SUCCESS";
+  goal: {
+    name: string;
+    id: string;
+    goalAmount: bigint;
+    deadline: bigint;
+    beneficiary?: Address;
+    members: number;
+  };
+};
+
+export type GoalCreationFailedModalState = {
+  type: "GOAL_CREATION_FAILED";
+  msg?: string;
+};
+
+// ── Generic per-action tx flow for the non-ROSCA stack types ───────────────
+// One confirm/loading/result trio parameterized by stack type + action,
+// mirroring the DEPOSIT_INIT / DEPOSIT_LOADING / DEPOSIT_RESULT pattern.
+
+export type StackTxAction = "deposit" | "withdraw" | "release" | "cancel";
+
+export type StackTxInitModalState = {
+  type: "STACK_TX_INIT";
+  stackType: NewStackType;
+  action: StackTxAction;
+  id: bigint;
+  amount?: bigint;
+  onConfirm: () => void | Promise<void>;
+};
+
+export type StackTxLoadingModalState = {
+  type: "STACK_TX_LOADING";
+  stackType: NewStackType;
+  action: StackTxAction;
+  msg?: string;
+};
+
+export type StackTxResultModalState = {
+  type: "STACK_TX_RESULT";
+  stackType: NewStackType;
+  action: StackTxAction;
+  result: "success" | "error";
+  msg?: string;
+  amount?: bigint;
+};
+
 export type ModalState =
   | DepositInitModalState
   | DepositLoadingModalState
@@ -175,6 +232,12 @@ export type ModalState =
   | AutomaticDepositsModalState
   | RemoveMemberWarningModalState
   | MigrateAndTransferModalState
+  | GoalCreationInitModalState
+  | GoalCreationSuccessModalState
+  | GoalCreationFailedModalState
+  | StackTxInitModalState
+  | StackTxLoadingModalState
+  | StackTxResultModalState
   | null;
 
 export type ModalContext = {
