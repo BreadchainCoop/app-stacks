@@ -14,7 +14,7 @@ import { clientEnv, isLocalEnv } from "./env";
  * - `addresses` absent or empty -> every user sees it
  * - local always renders every feature regardless of config
  */
-export const FEATURES = [] as const;
+export const FEATURES = ["goalSavings"] as const;
 
 export type Feature = (typeof FEATURES)[number];
 

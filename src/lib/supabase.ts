@@ -2,12 +2,14 @@
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { clientEnv } from "@/lib/env";
+import { StackType } from "@/lib/stack-types";
 
 // Must stay type aliases: interfaces break supabase-js's generics and every
 // query silently degrades to never.
 export type SupabaseStackMetadata = {
   id: string;
   stackname: string;
+  stack_type: StackType;
   created_at: string;
   expected_members: number;
 };

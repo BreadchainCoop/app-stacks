@@ -2,6 +2,7 @@ import { serverEnv } from "@/lib/envs/server";
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { createErrorResponse } from "../../utils";
+import { parseStackMetadataId } from "@/lib/stack-types";
 
 const supabaseAdmin = createClient(
   serverEnv.NEXT_PUBLIC_SUPABASE_URL,
@@ -36,6 +37,16 @@ export async function POST(req: NextRequest) {
       return createErrorResponse("id is required and must be a string");
     }
 
+    // Bare on-chain id = rosca; goals are prefixed (goal:<id>) so ids from
+    // different contracts never collide in stacks_metadata.
+    const parsedId = parseStackMetadataId(id);
+
+    if (!parsedId) {
+      return createErrorResponse(
+        "id must be a numeric on-chain id, optionally prefixed with goal:"
+      );
+    }
+
     if (!stackname || typeof stackname !== "string") {
       return createErrorResponse("stackname is required and must be a string");
     }
@@ -54,7 +65,7 @@ export async function POST(req: NextRequest) {
 
     const { error: stackError } = await supabaseAdmin
       .from("stacks_metadata")
-      .insert({ id, stackname, expected_members });
+      .insert({ id, stackname, expected_members, stack_type: parsedId.type });
 
     // 23505 = unique_violation: this circle id was already saved by an
     // earlier call (e.g. a duplicate submission) — treat as success and
