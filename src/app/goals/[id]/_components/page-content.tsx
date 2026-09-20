@@ -42,6 +42,7 @@ const GoalPageContent = ({ id }: { id: string }) => {
         isMember={isMember}
         state={state}
         hasBeneficiary={hasBeneficiary}
+        deadline={goalResult.data?.deadline}
       />
       {goalResult.data && state !== undefined ? (
         <div className="*:mb-4 last:mb-0 md:mb-6 md:last:mb-0">

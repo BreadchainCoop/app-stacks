@@ -2,7 +2,7 @@
 
 import Countdown from "@/components/countdown";
 import { GoalInfo, useGoalTotalDeposited } from "@/hooks/use-goal";
-import { GoalState } from "@/lib/goal-state";
+import { GoalState, isGoalSettled } from "@/lib/goal-state";
 import { formatAddress } from "@/utils/address";
 import { formatShortDate } from "@/utils/time";
 import { Body, formatBalance, Heading3, Logo } from "@breadcoop/ui";
@@ -27,6 +27,7 @@ const GoalOverview = ({
       ? Number((totalDeposited * BigInt(10000)) / goal.goalAmount) / 100
       : 0;
   const hasBeneficiary = goal.beneficiary !== zeroAddress;
+  const settled = isGoalSettled({ state, hasBeneficiary, totalDeposited });
   const isDecided =
     state === GoalState.Cancelled || state === GoalState.Released;
 
@@ -63,6 +64,11 @@ const GoalOverview = ({
           className="md:justify-end md:items-end"
         />
       </div>
+      {settled && (
+        <Body className="text-xs text-surface-grey">
+          Target reached — all funds have since been withdrawn.
+        </Body>
+      )}
       <div>
         <BreakdownRow label="Deadline">
           <p className="text-h2 text-2xl leading-6 tracking-[-2%]">

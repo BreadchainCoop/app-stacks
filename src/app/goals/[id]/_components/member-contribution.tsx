@@ -3,14 +3,19 @@
 import LocalButton from "@/components/button";
 import NumericInput from "@/components/numeric-input";
 import { useModal } from "@/components/modal/context";
-import { GoalInfo } from "@/hooks/use-goal";
+import { GoalInfo, useGoalTotalDeposited } from "@/hooks/use-goal";
 import { useGoalMemberContribution } from "@/hooks/use-goal-member-contribution";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import {
   GOAL_DEPOSIT_ERRORS,
   GOAL_WITHDRAW_ERRORS,
 } from "@/lib/contract-errors";
-import { GoalState, isGoalOpen, isGoalWithdrawable } from "@/lib/goal-state";
+import {
+  GoalState,
+  isGoalOpen,
+  isGoalSettled,
+  isGoalWithdrawable,
+} from "@/lib/goal-state";
 import {
   Body,
   formatBalance,
@@ -41,6 +46,7 @@ const MemberContribution = ({
   const { user } = useConnectedUser();
   const address = user.status === "CONNECTED" ? user.address : undefined;
   const { position } = useGoalMemberContribution(goalId, address);
+  const { data: totalDeposited } = useGoalTotalDeposited(goalId);
   const { runGoalAction } = useGoalAction(goal.token);
   const [amountInput, setAmountInput] = useState("");
 
@@ -48,15 +54,21 @@ const MemberContribution = ({
   const hasAmount = amount > BigInt(0);
 
   const nowSeconds = BigInt(Math.floor(now / 1000));
-  const depositOpen = isGoalOpen({
-    state,
-    deadline: goal.deadline,
-    now: nowSeconds,
-  });
-  const withdrawable = isGoalWithdrawable({
-    state,
-    hasBeneficiary: goal.beneficiary !== zeroAddress,
-  });
+  const hasBeneficiary = goal.beneficiary !== zeroAddress;
+  const settled = isGoalSettled({ state, hasBeneficiary, totalDeposited });
+  const depositOpen =
+    !settled &&
+    isGoalOpen({
+      state,
+      deadline: goal.deadline,
+      now: nowSeconds,
+    });
+  const withdrawable = isGoalWithdrawable({ state, hasBeneficiary });
+  const withdrawNote = withdrawable
+    ? "Withdrawing returns your entire contribution."
+    : state === GoalState.Released
+      ? "Your contribution was paid out to the beneficiary with the rest of the pot."
+      : "Contributions are locked until the goal is decided.";
   const contribution = position?.contribution ?? BigInt(0);
 
   const deposit = () =>
@@ -137,7 +149,14 @@ const MemberContribution = ({
         </LocalButton>
         {!depositOpen && (
           <Body className="text-xs text-surface-grey">
-            This goal is no longer accepting deposits.
+            {settled
+              ? "This goal is completed and no longer accepting deposits."
+              : "This goal is no longer accepting deposits."}
+          </Body>
+        )}
+        {depositOpen && !hasAmount && (
+          <Body className="text-xs text-surface-grey">
+            Enter an amount to deposit.
           </Body>
         )}
       </div>
@@ -150,11 +169,7 @@ const MemberContribution = ({
         >
           Withdraw everything
         </LocalButton>
-        <Body className="text-xs text-surface-grey">
-          {withdrawable
-            ? "Withdrawing returns your entire contribution."
-            : "Contributions are locked until the goal is decided."}
-        </Body>
+        <Body className="text-xs text-surface-grey">{withdrawNote}</Body>
       </div>
     </section>
   );
