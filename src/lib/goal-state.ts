@@ -73,3 +73,26 @@ export function isGoalReleasable({
 }): boolean {
   return state === GoalState.Funded && hasBeneficiary;
 }
+
+/**
+ * Whether a goal without a beneficiary has run its course: the target was
+ * reached (Funded) and every member has since withdrawn, leaving an empty pot.
+ * The contract's `goalReached` latch never clears and it still accepts
+ * deposits until the deadline, so this is a UI-only guard against re-funding
+ * a finished goal.
+ */
+export function isGoalSettled({
+  state,
+  hasBeneficiary,
+  totalDeposited,
+}: {
+  state: GoalState;
+  hasBeneficiary: boolean;
+  totalDeposited: bigint | undefined;
+}): boolean {
+  return (
+    state === GoalState.Funded &&
+    !hasBeneficiary &&
+    totalDeposited === BigInt(0)
+  );
+}
