@@ -12,7 +12,7 @@ export const metadata = generateMetadata({
 export default function Page() {
   return (
     <FeatureGate feature="goalSavings">
-      <BackPage href="/" label="Cancel & Return home" className="md:hidden" />
+      <BackPage href="/new" label="Back to stack types" />
       <GoalFormContainer />
     </FeatureGate>
   );

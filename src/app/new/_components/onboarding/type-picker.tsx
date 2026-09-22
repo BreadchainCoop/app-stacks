@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   ArrowClockwiseIcon,
   ArrowRightIcon,
@@ -11,16 +12,14 @@ import { Body, cn, Heading2, Heading3 } from "@breadcoop/ui";
 import { STACK_TYPE_DESCRIPTIONS, STACK_TYPE_LABELS } from "@/lib/stack-types";
 
 /** A stack type the picker can start creating. */
-type PickerCard =
-  | {
-      StackIcon: Icon;
-      label: string;
-      description: string;
-      onSelect: () => void;
-    }
-  | { StackIcon: Icon; label: string; description: string; href: string };
+type PickerCard = {
+  StackIcon: Icon;
+  label: string;
+  description: string;
+  href: string;
+};
 
-const Card = ({ StackIcon, label, description, ...action }: PickerCard) => {
+const Card = ({ StackIcon, label, description, href }: PickerCard) => {
   const content = (
     <>
       <figure className="text-primary-blue">
@@ -39,22 +38,17 @@ const Card = ({ StackIcon, label, description, ...action }: PickerCard) => {
     "transition-colors hover:border-primary-blue"
   );
 
-  if ("href" in action) {
-    return (
-      <Link href={action.href} className={className}>
-        {content}
-      </Link>
-    );
-  }
-
   return (
-    <button type="button" onClick={action.onSelect} className={className}>
+    <Link href={href} className={className}>
       {content}
-    </button>
+    </Link>
   );
 };
 
-const TypePicker = ({ onSelectRosca }: { onSelectRosca: () => void }) => {
+const TypePicker = () => {
+  const params = useSearchParams();
+  const query = params.toString();
+
   return (
     <section className="max-w-155 mx-auto">
       <header className="mb-6 text-center">
@@ -71,7 +65,7 @@ const TypePicker = ({ onSelectRosca }: { onSelectRosca: () => void }) => {
           StackIcon={ArrowClockwiseIcon}
           label={STACK_TYPE_LABELS.rosca}
           description={STACK_TYPE_DESCRIPTIONS.rosca}
-          onSelect={onSelectRosca}
+          href={query ? `/new/rosca?${query}` : "/new/rosca"}
         />
         <Card
           StackIcon={FlagBannerFoldIcon}
