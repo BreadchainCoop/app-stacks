@@ -57,7 +57,7 @@ const ACTION_COPY: Record<
   cancel: {
     title: "Cancel goal?",
     description:
-      "You are about to cancel this goal. Members can reclaim their contributions afterwards.",
+      "Cancelling this goal is permanent and stops new deposits. Each member will need to withdraw their full contribution afterwards; refunds are not automatic.",
     confirmLabel: "Cancel goal",
     loadingTitle: "Cancelling",
     successTitle: "Goal cancelled",
@@ -72,6 +72,8 @@ export const StackTxInitModal = ({
 }) => {
   const modal = useModal();
   const copy = ACTION_COPY[modalState.action];
+  const isCancellingGoal =
+    modalState.stackType === "goal" && modalState.action === "cancel";
 
   return (
     <ModalContainer>
@@ -96,15 +98,16 @@ export const StackTxInitModal = ({
       <div className="flex items-center justify-center gap-4">
         <div className="flex-1 w-full">
           <LocalButton
-            variant="burn"
+            variant={isCancellingGoal ? "secondary" : "burn"}
             className="w-full"
             onClick={() => modal.setModal(null)}
           >
-            Cancel
+            {isCancellingGoal ? "Go back" : "Cancel"}
           </LocalButton>
         </div>
         <div className="flex-2 w-full">
           <LocalButton
+            variant={isCancellingGoal ? "destructive" : undefined}
             className="w-full"
             onClick={() => modalState.onConfirm()}
           >
