@@ -1,12 +1,45 @@
 "use client";
 
 import Alert from "@/components/alert";
+import BackPage from "@/components/back-page";
+import LocalButton from "@/components/button";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useGoalTotalDeposited } from "@/hooks/use-goal";
 import { useStackSupabase } from "@/hooks/use-stack-supabase";
 import { GOAL_STATE_LABELS, GoalState, isGoalSettled } from "@/lib/goal-state";
 import { stackMetadataId } from "@/lib/stack-types";
-import { Chip, cn, Heading2 } from "@breadcoop/ui";
+import { Chip, cn, Heading2, useCopyToClipboard } from "@breadcoop/ui";
+import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
+import { useEffect, useState } from "react";
+
+function CopyGoalLink({ id }: { id: string }) {
+  const [origin, setOrigin] = useState("");
+  const { copy, copied } = useCopyToClipboard({
+    textToCopy: `${origin}/goals/${id}`,
+  });
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+
+  return (
+    <LocalButton
+      variant="light"
+      className={cn("h-8 border px-4", copied && "text-system-green")}
+      leftIcon={
+        copied ? (
+          <CheckIcon className="fill-system-green" />
+        ) : (
+          <CopyIcon className="fill-primary-blue" />
+        )
+      }
+      onClick={() => copy()}
+      disabled={!origin}
+    >
+      {copied ? "Copied!" : "Copy goal link"}
+    </LocalButton>
+  );
+}
 
 const STATE_CHIP_CLASSES: Record<GoalState, string> = {
   [GoalState.Funding]: "border-primary-blue text-primary-blue",
@@ -111,8 +144,12 @@ const GoalHeader = ({
       : null;
 
   return (
-    <header className="mb-3.5 md:mb-6">
-      <div className="flex flex-col flex-wrap gap-4 mb-5.25 sm:flex-row sm:items-center sm:justify-between md:mb-7.25">
+    <header className="flex flex-col mb-3.5 md:mb-6">
+      <div className="flex flex-col items-start gap-2.5 mb-4 md:flex-row md:items-center md:justify-between md:flex-wrap">
+        <BackPage label="Return to Dashboard" href="/" className="m-0!" />
+        <CopyGoalLink id={id} />
+      </div>
+      <div className="flex flex-col flex-wrap gap-4 mb-5.25 sm:flex-row sm:items-center sm:justify-between md:order-first md:mb-7.25">
         <Heading2 className="text-primary-blue text-2xl md:text-5xl">
           {goalName}
         </Heading2>
@@ -137,7 +174,11 @@ const GoalHeader = ({
       {alert && (
         <Alert
           closeAble={false}
-          variant="warning"
+          variant={
+            state === GoalState.Funded || state === GoalState.Released
+              ? "success"
+              : "warning"
+          }
           title={alert.title}
           description={alert.description}
         />
