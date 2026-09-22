@@ -1,6 +1,9 @@
 "use client";
 
 import Countdown from "@/components/countdown";
+import { FormattedDecimalNumber } from "@/components/bread-ui-kit/formatted-decimal-number";
+import { amountSizeStep } from "@/utils/amount-size";
+import { cn } from "@/lib/utils";
 import { GoalInfo, useGoalTotalDeposited } from "@/hooks/use-goal";
 import { GoalState, isGoalSettled } from "@/lib/goal-state";
 import { formatAddress } from "@/utils/address";
@@ -10,6 +13,21 @@ import Link from "next/link";
 import { ReactNode } from "react";
 import { zeroAddress } from "viem";
 import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
+
+const HERO_SIZES = {
+  base: {
+    integral: "text-[48px] md:text-[80px]",
+    decimal: "text-[28px] md:text-[48px]",
+  },
+  sm: {
+    integral: "text-[36px] md:text-[56px]",
+    decimal: "text-[22px] md:text-[34px]",
+  },
+  xs: {
+    integral: "text-[28px] md:text-[40px]",
+    decimal: "text-[18px] md:text-[24px]",
+  },
+} as const;
 
 const GoalOverview = ({
   goalId,
@@ -52,9 +70,10 @@ const GoalOverview = ({
           />
         </div>
       </div>
-      <div className="flex flex-col gap-4 border-b border-paper-2 pb-4 md:flex-row md:justify-between">
+      <div className="flex flex-col gap-4 border-b border-paper-2 pb-4 md:flex-row md:flex-wrap md:items-end md:justify-between">
         <PotBalance
           label="Raised so far"
+          primary
           amount={totalDeposited}
           className="md:items-start"
         />
@@ -106,11 +125,37 @@ function PotBalance({
   label,
   amount,
   className,
+  primary = false,
 }: {
   label: string;
   amount: bigint | undefined;
   className?: string;
+  primary?: boolean;
 }) {
+  const value = amount !== undefined ? formatDepositAmount(amount) : undefined;
+  const heroSize = HERO_SIZES[amountSizeStep(Number(value ?? 0))];
+
+  if (primary) {
+    return (
+      <div className={cn("flex min-w-0 flex-col", className)}>
+        <Body className="text-surface-grey">{label}</Body>
+        <div className="flex flex-wrap items-baseline gap-x-2">
+          {value !== undefined ? (
+            <FormattedDecimalNumber
+              value={value}
+              className="break-all"
+              integralPartClassName={heroSize.integral}
+              decimalPartClassName={cn(heroSize.decimal, "text-surface-grey-2")}
+            />
+          ) : (
+            <Body className={heroSize.integral}>-</Body>
+          )}
+          <Body className="text-surface-grey-2">{DEPOSIT_TOKEN.symbol}</Body>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Body className={`flex flex-col justify-start ${className}`}>
       <span className="text-surface-grey">{label}</span>

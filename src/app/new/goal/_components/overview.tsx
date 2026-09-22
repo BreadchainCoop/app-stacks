@@ -15,7 +15,6 @@ import {
   Icon,
   LayoutIcon,
   SparkleIcon,
-  TargetIcon,
   UsersThreeIcon,
 } from "@phosphor-icons/react";
 import { useFormContext } from "react-hook-form";
@@ -191,15 +190,6 @@ const GoalOverviewForm = ({ onBack }: { onBack: () => void }) => {
           body={members ? String(members) : "-"}
         />
         <ReviewedRow
-          RIcon={TargetIcon}
-          title="Goal amount"
-          body={
-            Number.isFinite(goalAmount)
-              ? `${formatBalance(goalAmount, 2)} ${DEPOSIT_TOKEN.symbol}`
-              : "-"
-          }
-        />
-        <ReviewedRow
           RIcon={CalendarIcon}
           title="Deadline"
           body={Number.isNaN(deadlineMs) ? "-" : formatShortDate(deadlineMs)}
@@ -215,6 +205,16 @@ const GoalOverviewForm = ({ onBack }: { onBack: () => void }) => {
               : "Members reclaim their share"
           }
         />
+      </div>
+      <div className="flex items-center justify-between">
+        <Body>Goal amount</Body>
+        <div className="p-1 shrink-0 border border-system-green">
+          <Body bold>
+            {Number.isFinite(goalAmount)
+              ? `${formatBalance(goalAmount, 2)} ${DEPOSIT_TOKEN.symbol}`
+              : "-"}
+          </Body>
+        </div>
       </div>
       <div className="px-6 py-3 bg-paper-1">
         <Body className="text-xs text-surface-grey-2">
