@@ -1,5 +1,7 @@
 "use client";
 
+import { CalendarIcon } from "@/components/icons/calendar";
+import { CoinsIcon } from "@/components/icons/coin";
 import { useGoalMemberGoals } from "@/hooks/use-goal-member-goals";
 import { useUserStacksMetadata } from "@/hooks/use-user-stacks-metadata";
 import { GOAL_STATE_LABELS, GoalState } from "@/lib/goal-state";
@@ -61,6 +63,16 @@ const GoalList = ({
             key={id.toString()}
             href={stackTypeDetailPath("goal", id)}
             name={name}
+            id={id.toString()}
+            progress={
+              goal.goalAmount > BigInt(0)
+                ? Number(
+                    totalDeposited >= goal.goalAmount
+                      ? BigInt(10000)
+                      : (totalDeposited * BigInt(10000)) / goal.goalAmount
+                  ) / 100
+                : 0
+            }
             chip={{
               label: GOAL_STATE_LABELS[state],
               className: STATE_CHIP_CLASSES[state],
@@ -68,10 +80,12 @@ const GoalList = ({
             stats={[
               {
                 label: "Raised",
+                icon: <CoinsIcon />,
                 value: `${formatBread(totalDeposited)} / ${formatBread(goal.goalAmount)}`,
               },
               {
                 label: "Deadline",
+                icon: <CalendarIcon />,
                 value: formatShortDate(Number(goal.deadline) * 1000),
               },
             ]}
