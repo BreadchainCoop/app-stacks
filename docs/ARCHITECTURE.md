@@ -54,7 +54,10 @@ The frontend is a Next.js App Router application that orchestrates both.
 ### Routes (`src/app`)
 
 - `/` (`page.tsx`) — dashboard / home.
-- `/new` — create a new stack.
+- `/new` — create a new stack. With the `goalSavings` feature on, a picker links to
+  Rotating savings (`/new/rosca`) or a Shared goal (`/new/goal`). Both flows link back
+  to the picker. With the feature off, `/new` keeps the original rotating savings flow.
+- `/goals/[id]` — a Shared goal's detail and actions (feature-gated: `goalSavings`).
 - `/stacks/[id]` — a single circle's detail and actions.
 - `/stacks/join` — accept an invite link.
 - `api/onboard` — create the Supabase user record after Privy login.

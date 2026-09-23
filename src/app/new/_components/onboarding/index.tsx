@@ -3,6 +3,7 @@
 import OnboardingTutorials from "./tutorials";
 import { useState } from "react";
 import BackPage from "@/components/back-page";
+import { FeatureGate } from "@/components/feature-gate";
 import StackFormContainer from "../form/form-container";
 
 const OnboardingStacksCreation = () => {
@@ -12,21 +13,26 @@ const OnboardingStacksCreation = () => {
 
   return (
     <>
+      <FeatureGate
+        feature="goalSavings"
+        fallback={
+          stage === "tutorial" ? (
+            <BackPage href="/" label="Return to dashboard" />
+          ) : (
+            <BackPage
+              href="/"
+              label="Cancel & Return home"
+              className="md:hidden"
+            />
+          )
+        }
+      >
+        <BackPage href="/new" label="Back to stack types" />
+      </FeatureGate>
       {stage === "tutorial" ? (
-        <>
-          <BackPage href="/" label="Return to dashboard" />
-          <OnboardingTutorials nextStage={nextStage} />
-        </>
+        <OnboardingTutorials nextStage={nextStage} />
       ) : (
-        <>
-          <BackPage
-            href="/"
-            label="Cancel & Return home"
-            className="md:hidden"
-          />
-
-          <StackFormContainer />
-        </>
+        <StackFormContainer />
       )}
     </>
   );

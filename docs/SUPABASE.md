@@ -62,9 +62,11 @@ The `Database` type is the contract between the app and Postgres. Current tables
 - **`users`** — `id`, `privy_user_id`, `wallet_address`, `created_at`. Links a Privy
   account to an app user. Created during onboarding via the service role.
 - **`profiles`** — `user_id`, `username`, `updated_at`. Public-ish display info for a user.
-- **`stacks_metadata`** — `id`, `stackname`, `created_at`, `expected_members`. Off-chain
-  metadata for a circle. The invite link itself is just `?circleId=` — no per-link state to
-  store here.
+- **`stacks_metadata`** — `id`, `stackname`, `stack_type`, `created_at`, `expected_members`.
+  Off-chain metadata for a stack. `stack_type` is `rosca` or `goal`; ROSCA rows keep their
+  bare on-chain id, goals use a `goal:<id>` prefix so the id-spaces of the two contracts
+  never collide (see `src/lib/stack-types.ts`). The invite link itself is just `?circleId=`
+  (plus `&type=goal` for goals) — no per-link state to store here.
 - **`join_requests`** — `id`, `stack_id`, `user_id`, `wallet_address`, `status`
   (`pending` | `added` | `dismissed`), `created_at`. Records who has asked to join a stack
   via its invite link, so the owner can review and accept them with `addMembers`. Unlike

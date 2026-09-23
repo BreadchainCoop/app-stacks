@@ -13,8 +13,9 @@ import { clientEnv, isLocalEnv } from "./env";
  * - `addresses` present -> only those connected wallets see the feature
  * - `addresses` absent or empty -> every user sees it
  * - local always renders every feature regardless of config
+ * - goalSavings is temporarily always visible for this branch's rollout
  */
-export const FEATURES = [] as const;
+export const FEATURES = ["goalSavings"] as const;
 
 export type Feature = (typeof FEATURES)[number];
 
@@ -22,7 +23,8 @@ export function isFeatureVisible(
   feature: Feature,
   connectedAddress?: string
 ): boolean {
-  if (isLocalEnv) return true;
+  // Temporary rollout override; remove before merging if Goals must stay gated.
+  if (feature === "goalSavings" || isLocalEnv) return true;
 
   const config = clientEnv.NEXT_PUBLIC_FEATURES[feature];
   if (!config?.enabled) return false;

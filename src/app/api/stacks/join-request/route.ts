@@ -2,17 +2,14 @@ import { serverEnv } from "@/lib/envs/server";
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { createErrorResponse, verifyUserToken } from "../../utils";
-import { callerOwnsWallet, getPublicClient } from "../authorize";
-import { savingCirclesAbi } from "@/lib/abis/saving-circles";
+import { callerOwnsWallet, getStackOwner, isStackMember } from "../authorize";
+import { parseStackMetadataId } from "@/lib/stack-types";
 import { type Address } from "viem";
 
 const supabaseAdmin = createClient(
   serverEnv.NEXT_PUBLIC_SUPABASE_URL,
   serverEnv.SUPABASE_SERVICE_ROLE_KEY
 );
-
-const SAVING_CIRCLES_CONTRACT_ADDRESS =
-  serverEnv.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS as Address;
 
 const isVerifiedOwner = (req: NextRequest, ownerAddress: Address) =>
   callerOwnsWallet(req, ownerAddress);
@@ -127,16 +124,11 @@ export async function GET(req: NextRequest) {
       return createErrorResponse("requesterWalletAddress is required");
     }
 
-    const publicClient = getPublicClient();
+    if (!parseStackMetadataId(circleId)) {
+      return createErrorResponse("circleId is not a valid stack id");
+    }
 
-    const circle = await publicClient.readContract({
-      address: SAVING_CIRCLES_CONTRACT_ADDRESS,
-      abi: savingCirclesAbi,
-      functionName: "getCircle",
-      args: [BigInt(circleId)],
-    });
-
-    const isOwner = await isVerifiedOwner(req, circle.owner);
+    const isOwner = await isVerifiedOwner(req, await getStackOwner(circleId));
 
     // Anyone can check their own request status — this doesn't leak anyone
     // else's. Only the verified owner gets the full pending list below.
@@ -225,29 +217,17 @@ export async function PATCH(req: NextRequest) {
       return createErrorResponse("Join request not found", 404);
     }
 
-    const publicClient = getPublicClient();
+    const owner = await getStackOwner(joinRequest.stack_id);
 
-    const circle = await publicClient.readContract({
-      address: SAVING_CIRCLES_CONTRACT_ADDRESS,
-      abi: savingCirclesAbi,
-      functionName: "getCircle",
-      args: [BigInt(joinRequest.stack_id)],
-    });
-
-    if (!(await isVerifiedOwner(req, circle.owner))) {
+    if (!(await isVerifiedOwner(req, owner))) {
       return createErrorResponse("Only the circle owner can do this", 403);
     }
 
     if (status === "added") {
-      const isMember = await publicClient.readContract({
-        address: SAVING_CIRCLES_CONTRACT_ADDRESS,
-        abi: savingCirclesAbi,
-        functionName: "isMember",
-        args: [
-          BigInt(joinRequest.stack_id),
-          joinRequest.wallet_address as Address,
-        ],
-      });
+      const isMember = await isStackMember(
+        joinRequest.stack_id,
+        joinRequest.wallet_address as Address
+      );
 
       if (!isMember) {
         return createErrorResponse(
