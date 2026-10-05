@@ -14,12 +14,16 @@ import { useGoal, GoalInfo, useGoalState } from "@/hooks/use-goal";
 import { useJoinRequests } from "@/hooks/use-join-requests";
 import { useStackSupabase } from "@/hooks/use-stack-supabase";
 import { goalSavingCirclesAbi } from "@/lib/abis/goal-saving-circles";
-import { GOAL_SAVINGS_CONTRACT_ADDRESS } from "@/lib/constants";
-import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
+import { formatDepositAmount } from "@/lib/deposit-token";
+import {
+  useActiveChainId,
+  useChainConfig,
+  useChainPath,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 import { isGoalOpen } from "@/lib/goal-state";
 import { stackMetadataId, stackTypeDetailPath } from "@/lib/stack-types";
 import { formatAddress } from "@/utils/address";
-import { getDefaultChainId } from "@/utils/chain";
 import { formatShortDate } from "@/utils/time";
 import {
   Body,
@@ -98,6 +102,8 @@ function GoalInviteDetails({
   goalId: string;
   goalName?: string;
 }) {
+  const depositToken = useDepositToken();
+
   return (
     <div className="border-t border-blue-0 pt-6">
       <Body className="text-center mb-6">
@@ -118,7 +124,10 @@ function GoalInviteDetails({
               <RowDetail label="Goal ID" body={goalId} />
               <RowDetail
                 label="Goal amount"
-                body={`${formatBalance(+formatDepositAmount(goal.goalAmount), 2)} ${DEPOSIT_TOKEN.symbol}`}
+                body={`${formatBalance(
+                  +formatDepositAmount(goal.goalAmount, depositToken.decimals),
+                  2
+                )} ${depositToken.symbol}`}
               />
               <RowDetail
                 label="Deadline"
@@ -162,6 +171,9 @@ function GoalRequestToJoin({
   const { user } = useConnectedUser();
   const { getAuthToken } = useUserIdentity();
   const now = useBlockTimestamp();
+  const { goalSavings } = useChainConfig();
+  const chainId = useActiveChainId();
+  const chainHref = useChainPath();
 
   const address =
     user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
@@ -189,19 +201,19 @@ function GoalRequestToJoin({
 
   const { data: isMember, error: isMemberError } = useReadContract({
     abi: goalSavingCirclesAbi,
-    address: GOAL_SAVINGS_CONTRACT_ADDRESS,
+    address: goalSavings,
     functionName: "isMember",
     args: [parsedId, address as `0x${string}`],
     query: {
       enabled: !!address,
       refetchInterval: isRequestPending ? 5000 : false,
     },
-    chainId: getDefaultChainId(),
+    chainId,
   });
 
   useEffect(() => {
     if (isRequestPending && isMember) {
-      router.push(stackTypeDetailPath("goal", goalId));
+      router.push(chainHref(stackTypeDetailPath("goal", goalId)));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRequestPending, isMember, goalId]);
@@ -222,7 +234,11 @@ function GoalRequestToJoin({
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ circleId: metadataId, walletAddress: address }),
+        body: JSON.stringify({
+          circleId: metadataId,
+          walletAddress: address,
+          chainId,
+        }),
       });
       const body = await res.json();
 

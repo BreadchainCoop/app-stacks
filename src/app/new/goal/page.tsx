@@ -1,6 +1,5 @@
 import { generateMetadata } from "@/utils/metadata";
 import { FeatureGate } from "@/components/feature-gate";
-import BackPage from "@/components/back-page";
 import GoalFormContainer from "./_components/form-container";
 
 export const metadata = generateMetadata({
@@ -12,7 +11,6 @@ export const metadata = generateMetadata({
 export default function Page() {
   return (
     <FeatureGate feature="goalSavings">
-      <BackPage href="/new" label="Back to stack types" />
       <GoalFormContainer />
     </FeatureGate>
   );

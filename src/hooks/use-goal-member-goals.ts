@@ -1,16 +1,12 @@
 import { goalSavingCirclesAbi } from "@/lib/abis/goal-saving-circles";
-import { GOAL_SAVINGS_CONTRACT_ADDRESS } from "@/lib/constants";
 import { GoalInfo } from "@/hooks/use-goal";
 import { GoalState } from "@/lib/goal-state";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+} from "@/components/providers/active-chain";
 import { Address } from "viem";
 import { useReadContract, useReadContracts } from "wagmi";
-
-const goalContract = {
-  address: GOAL_SAVINGS_CONTRACT_ADDRESS,
-  abi: goalSavingCirclesAbi,
-  chainId: getDefaultChainId(),
-} as const;
 
 export type MemberGoal = {
   id: bigint;
@@ -25,6 +21,14 @@ export type MemberGoal = {
  * batched multicall (3 reads per goal).
  */
 export function useGoalMemberGoals(member: Address | undefined) {
+  // Built per render rather than at module scope: the address and chain follow
+  // the active chain, which is only known inside a component.
+  const goalContract = {
+    address: useChainConfig().goalSavings,
+    abi: goalSavingCirclesAbi,
+    chainId: useActiveChainId(),
+  } as const;
+
   const idsResult = useReadContract({
     ...goalContract,
     functionName: "getMemberGoals",

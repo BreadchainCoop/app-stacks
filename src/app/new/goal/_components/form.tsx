@@ -10,11 +10,12 @@ import { useFormContext } from "react-hook-form";
 import { GoalFormSchemaData } from "./schema";
 import NumericInput from "@/components/numeric-input";
 import { earliestDeadlineDate } from "@/utils/time";
-import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
+import { useDepositToken } from "@/components/providers/active-chain";
 
 const GoalForm = ({ onContinue }: { onContinue: () => void }) => {
   const form = useFormContext<GoalFormSchemaData>();
   const beneficiaryMode = form.watch("beneficiaryMode");
+  const depositToken = useDepositToken();
 
   const validateGoal: MouseEventHandler<HTMLButtonElement> = async (e) => {
     e.preventDefault();
@@ -88,7 +89,7 @@ const GoalForm = ({ onContinue }: { onContinue: () => void }) => {
               />
               <div className="absolute top-1/2 -translate-y-1/2 right-3 p-1 bg-paper-main">
                 <Logo
-                  text={DEPOSIT_TOKEN.symbol}
+                  text={depositToken.symbol}
                   className="size-6"
                   variant="square"
                 />

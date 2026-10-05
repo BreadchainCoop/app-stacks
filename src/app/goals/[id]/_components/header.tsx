@@ -9,13 +9,15 @@ import { useStackSupabase } from "@/hooks/use-stack-supabase";
 import { GOAL_STATE_LABELS, GoalState, isGoalSettled } from "@/lib/goal-state";
 import { stackMetadataId } from "@/lib/stack-types";
 import { Chip, cn, Heading2, useCopyToClipboard } from "@breadcoop/ui";
+import { useChainPath } from "@/components/providers/active-chain";
 import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 
 function CopyGoalLink({ id }: { id: string }) {
   const [origin, setOrigin] = useState("");
+  const chainHref = useChainPath();
   const { copy, copied } = useCopyToClipboard({
-    textToCopy: `${origin}/goals/${id}`,
+    textToCopy: `${origin}${chainHref(`/goals/${id}`)}`,
   });
 
   useEffect(() => {
@@ -121,6 +123,7 @@ const GoalHeader = ({
   deadline: bigint | undefined;
 }) => {
   const now = useBlockTimestamp();
+  const chainHref = useChainPath();
   const { data: totalDeposited } = useGoalTotalDeposited(BigInt(id));
   const { data: stackMetadata } = useStackSupabase(
     stackMetadataId("goal", id),
@@ -146,7 +149,11 @@ const GoalHeader = ({
   return (
     <header className="flex flex-col mb-3.5 md:mb-6">
       <div className="flex flex-col items-start gap-2.5 mb-4 md:flex-row md:items-center md:justify-between md:flex-wrap">
-        <BackPage label="Return to Dashboard" href="/" className="m-0!" />
+        <BackPage
+          label="Return to Dashboard"
+          href={chainHref("/")}
+          className="m-0!"
+        />
         <CopyGoalLink id={id} />
       </div>
       <div className="flex flex-col flex-wrap gap-4 mb-5.25 sm:flex-row sm:items-center sm:justify-between md:order-first md:mb-7.25">

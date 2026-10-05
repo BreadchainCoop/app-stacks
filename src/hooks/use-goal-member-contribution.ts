@@ -1,14 +1,10 @@
 import { goalSavingCirclesAbi } from "@/lib/abis/goal-saving-circles";
-import { GOAL_SAVINGS_CONTRACT_ADDRESS } from "@/lib/constants";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+} from "@/components/providers/active-chain";
 import { Address, zeroAddress } from "viem";
 import { useReadContracts } from "wagmi";
-
-const goalContract = {
-  address: GOAL_SAVINGS_CONTRACT_ADDRESS,
-  abi: goalSavingCirclesAbi,
-  chainId: getDefaultChainId(),
-} as const;
 
 /**
  * A member's position in a goal: membership plus their current locked
@@ -20,6 +16,14 @@ export function useGoalMemberContribution(
 ) {
   const id = goalId ?? BigInt(0);
   const account = member ?? zeroAddress;
+
+  // Built per render rather than at module scope: the address and chain follow
+  // the active chain, which is only known inside a component.
+  const goalContract = {
+    address: useChainConfig().goalSavings,
+    abi: goalSavingCirclesAbi,
+    chainId: useActiveChainId(),
+  } as const;
 
   const result = useReadContracts({
     contracts: [

@@ -69,8 +69,8 @@ The `Database` type is the contract between the app and Postgres. Current tables
   filter on `chain_id` — an unscoped `.single()` sees more than one row, and `chain_id` is
   immutable. `stack_type` is `rosca` or `goal`; ROSCA rows keep their bare on-chain id,
   goals use a `goal:<id>` prefix so the id-spaces of the two contracts never collide (see
-  `src/lib/stack-types.ts`). Note those are independent: the prefix separates *contracts*,
-  `chain_id` separates *chains*. The invite link is `?circleId=` plus `&chain=` (and
+  `src/lib/stack-types.ts`). Note those are independent: the prefix separates _contracts_,
+  `chain_id` separates _chains_. The invite link is `?circleId=` plus `&chain=` (and
   `&type=goal` for goals) — no per-link state to store here.
 - **`join_requests`** — `id`, `chain_id`, `stack_id`, `user_id`, `wallet_address`, `status`
   (`pending` | `added` | `dismissed`), `created_at`. Records who has asked to join a stack

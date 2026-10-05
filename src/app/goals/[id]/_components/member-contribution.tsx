@@ -26,11 +26,8 @@ import {
 import { useState } from "react";
 import { zeroAddress } from "viem";
 import { useGoalAction } from "./use-goal-action";
-import {
-  DEPOSIT_TOKEN,
-  formatDepositAmount,
-  parseDepositAmount,
-} from "@/lib/deposit-token";
+import { formatDepositAmount, parseDepositAmount } from "@/lib/deposit-token";
+import { useDepositToken } from "@/components/providers/active-chain";
 
 const MemberContribution = ({
   goalId,
@@ -49,8 +46,11 @@ const MemberContribution = ({
   const { data: totalDeposited } = useGoalTotalDeposited(goalId);
   const { runGoalAction } = useGoalAction(goal.token);
   const [amountInput, setAmountInput] = useState("");
+  const depositToken = useDepositToken();
 
-  const amount = amountInput ? parseDepositAmount(amountInput) : BigInt(0);
+  const amount = amountInput
+    ? parseDepositAmount(amountInput, depositToken.decimals)
+    : BigInt(0);
   const hasAmount = amount > BigInt(0);
 
   const nowSeconds = BigInt(Math.floor(now / 1000));
@@ -117,9 +117,12 @@ const MemberContribution = ({
           <Logo size={24} variant="square" className="mr-1" />
           <span className="font-bold mt-[0.2rem]">
             {position !== undefined
-              ? formatBalance(+formatDepositAmount(contribution), 2)
+              ? formatBalance(
+                  +formatDepositAmount(contribution, depositToken.decimals),
+                  2
+                )
               : "-"}{" "}
-            {DEPOSIT_TOKEN.symbol}
+            {depositToken.symbol}
           </span>
         </span>
       </Body>
@@ -134,7 +137,7 @@ const MemberContribution = ({
           />
           <div className="absolute top-1/2 -translate-y-1/2 right-3 p-1 bg-paper-main">
             <Logo
-              text={DEPOSIT_TOKEN.symbol}
+              text={depositToken.symbol}
               className="size-6"
               variant="square"
             />

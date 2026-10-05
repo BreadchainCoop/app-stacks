@@ -5,6 +5,7 @@ import { Address } from "viem";
 import { usePreferredEnsName } from "@/hooks/use-preferred-ens-name";
 import { useMemberAlias } from "@/hooks/use-member-aliases";
 import { formatAddress } from "@/utils/address";
+import { useChainPath } from "@/components/providers/active-chain";
 
 /**
  * Resolve an address to its best human-readable label:
@@ -64,6 +65,7 @@ export function DisplayName({
   className?: string;
 }) {
   const { displayName } = useDisplayName(address);
+  const chainHref = useChainPath();
 
   const label = (
     <span
@@ -77,7 +79,7 @@ export function DisplayName({
 
   return (
     <Link
-      href={`/account/${address}`}
+      href={chainHref(`/account/${address}`)}
       className="hover:text-primary-blue"
       onClick={(e) => e.stopPropagation()}
     >

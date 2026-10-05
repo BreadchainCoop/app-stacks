@@ -23,7 +23,12 @@ import { shortenUrl } from "@/utils/shorten";
 import { stackMetadataId, stackTypeDetailPath } from "@/lib/stack-types";
 import { formatAddress } from "@/utils/address";
 import { formatShortDate } from "@/utils/time";
-import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
+import { formatDepositAmount } from "@/lib/deposit-token";
+import {
+  useActiveChainId,
+  useChainPath,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 
 export function buildInviteUrl(baseUrl: string, goalId: string): string {
   const url = new URL(baseUrl);
@@ -40,6 +45,9 @@ export const GoalSuccessResultModal = ({
 }) => {
   const { userId } = useUserIdentity();
   const modal = useModal();
+  const depositToken = useDepositToken();
+  const chainId = useActiveChainId();
+  const chainHref = useChainPath();
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [inviteUrl, setInviteUrl] = useState("");
@@ -50,7 +58,9 @@ export const GoalSuccessResultModal = ({
     setError(null);
 
     try {
-      const baseUrl = `${window.location.origin}/stacks/join`;
+      // buildInviteUrl merges into whatever query string chainHref produced;
+      // string concatenation here would emit a second "?".
+      const baseUrl = `${window.location.origin}${chainHref("/stacks/join")}`;
       const url = buildInviteUrl(baseUrl, modalState.goal.id);
 
       let shortUrl = url;
@@ -68,6 +78,7 @@ export const GoalSuccessResultModal = ({
           stackname: modalState.goal.name,
           expected_members: modalState.goal.members,
           privyUserId: userId,
+          chainId,
         }),
       });
 
@@ -154,9 +165,12 @@ export const GoalSuccessResultModal = ({
                 <RowDetail
                   label="Goal amount"
                   body={`${formatBalance(
-                    +formatDepositAmount(modalState.goal.goalAmount),
+                    +formatDepositAmount(
+                      modalState.goal.goalAmount,
+                      depositToken.decimals
+                    ),
                     2
-                  )} ${DEPOSIT_TOKEN.symbol}`}
+                  )} ${depositToken.symbol}`}
                 />
                 <RowDetail
                   label="Deadline"
@@ -179,7 +193,7 @@ export const GoalSuccessResultModal = ({
       </div>
       <LocalButton
         as={Link}
-        href={stackTypeDetailPath("goal", modalState.goal.id)}
+        href={chainHref(stackTypeDetailPath("goal", modalState.goal.id))}
         className="w-full"
         onClick={() => modal.setModal(null)}
         rightIcon={<ArrowRightIcon size={24} />}

@@ -1,6 +1,8 @@
 import { goalSavingCirclesAbi } from "@/lib/abis/goal-saving-circles";
-import { GOAL_SAVINGS_CONTRACT_ADDRESS } from "@/lib/constants";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+} from "@/components/providers/active-chain";
 import { useReadContract } from "wagmi";
 
 /**
@@ -9,14 +11,14 @@ import { useReadContract } from "wagmi";
  */
 export function useGoalContributions(goalId: bigint | undefined) {
   const result = useReadContract({
-    address: GOAL_SAVINGS_CONTRACT_ADDRESS,
+    address: useChainConfig().goalSavings,
     abi: goalSavingCirclesAbi,
     functionName: "getMemberContributions",
     args: goalId !== undefined ? [goalId] : undefined,
     query: {
       enabled: goalId !== undefined,
     },
-    chainId: getDefaultChainId(),
+    chainId: useActiveChainId(),
   });
 
   const [members, amounts] = result.data ?? [];
