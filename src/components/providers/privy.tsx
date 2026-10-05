@@ -6,32 +6,31 @@ import { SupabaseProvider } from "./supabase";
 import { ModalProvider } from "../modal/context";
 import { BreadUIKitProvider, ConnectedUserProvider } from "@breadcoop/ui";
 import { clientEnv } from "@/lib/env";
-import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
-import { erc20Abi } from "viem";
+import { Address, Chain, erc20Abi } from "viem";
 import {
   PrivyClientConfig,
   PrivyProvider,
   WalletListEntry,
 } from "@privy-io/react-auth";
 import SepoliaAutoFund from "./sepolia-auto-fund";
-import { networks } from "@/utils/chain";
+import { getChainDetail } from "@/utils/chain";
+import { useActiveChainId, useDepositToken } from "./active-chain";
 import { PrivyTxSenderProvider } from "./tx-sender";
 import { PrivyUserIdentityProvider } from "./user-identity";
 import LoginTracker from "@/components/login-tracker";
 import { OnboardVisitorTracker } from "@/components/onboard/visitor-tracker";
 
-const tokenConfig: ComponentProps<typeof BreadUIKitProvider>["tokenConfig"] = {
+const tokenConfig = (
+  address: Address
+): ComponentProps<typeof BreadUIKitProvider>["tokenConfig"] => ({
   BREAD: {
-    address: DEPOSIT_TOKEN.address,
+    address,
     abi: erc20Abi,
   },
-};
+});
 
 // TODO: Provide our RPC_URL -> gnosis / sepolia / depending on the NEXT_PUBLIC_CHAIN_ID
 // const gnosisOverride = addRpcUrlOverrideToChain(gnosis, "")
-
-const _chain =
-  networks[clientEnv.NEXT_PUBLIC_CHAIN_ID as keyof typeof networks].chain;
 
 const walletLists: WalletListEntry[] = [
   "metamask",
@@ -40,9 +39,9 @@ const walletLists: WalletListEntry[] = [
   "detected_ethereum_wallets",
 ];
 
-const privyConfig = (isMobile: boolean): PrivyClientConfig => ({
-  defaultChain: _chain,
-  supportedChains: [_chain],
+const privyConfig = (isMobile: boolean, chain: Chain): PrivyClientConfig => ({
+  defaultChain: chain,
+  supportedChains: [chain],
   embeddedWallets: {
     showWalletUIs: false,
     ethereum: {
@@ -64,19 +63,22 @@ const PrivyProviders = ({
   children: ReactNode;
   isMobile: boolean;
 }) => {
+  const chainId = useActiveChainId();
+  const depositToken = useDepositToken();
+
   return (
     <>
       <PrivyProvider
         appId={clientEnv.NEXT_PUBLIC_PRIVY_APP_ID}
         clientId={clientEnv.NEXT_PUBLIC_PRIVY_CLIENT_ID}
-        config={privyConfig(isMobile)}
+        config={privyConfig(isMobile, getChainDetail(chainId))}
       >
         <SupabaseProvider>
           <Web3Provider>
             <BreadUIKitProvider
               app="stacks"
-              chainId={clientEnv.NEXT_PUBLIC_CHAIN_ID}
-              tokenConfig={tokenConfig}
+              chainId={chainId}
+              tokenConfig={tokenConfig(depositToken.address)}
               authProvider="privy"
             >
               <ConnectedUserProvider>

@@ -7,10 +7,12 @@ import {
   ContractFunctionArgs,
   Address,
 } from "viem";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { useSponsoredTx } from "./use-sponsored-tx";
 import { useConnectedUser } from "@breadcoop/ui";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+} from "@/components/providers/active-chain";
 import { useWaitForTxReceipt } from "./use-wait-for-tx-receipt";
 
 type MutableFunctionName<TAbi extends Abi> = ContractFunctionName<
@@ -44,12 +46,14 @@ export const useSimulateAndSponsorTx = () => {
     user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
       ? user.address
       : undefined;
+  const chainId = useActiveChainId();
+  const { savingCircles } = useChainConfig();
 
   const simulateAndSponsorTx = async <
     TAbi extends Abi,
     TFunctionName extends MutableFunctionName<TAbi>,
   >({
-    address = SAVING_CIRCLES_CONTRACT_ADDRESS,
+    address = savingCircles,
     abi,
     functionName,
     args,
@@ -66,7 +70,7 @@ export const useSimulateAndSponsorTx = () => {
       functionName,
       args,
       account,
-      chainId: getDefaultChainId(),
+      chainId,
       value,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);

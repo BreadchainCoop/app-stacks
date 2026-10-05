@@ -1,9 +1,10 @@
 "use client";
 
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { clientEnv } from "@/lib/env";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+} from "@/components/providers/active-chain";
 import { paginateLogs } from "@/utils/paginate-logs";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Address, getAbiItem } from "viem";
@@ -46,10 +47,12 @@ const MAX_ENTRIES = 25;
 const STALE_TIME = 60_000;
 
 export function useAccountHistory(address: Address | undefined) {
-  const publicClient = usePublicClient({ chainId: getDefaultChainId() });
+  const chainId = useActiveChainId();
+  const publicClient = usePublicClient({ chainId });
+  const { savingCircles, contractCreationBlock } = useChainConfig();
 
   const { data, ...result } = useQuery<AccountHistoryEntry[]>({
-    queryKey: ["accountHistory", address?.toLowerCase()],
+    queryKey: ["accountHistory", chainId, address?.toLowerCase()],
     enabled: Boolean(publicClient) && Boolean(address),
     refetchOnWindowFocus: false,
     placeholderData: keepPreviousData,
@@ -57,9 +60,7 @@ export function useAccountHistory(address: Address | undefined) {
     queryFn: async ({ signal }): Promise<AccountHistoryEntry[]> => {
       if (!publicClient || !address) return [];
 
-      const fromBlock = BigInt(
-        clientEnv.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK
-      );
+      const fromBlock = contractCreationBlock;
       // Resolve the head once so both scans cover an identical range. Letting
       // each resolve "latest" independently can land them on different blocks,
       // which would show a withdrawal without its paired deposit at the edge.
@@ -70,7 +71,7 @@ export function useAccountHistory(address: Address | undefined) {
           publicClient,
           event: FUNDS_DEPOSITED_EVENT,
           args: { member: address },
-          address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+          address: savingCircles,
           fromBlock,
           toBlock,
           signal,
@@ -79,7 +80,7 @@ export function useAccountHistory(address: Address | undefined) {
           publicClient,
           event: FUNDS_WITHDRAWN_EVENT,
           args: { member: address },
-          address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+          address: savingCircles,
           fromBlock,
           toBlock,
           signal,

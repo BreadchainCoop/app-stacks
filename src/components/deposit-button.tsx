@@ -5,9 +5,12 @@ import { formatAmount } from "@/utils/format-amount";
 import { useModal } from "./modal/context";
 import { useReadContract } from "wagmi";
 import { Address, encodeFunctionData, erc20Abi } from "viem";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { useMemo, useState } from "react";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 import { useQueryClient } from "@tanstack/react-query";
 import Loading from "@/app/loading";
 import { MAX_UINT256 } from "@/utils/solidity";
@@ -16,7 +19,7 @@ import { useWaitForTxReceipt } from "@/hooks/use-wait-for-tx-receipt";
 import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { DEPOSIT_ERRORS } from "@/lib/contract-errors";
-import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
+import { formatDepositAmount } from "@/lib/deposit-token";
 import { useIsMiniPay } from "@/components/providers/is-minipay";
 import LocalButton from "./button";
 
@@ -37,7 +40,9 @@ const DepositButton = ({
   circleId,
   ...props
 }: DepositButtonProps) => {
+  const depositToken = useDepositToken();
   const [depositing, setDepositing] = useState(false);
+  const { savingCircles } = useChainConfig();
   const queryClient = useQueryClient();
   const { sendSponsoredTransaction } = useSponsoredTx();
   const { waitForTxReceipt } = useWaitForTxReceipt();
@@ -51,9 +56,9 @@ const DepositButton = ({
     address: tokenAddress,
     abi: erc20Abi,
     functionName: "allowance",
-    args: [userAddress!, SAVING_CIRCLES_CONTRACT_ADDRESS],
+    args: [userAddress!, savingCircles],
     query: { enabled: !!userAddress },
-    chainId: getDefaultChainId(),
+    chainId: useActiveChainId(),
   });
 
   const { data: balance = BigInt(0) } = useReadContract({
@@ -62,7 +67,7 @@ const DepositButton = ({
     functionName: "balanceOf",
     args: [userAddress!],
     query: { enabled: !!userAddress },
-    chainId: getDefaultChainId(),
+    chainId: useActiveChainId(),
   });
 
   const needsApproval = useMemo(() => {
@@ -73,7 +78,10 @@ const DepositButton = ({
   const hasInsufficientBalance = !!userAddress && balance < amount;
 
   const missingAmount = hasInsufficientBalance
-    ? formatAmount(Number(formatDepositAmount(amount - balance)), 2)
+    ? formatAmount(
+        Number(formatDepositAmount(amount - balance, depositToken.decimals)),
+        2
+      )
     : null;
 
   const deposit = async () => {
@@ -85,7 +93,7 @@ const DepositButton = ({
       modal.setModal({
         type: "DEPOSIT_RESULT",
         result: "error",
-        msg: `You don't have enough ${DEPOSIT_TOKEN.symbol} to make this deposit.`,
+        msg: `You don't have enough ${depositToken.symbol} to make this deposit.`,
         insufficientBalance: true,
       });
       return;
@@ -99,7 +107,7 @@ const DepositButton = ({
         const approveData = encodeFunctionData({
           abi: erc20Abi,
           functionName: "approve",
-          args: [SAVING_CIRCLES_CONTRACT_ADDRESS, MAX_UINT256],
+          args: [savingCircles, MAX_UINT256],
         });
 
         const { hash: approveHash } = await sendSponsoredTransaction({
@@ -146,7 +154,7 @@ const DepositButton = ({
           <Loading />
         </span>
       ) : hasInsufficientBalance ? (
-        `Need ${missingAmount} More ${DEPOSIT_TOKEN.symbol}`
+        `Need ${missingAmount} More ${depositToken.symbol}`
       ) : (
         label
       )}

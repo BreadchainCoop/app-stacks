@@ -1,14 +1,18 @@
-import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
 import { breadAbi } from "@/lib/abis/bread-abi";
 import { useSponsoredTx } from "./use-sponsored-tx";
 import { useWaitForTxReceipt } from "./use-wait-for-tx-receipt";
 import { isCeloChain } from "@/utils/celo";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 import { Address, encodeFunctionData } from "viem";
 
 export const useAutoBakeBread = () => {
+  const depositToken = useDepositToken();
   const { sendSponsoredTransaction } = useSponsoredTx();
   const { waitForTxReceipt } = useWaitForTxReceipt();
+  const chainId = useActiveChainId();
 
   const autoBakeBread = async ({
     receiver,
@@ -17,7 +21,7 @@ export const useAutoBakeBread = () => {
     receiver: Address;
     amount: bigint;
   }) => {
-    if (isCeloChain(getDefaultChainId())) {
+    if (isCeloChain(chainId)) {
       throw new Error("Baking BREAD is not supported on Celo");
     }
     if (amount <= BigInt(0)) return;
@@ -30,7 +34,7 @@ export const useAutoBakeBread = () => {
 
     const { hash } = await sendSponsoredTransaction(
       {
-        to: DEPOSIT_TOKEN.address,
+        to: depositToken.address,
         data,
         value: amount,
       },

@@ -6,8 +6,10 @@ import { useReadContract } from "wagmi";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useCircleMembersWithBalances } from "@/hooks/use-circle-members";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+} from "@/components/providers/active-chain";
 import type { CircleData } from ".";
 
 const SummaryBox = ({ label, value }: { label: string; value: string }) => (
@@ -37,11 +39,11 @@ const ClaimScheduleSummary = ({
 
   // The member's own withdrawal status — drives the "Claimed" value below.
   const { data: userClaimed } = useReadContract({
-    address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+    address: useChainConfig().savingCircles,
     abi: savingCirclesAbi,
     functionName: "hasClaimed",
     args: address ? [BigInt(id), address as Address] : undefined,
-    chainId: getDefaultChainId(),
+    chainId: useActiveChainId(),
     query: { enabled: Boolean(address) },
   });
 

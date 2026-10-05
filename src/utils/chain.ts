@@ -1,4 +1,3 @@
-import { clientEnv } from "@/lib/env";
 import { foundryChain } from "@/lib/wagmi";
 import { celo, celoSepolia, gnosis, sepolia } from "viem/chains";
 
@@ -25,9 +24,7 @@ export const networks = {
   },
 };
 
-export const getDefaultChainId = () => clientEnv.NEXT_PUBLIC_CHAIN_ID;
+export const getNetwork = (chainId: number) =>
+  networks[chainId as keyof typeof networks];
 
-export const getDefaultNetwork = () =>
-  networks[getDefaultChainId() as keyof typeof networks];
-
-export const getDefaultChainDetail = () => getDefaultNetwork().chain;
+export const getChainDetail = (chainId: number) => getNetwork(chainId).chain;

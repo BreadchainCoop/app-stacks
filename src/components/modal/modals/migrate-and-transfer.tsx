@@ -4,6 +4,10 @@ import { useState } from "react";
 import { ModalContainer, ModalHeader, ModalStatus } from "../components";
 import { MigrateAndTransferModalState, useModal } from "../context";
 import {
+  useActiveChainId,
+  useDepositToken,
+} from "@/components/providers/active-chain";
+import {
   Body,
   formatBalance,
   FormattedDecimalNumber,
@@ -14,8 +18,6 @@ import { usePrivy } from "@privy-io/react-auth";
 import { getGasPrice } from "@wagmi/core";
 import LocalButton from "@/components/button";
 import BreadInfoNote from "@/components/bread-info-note";
-import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
-import { clientEnv } from "@/lib/env";
 import { wagmiConfig } from "@/components/providers/web3";
 import { useEmbeddedWalletBalances } from "@/hooks/use-embedded-wallet-balances";
 import { useSimulateAndSponsorTx } from "@/hooks/use-simulate-and-sponsor-tx";
@@ -40,8 +42,10 @@ const MigrateAndTransferModal = ({
 }: {
   modalState: MigrateAndTransferModalState;
 }) => {
+  const depositToken = useDepositToken();
   const { embeddedAddress, externalAddress } = modalState;
   const { setModal } = useModal();
+  const chainId = useActiveChainId();
   const { user: privyUser } = usePrivy();
   const { simulateAndSponsorTx } = useSimulateAndSponsorTx();
   const { sendSponsoredTransaction } = useSponsoredTx();
@@ -75,7 +79,7 @@ const MigrateAndTransferModal = ({
     try {
       if (breadBalance && breadBalance.value > BigInt(0)) {
         await simulateAndSponsorTx({
-          address: DEPOSIT_TOKEN.address,
+          address: depositToken.address,
           abi: erc20Abi,
           functionName: "transfer",
           args: [externalAddress, breadBalance.value],
@@ -100,12 +104,12 @@ const MigrateAndTransferModal = ({
         // so sweeping the full balance as `value` leaves nothing for it and
         // the tx fails with "insufficient funds for gas" — reserve an
         // estimated gas cost (with a buffer for price movement) first.
-        const isSponsored = clientEnv.NEXT_PUBLIC_CHAIN_ID === 100;
+        const isSponsored = chainId === 100;
         let amountToSend = currentXdaiBalance.value;
 
         if (!isSponsored) {
           const gasPrice = await getGasPrice(wagmiConfig, {
-            chainId: clientEnv.NEXT_PUBLIC_CHAIN_ID,
+            chainId: chainId,
           });
           const gasReserve =
             (NATIVE_TRANSFER_GAS * gasPrice * BigInt(3)) / BigInt(2);

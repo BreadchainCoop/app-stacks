@@ -1,9 +1,11 @@
 import { useMemo } from "react";
 import { useReadContract } from "wagmi";
 import { savingCirclesViewerAbi } from "@/lib/abis/saving-circles-viewers";
-import { SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS } from "@/lib/constants";
 import { CircleState, RoundState } from "@/lib/circle-state";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+} from "@/components/providers/active-chain";
 
 /**
  * Reads the contract's canonical `CircleState` and `RoundState` for a batch of
@@ -16,12 +18,12 @@ import { getDefaultChainId } from "@/utils/chain";
  */
 export function useCirclesState(circleIds: bigint[]) {
   const { data, isLoading, error, refetch } = useReadContract({
-    address: SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS,
+    address: useChainConfig().savingCirclesViewer,
     abi: savingCirclesViewerAbi,
     functionName: "getCirclesState",
     args: [circleIds],
     query: { enabled: circleIds.length > 0 },
-    chainId: getDefaultChainId(),
+    chainId: useActiveChainId(),
   });
 
   const stateById = useMemo(() => {

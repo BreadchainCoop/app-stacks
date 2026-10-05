@@ -6,6 +6,7 @@ import { IFormattedUserCircleStatusResult } from "@/lib/get-user-circle-status";
 import { formatAmount } from "@/utils/format-amount";
 import { Body } from "@breadcoop/ui";
 import { formatDepositAmount } from "@/lib/deposit-token";
+import { useDepositToken } from "@/components/providers/active-chain";
 
 const failedStatuses: ICircleStatus[] = [
   "decommissioned",
@@ -29,6 +30,7 @@ const OverallStacked = ({
   circleStartsTimestamp: bigint;
   depositInterval: bigint;
 }) => {
+  const depositToken = useDepositToken();
   const isFailedStack = failedStatuses.includes(status.status);
 
   const fundsDeposited = useFundsDeposited({
@@ -48,7 +50,10 @@ const OverallStacked = ({
       <Body>
         $
         {formatAmount(
-          +formatDepositAmount(fundsDeposited.data.totalDeposit),
+          +formatDepositAmount(
+            fundsDeposited.data.totalDeposit,
+            depositToken.decimals
+          ),
           2
         )}
       </Body>

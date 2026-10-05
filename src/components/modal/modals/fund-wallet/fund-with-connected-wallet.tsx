@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { usePrivy, WalletWithMetadata } from "@privy-io/react-auth";
 import { Address, formatEther } from "viem";
@@ -5,13 +7,9 @@ import FundButton, { FundButtonProps } from "./fund-button";
 import { Body } from "@breadcoop/ui";
 import { formatAmount } from "@/utils/format-amount";
 import { usePublicClient } from "wagmi";
-import { clientEnv } from "@/lib/env";
 import { isCeloChain } from "@/utils/celo";
 import { useModal } from "../../context";
-
-// Native-balance hint and the "More" (LiFi) section are Gnosis-only; on Celo
-// the native token is CELO, which MiniPay rules say must never be shown.
-const isCelo = isCeloChain(clientEnv.NEXT_PUBLIC_CHAIN_ID);
+import { useActiveChainId } from "@/components/providers/active-chain";
 
 const walletIconMap = {
   binance: "/public/binance.svg",
@@ -29,9 +27,11 @@ const FundWithConnectedWalletContent = ({
   wallet?: string;
   walletAddress?: Address;
 }) => {
-  const publicClient = usePublicClient({
-    chainId: clientEnv.NEXT_PUBLIC_CHAIN_ID,
-  });
+  // Native-balance hint and the "More" (LiFi) section are Gnosis-only; on Celo
+  // the native token is CELO, which MiniPay rules say must never be shown.
+  const chainId = useActiveChainId();
+  const isCelo = isCeloChain(chainId);
+  const publicClient = usePublicClient({ chainId });
   const { setModal } = useModal();
   const [xDaiBalance, setXDaiBalance] = useState<string | null>(null);
 
@@ -83,6 +83,7 @@ const FundWithConnectedWallet = ({
 }: {
   handleListerForXDai: (v: boolean) => void;
 }) => {
+  const isCelo = isCeloChain(useActiveChainId());
   const [walletExtension, setWalletExtension] = useState<
     "loading" | "installed" | "uninstalled"
   >("loading");

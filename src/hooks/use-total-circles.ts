@@ -1,14 +1,16 @@
 import { useReadContract } from "wagmi";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../lib/constants";
 import { savingCirclesAbi } from "../lib/abis/saving-circles";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+} from "@/components/providers/active-chain";
 
 export function useTotalCircles() {
   const { data, isLoading } = useReadContract({
-    address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+    address: useChainConfig().savingCircles,
     abi: savingCirclesAbi,
     functionName: "nextId",
-    chainId: getDefaultChainId(),
+    chainId: useActiveChainId(),
   });
 
   return {

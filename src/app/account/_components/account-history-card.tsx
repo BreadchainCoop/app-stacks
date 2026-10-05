@@ -19,11 +19,17 @@ import {
 import { Address } from "viem";
 import { formatDepositAmount } from "@/lib/deposit-token";
 import { explorerTxUrl } from "@/utils/network";
+import {
+  useActiveChainId,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 
 const cardClass =
   "border border-paper-1 bg-paper-0 p-6 shadow-[0px_4px_12px_0px_#1B201A26] md:p-8";
 
 const AccountHistoryCard = ({ address }: { address: Address }) => {
+  const depositToken = useDepositToken();
+  const chainId = useActiveChainId();
   const isOwner = useIsOwnAddress(address);
   const { history, isLoading } = useAccountHistory(address);
   const { user } = useConnectedUser();
@@ -54,7 +60,7 @@ const AccountHistoryCard = ({ address }: { address: Address }) => {
             const isDeposit = entry.type === "deposit";
             const stackName = getName(entry.circleId.toString());
             const amount = formatBalance(
-              Number(formatDepositAmount(entry.amount)),
+              Number(formatDepositAmount(entry.amount, depositToken.decimals)),
               2
             );
 
@@ -84,7 +90,7 @@ const AccountHistoryCard = ({ address }: { address: Address }) => {
                       <>
                         <CopyButtonIcon textToCopy={entry.txHash} />
                         <a
-                          href={explorerTxUrl(entry.txHash)}
+                          href={explorerTxUrl(chainId, entry.txHash)}
                           target="_blank"
                           rel="noopener noreferrer"
                           aria-label="View transaction on block explorer"

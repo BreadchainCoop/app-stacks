@@ -11,8 +11,10 @@ import { Label } from "@/components/label";
 import LocalButton from "@/components/button";
 import Loading from "@/app/loading";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+} from "@/components/providers/active-chain";
 import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
 import { useResolveInvitee } from "@/hooks/use-resolve-invitee";
 import { parseContractError } from "@/utils/parse-contract-error";
@@ -58,26 +60,26 @@ const AddMembersCard = ({
 
   const { data: members } = useReadContract({
     abi: savingCirclesAbi,
-    address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+    address: useChainConfig().savingCircles,
     functionName: "getCircleMembers",
     args: [circleId],
-    chainId: getDefaultChainId(),
+    chainId: useActiveChainId(),
   });
 
   const { data: maxMembers } = useReadContract({
     abi: savingCirclesAbi,
-    address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+    address: useChainConfig().savingCircles,
     functionName: "MAX_MEMBERS",
     args: [],
-    chainId: getDefaultChainId(),
+    chainId: useActiveChainId(),
   });
 
   const { data: circle } = useReadContract({
     abi: savingCirclesAbi,
-    address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+    address: useChainConfig().savingCircles,
     functionName: "getCircle",
     args: [circleId],
-    chainId: getDefaultChainId(),
+    chainId: useActiveChainId(),
   });
 
   const memberCount = members?.length ?? 0;

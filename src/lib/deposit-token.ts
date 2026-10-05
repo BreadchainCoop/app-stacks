@@ -1,16 +1,11 @@
-import { Address, formatUnits, parseUnits } from "viem";
-import { clientEnv } from "./env";
+import { formatUnits, parseUnits } from "viem";
 
-// The deposit currency for this deployment: BREAD on Gnosis (18 decimals),
-// USDT/USDC/USDm on Celo (6/6/18 decimals).
-export const DEPOSIT_TOKEN = {
-  address: clientEnv.NEXT_PUBLIC_DEPOSIT_TOKEN_ADDRESS as Address,
-  symbol: clientEnv.NEXT_PUBLIC_DEPOSIT_TOKEN_SYMBOL,
-  decimals: clientEnv.NEXT_PUBLIC_DEPOSIT_TOKEN_DECIMALS,
-} as const;
+// The deposit currency is per-chain (BREAD on Gnosis, USDT/USDC/USDm on Celo),
+// so decimals are passed in rather than read from a module constant. In a
+// component tree that's `useDepositToken().decimals`; in a pure helper, take
+// it as a parameter rather than reaching for the active chain.
+export const formatDepositAmount = (value: bigint, decimals: number): string =>
+  formatUnits(value, decimals);
 
-export const formatDepositAmount = (value: bigint): string =>
-  formatUnits(value, DEPOSIT_TOKEN.decimals);
-
-export const parseDepositAmount = (value: string): bigint =>
-  parseUnits(value, DEPOSIT_TOKEN.decimals);
+export const parseDepositAmount = (value: string, decimals: number): bigint =>
+  parseUnits(value, decimals);

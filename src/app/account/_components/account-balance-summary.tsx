@@ -9,29 +9,33 @@ import { Body, Caption, formatBalance } from "@breadcoop/ui";
 import { CoinsIcon } from "@phosphor-icons/react";
 import { Address, erc20Abi } from "viem";
 import { useReadContract } from "wagmi";
-import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
-import { getDefaultChainId } from "@/utils/chain";
+import { formatDepositAmount } from "@/lib/deposit-token";
+import {
+  useActiveChainId,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 import { useIsMiniPay } from "@/components/providers/is-minipay";
 import { MINIPAY_ADD_CASH_URL } from "@/utils/minipay";
 
 const AccountBalanceSummary = ({ address }: { address: Address }) => {
+  const depositToken = useDepositToken();
   const { setModal } = useModal();
   const isMiniPay = useIsMiniPay();
   const isOwner = useIsOwnAddress(address);
   // Read directly instead of @breadcoop/ui's useBreadBalance, which hardcodes
   // 18 decimals and misreports 6-decimal deposit tokens (USDT/USDC on Celo).
   const { data, isLoading } = useReadContract({
-    address: DEPOSIT_TOKEN.address,
+    address: depositToken.address,
     abi: erc20Abi,
     functionName: "balanceOf",
     args: [address],
-    chainId: getDefaultChainId(),
+    chainId: useActiveChainId(),
     query: { enabled: Boolean(address) },
   });
 
   // A zero balance is a real answer, so gate the spinner on the read itself
   // rather than on the value being truthy.
-  const balance = formatDepositAmount(data ?? BigInt(0));
+  const balance = formatDepositAmount(data ?? BigInt(0), depositToken.decimals);
 
   return (
     <div className="flex flex-col items-center gap-3 text-center">
@@ -52,7 +56,7 @@ const AccountBalanceSummary = ({ address }: { address: Address }) => {
               decimalPartClassName="text-4xl font-bold text-surface-ink md:text-5xl"
             />
             <Caption className="text-surface-grey">
-              {formatBalance(+balance, 2)} {DEPOSIT_TOKEN.symbol}
+              {formatBalance(+balance, 2)} {depositToken.symbol}
             </Caption>
           </>
         )}

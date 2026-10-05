@@ -1,11 +1,12 @@
 import { TxSender, useTxSender } from "@/components/providers/tx-sender";
-import { getDefaultChainId } from "@/utils/chain";
+import { useActiveChainId } from "@/components/providers/active-chain";
 
 export const useSponsoredTx = () => {
   const sendTx = useTxSender();
+  const chainId = useActiveChainId();
 
   const sendSponsoredTransaction: TxSender = async (input, options) => {
-    return sendTx({ ...input, chainId: getDefaultChainId() }, options);
+    return sendTx({ ...input, chainId }, options);
   };
 
   return { sendSponsoredTransaction };

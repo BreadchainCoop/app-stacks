@@ -1,8 +1,7 @@
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { clientEnv } from "@/lib/env";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Address } from "viem";
 import { usePublicClient } from "wagmi";
+import { useChainConfig } from "@/components/providers/active-chain";
 
 export const useGetLastDeposit = ({
   circleId,
@@ -14,6 +13,7 @@ export const useGetLastDeposit = ({
   member?: Address;
 }) => {
   const publicClient = usePublicClient();
+  const { savingCircles, contractCreationBlock } = useChainConfig();
 
   const queryKey = ["lastDeposit", circleId, member].filter(
     (i) => i !== undefined
@@ -28,7 +28,7 @@ export const useGetLastDeposit = ({
       if (!publicClient) return null;
 
       const logs = await publicClient.getLogs({
-        address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+        address: savingCircles,
         event: {
           type: "event",
           name: "FundsDeposited",
@@ -42,9 +42,7 @@ export const useGetLastDeposit = ({
           _id: BigInt(circleId),
           _member: member,
         },
-        fromBlock: BigInt(
-          clientEnv.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK
-        ),
+        fromBlock: contractCreationBlock,
         toBlock: "latest",
       });
 

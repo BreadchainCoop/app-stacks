@@ -10,8 +10,10 @@ import { useMemberAlias } from "@/hooks/use-member-aliases";
 import { useIsOwnAddress } from "@/hooks/use-is-own-address";
 import { formatAddress } from "@/utils/address";
 import { explorerAddressUrl } from "@/utils/network";
+import { useActiveChainId } from "@/components/providers/active-chain";
 
 const AccountProfileCard = ({ address }: { address: Address }) => {
+  const chainId = useActiveChainId();
   const isOwner = useIsOwnAddress(address);
   const { userId } = useUserIdentity();
   const { setModal } = useModal();
@@ -47,7 +49,7 @@ const AccountProfileCard = ({ address }: { address: Address }) => {
           <Body className="text-surface-grey">{formatAddress(address)}</Body>
           <CopyButtonIcon textToCopy={address} />
           <a
-            href={explorerAddressUrl(address)}
+            href={explorerAddressUrl(chainId, address)}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="View on block explorer"

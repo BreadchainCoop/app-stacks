@@ -1,14 +1,17 @@
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+} from "@/components/providers/active-chain";
 import { Address } from "viem";
 import { useReadContracts } from "wagmi";
 
-const hasClaimedContract = {
-  address: SAVING_CIRCLES_CONTRACT_ADDRESS,
-  abi: savingCirclesAbi,
-  functionName: "hasClaimed",
-} as const;
+const hasClaimedContract = (address: Address) =>
+  ({
+    address,
+    abi: savingCirclesAbi,
+    functionName: "hasClaimed",
+  }) as const;
 
 /**
  * Whether each member has already taken their payout, keyed by lowercased
@@ -25,11 +28,13 @@ export function useMembersClaimed({
   circleId: string;
   members: readonly Address[];
 }) {
+  const chainId = useActiveChainId();
+  const { savingCircles } = useChainConfig();
   const { data, isLoading } = useReadContracts({
     contracts: members.map((member) => ({
-      ...hasClaimedContract,
+      ...hasClaimedContract(savingCircles),
       args: [BigInt(circleId), member],
-      chainId: getDefaultChainId(),
+      chainId,
     })),
     query: {
       enabled: members.length > 0,

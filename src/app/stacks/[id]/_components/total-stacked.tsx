@@ -1,3 +1,5 @@
+"use client";
+
 import { Body, Heading3, LoginButton, useConnectedUser } from "@breadcoop/ui";
 import { FormattedDecimalNumber } from "@/components/bread-ui-kit/formatted-decimal-number";
 import { useCircleStatus } from "@/hooks/use-circle-status";
@@ -17,6 +19,7 @@ import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { AutomaticClaim } from "./automatic-claim";
 import { useCircleState } from "@/hooks/use-circles-state";
 import { CircleState } from "@/lib/circle-state";
+import { useDepositToken } from "@/components/providers/active-chain";
 import {
   FAILED_STACK_STATUSES,
   getUserCircleStatus,
@@ -37,6 +40,7 @@ const TotalStacked = ({
   id: string;
   status: ReturnType<typeof useCircleStatus>;
 }) => {
+  const depositToken = useDepositToken();
   const userCircleData = useUserCircleData({ circleId: BigInt(id) });
   const { user } = useConnectedUser();
   const address =
@@ -72,7 +76,9 @@ const TotalStacked = ({
     if (circleNotStarted) {
       msg = "You can claim now or  later.";
     } else {
-      amount = Number(formatDepositAmount(claimableAmount));
+      amount = Number(
+        formatDepositAmount(claimableAmount, depositToken.decimals)
+      );
       msg = "You can claim now or later.";
     }
   }

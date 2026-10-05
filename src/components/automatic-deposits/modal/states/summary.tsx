@@ -2,7 +2,6 @@
 
 import LocalButton from "@/components/button";
 import { ModalContainer } from "@/components/modal/components";
-import { AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { formatAddress } from "@/utils/address";
 import { Body, Caption, Heading3 } from "@breadcoop/ui";
 import {
@@ -11,6 +10,10 @@ import {
   CalendarIcon,
   HandDepositIcon,
 } from "@phosphor-icons/react";
+import {
+  useActiveChainId,
+  useChainConfig,
+} from "@/components/providers/active-chain";
 import {
   automaticContractExplorerLink,
   BreadAmount,
@@ -35,7 +38,8 @@ export const SummaryState = ({
   onActivate: () => void;
 }) => {
   const { intervalLabel, perRoundLabel } = getIntervalLabels(depositInterval);
-  const contractLink = automaticContractExplorerLink();
+  const { automaticSavingCircles } = useChainConfig();
+  const contractLink = automaticContractExplorerLink(useActiveChainId());
 
   return (
     <ModalContainer className="max-w-142!">
@@ -60,13 +64,11 @@ export const SummaryState = ({
               rel="noopener noreferrer"
               className="flex items-center gap-1"
             >
-              {formatAddress(AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS)}
+              {formatAddress(automaticSavingCircles)}
               <ArrowUpRightIcon className="text-primary-blue" size={24} />
             </a>
           ) : (
-            <span>
-              {formatAddress(AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS)}
-            </span>
+            <span>{formatAddress(automaticSavingCircles)}</span>
           )}
         </SummaryRow>
         <SummaryRow label="Round duration">

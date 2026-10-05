@@ -1,6 +1,6 @@
 import { useBlock } from "wagmi";
 import { isLocalEnv as isLocal } from "@/lib/env";
-import { getDefaultChainId } from "@/utils/chain";
+import { useActiveChainId } from "@/components/providers/active-chain";
 
 /**
  * Returns the current timestamp in milliseconds.
@@ -13,7 +13,7 @@ import { getDefaultChainId } from "@/utils/chain";
 export function useBlockTimestamp(watch = false): number {
   const { data: block } = useBlock({
     watch: isLocal && watch,
-    chainId: getDefaultChainId(),
+    chainId: useActiveChainId(),
     query: { enabled: isLocal },
   });
 

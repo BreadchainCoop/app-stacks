@@ -1,23 +1,29 @@
 import { useModal } from "@/components/modal/context";
-import { clientEnv } from "@/lib/env";
-import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
 import { useConnectedUser } from "@breadcoop/ui";
+import { DepositTokenConfig } from "@/interfaces/chain-config";
+import {
+  useActiveChainId,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 import { useFundWallet as useFundPrivyWallet } from "@privy-io/react-auth";
 
-const tokens = {
+const fundingTokens = (depositToken: DepositTokenConfig) => ({
   xdai: {
+    erc20: undefined,
     receiveFundsTitle: "xDAI",
   },
   bread: {
-    erc20: DEPOSIT_TOKEN.address,
-    receiveFundsTitle: "BREAD",
+    erc20: depositToken.address,
+    receiveFundsTitle: depositToken.symbol,
   },
-};
+});
 
 export const useFundWallet = () => {
   const { setModal } = useModal();
   const { fundWallet: fundPrivyWallet } = useFundPrivyWallet();
   const connectedUser = useConnectedUser();
+  const chainId = useActiveChainId();
+  const tokens = fundingTokens(useDepositToken());
 
   const fundWallet = async (token?: "bread" | "xdai") => {
     if (!token) token = "bread";
@@ -30,7 +36,7 @@ export const useFundWallet = () => {
       address: connectedUser.user.address,
       options: {
         chain: {
-          id: clientEnv.NEXT_PUBLIC_CHAIN_ID,
+          id: chainId,
         },
         ...(token !== "xdai" && {
           asset: {

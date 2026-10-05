@@ -1,11 +1,14 @@
 import { useReadContract } from "wagmi";
-import { SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS } from "@/lib/constants";
 import { savingCirclesViewerAbi } from "@/lib/abis/saving-circles-viewers";
 import { Address } from "viem";
 import { formatDepositAmount } from "@/lib/deposit-token";
 import { ICircleList } from "@/interfaces/circle";
 import { useMemo } from "react";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 import { getUserCircleStatus } from "@/lib/get-user-circle-status";
 import { useBlockTimestamp } from "./use-block-timestamp";
 import { useCirclesState } from "./use-circles-state";
@@ -16,7 +19,8 @@ type UserCircleData = Parameters<typeof getUserCircleStatus>[0]["circle"];
 const parseCircleData = (
   c: UserCircleData,
   now: bigint,
-  circleState: CircleState
+  circleState: CircleState,
+  decimals: number
 ): ICircleList => {
   const totalRounds = c.totalRounds;
   const formattedStatus = getUserCircleStatus({
@@ -43,7 +47,7 @@ const parseCircleData = (
       ...circle,
       canWithdraw: true,
       withdrawAmount:
-        Number(formatDepositAmount(c.circleInfo.depositAmount)) *
+        Number(formatDepositAmount(c.circleInfo.depositAmount, decimals)) *
         Number(totalRounds),
     };
   }
@@ -55,13 +59,14 @@ const parseCircleData = (
 };
 
 export function useUserCirclesList(address: Address) {
+  const depositToken = useDepositToken();
   const blockTimestamp = useBlockTimestamp();
   const { data, isLoading, error } = useReadContract({
-    address: SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS,
+    address: useChainConfig().savingCirclesViewer,
     abi: savingCirclesViewerAbi,
     functionName: "getComprehensiveUserData",
     args: [address],
-    chainId: getDefaultChainId(),
+    chainId: useActiveChainId(),
     query: {
       enabled: Boolean(address),
     },
@@ -82,10 +87,11 @@ export function useUserCirclesList(address: Address) {
       parseCircleData(
         circle as UserCircleData,
         now,
-        stateById.get(circle.circleId.toString()) ?? CircleState.Active
+        stateById.get(circle.circleId.toString()) ?? CircleState.Active,
+        depositToken.decimals
       )
     );
-  }, [address, blockTimestamp, data, stateById]);
+  }, [address, blockTimestamp, data, stateById, depositToken.decimals]);
 
   return {
     circles,

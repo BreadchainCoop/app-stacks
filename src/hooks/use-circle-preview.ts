@@ -1,6 +1,8 @@
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+} from "@/components/providers/active-chain";
 import { useReadContract } from "wagmi";
 
 export const useCirclePreview = (circleId: string) => {
@@ -15,10 +17,10 @@ export const useCirclePreview = (circleId: string) => {
 
   return useReadContract({
     abi: savingCirclesAbi,
-    address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+    address: useChainConfig().savingCircles,
     functionName: "getCircle",
     args: [parsedId ?? BigInt(0)],
-    chainId: getDefaultChainId(),
+    chainId: useActiveChainId(),
     query: { enabled: parsedId !== undefined },
   });
 };

@@ -1,8 +1,9 @@
 "use client";
 
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { clientEnv } from "@/lib/env";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+} from "@/components/providers/active-chain";
 import { paginateLogs } from "@/utils/paginate-logs";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Address } from "viem";
@@ -57,16 +58,16 @@ export function useFundsDeposited({
   depositInterval,
 }: UseFundsDepositedParams) {
   const totalMembers = totalRounds;
-  const publicClient = usePublicClient({ chainId: getDefaultChainId() });
+  const chainId = useActiveChainId();
+  const { savingCircles, contractCreationBlock } = useChainConfig();
+  const publicClient = usePublicClient({ chainId });
   const circleEndsTimestamp =
     circleStartsTimestamp + BigInt(totalRounds) * depositInterval;
 
-  const defaultFromBlock = BigInt(
-    clientEnv.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK
-  );
+  const defaultFromBlock = contractCreationBlock;
 
   return useQuery<FundsDepositedData>({
-    queryKey: ["fundsDeposited", circleId],
+    queryKey: ["fundsDeposited", chainId, circleId],
     enabled: Boolean(publicClient) && enabled,
     refetchOnWindowFocus: false,
     placeholderData: keepPreviousData,
@@ -77,7 +78,7 @@ export function useFundsDeposited({
         publicClient,
         event: FUNDS_DEPOSITED_EVENT,
         args: { id: BigInt(circleId) },
-        address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+        address: savingCircles,
         fromBlock: fromBlock ?? defaultFromBlock,
         toBlock: toBlock ?? "latest",
         fromTimestamp: circleStartsTimestamp,

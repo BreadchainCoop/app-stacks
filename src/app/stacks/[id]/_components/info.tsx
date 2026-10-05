@@ -1,8 +1,12 @@
+"use client";
+
 import { DisplayName } from "@/components/display-name";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { clientEnv } from "@/lib/env";
 import { formatAddress } from "@/utils/address";
-import { networks } from "@/utils/chain";
+import { getNetwork } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+} from "@/components/providers/active-chain";
 import { Body, CopyButtonIcon } from "@breadcoop/ui";
 import { ArrowUpRightIcon } from "@phosphor-icons/react/ssr";
 import { ReactNode } from "react";
@@ -24,16 +28,18 @@ const StackInfoRow = ({
 };
 
 const StackInfo = ({ owner }: { owner: Address }) => {
+  const chainId = useActiveChainId();
+
   return (
     <div className="mt-6.5">
       <StackInfoRow label="Contract:">
         <a
-          href={`${networks[clientEnv.NEXT_PUBLIC_CHAIN_ID as keyof typeof networks].explorerUrl}/${SAVING_CIRCLES_CONTRACT_ADDRESS}`}
+          href={`${getNetwork(chainId).explorerUrl}/${useChainConfig().savingCircles}`}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-end gap-1"
         >
-          {formatAddress(SAVING_CIRCLES_CONTRACT_ADDRESS)}
+          {formatAddress(useChainConfig().savingCircles)}
           <ArrowUpRightIcon size={24} className="fill-blue-2" />
         </a>
       </StackInfoRow>

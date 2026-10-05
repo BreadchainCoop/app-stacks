@@ -1,7 +1,7 @@
 import { celo, celoSepolia } from "viem/chains";
 import { Address } from "viem";
 import { clientEnv } from "@/lib/env";
-import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
+import { getChainConfig } from "@/lib/chains";
 
 export const isCeloChain = (chainId: number): boolean =>
   chainId === celo.id || chainId === celoSepolia.id;
@@ -34,5 +34,7 @@ export const getFeeCurrency = (chainId: number): Address | undefined => {
     return clientEnv.NEXT_PUBLIC_CELO_FEE_CURRENCY as Address;
   }
 
-  return CELO_FEE_CURRENCIES[DEPOSIT_TOKEN.address.toLowerCase()];
+  const { depositToken } = getChainConfig(chainId);
+
+  return CELO_FEE_CURRENCIES[depositToken.address.toLowerCase()];
 };

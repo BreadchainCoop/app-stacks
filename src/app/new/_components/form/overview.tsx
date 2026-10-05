@@ -1,3 +1,5 @@
+"use client";
+
 import LocalButton from "@/components/button";
 import { Body, Heading3, LoginButton, useConnectedUser } from "@breadcoop/ui";
 import {
@@ -11,10 +13,9 @@ import {
 import { ReactNode } from "react";
 import { useFormContext } from "react-hook-form";
 import { StackFormSchemaData } from "./schema";
-import { savingCirclesAbi } from "../../../../lib/abis/saving-circles";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "../../../../lib/constants";
+import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { encodeFunctionData, parseEventLogs } from "viem";
-import { DEPOSIT_TOKEN, parseDepositAmount } from "@/lib/deposit-token";
+import { parseDepositAmount } from "@/lib/deposit-token";
 import { useModal } from "@/components/modal/context";
 import { sleep } from "@/utils/sleep";
 import { waitForTransactionReceipt } from "@wagmi/core";
@@ -25,7 +26,11 @@ import { simulateContract } from "@wagmi/core";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { getIntervalById, splitIntervalId } from "@/utils/deposit-interval";
 import { CREATE_ERRORS } from "@/lib/contract-errors";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 import { formatAmount } from "@/utils/format-amount";
 
 const parseCreateError = (error: unknown) =>
@@ -36,6 +41,7 @@ const parseCreateError = (error: unknown) =>
   );
 
 const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
+  const depositToken = useDepositToken();
   const modal = useModal();
   const form = useFormContext<StackFormSchemaData>();
   const depositInterval = form.watch("depositInterval");
@@ -47,6 +53,8 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
   const { user } = useConnectedUser();
   const { sendSponsoredTransaction } = useSponsoredTx();
   const { activate: enableAutomaticClaims } = useAutomaticClaims();
+  const chainId = useActiveChainId();
+  const { savingCircles } = useChainConfig();
 
   const createStack = async (data: StackFormSchemaData) => {
     if (form.formState.isSubmitting) return;
@@ -66,8 +74,11 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
       const circleArgs = {
         owner: user.address,
         currentIndex: BigInt(0),
-        depositAmount: parseDepositAmount(String(data.depositAmount)),
-        token: DEPOSIT_TOKEN.address,
+        depositAmount: parseDepositAmount(
+          String(data.depositAmount),
+          depositToken.decimals
+        ),
+        token: depositToken.address,
         depositInterval: BigInt(interval.seconds),
         effectiveCircleStartTime: BigInt(0),
         circleEnd: BigInt(0),
@@ -75,12 +86,12 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
 
       // Simulate before opening Privy modal
       await simulateContract(wagmiConfig, {
-        address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+        address: savingCircles,
         abi: savingCirclesAbi,
         functionName: "create",
         args: [circleArgs],
         account: user.address,
-        chainId: getDefaultChainId(),
+        chainId,
       });
 
       const encodedData = encodeFunctionData({
@@ -90,7 +101,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
       });
 
       const sponsoredTx = sendSponsoredTransaction(
-        { to: SAVING_CIRCLES_CONTRACT_ADDRESS, data: encodedData },
+        { to: savingCircles, data: encodedData },
         { uiOptions: { showWalletUIs: false } }
       );
 
@@ -105,7 +116,7 @@ const StackOverviewForm = ({ onBack }: { onBack: () => void }) => {
       const receipt = await waitForTransactionReceipt(wagmiConfig, {
         hash,
         confirmations: 1,
-        chainId: getDefaultChainId(),
+        chainId,
       });
 
       const logs = parseEventLogs({
