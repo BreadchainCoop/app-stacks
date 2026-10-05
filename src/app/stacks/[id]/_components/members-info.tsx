@@ -27,7 +27,7 @@ import { formatRelativeTime, formatShortDate } from "@/utils/time";
 import { formatAmount } from "@/utils/format-amount";
 import { Body, Chip } from "@breadcoop/ui";
 import { CheckIcon, XCircleIcon } from "@phosphor-icons/react/ssr";
-import { usePrivy } from "@privy-io/react-auth";
+import { useUserIdentity } from "@/components/providers/user-identity";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Address } from "viem";
@@ -37,6 +37,7 @@ import {
   useActiveChainId,
   useDepositToken,
 } from "@/components/providers/active-chain";
+import { invalidateStackReads } from "@/utils/invalidate-circle-reads";
 
 const FAILED_STATUSES: ICircleStatus[] = [
   "decommissioned",
@@ -327,7 +328,7 @@ function JoinRequestsBulkBar({
 }) {
   const chainId = useActiveChainId();
   const { sendSavingCirclesTx } = useSavingCirclesTx();
-  const { getAccessToken } = usePrivy();
+  const { getAuthToken } = useUserIdentity();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -362,10 +363,9 @@ function JoinRequestsBulkBar({
         args: [BigInt(id), selected.map((r) => r.wallet_address as Address)],
       });
 
-      queryClient.invalidateQueries({ queryKey: ["readContract"] });
-      queryClient.invalidateQueries({ queryKey: ["readContracts"] });
+      invalidateStackReads(queryClient);
 
-      const token = await getAccessToken();
+      const token = await getAuthToken();
       if (!token) throw new Error("Not signed in");
 
       const results = await Promise.all(
@@ -391,7 +391,9 @@ function JoinRequestsBulkBar({
         );
       }
 
-      queryClient.invalidateQueries({ queryKey: ["join-requests", id] });
+      queryClient.invalidateQueries({
+        queryKey: ["join-requests", chainId, id],
+      });
       onSelectedRequestIdsChange(new Set());
     } catch (err) {
       console.log("__ ERROR __", err);
@@ -451,13 +453,13 @@ function JoinRequestItem({
 }) {
   const chainId = useActiveChainId();
   const { sendSavingCirclesTx } = useSavingCirclesTx();
-  const { getAccessToken } = usePrivy();
+  const { getAuthToken } = useUserIdentity();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState<"accepting" | "dismissing" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const decide = async (status: "added" | "dismissed") => {
-    const token = await getAccessToken();
+    const token = await getAuthToken();
     if (!token) throw new Error("Not signed in");
 
     const res = await fetch("/api/stacks/join-request", {
@@ -474,7 +476,9 @@ function JoinRequestItem({
       throw new Error(body.error ?? "Failed to update join request");
     }
 
-    queryClient.invalidateQueries({ queryKey: ["join-requests", id] });
+    queryClient.invalidateQueries({
+      queryKey: ["join-requests", chainId, id],
+    });
   };
 
   const accept = async () => {
@@ -487,8 +491,7 @@ function JoinRequestItem({
         args: [BigInt(id), [request.wallet_address as Address]],
       });
 
-      queryClient.invalidateQueries({ queryKey: ["readContract"] });
-      queryClient.invalidateQueries({ queryKey: ["readContracts"] });
+      invalidateStackReads(queryClient);
 
       await decide("added");
     } catch (err) {

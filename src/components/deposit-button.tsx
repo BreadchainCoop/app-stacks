@@ -22,6 +22,7 @@ import { DEPOSIT_ERRORS } from "@/lib/contract-errors";
 import { formatDepositAmount } from "@/lib/deposit-token";
 import { useIsMiniPay } from "@/components/providers/is-minipay";
 import LocalButton from "./button";
+import { invalidateStackReads } from "@/utils/invalidate-circle-reads";
 
 interface DepositButtonProps extends Omit<ButtonProps, "children"> {
   label?: string;
@@ -123,8 +124,7 @@ const DepositButton = ({
         args: [circleId, amount],
       });
 
-      queryClient.invalidateQueries({ queryKey: ["readContract"] });
-      queryClient.invalidateQueries({ queryKey: ["readContracts"] });
+      invalidateStackReads(queryClient);
       modal.setModal({ type: "DEPOSIT_RESULT", result: "success", circleId });
     } catch (error) {
       modal.setModal({
