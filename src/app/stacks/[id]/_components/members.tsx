@@ -1,3 +1,5 @@
+"use client";
+
 import { Body, Heading3 } from "@breadcoop/ui";
 import { Icon } from "@phosphor-icons/react";
 import { HourglassIcon, UsersIcon } from "@phosphor-icons/react/ssr";
@@ -9,6 +11,11 @@ import { useCircleMembersWithBalances } from "@/hooks/use-circle-members";
 import { useJoinRequests } from "@/hooks/use-join-requests";
 import { useStackSupabase } from "@/hooks/use-stack-supabase";
 import { ICircleStatus, MemberCircleInfo } from "@/interfaces/circle";
+import { buildInviteUrl } from "@/components/modal/modals/stack-result";
+import {
+  useChainPath,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 
 const TopRowInfo = ({
   LIcon,
@@ -41,12 +48,14 @@ const StackMembers = ({
   totalRounds: number;
   circleStatus: ICircleStatus | null;
 }) => {
+  const chainHref = useChainPath();
   const info = useCircleMembersWithBalances(BigInt(id));
   const isOwner = circle.owner === member;
 
   const totalMembers = info.isLoading ? "-" : info.members.length;
   const totalBaseDeposit =
-    +formatDepositAmount(circle.depositAmount) * Number(circle.currentIndex);
+    +formatDepositAmount(circle.depositAmount, useDepositToken().decimals) *
+    Number(circle.currentIndex);
 
   const isPendingStart = circleStatus === "pending-start";
 
@@ -64,9 +73,14 @@ const StackMembers = ({
       ? Math.max(expectedMembers - info.members.length, 0)
       : undefined;
 
+  // buildInviteUrl merges into whatever query string chainHref produced; string
+  // concatenation here would emit a second "?".
   const generalInviteUrl =
     isOwner && isPendingStart
-      ? `${typeof window !== "undefined" ? window.location.origin : ""}/stacks/join?circleId=${id}`
+      ? buildInviteUrl(
+          `${typeof window !== "undefined" ? window.location.origin : ""}${chainHref("/stacks/join")}`,
+          id
+        )
       : null;
 
   return (

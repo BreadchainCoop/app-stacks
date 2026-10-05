@@ -11,6 +11,7 @@ import {
 } from "@phosphor-icons/react";
 import { Address } from "viem";
 import { useIsOwnAddress } from "@/hooks/use-is-own-address";
+import { useChainPath } from "@/components/providers/active-chain";
 
 export const tabs = [
   { label: "All your Stacks", id: "all", icon: StackIcon },
@@ -64,6 +65,7 @@ const ProtectedTab = ({
   isOwner: boolean;
 }) => {
   const currentTab = useSearchParams().get("tab") || "all";
+  const chainHref = useChainPath();
 
   return (
     <nav className="border border-paper-2 bg-paper-0 p-2.5 max-w-max mb-6">
@@ -72,7 +74,7 @@ const ProtectedTab = ({
           return (
             <li key={tab.id} className="shrink-0">
               <Link
-                href={`${basePath}?tab=${tab.id}`}
+                href={chainHref(`${basePath}?tab=${tab.id}`)}
                 className={`font-bold flex items-center justify-center gap-2.5 py-1 px-4 border transition-colors ${
                   currentTab === tab.id
                     ? "text-surface-ink border-primary-blue"

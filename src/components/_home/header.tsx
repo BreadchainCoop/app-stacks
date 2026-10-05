@@ -6,6 +6,7 @@ import LocalButton from "../button";
 import Link from "next/link";
 import { PlusIcon } from "@phosphor-icons/react";
 import { useIsOwnAddress } from "@/hooks/use-is-own-address";
+import { useChainPath } from "@/components/providers/active-chain";
 
 const HomeHeader = ({
   type,
@@ -15,6 +16,7 @@ const HomeHeader = ({
   /** When set, persona wording is neutralized unless the viewer owns it */
   address?: Address;
 }) => {
+  const chainHref = useChainPath();
   const isOwnProfile = useIsOwnAddress(address ?? "");
   const isVisitor = type === "persona" && Boolean(address) && !isOwnProfile;
 
@@ -39,7 +41,7 @@ const HomeHeader = ({
       {type !== "all" && !isVisitor && (
         <LocalButton
           as={Link}
-          href="/new"
+          href={chainHref("/new")}
           className="md:w-auto"
           app="stacks"
           leftIcon={<PlusIcon />}

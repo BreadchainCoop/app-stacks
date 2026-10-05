@@ -1,8 +1,12 @@
+"use client";
+
 import LocalButton from "@/components/button";
 import { PlusIcon } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
+import { useChainPath } from "@/components/providers/active-chain";
 
 const HeroBanner = () => {
+  const chainHref = useChainPath();
   return (
     <section
       className="relative mb-12 overflow-hidden bg-cover bg-center md:min-h-95"
@@ -24,7 +28,7 @@ const HeroBanner = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <LocalButton
             as={Link}
-            href="/new"
+            href={chainHref("/new")}
             className="font-bold sm:w-auto"
             leftIcon={<PlusIcon />}
           >

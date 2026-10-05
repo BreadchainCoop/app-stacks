@@ -19,6 +19,9 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // These two headers() reads are what keep every route dynamically rendered,
+  // which is in turn what lets <Providers> read `?chain=` with useSearchParams
+  // during the server render.
   const isMobile = await isServerMobile();
   const isMiniPay = await isServerMiniPay();
 
@@ -38,5 +41,3 @@ export default async function RootLayout({
     </html>
   );
 }
-
-//

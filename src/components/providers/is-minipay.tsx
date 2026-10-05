@@ -12,3 +12,13 @@ const IsMiniPayContext = createContext(false);
 export const IsMiniPayProvider = IsMiniPayContext.Provider;
 
 export const useIsMiniPay = () => useContext(IsMiniPayContext);
+
+// Whether the *browser* is MiniPay, independent of which chain the URL names.
+// Distinct from useIsMiniPay(), which is the conjunction of this and "the chain
+// is Celo" — that one is false for MiniPay-on-Gnosis, which is exactly the
+// mismatch the chain/browser guard has to detect.
+const IsMiniPayBrowserContext = createContext(false);
+
+export const IsMiniPayBrowserProvider = IsMiniPayBrowserContext.Provider;
+
+export const useIsMiniPayBrowser = () => useContext(IsMiniPayBrowserContext);

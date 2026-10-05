@@ -21,8 +21,10 @@ import BackMeta from "./back-meta";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useCircleState } from "@/hooks/use-circles-state";
 import { CircleState } from "@/lib/circle-state";
+import { useChainPath } from "@/components/providers/active-chain";
 
 const PageContent = ({ id }: { id: string }) => {
+  const chainHref = useChainPath();
   const now = useBlockTimestamp();
   const { setModal } = useModal();
   const { user } = useConnectedUser();
@@ -124,7 +126,11 @@ const PageContent = ({ id }: { id: string }) => {
       ) : userCircleData.circleData ? (
         <div className="flex flex-col items-center gap-4 py-8 text-center">
           <Body className="text-system-red">This stack does not exist.</Body>
-          <LocalButton as={Link} href="/new" leftIcon={<PlusIcon />}>
+          <LocalButton
+            as={Link}
+            href={chainHref("/new")}
+            leftIcon={<PlusIcon />}
+          >
             Start your Stack today
           </LocalButton>
         </div>
