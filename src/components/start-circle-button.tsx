@@ -1,7 +1,7 @@
 "use client";
 
 import { ButtonProps } from "@breadcoop/ui";
-import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
+import { formatDepositAmount } from "@/lib/deposit-token";
 import LocalButton from "./button";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -10,6 +10,7 @@ import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { formatAmount } from "@/utils/format-amount";
 import { useModal } from "./modal/context";
+import { useDepositToken } from "@/components/providers/active-chain";
 
 interface StartCircleButtonProps extends Omit<ButtonProps, "children"> {
   amount: bigint;
@@ -34,6 +35,7 @@ const StartCircleButton = ({
   pendingMembers = 0,
   ...props
 }: StartCircleButtonProps) => {
+  const depositToken = useDepositToken();
   const { sendSavingCirclesTx } = useSavingCirclesTx();
   const queryClient = useQueryClient();
   const { setModal } = useModal();
@@ -86,8 +88,9 @@ const StartCircleButton = ({
           </span>
         ) : (
           <>
-            Start Stacks - {formatAmount(+formatDepositAmount(amount))}{" "}
-            {DEPOSIT_TOKEN.symbol}
+            Start Stacks -{" "}
+            {formatAmount(+formatDepositAmount(amount, depositToken.decimals))}{" "}
+            {depositToken.symbol}
           </>
         )}
       </LocalButton>

@@ -1,19 +1,21 @@
 "use client";
 
 import { ModalCloseIcon } from "@/components/modal/components";
-import { AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { getDefaultChainId, networks } from "@/utils/chain";
+import { getChainConfig } from "@/lib/chains";
+import { getNetwork } from "@/utils/chain";
 import {
   formatSecondsHuman,
   getIntervalBySeconds,
 } from "@/utils/deposit-interval";
 import { formatAmount } from "@/utils/format-amount";
-import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
+import { formatDepositAmount } from "@/lib/deposit-token";
 import { Body, Logo } from "@breadcoop/ui";
 import { ReactNode } from "react";
+import { DepositTokenConfig } from "@/interfaces/chain-config";
+import { useDepositToken } from "@/components/providers/active-chain";
 
-export const breadLabel = (value: bigint) =>
-  `${formatAmount(Number(formatDepositAmount(value)), 2)} ${DEPOSIT_TOKEN.symbol}`;
+export const breadLabel = (value: bigint, token: DepositTokenConfig) =>
+  `${formatAmount(Number(formatDepositAmount(value, token.decimals)), 2)} ${token.symbol}`;
 
 export const getIntervalLabels = (depositInterval: bigint) => {
   const seconds = Number(depositInterval);
@@ -26,13 +28,11 @@ export const getIntervalLabels = (depositInterval: bigint) => {
   return { intervalLabel, perRoundLabel };
 };
 
-export const automaticContractExplorerLink = () => {
-  const explorerBase =
-    networks[getDefaultChainId() as keyof typeof networks]?.explorerUrl;
+export const automaticContractExplorerLink = (chainId: number) => {
+  const explorerBase = getNetwork(chainId)?.explorerUrl;
+  const { automaticSavingCircles } = getChainConfig(chainId);
 
-  return explorerBase
-    ? `${explorerBase}/${AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS}`
-    : undefined;
+  return explorerBase ? `${explorerBase}/${automaticSavingCircles}` : undefined;
 };
 
 /**
@@ -51,16 +51,20 @@ export const BreadAmount = ({
 }: {
   value: bigint;
   highlighted?: boolean;
-}) => (
-  <span
-    className={`inline-flex items-center gap-1 px-2 py-1 ${
-      highlighted ? "border border-system-green" : ""
-    }`}
-  >
-    <Logo size={18} variant="square" />
-    <span className="font-bold">{breadLabel(value)}</span>
-  </span>
-);
+}) => {
+  const depositToken = useDepositToken();
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1 px-2 py-1 ${
+        highlighted ? "border border-system-green" : ""
+      }`}
+    >
+      <Logo size={18} variant="square" />
+      <span className="font-bold">{breadLabel(value, depositToken)}</span>
+    </span>
+  );
+};
 
 export const SummaryRow = ({
   label,

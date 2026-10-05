@@ -1,30 +1,32 @@
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+} from "@/components/providers/active-chain";
 import { useReadContracts } from "wagmi";
 
 export function useCircleStatus(circleId: bigint | undefined) {
   const contracts = [
     {
-      address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+      address: useChainConfig().savingCircles,
       abi: savingCirclesAbi,
       functionName: "isActive",
       args: [circleId!],
-      chainId: getDefaultChainId(),
+      chainId: useActiveChainId(),
     },
     {
-      address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+      address: useChainConfig().savingCircles,
       abi: savingCirclesAbi,
       functionName: "isWithdrawable",
       args: [circleId!],
-      chainId: getDefaultChainId(),
+      chainId: useActiveChainId(),
     },
     {
-      address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+      address: useChainConfig().savingCircles,
       abi: savingCirclesAbi,
       functionName: "isDecommissionable",
       args: [circleId!],
-      chainId: getDefaultChainId(),
+      chainId: useActiveChainId(),
     },
   ] as const;
 

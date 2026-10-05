@@ -1,3 +1,5 @@
+"use client";
+
 import { Body, Heading3, Chip } from "@breadcoop/ui";
 import { millify } from "@/utils/format-amount";
 import { UsersIcon } from "./icons/users";
@@ -15,6 +17,7 @@ import { Database } from "@/lib/supabase";
 import { useModal } from "./modal/context";
 import { useFundsDeposited } from "@/hooks/use-funds-deposited";
 import Link from "next/link";
+import { useDepositToken } from "@/components/providers/active-chain";
 
 type StackMetadata = Database["public"]["Tables"]["stacks_metadata"]["Row"];
 
@@ -36,9 +39,13 @@ const Stack = ({
   /** Hide claim/deposit actions when the viewer is not the account owner */
   readOnly?: boolean;
 }) => {
+  const depositToken = useDepositToken();
   const { setModal } = useModal();
   const stackMeta = stacksMap[String(stack.id)];
-  const depositAmount = formatDepositAmount(stack.depositAmount);
+  const depositAmount = formatDepositAmount(
+    stack.depositAmount,
+    depositToken.decimals
+  );
   const totalGoal =
     Number(depositAmount) * stack.totalMember * stack.totalMember;
 
@@ -55,7 +62,8 @@ const Stack = ({
   const totalDeposited = isFailedStack
     ? Number(
         formatDepositAmount(
-          fundsDeposited.data?.totalDepositInCurrentRound ?? BigInt(0)
+          fundsDeposited.data?.totalDepositInCurrentRound ?? BigInt(0),
+          depositToken.decimals
         )
       ) +
       (fundsDeposited.data?.lastActiveRound ?? 0) *
@@ -66,7 +74,12 @@ const Stack = ({
       ) *
         Number(depositAmount) *
         Number(stack.totalMember) +
-      Number(formatDepositAmount(stack.totalPoolBalance || BigInt(0)));
+      Number(
+        formatDepositAmount(
+          stack.totalPoolBalance || BigInt(0),
+          depositToken.decimals
+        )
+      );
 
   let percentageDone = 0;
   if (totalDeposited !== 0 && totalGoal !== 0) {
@@ -215,8 +228,9 @@ const Stack = ({
         {stack.canWithdraw && !readOnly ? (
           <ClaimButton
             amount={
-              Number(formatDepositAmount(stack.depositAmount)) *
-              stack.totalMember
+              Number(
+                formatDepositAmount(stack.depositAmount, depositToken.decimals)
+              ) * stack.totalMember
             }
             circleId={stack.id}
           />

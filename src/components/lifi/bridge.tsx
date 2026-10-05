@@ -15,10 +15,11 @@ import { Address, encodeFunctionData, formatEther } from "viem";
 import { useModal } from "../modal/context";
 import { breadAbi } from "@/lib/abis/bread-abi";
 import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
-import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
 import { useWaitForTxReceipt } from "@/hooks/use-wait-for-tx-receipt";
+import { useDepositToken } from "@/components/providers/active-chain";
 
 export default function Bridge({ userAddress }: { userAddress: Address }) {
+  const depositToken = useDepositToken();
   /*
   From LiFi Docs (https://docs.li.fi/widget/widget-events#list-of-events)
   To minimize unnecessary re-renders and prevent potential glitches in the main Widget component, please integrate the useWidgetEvents hook outside of the component where the main LiFiWidget is integrated.
@@ -48,7 +49,7 @@ export default function Bridge({ userAddress }: { userAddress: Address }) {
 
         const { hash } = await sendSponsoredTransaction(
           {
-            to: DEPOSIT_TOKEN.address,
+            to: depositToken.address,
             data,
             value: BigInt(route.toAmountMin),
           },

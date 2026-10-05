@@ -20,15 +20,13 @@ import {
 import { hashFn } from "wagmi/query";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { BreadUIKitProvider, ConnectedUserProvider } from "@breadcoop/ui";
-import { clientEnv } from "@/lib/env";
-import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
 import { SupabaseProvider } from "./supabase";
 import { ModalProvider, useModal } from "../modal/context";
 import { TxSender, TxSenderProvider } from "./tx-sender";
 import { UserIdentityProvider } from "./user-identity";
 import { isMiniPayBrowser, minipayUserId } from "@/utils/minipay";
 import { getFeeCurrency } from "@/utils/celo";
-import { getDefaultChainId } from "@/utils/chain";
+import { useActiveChainId, useDepositToken } from "./active-chain";
 
 // MiniPay provider stack: no Privy (MiniPay *is* the wallet), no RainbowKit.
 // The injected wallet auto-connects, identity is the injected address (issue
@@ -53,12 +51,12 @@ const queryClient = new QueryClient({
   },
 });
 
-const tokenConfig = {
+const tokenConfig = (address: Address) => ({
   BREAD: {
-    address: DEPOSIT_TOKEN.address,
+    address,
     abi: erc20Abi,
   },
-};
+});
 
 /** Zero-click connect: inside MiniPay the wallet is already there. */
 const MiniPayAutoConnect = () => {
@@ -75,29 +73,33 @@ const MiniPayAutoConnect = () => {
 };
 
 const MiniPayTxSenderProvider = ({ children }: { children: ReactNode }) => {
-  const sender = useCallback<TxSender>(async (input) => {
-    const chainId = getDefaultChainId();
-    const value =
-      input.value === undefined
-        ? undefined
-        : typeof input.value === "bigint"
-          ? input.value
-          : BigInt(input.value);
+  const chainId = useActiveChainId();
 
-    // CIP-64: feeCurrency is a hint MiniPay may override with the user's
-    // largest stablecoin balance. MiniPay only accepts legacy transactions —
-    // never set maxFeePerGas / maxPriorityFeePerGas here.
-    const hash = await sendTransaction(minipayWagmiConfig, {
-      to: input.to as Address,
-      data: input.data as Hex | undefined,
-      value,
-      chainId,
-      feeCurrency: getFeeCurrency(chainId),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
+  const sender = useCallback<TxSender>(
+    async (input) => {
+      const value =
+        input.value === undefined
+          ? undefined
+          : typeof input.value === "bigint"
+            ? input.value
+            : BigInt(input.value);
 
-    return { hash };
-  }, []);
+      // CIP-64: feeCurrency is a hint MiniPay may override with the user's
+      // largest stablecoin balance. MiniPay only accepts legacy transactions —
+      // never set maxFeePerGas / maxPriorityFeePerGas here.
+      const hash = await sendTransaction(minipayWagmiConfig, {
+        to: input.to as Address,
+        data: input.data as Hex | undefined,
+        value,
+        chainId,
+        feeCurrency: getFeeCurrency(chainId),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
+
+      return { hash };
+    },
+    [chainId]
+  );
 
   return <TxSenderProvider value={sender}>{children}</TxSenderProvider>;
 };
@@ -173,6 +175,9 @@ const MiniPayIdentityProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const MiniPayProviders = ({ children }: { children: ReactNode }) => {
+  const chainId = useActiveChainId();
+  const depositToken = useDepositToken();
+
   return (
     <QueryClientProvider client={queryClient}>
       <WagmiProvider config={minipayWagmiConfig}>
@@ -182,8 +187,8 @@ export const MiniPayProviders = ({ children }: { children: ReactNode }) => {
           <SupabaseProvider>
             <BreadUIKitProvider
               app="stacks"
-              chainId={clientEnv.NEXT_PUBLIC_CHAIN_ID}
-              tokenConfig={tokenConfig}
+              chainId={chainId}
+              tokenConfig={tokenConfig(depositToken.address)}
               authProvider="general"
             >
               <ConnectedUserProvider>

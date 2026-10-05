@@ -1,8 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
-import { Address, createPublicClient, getAddress, http, isAddress } from "viem";
+import {
+  Address,
+  createPublicClient,
+  getAddress,
+  http,
+  isAddress,
+  PublicClient,
+} from "viem";
 import { mainnet } from "viem/chains";
 import { normalize, toCoinType } from "viem/ens";
-import { getDefaultChainId, networks } from "@/utils/chain";
+import { getNetwork } from "@/utils/chain";
+import { useActiveChainId } from "@/components/providers/active-chain";
 
 // ENS names are resolved on Ethereum mainnet (ENS's home chain). Two hazards
 // this guards against (see the addMembers risk review):
@@ -14,12 +22,27 @@ import { getDefaultChainId, networks } from "@/utils/chain";
 //     record and only fall back to the ETH address with a warning.
 const mainnetClient = createPublicClient({ chain: mainnet, transport: http() });
 
-const deploymentChain =
-  networks[getDefaultChainId() as keyof typeof networks]?.chain;
+// One client per deployment chain, created on first use and reused —
+// re-creating it per render would throw away viem's request batching.
+const deploymentClients = new Map<number, PublicClient | null>();
 
-const deploymentClient = deploymentChain
-  ? createPublicClient({ chain: deploymentChain, transport: http() })
-  : null;
+const getDeploymentClient = (chainId: number) => {
+  if (!deploymentClients.has(chainId)) {
+    const chain = getNetwork(chainId)?.chain;
+
+    deploymentClients.set(
+      chainId,
+      chain
+        ? // viem's per-chain client types don't unify (Celo adds its own
+          // transaction types), and this file only needs getCode /
+          // getTransactionCount — the widened PublicClient covers both.
+          (createPublicClient({ chain, transport: http() }) as PublicClient)
+        : null
+    );
+  }
+
+  return deploymentClients.get(chainId) ?? null;
+};
 
 export type ResolvedInvitee = {
   input: string;
@@ -37,7 +60,9 @@ export type ResolvedInvitee = {
 const looksLikeEnsName = (value: string) =>
   value.includes(".") && !value.startsWith("0x");
 
-const inspectAddress = async (address: Address) => {
+const inspectAddress = async (address: Address, chainId: number) => {
+  const deploymentClient = getDeploymentClient(chainId);
+
   const [mainnetCode, chainCode, chainNonce] = await Promise.all([
     mainnetClient.getCode({ address }).catch(() => undefined),
     deploymentClient?.getCode({ address }).catch(() => undefined),
@@ -55,17 +80,20 @@ export const useResolveInvitee = (input: string) => {
   const trimmed = input.trim();
   const isRawAddress = isAddress(trimmed);
   const isEns = looksLikeEnsName(trimmed);
+  const chainId = useActiveChainId();
 
   return useQuery({
-    queryKey: ["resolve-invitee", getDefaultChainId(), trimmed.toLowerCase()],
+    queryKey: ["resolve-invitee", chainId, trimmed.toLowerCase()],
     enabled: isRawAddress || (isEns && trimmed.length >= 3),
     staleTime: 60_000,
     retry: 1,
     queryFn: async (): Promise<ResolvedInvitee> => {
       if (isRawAddress) {
         const address = getAddress(trimmed);
-        const { isContractOnMainnet, isUnusedOnChain } =
-          await inspectAddress(address);
+        const { isContractOnMainnet, isUnusedOnChain } = await inspectAddress(
+          address,
+          chainId
+        );
         return {
           input: trimmed,
           address,
@@ -82,7 +110,7 @@ export const useResolveInvitee = (input: string) => {
       try {
         // Prefer the deployment chain's own address record (ENSIP-11); fall
         // back to the default ETH address if the name doesn't publish one.
-        const chainCoinType = toCoinType(getDefaultChainId());
+        const chainCoinType = toCoinType(chainId);
         const chainAddress = await mainnetClient
           .getEnsAddress({ name, coinType: chainCoinType })
           .catch(() => null);
@@ -105,8 +133,10 @@ export const useResolveInvitee = (input: string) => {
           };
         }
 
-        const { isContractOnMainnet, isUnusedOnChain } =
-          await inspectAddress(address);
+        const { isContractOnMainnet, isUnusedOnChain } = await inspectAddress(
+          address,
+          chainId
+        );
 
         return {
           input: trimmed,

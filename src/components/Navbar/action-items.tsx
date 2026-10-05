@@ -3,7 +3,7 @@
 import { HandWithdrawIcon } from "@phosphor-icons/react";
 import { useModal } from "../modal/context";
 import LocalButton from "../button";
-import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
+import { useDepositToken } from "@/components/providers/active-chain";
 
 const ActionItems = () => {
   const { setModal } = useModal();
@@ -16,7 +16,7 @@ const ActionItems = () => {
         className="font-bold w-full mb-1"
         onClick={() => setModal({ type: "WITHDRAW_BREAD" })}
       >
-        Withdraw {DEPOSIT_TOKEN.symbol}
+        Withdraw {useDepositToken().symbol}
       </LocalButton>
     </div>
   );

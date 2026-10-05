@@ -5,8 +5,10 @@ import { useState } from "react";
 import { Address, encodeFunctionData, erc20Abi } from "viem";
 import { readContractQueryKey } from "wagmi/query";
 import { automaticSavingCirclesAbi } from "@/lib/abis/automatic-saving-circles";
-import { AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+} from "@/components/providers/active-chain";
 import { useAutomaticSavingCirclesTx } from "@/hooks/use-automatic-saving-circles-tx";
 import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
 import { useWaitForTxReceipt } from "@/hooks/use-wait-for-tx-receipt";
@@ -22,16 +24,18 @@ export function useAutomaticDeposits(stackId: string) {
   const address = user.status === "CONNECTED" ? user.address : undefined;
   const [status, setStatus] = useState<AutomaticDepositsStatus>("idle");
   const queryClient = useQueryClient();
+  const chainId = useActiveChainId();
+  const { automaticSavingCircles } = useChainConfig();
 
   const setEnabledQueryData = (enabled: boolean) => {
     if (!address) return;
 
     const queryKey = readContractQueryKey({
       abi: automaticSavingCirclesAbi,
-      address: AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS,
+      address: automaticSavingCircles,
       functionName: "isAutomaticDepositsEnabled",
       args: [BigInt(stackId), address],
-      chainId: getDefaultChainId(),
+      chainId,
     });
 
     queryClient.setQueryData(queryKey, enabled);
@@ -57,7 +61,7 @@ export function useAutomaticDeposits(stackId: string) {
       const approveData = encodeFunctionData({
         abi: erc20Abi,
         functionName: "approve",
-        args: [AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS, allowanceAmount],
+        args: [automaticSavingCircles, allowanceAmount],
       });
 
       const { hash } = await sendSponsoredTransaction(

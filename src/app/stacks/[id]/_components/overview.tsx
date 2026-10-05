@@ -26,7 +26,10 @@ import { useModal } from "@/components/modal/context";
 import { useStackSupabase } from "@/hooks/use-stack-supabase";
 import { formatAmount } from "@/utils/format-amount";
 import { useJoinRequests } from "@/hooks/use-join-requests";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 import { isCeloChain } from "@/utils/celo";
 import AddMembersCard from "@/components/add-members/add-members-card";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
@@ -45,7 +48,9 @@ const Overview = ({
     undefined
   >;
 }) => {
+  const depositToken = useDepositToken();
   const now = useBlockTimestamp();
+  const chainId = useActiveChainId();
   const { setModal } = useModal();
   const connectedUser = useConnectedUser();
   const nowSeconds = BigInt(Math.floor(now / 1000));
@@ -194,7 +199,11 @@ const Overview = ({
           <span className="text-surface-grey">Total Deposit</span>
           <span className="inline-flex items-center justify-start">
             <span className="font-bold mt-[0.2rem]">
-              ${formatAmount(+formatDepositAmount(poolBalance), 2)}
+              $
+              {formatAmount(
+                +formatDepositAmount(poolBalance, depositToken.decimals),
+                2
+              )}
             </span>
           </span>
         </Body>
@@ -242,12 +251,11 @@ const Overview = ({
           <>
             {/* Signing-free member invites (addMembers) exist on the Celo
                 deployment's contract only */}
-            {isCeloChain(getDefaultChainId()) &&
-              member === circle.circleInfo.owner && (
-                <div className="mb-4">
-                  <AddMembersCard circleId={BigInt(circle.circleId)} />
-                </div>
-              )}
+            {isCeloChain(chainId) && member === circle.circleInfo.owner && (
+              <div className="mb-4">
+                <AddMembersCard circleId={BigInt(circle.circleId)} />
+              </div>
+            )}
             {member === circle.circleInfo.owner &&
             hasEnoughMembersToStart &&
             canResolveMissingMembers ? (
@@ -282,7 +290,10 @@ const Overview = ({
               <DepositButton
                 className="font-bold w-full"
                 label={`Deposit $${formatAmount(
-                  +formatDepositAmount(circle.circleInfo.depositAmount)
+                  +formatDepositAmount(
+                    circle.circleInfo.depositAmount,
+                    depositToken.decimals
+                  )
                 )}`}
                 amount={circle.circleInfo.depositAmount}
                 tokenAddress={circle.circleInfo.token}

@@ -1,28 +1,29 @@
 import { breadAbi } from "@/lib/abis/bread-abi";
-import { clientEnv } from "@/lib/env";
-import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
 import { useEffect, useRef } from "react";
 import { encodeFunctionData } from "viem";
 import { usePublicClient } from "wagmi";
 import { useSponsoredTx } from "./use-sponsored-tx";
 import { useWaitForTxReceipt } from "./use-wait-for-tx-receipt";
 import { isCeloChain } from "@/utils/celo";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 
 export function useWatchFundedXdai(
   address: `0x${string}` | undefined,
   onFunded?: (newBalance: bigint, prevBalance: bigint) => Promise<void> | void
 ) {
-  const publicClient = usePublicClient({
-    chainId: clientEnv.NEXT_PUBLIC_CHAIN_ID,
-  });
+  const depositToken = useDepositToken();
+  const chainId = useActiveChainId();
+  const publicClient = usePublicClient({ chainId });
   const prevBalance = useRef<bigint>(BigInt(0));
   const isMinting = useRef(false);
   const { sendSponsoredTransaction } = useSponsoredTx();
   const { waitForTxReceipt } = useWaitForTxReceipt();
 
   useEffect(() => {
-    if (isCeloChain(getDefaultChainId())) return;
+    if (isCeloChain(chainId)) return;
     if (!address || !publicClient) return;
 
     publicClient.getBalance({ address }).then((bal) => {
@@ -47,7 +48,7 @@ export function useWatchFundedXdai(
           });
           const { hash } = await sendSponsoredTransaction(
             {
-              to: DEPOSIT_TOKEN.address,
+              to: depositToken.address,
               data,
               value: balance - prevBalance.current,
             },

@@ -3,7 +3,7 @@
 import { createContext, ReactNode, useCallback, useContext } from "react";
 import { useSendTransaction } from "@privy-io/react-auth";
 import { useConnectedUser } from "@breadcoop/ui";
-import { clientEnv } from "@/lib/env";
+import { useActiveChainId } from "./active-chain";
 
 // The transaction sender for the mounted provider stack. Contract writes all
 // funnel through useSponsoredTx -> this context, so the Privy stack (embedded
@@ -46,6 +46,8 @@ export const PrivyTxSenderProvider = ({
       ? user.address
       : undefined;
 
+  const chainId = useActiveChainId();
+
   const sender = useCallback<TxSender>(
     (input, options) =>
       sendTransaction(input, {
@@ -57,10 +59,10 @@ export const PrivyTxSenderProvider = ({
         // still override it via options.address.
         address: connectedAddress,
         ...options,
-        sponsor: clientEnv.NEXT_PUBLIC_CHAIN_ID === 100,
+        sponsor: chainId === 100,
         uiOptions: { showWalletUIs: false, ...options?.uiOptions },
       }),
-    [sendTransaction, connectedAddress]
+    [sendTransaction, connectedAddress, chainId]
   );
 
   return <TxSenderProvider value={sender}>{children}</TxSenderProvider>;

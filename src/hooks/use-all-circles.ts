@@ -1,11 +1,14 @@
 import { useReadContracts } from "wagmi";
-import { SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS } from "../lib/constants";
 import { savingCirclesViewerAbi } from "../lib/abis/saving-circles-viewers";
 import { ICircleList } from "@/interfaces/circle";
 import { useTotalCircles } from "./use-total-circles";
 import { zeroAddress } from "viem";
 import { formatDepositAmount } from "@/lib/deposit-token";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 import { useBlockTimestamp } from "./use-block-timestamp";
 import { getUserCircleStatus } from "@/lib/get-user-circle-status";
 import { isBlockedCircle } from "@/constants/blocked-circles";
@@ -18,6 +21,9 @@ type UserCircleData = Parameters<typeof getUserCircleStatus>[0]["circle"];
 
 export function useAllCircles(page: number = 0) {
   const skip = page * PAGE_SIZE;
+  const chainId = useActiveChainId();
+  const depositToken = useDepositToken();
+  const { savingCirclesViewer } = useChainConfig();
   const blockTimestamp = useBlockTimestamp();
   const { user } = useConnectedUser();
   const memberAddress =
@@ -36,11 +42,11 @@ export function useAllCircles(page: number = 0) {
 
   const { data: rawResults, isLoading: loadingCircles } = useReadContracts({
     contracts: circleIds.map((id) => ({
-      address: SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS,
+      address: savingCirclesViewer,
       abi: savingCirclesViewerAbi,
       functionName: "getUserCircleData",
       args: [memberAddress, id],
-      chainId: getDefaultChainId(),
+      chainId,
     })),
     query: {
       enabled: circleIds.length > 0,
@@ -100,8 +106,12 @@ export function useAllCircles(page: number = 0) {
           ...base,
           canWithdraw: true,
           withdrawAmount:
-            Number(formatDepositAmount(circleData.circleInfo.depositAmount)) *
-            Number(circleData.totalRounds),
+            Number(
+              formatDepositAmount(
+                circleData.circleInfo.depositAmount,
+                depositToken.decimals
+              )
+            ) * Number(circleData.totalRounds),
         });
       } else {
         circles.push({ ...base, canWithdraw: false });

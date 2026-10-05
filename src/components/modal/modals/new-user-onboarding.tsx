@@ -21,24 +21,26 @@ import Alert from "@/components/alert";
 import Link from "next/link";
 import LocalButton from "@/components/button";
 import { usePathname } from "next/navigation";
-import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
-import { getDefaultChainId } from "@/utils/chain";
+import { formatDepositAmount } from "@/lib/deposit-token";
+import {
+  useActiveChainId,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 import { isCeloChain } from "@/utils/celo";
 
-const isCelo = isCeloChain(getDefaultChainId());
-
 function BreadBalance({ address }: { address: Address }) {
+  const depositToken = useDepositToken();
   // Read directly instead of @breadcoop/ui's useBreadBalance, which hardcodes
   // 18 decimals and misreports 6-decimal deposit tokens (USDT/USDC on Celo).
   const { data } = useReadContract({
-    address: DEPOSIT_TOKEN.address,
+    address: depositToken.address,
     abi: erc20Abi,
     functionName: "balanceOf",
     args: [address],
-    chainId: getDefaultChainId(),
+    chainId: useActiveChainId(),
   });
 
-  const balance = formatDepositAmount(data ?? BigInt(0));
+  const balance = formatDepositAmount(data ?? BigInt(0), depositToken.decimals);
 
   return (
     <>
@@ -47,7 +49,7 @@ function BreadBalance({ address }: { address: Address }) {
           {formatAmount(parseFloat(balance))}
         </span>
         <span className="bg-paper-main p-1">
-          <Logo size={24} variant="square" text={DEPOSIT_TOKEN.symbol} />
+          <Logo size={24} variant="square" text={depositToken.symbol} />
         </span>
       </div>
       <Body className="text-xs text-surface-grey">
@@ -62,6 +64,8 @@ const NewUserOnboarding = ({
 }: {
   modalState: NewUserOnboardingModalState;
 }) => {
+  const depositToken = useDepositToken();
+  const isCelo = isCeloChain(useActiveChainId());
   const pathname = usePathname();
   const { setModal } = useModal();
   const { user } = useConnectedUser();
@@ -113,14 +117,14 @@ const NewUserOnboarding = ({
             {fundingStatus === "success"
               ? "With funds in your wallet you can join a Stack or create one."
               : isCelo
-                ? `Send ${DEPOSIT_TOKEN.symbol} to your wallet to use Stacks`
+                ? `Send ${depositToken.symbol} to your wallet to use Stacks`
                 : "Send xDAI to your wallet and automatically get BREAD"}
           </Body>
           <Body className="max-w-140 text-sm leading-normal text-surface-grey">
             {fundingStatus === "success"
               ? "You can always visit your wallet to check your balance or withdrawal your money by clicking on the menu bar."
               : isCelo
-                ? `You can send ${DEPOSIT_TOKEN.symbol} on the Celo network from an external wallet to your Stacks wallet address below.`
+                ? `You can send ${depositToken.symbol} on the Celo network from an external wallet to your Stacks wallet address below.`
                 : "You can send xDAI from an external wallet or the wallet you connected when you signed up and we will automatically get you BREAD."}
           </Body>
 
@@ -143,7 +147,7 @@ const NewUserOnboarding = ({
                       <Logo
                         size={24}
                         variant="square"
-                        text={DEPOSIT_TOKEN.symbol}
+                        text={depositToken.symbol}
                       />
                     </span>
                   </div>
@@ -177,12 +181,12 @@ const NewUserOnboarding = ({
                 variant="warning"
                 title={
                   isCelo
-                    ? `IMPORTANT: Always send ${DEPOSIT_TOKEN.symbol}`
+                    ? `IMPORTANT: Always send ${depositToken.symbol}`
                     : "IMPORTANT: Always get xDAI"
                 }
                 description={
                   isCelo
-                    ? `The token you need to send to your wallet is ${DEPOSIT_TOKEN.symbol} on the Celo network.`
+                    ? `The token you need to send to your wallet is ${depositToken.symbol} on the Celo network.`
                     : "The token you need to send to your wallet is xDAI from Gnosis chain."
                 }
                 closeAble={false}

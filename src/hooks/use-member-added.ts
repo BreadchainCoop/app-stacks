@@ -1,8 +1,10 @@
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { clientEnv } from "@/lib/env";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Address, parseAbiItem } from "viem";
 import { usePublicClient } from "wagmi";
+import {
+  useActiveChainId,
+  useChainConfig,
+} from "@/components/providers/active-chain";
 
 export const useMemberAdded = ({
   circleId,
@@ -14,9 +16,11 @@ export const useMemberAdded = ({
   enabled?: boolean;
 }) => {
   const publicClient = usePublicClient();
+  const chainId = useActiveChainId();
+  const { savingCircles, contractCreationBlock } = useChainConfig();
 
   return useQuery({
-    queryKey: ["memberAdded", circleId, member],
+    queryKey: ["memberAdded", chainId, circleId, member],
     enabled,
     placeholderData: keepPreviousData,
     refetchOnWindowFocus: false,
@@ -24,14 +28,12 @@ export const useMemberAdded = ({
       if (!publicClient) return null;
 
       const logs = await publicClient.getLogs({
-        address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+        address: savingCircles,
         event: parseAbiItem(
           "event MemberAdded(uint256 indexed id, address indexed member)"
         ),
         args: { id: BigInt(circleId), member },
-        fromBlock: BigInt(
-          clientEnv.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK
-        ),
+        fromBlock: contractCreationBlock,
         toBlock: "latest",
       });
 

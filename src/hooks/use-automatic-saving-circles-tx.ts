@@ -1,13 +1,14 @@
 import { ContractFunctionName, ContractFunctionArgs } from "viem";
 import { automaticSavingCirclesAbi } from "@/lib/abis/automatic-saving-circles";
-import { AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { useSimulateAndSponsorTx } from "./use-simulate-and-sponsor-tx";
 import { useSponsoredTx } from "./use-sponsored-tx";
+import { useChainConfig } from "@/components/providers/active-chain";
 
 type AutomaticSavingCirclesAbi = typeof automaticSavingCirclesAbi;
 
 export const useAutomaticSavingCirclesTx = () => {
   const { simulateAndSponsorTx } = useSimulateAndSponsorTx();
+  const { automaticSavingCircles } = useChainConfig();
 
   const sendAutomaticSavingCirclesTx = async <
     TFunctionName extends ContractFunctionName<
@@ -26,7 +27,7 @@ export const useAutomaticSavingCirclesTx = () => {
     >[1];
   }) => {
     return simulateAndSponsorTx({
-      address: AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS,
+      address: automaticSavingCircles,
       abi: automaticSavingCirclesAbi,
       options: {
         uiOptions: {

@@ -2,7 +2,6 @@
 
 import { ICircleStatus } from "@/interfaces/circle";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { Body } from "@breadcoop/ui";
 import { CalendarDotsIcon } from "@phosphor-icons/react";
 import { useWatchContractEvent, usePublicClient } from "wagmi";
@@ -10,6 +9,7 @@ import { useState } from "react";
 import { useGetLastDeposit } from "@/hooks/use-get-last-deposit";
 import { formatRelativeTime } from "@/utils/time";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
+import { useChainConfig } from "@/components/providers/active-chain";
 
 interface LastDepositProps {
   id: string;
@@ -27,7 +27,7 @@ const LastDeposit = ({ id, status, isActive }: LastDepositProps) => {
   const publicClient = usePublicClient();
 
   useWatchContractEvent({
-    address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+    address: useChainConfig().savingCircles,
     abi: savingCirclesAbi,
     eventName: "FundsDeposited",
     args: { id: BigInt(id) },

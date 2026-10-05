@@ -14,9 +14,12 @@ import {
   FundingToken,
   useFundWithConnectedWallet,
 } from "@/hooks/use-fund-with-connected-wallet";
-import { DEPOSIT_TOKEN, parseDepositAmount } from "@/lib/deposit-token";
+import { parseDepositAmount } from "@/lib/deposit-token";
 import { isCeloChain } from "@/utils/celo";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 
 export interface FundWithConnectedWalletModalAmountModalState {
   type: "FUND_WITH_CONNECTED_WALLET_MODAL_AMOUNT";
@@ -29,14 +32,8 @@ interface FundWithConnectedWalletModalAmountProps {
 
 const XDAI_GAS_BUFFER = parseEther("0.001");
 
-// Native xDAI funding (and baking) only exists on Gnosis
-const isCelo = isCeloChain(getDefaultChainId());
-const availableTokens: readonly FundingToken[] = isCelo
-  ? ["BREAD"]
-  : FUNDING_TOKENS;
-
-const tokenLabel = (token: FundingToken) =>
-  token === "BREAD" ? DEPOSIT_TOKEN.symbol : token;
+const tokenLabel = (token: FundingToken, symbol: string) =>
+  token === "BREAD" ? symbol : token;
 
 const TokenIcon = ({ token }: { token: FundingToken }) =>
   token === "BREAD" ? (
@@ -49,8 +46,14 @@ const TokenIcon = ({ token }: { token: FundingToken }) =>
 const FundWithConnectedWalletModalAmount = ({
   modalState,
 }: FundWithConnectedWalletModalAmountProps) => {
+  const depositToken = useDepositToken();
   const { user } = useConnectedUser();
   const { setModal } = useModal();
+  // Native xDAI funding (and baking) only exists on Gnosis
+  const isCelo = isCeloChain(useActiveChainId());
+  const availableTokens: readonly FundingToken[] = isCelo
+    ? ["BREAD"]
+    : FUNDING_TOKENS;
   const [amount, setAmount] = useState("0");
   const [token, setToken] = useState<FundingToken>(isCelo ? "BREAD" : "xDAI");
   const [funding, setFunding] = useState(false);
@@ -68,7 +71,7 @@ const FundWithConnectedWalletModalAmount = ({
   const parsedAmount = (() => {
     try {
       return token === "BREAD"
-        ? parseDepositAmount(amount)
+        ? parseDepositAmount(amount, depositToken.decimals)
         : parseEther(amount);
     } catch {
       return null;
@@ -137,7 +140,7 @@ const FundWithConnectedWalletModalAmount = ({
               }`}
             >
               <TokenIcon token={fundingToken} />
-              {tokenLabel(fundingToken)}
+              {tokenLabel(fundingToken, depositToken.symbol)}
             </button>
           ))}
         </div>
@@ -154,7 +157,7 @@ const FundWithConnectedWalletModalAmount = ({
           <div className="absolute top-1/2 -translate-y-1/2 right-1 p-1 flex items-center justify-end gap-2.5">
             <Body bold className="bg-paper-main flex items-center gap-1.5">
               <TokenIcon token={token} />
-              {tokenLabel(token).toUpperCase()}
+              {tokenLabel(token, depositToken.symbol).toUpperCase()}
             </Body>
             <button
               onClick={() => {

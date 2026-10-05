@@ -4,7 +4,10 @@ import Alert from "@/components/alert";
 import LocalButton from "@/components/button";
 import { useModal } from "@/components/modal/context";
 import { useUserCircleData } from "@/hooks/use-user-circle-data";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 import { Body } from "@breadcoop/ui";
 import { ArrowUpIcon, HandDepositIcon } from "@phosphor-icons/react";
 import { erc20Abi } from "viem";
@@ -32,6 +35,7 @@ export function AutomaticDepositsPrompt({
   context: "post-claim" | "post-deposit";
 }) {
   const { setModal } = useModal();
+  const depositToken = useDepositToken();
   const stackId = circleId.toString();
   const { circleData } = useUserCircleData({ circleId });
   const { address, isEnabled, isKnown } = useAutomaticDepositsEnabled(stackId);
@@ -44,7 +48,7 @@ export function AutomaticDepositsPrompt({
     functionName: "balanceOf",
     args: [address!],
     query: { enabled: !!address && !!token },
-    chainId: getDefaultChainId(),
+    chainId: useActiveChainId(),
   });
 
   // Nothing to offer once automatic deposits are on, and nothing is rendered
@@ -136,8 +140,8 @@ export function AutomaticDepositsPrompt({
           <Body className="text-surface-grey">
             Covering {pendingDeposits}{" "}
             {pendingDeposits === 1 ? "deposit" : "deposits"} takes{" "}
-            {breadLabel(totalDeposit)} and you hold {breadLabel(balance)}. Top
-            up to activate.
+            {breadLabel(totalDeposit, depositToken)} and you hold{" "}
+            {breadLabel(balance, depositToken)}. Top up to activate.
           </Body>
           <div className="lifted-button-container">
             <LocalButton

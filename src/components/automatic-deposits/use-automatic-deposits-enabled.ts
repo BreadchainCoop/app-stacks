@@ -1,8 +1,10 @@
 import { useConnectedUser } from "@breadcoop/ui";
 import { useReadContract } from "wagmi";
 import { automaticSavingCirclesAbi } from "@/lib/abis/automatic-saving-circles";
-import { AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+} from "@/components/providers/active-chain";
 
 /**
  * Whether the connected member has automatic deposits on for this circle.
@@ -15,11 +17,11 @@ export function useAutomaticDepositsEnabled(stackId: string) {
 
   const { data, isFetching } = useReadContract({
     abi: automaticSavingCirclesAbi,
-    address: AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS,
+    address: useChainConfig().automaticSavingCircles,
     functionName: "isAutomaticDepositsEnabled",
     args: [BigInt(stackId), address!],
     query: { enabled: !!address },
-    chainId: getDefaultChainId(),
+    chainId: useActiveChainId(),
   });
 
   return {

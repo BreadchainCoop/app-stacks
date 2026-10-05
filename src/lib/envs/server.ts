@@ -1,4 +1,5 @@
 import z from "zod";
+import { jsonChainsSchema } from "./chain-schema";
 
 const envSchema = z.object({
   SPOO_TOKEN: z.string(),
@@ -14,14 +15,12 @@ const envSchema = z.object({
   // wallets a Privy account owns. Never NEXT_PUBLIC_ — that would inline it
   // into the client bundle.
   PRIVY_APP_SECRET: z.string().optional(),
+  // Same per-chain config the client reads. Route handlers can't use hooks, so
+  // they take the chain from the request and look it up here — see
+  // ./server-chains.ts.
+  NEXT_PUBLIC_CHAINS: jsonChainsSchema,
+  // Still needed as the fallback chain for requests that don't name one.
   NEXT_PUBLIC_CHAIN_ID: z.coerce.number(),
-  NEXT_PUBLIC_DEPOSIT_TOKEN_ADDRESS: z.string(),
-  NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS: z.string(),
-  // Optional: deployments without Goal savings leave it unset
-  NEXT_PUBLIC_GOAL_SAVINGS_CONTRACT_ADDRESS: z
-    .string()
-    .optional()
-    .default("0x0000000000000000000000000000000000000000"),
   NEXT_PUBLIC_PRIVY_APP_ID: z.string(),
 });
 

@@ -10,7 +10,7 @@ import { formatAmount } from "@/utils/format-amount";
 import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { CLAIM_ERRORS } from "@/lib/contract-errors";
-import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
+import { useDepositToken } from "@/components/providers/active-chain";
 
 const parseClaimError = (error: unknown) =>
   parseContractError(error, CLAIM_ERRORS, "Failed to claim. Please try again.");
@@ -26,6 +26,7 @@ const ClaimButton = ({
   label?: string;
   className?: string;
 }) => {
+  const depositToken = useDepositToken();
   const queryClient = useQueryClient();
   const { setModal } = useModal();
   const [claiming, setClaiming] = useState(false);
@@ -71,7 +72,7 @@ const ClaimButton = ({
       onClick={claim}
       disabled={claiming}
     >
-      {label || `Claim ${formatAmount(amount, 2)} ${DEPOSIT_TOKEN.symbol}`}
+      {label || `Claim ${formatAmount(amount, 2)} ${depositToken.symbol}`}
     </LocalButton>
   );
 };

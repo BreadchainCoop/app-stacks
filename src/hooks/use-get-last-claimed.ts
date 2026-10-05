@@ -1,8 +1,10 @@
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { clientEnv } from "@/lib/env";
 import { useQuery } from "@tanstack/react-query";
 import { Address } from "viem";
 import { usePublicClient } from "wagmi";
+import {
+  useActiveChainId,
+  useChainConfig,
+} from "@/components/providers/active-chain";
 
 export const useGetLastClaimed = ({
   circleId,
@@ -14,15 +16,17 @@ export const useGetLastClaimed = ({
   accountAddress?: Address;
 }) => {
   const publicClient = usePublicClient();
+  const chainId = useActiveChainId();
+  const { savingCircles, contractCreationBlock } = useChainConfig();
 
   const { data, ...result } = useQuery({
-    queryKey: ["lastClaimed", circleId, accountAddress],
+    queryKey: ["lastClaimed", chainId, circleId, accountAddress],
     enabled: Boolean(publicClient) && enabled,
     queryFn: async () => {
       if (!publicClient) return null;
 
       const logs = await publicClient.getLogs({
-        address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+        address: savingCircles,
         event: {
           type: "event",
           name: "FundsWithdrawn",
@@ -36,9 +40,7 @@ export const useGetLastClaimed = ({
           _id: BigInt(circleId),
           ...(accountAddress ? { _member: accountAddress } : {}),
         },
-        fromBlock: BigInt(
-          clientEnv.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_CREATION_BLOCK
-        ),
+        fromBlock: contractCreationBlock,
         toBlock: "latest",
       });
 

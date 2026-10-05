@@ -1,6 +1,8 @@
 import { savingCirclesViewerAbi } from "@/lib/abis/saving-circles-viewers";
-import { SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS } from "@/lib/constants";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+} from "@/components/providers/active-chain";
 import { useConnectedUser } from "@breadcoop/ui";
 import { Address } from "viem";
 import { useReadContract } from "wagmi";
@@ -27,7 +29,7 @@ export function useUserCircleData({
     error,
     refetch,
   } = useReadContract({
-    address: SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS,
+    address: useChainConfig().savingCirclesViewer,
     abi: savingCirclesViewerAbi,
     functionName: "getUserCircleData",
     // args:
@@ -40,7 +42,7 @@ export function useUserCircleData({
       enabled: enabled !== undefined ? enabled : user !== undefined,
       refetchOnWindowFocus: false,
     },
-    chainId: getDefaultChainId(),
+    chainId: useActiveChainId(),
   });
 
   return {

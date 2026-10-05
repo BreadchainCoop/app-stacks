@@ -14,15 +14,16 @@ import {
 import { ModalContainer } from "../modal/components";
 import { Body, Heading3 } from "@breadcoop/ui";
 import LocalButton from "../button";
-import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
-import { getDefaultChainId } from "@/utils/chain";
+import { DepositTokenConfig } from "@/interfaces/chain-config";
+import {
+  useActiveChainId,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 import { isCeloChain } from "@/utils/celo";
 
 // The xDAI/bake mechanic is Gnosis-only; on Celo funding is a plain
 // deposit-token transfer.
-const isCelo = isCeloChain(getDefaultChainId());
-
-const steps = [
+const getSteps = (isCelo: boolean, depositToken: DepositTokenConfig) => [
   {
     icon: IdentificationBadgeIcon,
     title: "Create your account in Stacks",
@@ -35,7 +36,7 @@ const steps = [
     icon: CoinsIcon,
     title: "Fund your wallet",
     boldText: isCelo
-      ? `You can fund your wallet by sending ${DEPOSIT_TOKEN.symbol} from another wallet.`
+      ? `You can fund your wallet by sending ${depositToken.symbol} from another wallet.`
       : "You can fund your wallet by sending BREAD or xDAI from your wallet.",
     regularText: isCelo
       ? "Just click on Fund your wallet button on the menu bar wallet section."
@@ -76,6 +77,8 @@ const steps = [
 ];
 
 export default function VisitorOnboarding() {
+  const chainId = useActiveChainId();
+  const steps = getSteps(isCeloChain(chainId), useDepositToken());
   const [currentStep, setCurrentStep] = useState(0);
   const { setModal } = useModal();
 

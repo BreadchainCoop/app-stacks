@@ -4,7 +4,7 @@ import { Label } from "@/components/label";
 import { cn } from "@/lib/utils";
 import { useModal } from "@/components/modal/context";
 import { Switch } from "@/components/switch";
-import { getDefaultChainId } from "@/utils/chain";
+import { useActiveChainId } from "@/components/providers/active-chain";
 import { HandDepositIcon } from "@phosphor-icons/react";
 import { Address, erc20Abi } from "viem";
 import { useReadContract } from "wagmi";
@@ -37,7 +37,7 @@ export function AutomaticDeposit({
     functionName: "balanceOf",
     args: [address!],
     query: { enabled: !!address },
-    chainId: getDefaultChainId(),
+    chainId: useActiveChainId(),
   });
 
   if (!address) return null;

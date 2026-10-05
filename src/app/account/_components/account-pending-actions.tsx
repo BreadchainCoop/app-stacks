@@ -9,9 +9,10 @@ import { HandDepositIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { Address } from "viem";
 import { formatDepositAmount } from "@/lib/deposit-token";
+import { useDepositToken } from "@/components/providers/active-chain";
 
-const toBread = (value: bigint | undefined) =>
-  Number(formatDepositAmount(value ?? BigInt(0)));
+const toBread = (value: bigint | undefined, decimals: number) =>
+  Number(formatDepositAmount(value ?? BigInt(0), decimals));
 
 const scrollToStacks = () => {
   document
@@ -28,11 +29,12 @@ const AccountPendingActions = ({
 }) => {
   const { circles, isLoading, error } = useUserCirclesList(address);
   const isOwner = useIsOwnAddress(address);
+  const depositToken = useDepositToken();
 
   const pendingDeposits = circles.reduce(
     (sum, circle) =>
       circle.status === "payment_due"
-        ? sum + toBread(circle.depositAmount)
+        ? sum + toBread(circle.depositAmount, depositToken.decimals)
         : sum,
     0
   );

@@ -1,3 +1,5 @@
+"use client";
+
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useCircleState } from "@/hooks/use-circles-state";
 import { CircleState } from "@/lib/circle-state";
@@ -22,6 +24,7 @@ import { CalendarDotsIcon } from "@phosphor-icons/react/ssr";
 import { ReactNode } from "react";
 import { formatDepositAmount } from "@/lib/deposit-token";
 import OverallStacked from "./overall-stacked";
+import { useDepositToken } from "@/components/providers/active-chain";
 
 const failedStatuses: ICircleStatus[] = [
   "decommissioned",
@@ -146,7 +149,14 @@ const StackDetailsBreakdown = ({
     <div className="md:flex-1">
       <StackDetailsBreakdownRow label={`${intervalLabel} deposit`}>
         <p className="text-h2 text-2xl leading-6 tracking-[-2%]">
-          ${formatAmount(+formatDepositAmount(circle.depositAmount), 2)}
+          $
+          {formatAmount(
+            +formatDepositAmount(
+              circle.depositAmount,
+              useDepositToken().decimals
+            ),
+            2
+          )}
         </p>
       </StackDetailsBreakdownRow>
       <StackDetailsBreakdownRow label="Members deposit every">
@@ -249,8 +259,14 @@ const StackDetails = ({
               ? intervalLabel.slice(0, -2)
               : intervalLabel
           }
-          depositPerRound={formatDepositAmount(depositPerRound)}
-          poolBalance={formatDepositAmount(_circle.totalPoolBalance)}
+          depositPerRound={formatDepositAmount(
+            depositPerRound,
+            useDepositToken().decimals
+          )}
+          poolBalance={formatDepositAmount(
+            _circle.totalPoolBalance,
+            useDepositToken().decimals
+          )}
           completedRounds={_circle.completedRounds}
           circleStatus={circleStatus}
           circleId={id}

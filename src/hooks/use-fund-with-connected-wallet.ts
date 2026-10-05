@@ -18,9 +18,12 @@ import { useConnectedUser } from "@breadcoop/ui";
 import { useModal } from "@/components/modal/context";
 import { useWaitForTxReceipt } from "@/hooks/use-wait-for-tx-receipt";
 import { useSimulateAndSponsorTx } from "@/hooks/use-simulate-and-sponsor-tx";
-import { getDefaultChainDetail } from "@/utils/chain";
-import { clientEnv } from "@/lib/env";
-import { DEPOSIT_TOKEN, parseDepositAmount } from "@/lib/deposit-token";
+import { getChainDetail } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useDepositToken,
+} from "@/components/providers/active-chain";
+import { parseDepositAmount } from "@/lib/deposit-token";
 import { isCeloChain } from "@/utils/celo";
 import { breadAbi } from "@/lib/abis/bread-abi";
 
@@ -38,7 +41,9 @@ interface FundWalletParams {
 }
 
 export const useFundWithConnectedWallet = () => {
+  const depositToken = useDepositToken();
   const currentChainId = useChainId();
+  const chainId = useActiveChainId();
   const { switchChainAsync } = useSwitchChain();
   const { user } = useConnectedUser();
   const { waitForTxReceipt } = useWaitForTxReceipt();
@@ -50,7 +55,7 @@ export const useFundWithConnectedWallet = () => {
 
   const xDaiBalance = useBalance({
     address: externalAccount,
-    chainId: clientEnv.NEXT_PUBLIC_CHAIN_ID,
+    chainId: chainId,
     query: {
       enabled: Boolean(externalAccount),
     },
@@ -58,8 +63,8 @@ export const useFundWithConnectedWallet = () => {
 
   const breadBalance = useBalance({
     address: externalAccount,
-    token: DEPOSIT_TOKEN.address,
-    chainId: clientEnv.NEXT_PUBLIC_CHAIN_ID,
+    token: depositToken.address,
+    chainId: chainId,
     query: {
       enabled: Boolean(externalAccount),
     },
@@ -69,7 +74,7 @@ export const useFundWithConnectedWallet = () => {
     if (!window.ethereum) return;
 
     const client = createWalletClient({
-      chain: getDefaultChainDetail(),
+      chain: getChainDetail(chainId),
       transport: custom(window.ethereum),
     });
 
@@ -82,7 +87,7 @@ export const useFundWithConnectedWallet = () => {
     if (!(user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"))
       return;
 
-    if (token === "xDAI" && isCeloChain(clientEnv.NEXT_PUBLIC_CHAIN_ID)) {
+    if (token === "xDAI" && isCeloChain(chainId)) {
       console.error("Native xDAI funding is not available on Celo");
       return;
     }
@@ -92,28 +97,30 @@ export const useFundWithConnectedWallet = () => {
 
       // Deposit-token amounts use the token's decimals; native xDAI is 18
       const formattedAmount =
-        token === "BREAD" ? parseDepositAmount(amount) : parseEther(amount);
+        token === "BREAD"
+          ? parseDepositAmount(amount, depositToken.decimals)
+          : parseEther(amount);
 
       let depositHash: Hex;
 
       if (wallet) {
-        if (currentChainId !== clientEnv.NEXT_PUBLIC_CHAIN_ID) {
-          await switchChainAsync({ chainId: clientEnv.NEXT_PUBLIC_CHAIN_ID });
+        if (currentChainId !== chainId) {
+          await switchChainAsync({ chainId: chainId });
         }
 
         if (token === "BREAD") {
           depositHash = await writeContractAsync({
-            address: DEPOSIT_TOKEN.address,
+            address: depositToken.address,
             abi: erc20Abi,
             functionName: "transfer",
             args: [user.address as Address, formattedAmount],
-            chainId: clientEnv.NEXT_PUBLIC_CHAIN_ID,
+            chainId: chainId,
           });
         } else {
           depositHash = await sendTransactionAsync({
             to: user.address,
             value: formattedAmount,
-            chainId: clientEnv.NEXT_PUBLIC_CHAIN_ID,
+            chainId: chainId,
           });
         }
       } else {
@@ -121,7 +128,7 @@ export const useFundWithConnectedWallet = () => {
         if (!window.ethereum) return;
 
         const walletClient = createWalletClient({
-          chain: getDefaultChainDetail(),
+          chain: getChainDetail(chainId),
           transport: custom(window.ethereum),
         });
 
@@ -136,27 +143,27 @@ export const useFundWithConnectedWallet = () => {
 
         const currentChainId = await walletClient.getChainId();
 
-        if (currentChainId !== clientEnv.NEXT_PUBLIC_CHAIN_ID) {
+        if (currentChainId !== chainId) {
           await walletClient.switchChain({
-            id: clientEnv.NEXT_PUBLIC_CHAIN_ID,
+            id: chainId,
           });
         }
 
         if (token === "BREAD") {
           depositHash = await walletClient.writeContract({
             account,
-            address: DEPOSIT_TOKEN.address,
+            address: depositToken.address,
             abi: erc20Abi,
             functionName: "transfer",
             args: [user.address as Address, formattedAmount],
-            chain: getDefaultChainDetail(),
+            chain: getChainDetail(chainId),
           });
         } else {
           depositHash = await walletClient.sendTransaction({
             account,
             to: user.address as Address,
             value: formattedAmount,
-            chain: getDefaultChainDetail(),
+            chain: getChainDetail(chainId),
           });
         }
       }
@@ -165,7 +172,7 @@ export const useFundWithConnectedWallet = () => {
 
       if (token === "xDAI") {
         await simulateAndSponsorTx({
-          address: DEPOSIT_TOKEN.address,
+          address: depositToken.address,
           abi: breadAbi,
           functionName: "mint",
           args: [user.address],

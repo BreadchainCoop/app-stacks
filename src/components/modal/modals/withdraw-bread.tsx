@@ -19,12 +19,11 @@ import LocalButton from "@/components/button";
 import Loading from "@/app/loading";
 import BreadInfoNote from "@/components/bread-info-note";
 import { cn } from "@/lib/utils";
+import { formatDepositAmount, parseDepositAmount } from "@/lib/deposit-token";
 import {
-  DEPOSIT_TOKEN,
-  formatDepositAmount,
-  parseDepositAmount,
-} from "@/lib/deposit-token";
-import { getDefaultChainId } from "@/utils/chain";
+  useActiveChainId,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 import { formatAmount } from "@/utils/format-amount";
 import { CircularProgressIcon } from "@/components/icons/circular-progress";
 import { ArrowDownIcon } from "@phosphor-icons/react";
@@ -39,6 +38,7 @@ function SuccessContent({
   amount: string;
   recipient: string;
 }) {
+  const depositToken = useDepositToken();
   const { setModal } = useModal();
   return (
     <div className="flex flex-col items-center gap-2">
@@ -53,7 +53,7 @@ function SuccessContent({
           integralPartClassName="text-base"
           decimalPartClassName="text-xs"
         />{" "}
-        <span>{DEPOSIT_TOKEN.symbol}</span>
+        <span>{depositToken.symbol}</span>
       </Body>
       <div>
         <ArrowDownIcon size={24} className="fill-primary-blue" />
@@ -74,16 +74,17 @@ function SuccessContent({
   );
 }
 
-const parseWithdrawError = (error: unknown) =>
+const parseWithdrawError = (error: unknown, symbol: string) =>
   parseContractError(
     error,
     {
-      ERC20InsufficientBalance: `Insufficient ${DEPOSIT_TOKEN.symbol} balance.`,
+      ERC20InsufficientBalance: `Insufficient ${symbol} balance.`,
     },
     "Something went wrong during the withdrawal."
   );
 
 const WithdrawBreadModal = () => {
+  const depositToken = useDepositToken();
   const { simulateAndSponsorTx } = useSimulateAndSponsorTx();
   const [level, setLevel] = useState<"form" | "loading" | "error" | "success">(
     "form"
@@ -99,11 +100,11 @@ const WithdrawBreadModal = () => {
   });
 
   const { data, isLoading, error } = useReadContract({
-    address: DEPOSIT_TOKEN.address,
+    address: depositToken.address,
     abi: erc20Abi,
     functionName: "balanceOf",
     args: [connectedAddress],
-    chainId: getDefaultChainId(),
+    chainId: useActiveChainId(),
     query: {
       enabled: isConnected && Boolean(connectedAddress),
     },
@@ -111,7 +112,7 @@ const WithdrawBreadModal = () => {
 
   // Not millified: the Max button writes this string back into the amount input.
   const balance = data
-    ? formatBalance(Number(formatDepositAmount(data)), 2)
+    ? formatBalance(Number(formatDepositAmount(data, depositToken.decimals)), 2)
     : 0;
   console.log("Balance data", { data, isLoading, error, balance });
 
@@ -127,7 +128,10 @@ const WithdrawBreadModal = () => {
 
     // Use the raw amount, not the display string — formatBalance output is
     // comma-grouped, which the parsers reject for balances >= 1000
-    setForm((prev) => ({ ...prev, amount: formatDepositAmount(data) }));
+    setForm((prev) => ({
+      ...prev,
+      amount: formatDepositAmount(data, depositToken.decimals),
+    }));
   };
 
   let buttonWithdrawContent: ReactNode = "Withdraw";
@@ -160,10 +164,13 @@ const WithdrawBreadModal = () => {
     const recipientAddress = form.address as Address;
 
     try {
-      const amountToSend = parseDepositAmount(form.amount);
+      const amountToSend = parseDepositAmount(
+        form.amount,
+        depositToken.decimals
+      );
 
       const hash = await simulateAndSponsorTx({
-        address: DEPOSIT_TOKEN.address,
+        address: depositToken.address,
         abi: erc20Abi,
         functionName: "transfer",
         args: [recipientAddress, amountToSend],
@@ -173,7 +180,7 @@ const WithdrawBreadModal = () => {
       setLevel("success");
     } catch (error) {
       console.error("Withdraw error", error);
-      setErrorMsg(parseWithdrawError(error));
+      setErrorMsg(parseWithdrawError(error, depositToken.symbol));
       setLevel("error");
     }
   };
@@ -243,7 +250,7 @@ const WithdrawBreadModal = () => {
               />
               <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center justify-end gap-2.5">
                 <div className="bg-paper-main p-1">
-                  <Logo text={DEPOSIT_TOKEN.symbol} size={24} />
+                  <Logo text={depositToken.symbol} size={24} />
                 </div>
                 <button
                   onClick={setMaxAmount}
@@ -264,7 +271,7 @@ const WithdrawBreadModal = () => {
                   <CircularProgressIcon className="w-4! h-4! ml-1" />
                 ) : (
                   <>
-                    {balance} {DEPOSIT_TOKEN.symbol}
+                    {balance} {depositToken.symbol}
                   </>
                 )}
               </Body>

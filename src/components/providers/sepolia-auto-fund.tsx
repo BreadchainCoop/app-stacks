@@ -1,16 +1,17 @@
 "use client";
 
-import { clientEnv } from "@/lib/env";
 import { useConnectedUser } from "@breadcoop/ui";
+import { useActiveChainId } from "./active-chain";
 import { useEffect } from "react";
 import { sepolia } from "viem/chains";
 
 const SepoliaAutoFund = () => {
   const { user } = useConnectedUser();
+  const chainId = useActiveChainId();
 
   useEffect(() => {
     if (
-      clientEnv.NEXT_PUBLIC_CHAIN_ID !== sepolia.id ||
+      chainId !== sepolia.id ||
       !(user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN")
     )
       return;

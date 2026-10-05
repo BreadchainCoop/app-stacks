@@ -4,8 +4,10 @@ import { useAutomaticSavingCirclesTx } from "./use-automatic-saving-circles-tx";
 import { useQueryClient } from "@tanstack/react-query";
 import { readContractQueryKey } from "wagmi/query";
 import { automaticSavingCirclesAbi } from "@/lib/abis/automatic-saving-circles";
-import { AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+} from "@/components/providers/active-chain";
 import { useConnectedUser } from "@breadcoop/ui";
 
 export type AutomaticClaimsStatus = "idle" | "loading" | "success" | "error";
@@ -24,6 +26,8 @@ export function useAutomaticClaims() {
   const address = user.status === "CONNECTED" ? user.address : undefined;
   const [status, setStatus] = useState<AutomaticClaimsStatus>("idle");
   const queryClient = useQueryClient();
+  const chainId = useActiveChainId();
+  const { automaticSavingCircles } = useChainConfig();
 
   const activate = async (circleId: bigint, enabled: boolean) => {
     if (status === "loading" || !userId) return;
@@ -42,10 +46,10 @@ export function useAutomaticClaims() {
 
       const queryKey = readContractQueryKey({
         abi: automaticSavingCirclesAbi,
-        address: AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS,
+        address: automaticSavingCircles,
         functionName: "isAutomaticClaimsEnabled",
         args: [circleId, address],
-        chainId: getDefaultChainId(),
+        chainId,
       });
 
       queryClient.setQueryData(queryKey, enabled);

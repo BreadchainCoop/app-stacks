@@ -4,8 +4,10 @@ import { Label } from "@/components/label";
 import { useModal } from "@/components/modal/context";
 import { Switch } from "@/components/switch";
 import { automaticSavingCirclesAbi } from "@/lib/abis/automatic-saving-circles";
-import { AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+} from "@/components/providers/active-chain";
 import { useConnectedUser } from "@breadcoop/ui";
 import { HandWithdrawIcon } from "@phosphor-icons/react";
 import { useReadContract } from "wagmi";
@@ -24,11 +26,11 @@ export function AutomaticClaim({
 
   const { data: isEnabled = false, isFetching } = useReadContract({
     abi: automaticSavingCirclesAbi,
-    address: AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS,
+    address: useChainConfig().automaticSavingCircles,
     functionName: "isAutomaticClaimsEnabled",
     args: [BigInt(stackId), address!],
     query: { enabled: !!address },
-    chainId: getDefaultChainId(),
+    chainId: useActiveChainId(),
   });
 
   return (
