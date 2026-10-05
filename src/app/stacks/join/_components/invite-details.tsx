@@ -12,12 +12,14 @@ import { useStackSupabase } from "@/hooks/use-stack-supabase";
 import { getIntervalBySeconds } from "@/utils/deposit-interval";
 import { Body, formatBalance } from "@breadcoop/ui";
 import { formatDepositAmount } from "@/lib/deposit-token";
+import { useDepositToken } from "@/components/providers/active-chain";
 
 type InviteDetailsProps = {
   circleId: string;
 };
 
 export default function InviteDetails({ circleId }: InviteDetailsProps) {
+  const depositToken = useDepositToken();
   const { data: stackMetadata, isLoading: isLoadingMetadata } =
     useStackSupabase(circleId);
   const { data: circle, isLoading: isLoadingCircle } =
@@ -43,7 +45,10 @@ export default function InviteDetails({ circleId }: InviteDetailsProps) {
   const members = stackMetadata.expected_members;
   const duration =
     getIntervalBySeconds(Number(circle.depositInterval))?.label ?? "-";
-  const deposit = formatDepositAmount(circle.depositAmount);
+  const deposit = formatDepositAmount(
+    circle.depositAmount,
+    depositToken.decimals
+  );
 
   return (
     <div className="border-t border-blue-0 pt-6">

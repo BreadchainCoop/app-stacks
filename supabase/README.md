@@ -16,13 +16,15 @@ supabase login
 
 ## Applying migrations to an environment
 
-Gnosis and Celo are separate deployments (see docs/ARCHITECTURE.md), each with
-its own Supabase project per tier — six projects total: local, local-celo,
-development, development-celo, prod, celo. (Celo production is named for its
-branch, `celo`; its env vars keep the `PROD_CELO` suffix. The former "demo"
-project has been retired.) Put each project's database URL in `.env.local` (see
-`.env.local.example`; Dashboard -> Settings -> Database -> Connection string),
-then:
+One deployment now serves every chain it configures (see
+docs/ARCHITECTURE.md), and `stacks_metadata` and its dependants are keyed by
+`(chain_id, id)` so one project can hold them all. The per-chain projects and
+push targets below predate that and are being revisited — until then a tier
+still has a project per chain: local, local-celo, development,
+development-celo, prod, celo. (Celo production is named for its branch, `celo`;
+its env vars keep the `PROD_CELO` suffix.) Put each project's database URL in
+`.env.local` (see `.env.local.example`; Dashboard -> Settings -> Database ->
+Connection string), then:
 
 ```bash
 pnpm db:push:local
@@ -37,10 +39,11 @@ Each tier also has an `-all` script (`db:push:local-all`,
 `db:push:development-all`, `db:push:prod-all`) that pushes both chains in one
 go, stopping if the first fails.
 
-The two chains share one migration set — Celo needs no schema of its own,
-since a MiniPay user is an ordinary row in `users` with `privy_user_id` set to
-`minipay:<address>`. A newly created project therefore takes the whole set
-from the baseline; there is no Celo-specific catch-up.
+Every chain shares one migration set — Celo needs no schema of its own, since a
+MiniPay user is an ordinary row in `users` with `privy_user_id` set to
+`minipay:<address>`, and the chain is a column rather than a separate table. A
+newly created project therefore takes the whole set from the baseline; there is
+no Celo-specific catch-up.
 
 `db push` runs only the migrations that project hasn't seen yet, in filename
 order, so re-running it against an up-to-date project is a no-op. Push each

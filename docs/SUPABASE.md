@@ -62,12 +62,17 @@ The `Database` type is the contract between the app and Postgres. Current tables
 - **`users`** — `id`, `privy_user_id`, `wallet_address`, `created_at`. Links a Privy
   account to an app user. Created during onboarding via the service role.
 - **`profiles`** — `user_id`, `username`, `updated_at`. Public-ish display info for a user.
-- **`stacks_metadata`** — `id`, `stackname`, `stack_type`, `created_at`, `expected_members`.
-  Off-chain metadata for a stack. `stack_type` is `rosca` or `goal`; ROSCA rows keep their
-  bare on-chain id, goals use a `goal:<id>` prefix so the id-spaces of the two contracts
-  never collide (see `src/lib/stack-types.ts`). The invite link itself is just `?circleId=`
-  (plus `&type=goal` for goals) — no per-link state to store here.
-- **`join_requests`** — `id`, `stack_id`, `user_id`, `wallet_address`, `status`
+- **`stacks_metadata`** — `chain_id`, `id`, `stackname`, `stack_type`, `created_at`,
+  `expected_members`. Off-chain metadata for a stack. **The key is `(chain_id, id)`**:
+  circle ids come from a per-chain counter (`SavingCircles.sol`, `_id = nextId++`), so
+  circle 5 exists on every chain and those are unrelated stacks. Every read and write must
+  filter on `chain_id` — an unscoped `.single()` sees more than one row, and `chain_id` is
+  immutable. `stack_type` is `rosca` or `goal`; ROSCA rows keep their bare on-chain id,
+  goals use a `goal:<id>` prefix so the id-spaces of the two contracts never collide (see
+  `src/lib/stack-types.ts`). Note those are independent: the prefix separates *contracts*,
+  `chain_id` separates *chains*. The invite link is `?circleId=` plus `&chain=` (and
+  `&type=goal` for goals) — no per-link state to store here.
+- **`join_requests`** — `id`, `chain_id`, `stack_id`, `user_id`, `wallet_address`, `status`
   (`pending` | `added` | `dismissed`), `created_at`. Records who has asked to join a stack
   via its invite link, so the owner can review and accept them with `addMembers`. Unlike
   the other tables, this one has **no anon/authenticated grants at all** — a requester's
