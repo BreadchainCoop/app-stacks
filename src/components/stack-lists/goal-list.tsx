@@ -11,7 +11,11 @@ import { formatBalance } from "@breadcoop/ui";
 import { Address } from "viem";
 import StackCard from "./stack-card";
 import StackListSection from "./stack-list-section";
-import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
+import { formatDepositAmount } from "@/lib/deposit-token";
+import {
+  useChainPath,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 
 const STATE_CHIP_CLASSES: Record<GoalState, string> = {
   [GoalState.Funding]: "border-primary-blue text-primary-blue",
@@ -20,9 +24,6 @@ const STATE_CHIP_CLASSES: Record<GoalState, string> = {
   [GoalState.Cancelled]: "border-surface-grey text-surface-grey",
   [GoalState.Released]: "border-system-green text-system-green",
 };
-
-const formatBread = (amount: bigint) =>
-  `${formatBalance(+formatDepositAmount(amount), 2)} ${DEPOSIT_TOKEN.symbol}`;
 
 /**
  * The connected member's Goal savings circles. Rendered feature-gated on the
@@ -45,6 +46,11 @@ const GoalList = ({
 }) => {
   const { goals, isLoading } = useGoalMemberGoals(address);
   const { stacksMap } = useUserStacksMetadata(nameAddress ?? address);
+  const chainHref = useChainPath();
+  const depositToken = useDepositToken();
+
+  const formatBread = (amount: bigint) =>
+    `${formatBalance(+formatDepositAmount(amount, depositToken.decimals), 2)} ${depositToken.symbol}`;
 
   return (
     <StackListSection
@@ -61,7 +67,7 @@ const GoalList = ({
         return (
           <StackCard
             key={id.toString()}
-            href={stackTypeDetailPath("goal", id)}
+            href={chainHref(stackTypeDetailPath("goal", id))}
             name={name}
             id={id.toString()}
             progress={

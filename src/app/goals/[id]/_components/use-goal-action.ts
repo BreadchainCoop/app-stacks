@@ -3,9 +3,11 @@ import { useGoalSavingsTx } from "@/hooks/use-goal-savings-tx";
 import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
 import { useWaitForTxReceipt } from "@/hooks/use-wait-for-tx-receipt";
 import { goalSavingCirclesAbi } from "@/lib/abis/goal-saving-circles";
-import { GOAL_SAVINGS_CONTRACT_ADDRESS } from "@/lib/constants";
 import { GOAL_SAVINGS_ERRORS } from "@/lib/contract-errors";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+} from "@/components/providers/active-chain";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { MAX_UINT256 } from "@/utils/solidity";
 import { useConnectedUser } from "@breadcoop/ui";
@@ -39,14 +41,16 @@ export function useGoalAction(tokenAddress?: Address) {
   const { waitForTxReceipt } = useWaitForTxReceipt();
   const { user } = useConnectedUser();
   const userAddress = user.status === "CONNECTED" ? user.address : undefined;
+  const { goalSavings } = useChainConfig();
+  const chainId = useActiveChainId();
 
   const { data: allowance = BigInt(0) } = useReadContract({
     address: tokenAddress,
     abi: erc20Abi,
     functionName: "allowance",
-    args: [userAddress!, GOAL_SAVINGS_CONTRACT_ADDRESS],
+    args: [userAddress!, goalSavings],
     query: { enabled: !!userAddress && !!tokenAddress },
-    chainId: getDefaultChainId(),
+    chainId,
   });
 
   const runGoalAction = async <
@@ -80,7 +84,7 @@ export function useGoalAction(tokenAddress?: Address) {
         const approveData = encodeFunctionData({
           abi: erc20Abi,
           functionName: "approve",
-          args: [GOAL_SAVINGS_CONTRACT_ADDRESS, MAX_UINT256],
+          args: [goalSavings, MAX_UINT256],
         });
 
         const { hash } = await sendSponsoredTransaction({

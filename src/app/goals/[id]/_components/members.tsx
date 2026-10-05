@@ -7,7 +7,8 @@ import { GoalInfo } from "@/hooks/use-goal";
 import { JoinRequest, useJoinRequests } from "@/hooks/use-join-requests";
 import { useGoalSavingsTx } from "@/hooks/use-goal-savings-tx";
 import { GOAL_ADD_MEMBERS_ERRORS } from "@/lib/contract-errors";
-import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
+import { formatDepositAmount } from "@/lib/deposit-token";
+import { useDepositToken } from "@/components/providers/active-chain";
 import { stackMetadataId } from "@/lib/stack-types";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { Body, Chip, formatBalance, Heading3 } from "@breadcoop/ui";
@@ -152,6 +153,7 @@ const GoalMembers = ({
   member: Address | undefined;
 }) => {
   const { contributions, isLoading } = useGoalContributions(BigInt(id));
+  const depositToken = useDepositToken();
   const isOwner = !!member && goal.owner.toLowerCase() === member.toLowerCase();
 
   // Only the owner gets the pending list back (the API verifies it
@@ -210,8 +212,14 @@ const GoalMembers = ({
               <Body>
                 <span className="text-surface-grey">Contribution: </span>
                 <span className="font-bold">
-                  {formatBalance(+formatDepositAmount(contribution.amount), 2)}{" "}
-                  {DEPOSIT_TOKEN.symbol}
+                  {formatBalance(
+                    +formatDepositAmount(
+                      contribution.amount,
+                      depositToken.decimals
+                    ),
+                    2
+                  )}{" "}
+                  {depositToken.symbol}
                 </span>
               </Body>
             </div>

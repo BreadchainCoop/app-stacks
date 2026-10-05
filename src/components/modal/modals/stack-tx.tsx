@@ -12,7 +12,8 @@ import {
   TModalStatus,
   useModal,
 } from "../context";
-import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
+import { formatDepositAmount } from "@/lib/deposit-token";
+import { useDepositToken } from "@/components/providers/active-chain";
 
 /**
  * Copy for the generic per-action tx modals shared by the new stack types
@@ -72,6 +73,7 @@ export const StackTxInitModal = ({
 }) => {
   const modal = useModal();
   const copy = ACTION_COPY[modalState.action];
+  const depositToken = useDepositToken();
   const isCancellingGoal =
     modalState.stackType === "goal" && modalState.action === "cancel";
 
@@ -84,13 +86,21 @@ export const StackTxInitModal = ({
           <div className="flex items-center justify-center gap-2">
             <Logo variant="square" size={24} />
             <Heading2 className="text-5xl leading-12">
-              {formatBalance(+formatDepositAmount(modalState.amount), 2)}
+              {formatBalance(
+                +formatDepositAmount(modalState.amount, depositToken.decimals),
+                2
+              )}
             </Heading2>
-            <Body>{DEPOSIT_TOKEN.symbol}</Body>
+            <Body>{depositToken.symbol}</Body>
           </div>
           <div>
             <Body className="text-xs text-surface-grey">
-              ${formatBalance(+formatDepositAmount(modalState.amount), 2)} USD
+              $
+              {formatBalance(
+                +formatDepositAmount(modalState.amount, depositToken.decimals),
+                2
+              )}{" "}
+              USD
             </Body>
           </div>
         </div>
@@ -125,6 +135,7 @@ export const StackTxStatusModal = ({
   modalState: StackTxLoadingModalState | StackTxResultModalState;
 }) => {
   const copy = ACTION_COPY[modalState.action];
+  const depositToken = useDepositToken();
 
   const status: TModalStatus =
     modalState.type === "STACK_TX_LOADING" ? "loading" : modalState.result;
@@ -138,9 +149,9 @@ export const StackTxStatusModal = ({
       msg =
         modalState.amount !== undefined
           ? `${copy.successMsg}: ${formatBalance(
-              +formatDepositAmount(modalState.amount),
+              +formatDepositAmount(modalState.amount, depositToken.decimals),
               2
-            )} ${DEPOSIT_TOKEN.symbol}`
+            )} ${depositToken.symbol}`
           : copy.successMsg;
     } else {
       title = `${copy.loadingTitle} failed`;

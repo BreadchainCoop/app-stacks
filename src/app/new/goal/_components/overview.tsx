@@ -20,12 +20,10 @@ import {
 import { useFormContext } from "react-hook-form";
 import { GoalFormSchemaData } from "./schema";
 import { goalSavingCirclesAbi } from "@/lib/abis/goal-saving-circles";
-import { GOAL_SAVINGS_CONTRACT_ADDRESS } from "@/lib/constants";
 import { Address, encodeFunctionData, parseEventLogs, zeroAddress } from "viem";
 import { useModal } from "@/components/modal/context";
 import { sleep } from "@/utils/sleep";
 import { waitForTransactionReceipt } from "@wagmi/core";
-import { getDefaultChainId } from "@/utils/chain";
 import { wagmiConfig } from "@/components/providers/web3";
 import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
 import { simulateContract } from "@wagmi/core";
@@ -34,7 +32,12 @@ import { GOAL_CREATE_ERRORS, GOAL_SAVINGS_ERRORS } from "@/lib/contract-errors";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { formatAddress } from "@/utils/address";
 import { dateInputToMs, formatShortDate } from "@/utils/time";
-import { DEPOSIT_TOKEN, parseDepositAmount } from "@/lib/deposit-token";
+import { parseDepositAmount } from "@/lib/deposit-token";
+import {
+  useActiveChainId,
+  useChainConfig,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 
 const parseCreateError = (error: unknown) =>
   parseContractError(
@@ -54,6 +57,9 @@ const GoalOverviewForm = ({ onBack }: { onBack: () => void }) => {
   const beneficiary = form.watch("beneficiary");
   const { user } = useConnectedUser();
   const { sendSponsoredTransaction } = useSponsoredTx();
+  const { goalSavings } = useChainConfig();
+  const depositToken = useDepositToken();
+  const chainId = useActiveChainId();
 
   const deadlineMs = deadline ? dateInputToMs(deadline) : NaN;
 
@@ -86,9 +92,12 @@ const GoalOverviewForm = ({ onBack }: { onBack: () => void }) => {
         data.beneficiaryMode === "beneficiary"
           ? (data.beneficiary as Address)
           : zeroAddress;
-      const parsedGoalAmount = parseDepositAmount(String(data.goalAmount));
+      const parsedGoalAmount = parseDepositAmount(
+        String(data.goalAmount),
+        depositToken.decimals
+      );
       const createArgs = [
-        DEPOSIT_TOKEN.address,
+        depositToken.address,
         parsedGoalAmount,
         deadlineSeconds,
         beneficiaryAddress,
@@ -96,12 +105,12 @@ const GoalOverviewForm = ({ onBack }: { onBack: () => void }) => {
 
       // Simulate before opening Privy modal
       await simulateContract(wagmiConfig, {
-        address: GOAL_SAVINGS_CONTRACT_ADDRESS,
+        address: goalSavings,
         abi: goalSavingCirclesAbi,
         functionName: "create",
         args: createArgs,
         account: user.address,
-        chainId: getDefaultChainId(),
+        chainId,
       });
 
       const encodedData = encodeFunctionData({
@@ -111,7 +120,7 @@ const GoalOverviewForm = ({ onBack }: { onBack: () => void }) => {
       });
 
       const sponsoredTx = sendSponsoredTransaction(
-        { to: GOAL_SAVINGS_CONTRACT_ADDRESS, data: encodedData },
+        { to: goalSavings, data: encodedData },
         { uiOptions: { showWalletUIs: false } }
       );
 
@@ -125,7 +134,7 @@ const GoalOverviewForm = ({ onBack }: { onBack: () => void }) => {
 
       const receipt = await waitForTransactionReceipt(wagmiConfig, {
         hash,
-        chainId: getDefaultChainId(),
+        chainId,
         confirmations: 1,
       });
 
@@ -211,7 +220,7 @@ const GoalOverviewForm = ({ onBack }: { onBack: () => void }) => {
         <div className="p-1 shrink-0 border border-system-green">
           <Body bold>
             {Number.isFinite(goalAmount)
-              ? `${formatBalance(goalAmount, 2)} ${DEPOSIT_TOKEN.symbol}`
+              ? `${formatBalance(goalAmount, 2)} ${depositToken.symbol}`
               : "-"}
           </Body>
         </div>

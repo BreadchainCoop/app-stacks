@@ -12,7 +12,11 @@ import { Body, formatBalance, Heading3, Logo } from "@breadcoop/ui";
 import Link from "next/link";
 import { ReactNode } from "react";
 import { zeroAddress } from "viem";
-import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
+import { formatDepositAmount } from "@/lib/deposit-token";
+import {
+  useChainPath,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 
 const HERO_SIZES = {
   base: {
@@ -39,6 +43,7 @@ const GoalOverview = ({
   state: GoalState;
 }) => {
   const { data: totalDeposited } = useGoalTotalDeposited(goalId);
+  const chainHref = useChainPath();
 
   const percentage =
     totalDeposited !== undefined && goal.goalAmount > BigInt(0)
@@ -105,7 +110,7 @@ const GoalOverview = ({
               <p>Pot released to</p>
               <p className="text-h2 text-2xl leading-6 tracking-[-2%]">
                 <Link
-                  href={`/account/${goal.beneficiary}`}
+                  href={chainHref(`/account/${goal.beneficiary}`)}
                   className="hover:text-primary-blue"
                 >
                   {formatAddress(goal.beneficiary)}
@@ -132,7 +137,11 @@ function PotBalance({
   className?: string;
   primary?: boolean;
 }) {
-  const value = amount !== undefined ? formatDepositAmount(amount) : undefined;
+  const depositToken = useDepositToken();
+  const value =
+    amount !== undefined
+      ? formatDepositAmount(amount, depositToken.decimals)
+      : undefined;
   const heroSize = HERO_SIZES[amountSizeStep(Number(value ?? 0))];
 
   if (primary) {
@@ -150,7 +159,7 @@ function PotBalance({
           ) : (
             <Body className={heroSize.integral}>-</Body>
           )}
-          <Body className="text-surface-grey-2">{DEPOSIT_TOKEN.symbol}</Body>
+          <Body className="text-surface-grey-2">{depositToken.symbol}</Body>
         </div>
       </div>
     );
@@ -163,9 +172,12 @@ function PotBalance({
         <Logo size={24} variant="square" className="mr-1" />
         <span className="font-bold mt-[0.2rem]">
           {amount !== undefined
-            ? formatBalance(+formatDepositAmount(amount), 2)
+            ? formatBalance(
+                +formatDepositAmount(amount, depositToken.decimals),
+                2
+              )
             : "-"}{" "}
-          {DEPOSIT_TOKEN.symbol}
+          {depositToken.symbol}
         </span>
       </span>
     </Body>

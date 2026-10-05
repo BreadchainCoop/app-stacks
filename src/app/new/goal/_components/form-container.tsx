@@ -7,6 +7,8 @@ import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import goalSchema, { GoalFormSchemaData } from "./schema";
 import { Heading2 } from "@breadcoop/ui";
+import BackPage from "@/components/back-page";
+import { useChainPath } from "@/components/providers/active-chain";
 
 const GoalFormContainer = () => {
   const form = useForm<GoalFormSchemaData>({
@@ -19,6 +21,9 @@ const GoalFormContainer = () => {
     },
   });
   const [showOverview, setShowOverview] = useState(false);
+  // Rendered here rather than in page.tsx: the back link has to carry the
+  // active chain, which only a client component can read.
+  const chainHref = useChainPath();
 
   const handleContinue = () => {
     setShowOverview(true);
@@ -30,6 +35,7 @@ const GoalFormContainer = () => {
 
   return (
     <FormProvider {...form}>
+      <BackPage href={chainHref("/new")} label="Back to stack types" />
       <form>
         <header className="mb-6.25 md:mb-6">
           <Heading2 className="text-primary-blue text-[2.5rem] leading-9 md:text-5xl">
