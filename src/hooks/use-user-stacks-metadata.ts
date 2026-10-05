@@ -1,11 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { createSupabaseClient, SupabaseStackMetadata } from "@/lib/supabase";
+import { useActiveChainId } from "@/components/providers/active-chain";
 
 const supabase = createSupabaseClient();
 
 export const useUserStacksMetadata = (address: string | undefined) => {
+  const chainId = useActiveChainId();
   const { data, isLoading } = useQuery({
-    queryKey: ["user-stacks-metadata", address?.toLowerCase()],
+    queryKey: ["user-stacks-metadata", chainId, address?.toLowerCase()],
     queryFn: async () => {
       const empty: Record<string, SupabaseStackMetadata> = {};
       if (!address) return empty;
@@ -24,10 +26,13 @@ export const useUserStacksMetadata = (address: string | undefined) => {
       const { data, error } = await supabase
         .from("user_stacks")
         .select("stack_id, stacks_metadata(*)")
-        .eq("user_id", userId);
+        .eq("user_id", userId)
+        .eq("chain_id", chainId);
 
       if (error) throw error;
 
+      // Safe to key on the bare circle id because the query above is scoped to
+      // one chain; across chains these ids collide.
       return Object.fromEntries(
         data
           .map(({ stacks_metadata }) => stacks_metadata)

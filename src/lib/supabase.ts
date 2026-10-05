@@ -7,6 +7,9 @@ import { StackType } from "@/lib/stack-types";
 // Must stay type aliases: interfaces break supabase-js's generics and every
 // query silently degrades to never.
 export type SupabaseStackMetadata = {
+  // Circle ids come from a per-chain counter, so the chain is part of the key:
+  // circle 5 exists on every chain and they are unrelated stacks.
+  chain_id: number;
   id: string;
   stackname: string;
   stack_type: StackType;
@@ -18,6 +21,7 @@ export type SupabaseJoinRequestStatus = "pending" | "added" | "dismissed";
 
 export type SupabaseJoinRequest = {
   id: string;
+  chain_id: number;
   stack_id: string;
   user_id: string;
   wallet_address: string;
@@ -84,30 +88,36 @@ export type Database = {
       };
       stacks_metadata: {
         Row: SupabaseStackMetadata;
-        Insert: SupabaseStackMetadata;
+        // created_at is defaulted by Postgres and never sent by the app.
+        Insert: Omit<SupabaseStackMetadata, "created_at"> & {
+          created_at?: string;
+        };
         Update: Partial<SupabaseStackMetadata>;
         Relationships: [];
       };
       user_stacks: {
         Row: {
           user_id: string;
+          chain_id: number;
           stack_id: string;
         };
         Insert: {
           user_id: string;
+          chain_id: number;
           stack_id: string;
         };
         Update: {
           user_id?: string;
+          chain_id?: number;
           stack_id?: string;
         };
         Relationships: [
           {
-            foreignKeyName: "user_stacks_stack_id_fkey";
-            columns: ["stack_id"];
+            foreignKeyName: "user_stacks_stack_fkey";
+            columns: ["chain_id", "stack_id"];
             isOneToOne: false;
             referencedRelation: "stacks_metadata";
-            referencedColumns: ["id"];
+            referencedColumns: ["chain_id", "id"];
           },
         ];
       };
@@ -119,11 +129,11 @@ export type Database = {
         Update: Pick<SupabaseJoinRequest, "status">;
         Relationships: [
           {
-            foreignKeyName: "join_requests_stack_id_fkey";
-            columns: ["stack_id"];
+            foreignKeyName: "join_requests_stack_fkey";
+            columns: ["chain_id", "stack_id"];
             isOneToOne: false;
             referencedRelation: "stacks_metadata";
-            referencedColumns: ["id"];
+            referencedColumns: ["chain_id", "id"];
           },
           {
             foreignKeyName: "join_requests_user_id_fkey";
@@ -171,10 +181,14 @@ export const getCurrentSession = async (client: AppSupabaseClient) => {
   return { session: data.session, error };
 };
 
-export const getStacksMetadata = (client: AppSupabaseClient) =>
-  client.from("stacks_metadata").select("*").order("created_at", {
-    ascending: false,
-  });
+export const getStacksMetadata = (client: AppSupabaseClient, chainId: number) =>
+  client
+    .from("stacks_metadata")
+    .select("*")
+    .eq("chain_id", chainId)
+    .order("created_at", {
+      ascending: false,
+    });
 
 export interface MemberAlias {
   walletAddress: string;

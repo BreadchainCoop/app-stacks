@@ -1,10 +1,12 @@
 import { serverEnv } from "@/lib/envs/server";
 import { createClient } from "@supabase/supabase-js";
+import { Database } from "@/lib/supabase";
+import { resolveChainId } from "@/lib/envs/server-chains";
 import { NextRequest, NextResponse } from "next/server";
 import { createErrorResponse } from "../../utils";
 import { parseStackMetadataId } from "@/lib/stack-types";
 
-const supabaseAdmin = createClient(
+const supabaseAdmin = createClient<Database>(
   serverEnv.NEXT_PUBLIC_SUPABASE_URL,
   serverEnv.SUPABASE_SERVICE_ROLE_KEY
 );
@@ -14,6 +16,7 @@ interface CreateStackRequestBody {
   stackname: string;
   expected_members: number;
   privyUserId: string;
+  chainId: number;
 }
 
 export async function POST(req: NextRequest) {
@@ -63,13 +66,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const chain_id = resolveChainId((body as CreateStackRequestBody).chainId);
+
+    if (chain_id === null) {
+      return createErrorResponse("chainId is required and must be configured");
+    }
+
     const { error: stackError } = await supabaseAdmin
       .from("stacks_metadata")
-      .insert({ id, stackname, expected_members, stack_type: parsedId.type });
+      .insert({
+        chain_id,
+        id,
+        stackname,
+        expected_members,
+        stack_type: parsedId.type,
+      });
 
-    // 23505 = unique_violation: this circle id was already saved by an
-    // earlier call (e.g. a duplicate submission) — treat as success and
-    // continue rather than failing a request that already succeeded once.
+    // 23505 = unique_violation. The key is (chain_id, id), so this can only be
+    // the same circle on the same chain — a duplicate submission. Treat it as
+    // success rather than failing a request that already succeeded once.
+    // (With `id` alone as the key this also matched the *other* chain's circle
+    // of the same number, and swallowing it handed that stack's name to a new
+    // one. That is why the chain is part of the key.)
     if (stackError && stackError.code !== "23505") {
       console.error("Failed to insert stack metadata:", stackError);
       return createErrorResponse("Failed to save stack metadata", 500);
@@ -88,7 +106,7 @@ export async function POST(req: NextRequest) {
 
     const { error: userStackError } = await supabaseAdmin
       .from("user_stacks")
-      .insert({ user_id: user.id, stack_id: id });
+      .insert({ user_id: user.id, chain_id, stack_id: id });
 
     if (userStackError && userStackError.code !== "23505") {
       console.error("Failed to insert user_stacks:", userStackError);
