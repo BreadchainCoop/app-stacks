@@ -24,6 +24,7 @@ import { Address, encodeFunctionData, parseEventLogs, zeroAddress } from "viem";
 import { useModal } from "@/components/modal/context";
 import { sleep } from "@/utils/sleep";
 import { waitForTransactionReceipt } from "@wagmi/core";
+import { waitForReadConsistency } from "@/utils/wait-for-read-consistency";
 import { wagmiConfig } from "@/components/providers/web3";
 import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
 import { simulateContract } from "@wagmi/core";
@@ -137,6 +138,10 @@ const GoalOverviewForm = ({ onBack }: { onBack: () => void }) => {
         chainId,
         confirmations: 1,
       });
+
+      // The node serving reads can be several blocks behind the one the write
+      // landed in, and the page we navigate to next reads at `latest`.
+      await waitForReadConsistency(wagmiConfig, chainId, receipt.blockNumber);
 
       const logs = parseEventLogs({
         abi: goalSavingCirclesAbi,
