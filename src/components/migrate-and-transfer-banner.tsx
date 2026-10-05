@@ -11,8 +11,28 @@ import {
 import { useEmbeddedWalletBalances } from "@/hooks/use-embedded-wallet-balances";
 import { useHasTransferredToWallet } from "@/hooks/use-has-transferred-to-wallet";
 import { usePrivy } from "@privy-io/react-auth";
+import { useIsMiniPay } from "@/components/providers/is-minipay";
 
+/**
+ * Moving funds from a Privy embedded wallet to a linked external one. Privy
+ * only: MiniPay *is* the wallet, so there is nothing to migrate, and the
+ * MiniPay stack mounts no PrivyProvider.
+ *
+ * Split in two so the Privy hooks below are never *called* under MiniPay.
+ * `usePrivy()` happens to tolerate a missing provider today — it reads a
+ * default context rather than throwing — but that is not a guarantee: other
+ * Privy hooks (`useSyncJwtBasedAuthState`) do throw without one. Relying on
+ * the empty context would make the whole MiniPay build hostage to that.
+ */
 const MigrateAndTransferBanner = () => {
+  const isMiniPay = useIsMiniPay();
+
+  if (isMiniPay) return null;
+
+  return <PrivyMigrateAndTransferBanner />;
+};
+
+const PrivyMigrateAndTransferBanner = () => {
   const { user: privyUser } = usePrivy();
   const { setModal } = useModal();
   const embeddedWallet = useEmbeddedWalletAddress();
