@@ -1,17 +1,13 @@
 "use client";
 
 import { Address } from "viem";
-import {
-  CopyButtonIcon,
-  Logo,
-  useBreadBalance,
-  useConnectedUser,
-} from "@breadcoop/ui";
+import { CopyButtonIcon, Logo, useConnectedUser } from "@breadcoop/ui";
 import { FormattedDecimalNumber } from "../formatted-decimal-number";
 import { ArrowUpRightIcon } from "@phosphor-icons/react";
 import { blo } from "blo";
 import { cn } from "@/lib/utils";
 import LocalButton from "@/components/button";
+import { useDepositTokenBalance } from "@/hooks/use-deposit-token-balance";
 
 interface AccountCardMobileProps {
   address: Address;
@@ -30,7 +26,7 @@ const AccountCardMobile = ({
   claimable,
   className,
 }: AccountCardMobileProps) => {
-  const { BREAD } = useBreadBalance({ address });
+  const { balance } = useDepositTokenBalance(address);
   const { user } = useConnectedUser();
   const avatar = blo(address);
   const chain =
@@ -66,7 +62,7 @@ const AccountCardMobile = ({
       </div>
       <div className="flex flex-col items-center gap-4.5 px-[0.9rem] py-2">
         <FormattedDecimalNumber
-          value={BREAD}
+          value={balance}
           unit="$"
           compact
           integralPartClassName="text-[1.8rem]"

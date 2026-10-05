@@ -7,7 +7,6 @@ import {
   CopyButtonIcon,
   formatBalance,
   NavAccountWidgetItem,
-  useBreadBalance,
   useConnectedUser,
 } from "@breadcoop/ui";
 import {
@@ -18,6 +17,7 @@ import {
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import SignOutButton from "./sign-out-button";
+import { useDepositTokenBalance } from "@/hooks/use-deposit-token-balance";
 
 const CHAIN_ICONS: Record<number, string> = {
   100: "/gnosis_icon.svg",
@@ -38,7 +38,7 @@ const AccountWidget = ({
   widgetItems,
   actionItems,
 }: AccountWidgetProps) => {
-  const { BREAD } = useBreadBalance({ address });
+  const { balance } = useDepositTokenBalance(address);
   const { user } = useConnectedUser();
   const chain =
     user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
@@ -75,7 +75,7 @@ const AccountWidget = ({
         appIconColor="text-primary-blue"
         label="Balance"
       >
-        <Body>${formatBalance(+BREAD)}</Body>
+        <Body>${formatBalance(+balance)}</Body>
       </NavAccountWidgetItem>
       {widgetItems}
       <NavAccountWidgetItem
