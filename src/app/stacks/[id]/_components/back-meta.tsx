@@ -11,6 +11,10 @@ import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useCircleState } from "@/hooks/use-circles-state";
 import { CircleState } from "@/lib/circle-state";
 import { formatAmount } from "@/utils/format-amount";
+import {
+  useChainPath,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 
 type CircleData = Exclude<
   ReturnType<typeof useUserCircleData>["circleData"],
@@ -34,12 +38,16 @@ const BackMeta = ({
   isLoadingCircleData: boolean;
   circle?: CircleData;
 }) => {
+  const chainHref = useChainPath();
   const now = useBlockTimestamp();
   const nowSeconds = BigInt(Math.floor(now / 1000));
   const { circleState } = useCircleState(circle?.circleId);
 
   const depositAmount = `$${formatAmount(
-    +formatDepositAmount(circle?.circleInfo.depositAmount ?? BigInt(0))
+    +formatDepositAmount(
+      circle?.circleInfo.depositAmount ?? BigInt(0),
+      useDepositToken().decimals
+    )
   )}`;
 
   const circleStatus: ICircleStatus = circle
@@ -60,7 +68,11 @@ const BackMeta = ({
     <div
       className={`flex flex-col gap-2.5 md:flex-row md:items-center md:justify-between md:flex-wrap ${className}`}
     >
-      <BackPage label="Return to Dashboard" href="/" className="m-0!" />
+      <BackPage
+        label="Return to Dashboard"
+        href={chainHref("/")}
+        className="m-0!"
+      />
       <div className="flex items-center justify-start flex-wrap gap-4 pt-1.5 pb-1.5">
         <CopyStackLink />
         {!isLoadingCircleData &&

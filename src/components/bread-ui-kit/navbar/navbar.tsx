@@ -12,6 +12,7 @@ import NavbarMenu from "./navbar-menu";
 import MobileAccountCardSection from "./mobile-account-card-section";
 import AccountSection from "./account-section";
 import SignOutButton from "./sign-out-button";
+import { useChainPath } from "@/components/providers/active-chain";
 
 export interface BreadNavbarProps {
   className?: string;
@@ -34,6 +35,7 @@ export function Navbar({
   onWithdraw,
   claimable,
 }: BreadNavbarProps) {
+  const chainHref = useChainPath();
   const { user } = useConnectedUser();
 
   return (
@@ -43,7 +45,7 @@ export function Navbar({
         className
       )}
     >
-      <Link href="/" className="flex items-center">
+      <Link href={chainHref("/")} className="flex items-center">
         <Logo size={24} color="blue" className="md:hidden" />
         <span className="hidden md:block lg:text-2xl">
           <Logo text="BREAD" size={24} color="blue" />
@@ -52,7 +54,7 @@ export function Navbar({
       <SolidarityAppsDesktopMenu />
       <NavbarMenu
         mobileHeader={
-          <Link href="/">
+          <Link href={chainHref("/")}>
             <Logo color="blue" text="Stacks" />
           </Link>
         }

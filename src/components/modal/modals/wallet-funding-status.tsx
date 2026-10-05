@@ -9,21 +9,20 @@ import LocalButton from "@/components/button";
 import { ArrowRightIcon, XIcon } from "@phosphor-icons/react";
 import { formatAddress } from "@/utils/address";
 import Link from "next/link";
-import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
 import { isCeloChain } from "@/utils/celo";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainPath,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 
 // On Celo funding is a plain stablecoin transfer; the "convert to BREAD"
 // bake step only exists on Gnosis
-const isCelo = isCeloChain(getDefaultChainId());
-
-const content = {
+const getContent = (isCelo: boolean, symbol: string) => ({
   loading: {
     title: "Funding wallet",
     status: "Loading...",
-    message: isCelo
-      ? `Transferring ${DEPOSIT_TOKEN.symbol}...`
-      : "Converting to BREAD...",
+    message: isCelo ? `Transferring ${symbol}...` : "Converting to BREAD...",
   },
   success: {
     title: "Funding wallet successful",
@@ -35,17 +34,22 @@ const content = {
     status: "Transaction failed",
     message: "Something went wrong. Please try again!",
   },
-};
+});
 
 const WalletFundingStatusModal = ({
   modalState,
 }: {
   modalState: WalletFundingStatusModalState;
 }) => {
+  const chainHref = useChainPath();
+  const depositToken = useDepositToken();
   const { setModal } = useModal();
   const { user } = useConnectedUser();
   const [isRetrying, setIsRetrying] = useState(false);
-  const statusContent = content[modalState.status];
+  const statusContent = getContent(
+    isCeloChain(useActiveChainId()),
+    useDepositToken().symbol
+  )[modalState.status];
 
   // TODO: Reopen the funding modal and keep track of previous state (onboarding | navbar)
   const handleRetry = async () => {
@@ -77,7 +81,7 @@ const WalletFundingStatusModal = ({
           <div className="mb-2 flex items-center justify-center gap-1.5">
             <Logo size={24} />
             <Heading2 className="text-[2.5rem] leading-9 mb-[-0.2rem]">
-              {displayedAmount} {DEPOSIT_TOKEN.symbol}
+              {displayedAmount} {depositToken.symbol}
             </Heading2>
           </div>
           <Body bold className="mb-9 text-center text-surface-grey-2">
@@ -95,7 +99,7 @@ const WalletFundingStatusModal = ({
           <div className="h-px w-full bg-paper-2 mb-4" />
           <LocalButton
             as={Link}
-            href="/"
+            href={chainHref("/")}
             onClick={() => {
               setModal(null);
             }}

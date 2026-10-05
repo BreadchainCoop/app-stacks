@@ -21,6 +21,10 @@ import { useEffect, useRef, useState } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import { shortenUrl } from "@/utils/shorten";
 import AddMembersCard from "@/components/add-members/add-members-card";
+import {
+  useActiveChainId,
+  useChainPath,
+} from "@/components/providers/active-chain";
 import { useIsMiniPay } from "@/components/providers/is-minipay";
 import { useUserIdentity } from "@/components/providers/user-identity";
 
@@ -57,6 +61,8 @@ const MiniPayStackSuccessModal = ({
 }) => {
   const modal = useModal();
   const { userId } = useUserIdentity();
+  const chainHref = useChainPath();
+  const chainId = useActiveChainId();
   const metadataSaved = useRef(false);
 
   // Persist the stack name off-chain, like the invite flow does — just with
@@ -73,11 +79,12 @@ const MiniPayStackSuccessModal = ({
         stackname: modalState.circle.name,
         expected_members: modalState.circle.members,
         privyUserId: userId,
+        chainId,
       }),
     }).catch((error) => {
       console.error("Failed to save stack metadata:", error);
     });
-  }, [userId, modalState.circle]);
+  }, [userId, chainId, modalState.circle]);
 
   return (
     <ModalContainer className="max-w-142!">
@@ -100,7 +107,9 @@ const MiniPayStackSuccessModal = ({
 
       <LocalButton
         as={Link}
-        href={`/stacks/${modalState.circle.id}?name=${modalState.circle.name}`}
+        href={chainHref(
+          `/stacks/${modalState.circle.id}?name=${modalState.circle.name}`
+        )}
         className="w-full"
         onClick={() => modal.setModal(null)}
         rightIcon={<ArrowRightIcon size={24} />}
@@ -123,6 +132,8 @@ const PrivyStackSuccessModal = ({
   const modal = useModal();
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const chainHref = useChainPath();
+  const chainId = useActiveChainId();
   const [generalInviteUrl, setGeneralInviteUrl] = useState("");
   const hasStartedRef = useRef(false);
 
@@ -131,7 +142,10 @@ const PrivyStackSuccessModal = ({
     setError(null);
 
     try {
-      const baseUrl = `${window.location.origin}/stacks/join`;
+      // The chain segment must be in the shared link: circle ids repeat
+      // across chains, so a bare /stacks/join?circleId=5 resolves to
+      // whichever chain the recipient happens to land on.
+      const baseUrl = `${window.location.origin}${chainHref("/stacks/join")}`;
       const url = buildInviteUrl(baseUrl, modalState.circle.id);
 
       let shortUrl = url;
@@ -149,6 +163,7 @@ const PrivyStackSuccessModal = ({
           stackname: modalState.circle.name,
           expected_members: modalState.circle.members,
           privyUserId: privyUser?.id,
+          chainId,
         }),
       });
 
@@ -259,7 +274,9 @@ const PrivyStackSuccessModal = ({
       </div>
       <LocalButton
         as={Link}
-        href={`/stacks/${modalState.circle.id}?name=${modalState.circle.name}`}
+        href={chainHref(
+          `/stacks/${modalState.circle.id}?name=${modalState.circle.name}`
+        )}
         className="w-full"
         onClick={() => modal.setModal(null)}
         rightIcon={<ArrowRightIcon size={24} />}

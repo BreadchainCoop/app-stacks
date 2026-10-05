@@ -4,8 +4,10 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Body, useConnectedUser } from "@breadcoop/ui";
 import Loading from "@/app/loading";
+import { useChainPath } from "@/components/providers/active-chain";
 
 const OwnAccountRedirect = () => {
+  const chainHref = useChainPath();
   const router = useRouter();
   const { user } = useConnectedUser();
 
@@ -15,7 +17,7 @@ const OwnAccountRedirect = () => {
       : null;
 
   useEffect(() => {
-    if (address) router.replace(`/account/${address}`);
+    if (address) router.replace(chainHref(`/account/${address}`));
   }, [address]);
 
   if (address) return <Loading />;
