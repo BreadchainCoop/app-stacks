@@ -8,6 +8,7 @@ import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 import { goalSavingCirclesAbi } from "@/lib/abis/goal-saving-circles";
 import { parseStackMetadataId } from "@/lib/stack-types";
 import { verifyUserToken } from "../utils";
+import { getServerChainConfig } from "@/lib/envs/server-chains";
 
 const supabaseAdmin = createClient(
   serverEnv.NEXT_PUBLIC_SUPABASE_URL,
@@ -16,9 +17,8 @@ const supabaseAdmin = createClient(
 
 const SEPOLIA_CHAIN_ID = 11155111;
 
-export const getPublicClient = () => {
-  const chain =
-    networks[serverEnv.NEXT_PUBLIC_CHAIN_ID as keyof typeof networks].chain;
+export const getPublicClient = (chainId: number) => {
+  const chain = networks[chainId as keyof typeof networks].chain;
 
   const transport =
     chain.id === SEPOLIA_CHAIN_ID
@@ -28,25 +28,28 @@ export const getPublicClient = () => {
   return createPublicClient({ chain, transport });
 };
 
-const SAVING_CIRCLES_CONTRACT_ADDRESS =
-  serverEnv.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS as Address;
-const GOAL_SAVINGS_CONTRACT_ADDRESS =
-  serverEnv.NEXT_PUBLIC_GOAL_SAVINGS_CONTRACT_ADDRESS as Address;
-
 /**
  * The on-chain owner of a stack, read from the contract behind its type.
  * `stackId` is a stacks_metadata id (bare for ROSCA, `goal:<id>` for goals).
+ *
+ * `chainId` must be the same chain the caller then reads or writes rows for.
+ * The contracts live at different addresses per chain, so resolving it twice
+ * risks checking ownership on one chain and acting on another.
  */
-export const getStackOwner = async (stackId: string): Promise<Address> => {
+export const getStackOwner = async (
+  stackId: string,
+  chainId: number
+): Promise<Address> => {
   const parsed = parseStackMetadataId(stackId);
   if (!parsed) throw new Error(`Invalid stack id: ${stackId}`);
 
   const id = BigInt(parsed.onChainId);
-  const publicClient = getPublicClient();
+  const publicClient = getPublicClient(chainId);
+  const { savingCircles, goalSavings } = getServerChainConfig(chainId);
 
   if (parsed.type === "goal") {
     const goal = await publicClient.readContract({
-      address: GOAL_SAVINGS_CONTRACT_ADDRESS,
+      address: goalSavings,
       abi: goalSavingCirclesAbi,
       functionName: "getGoal",
       args: [id],
@@ -56,7 +59,7 @@ export const getStackOwner = async (stackId: string): Promise<Address> => {
   }
 
   const circle = await publicClient.readContract({
-    address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+    address: savingCircles,
     abi: savingCirclesAbi,
     functionName: "getCircle",
     args: [id],
@@ -68,17 +71,19 @@ export const getStackOwner = async (stackId: string): Promise<Address> => {
 /** Whether `wallet` is a member of the stack on the contract behind its type. */
 export const isStackMember = async (
   stackId: string,
-  wallet: Address
+  wallet: Address,
+  chainId: number
 ): Promise<boolean> => {
   const parsed = parseStackMetadataId(stackId);
   if (!parsed) throw new Error(`Invalid stack id: ${stackId}`);
 
   const id = BigInt(parsed.onChainId);
-  const publicClient = getPublicClient();
+  const publicClient = getPublicClient(chainId);
+  const { savingCircles, goalSavings } = getServerChainConfig(chainId);
 
   if (parsed.type === "goal") {
     return publicClient.readContract({
-      address: GOAL_SAVINGS_CONTRACT_ADDRESS,
+      address: goalSavings,
       abi: goalSavingCirclesAbi,
       functionName: "isMember",
       args: [id, wallet],
@@ -86,7 +91,7 @@ export const isStackMember = async (
   }
 
   return publicClient.readContract({
-    address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+    address: savingCircles,
     abi: savingCirclesAbi,
     functionName: "isMember",
     args: [id, wallet],

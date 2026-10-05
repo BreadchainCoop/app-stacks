@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUserIdentity } from "@/components/providers/user-identity";
+import { useActiveChainId } from "@/components/providers/active-chain";
 
 const REMOVE_MEMBER_ERRORS: Record<string, string> = {
   NotOwner: "Only the Stack owner (or the member themselves) can remove them.",
@@ -25,6 +26,7 @@ const RemoveMemberWarningModal = ({
   modalState: RemoveMemberWarningModalState;
 }) => {
   const { setModal } = useModal();
+  const chainId = useActiveChainId();
   const { sendSavingCirclesTx } = useSavingCirclesTx();
   const { getAuthToken } = useUserIdentity();
   const queryClient = useQueryClient();
@@ -57,6 +59,7 @@ const RemoveMemberWarningModal = ({
         body: JSON.stringify({
           circleId: modalState.circleId.toString(),
           walletAddress: modalState.memberAddress,
+          chainId,
         }),
       }).catch((err) => {
         console.error("Failed to clean up removed member's dashboard:", err);

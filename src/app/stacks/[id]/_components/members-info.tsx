@@ -33,6 +33,10 @@ import { useState } from "react";
 import { Address } from "viem";
 import { ModalState, useModal } from "@/components/modal/context";
 import { formatDepositAmount } from "@/lib/deposit-token";
+import {
+  useActiveChainId,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 
 const FAILED_STATUSES: ICircleStatus[] = [
   "decommissioned",
@@ -85,6 +89,7 @@ const MembersInfo = ({
   circleStatus: ICircleStatus | null;
   isOwner: boolean;
 }) => {
+  const depositToken = useDepositToken();
   const now = useBlockTimestamp();
   const { setModal } = useModal();
   const { claimedByMember } = useMembersClaimed({
@@ -153,7 +158,8 @@ const MembersInfo = ({
       <Accordion>
         {info.members.map((member, index) => {
           const totalDeposits = +formatDepositAmount(
-            info.memberBalances?.balances[index] || BigInt(0)
+            info.memberBalances?.balances[index] || BigInt(0),
+            depositToken.decimals
           );
 
           const hasDeposited = isFinished
@@ -319,6 +325,7 @@ function JoinRequestsBulkBar({
   onSelectedRequestIdsChange: (ids: Set<string>) => void;
   remainingSlots?: number;
 }) {
+  const chainId = useActiveChainId();
   const { sendSavingCirclesTx } = useSavingCirclesTx();
   const { getAccessToken } = usePrivy();
   const queryClient = useQueryClient();
@@ -369,7 +376,11 @@ function JoinRequestsBulkBar({
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ requestId: r.id, status: "added" }),
+            body: JSON.stringify({
+              requestId: r.id,
+              status: "added",
+              chainId,
+            }),
           }).then((res) => res.json())
         )
       );
@@ -438,6 +449,7 @@ function JoinRequestItem({
   onToggleSelected: () => void;
   atCapacity: boolean;
 }) {
+  const chainId = useActiveChainId();
   const { sendSavingCirclesTx } = useSavingCirclesTx();
   const { getAccessToken } = usePrivy();
   const queryClient = useQueryClient();
@@ -454,7 +466,7 @@ function JoinRequestItem({
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ requestId: request.id, status }),
+      body: JSON.stringify({ requestId: request.id, status, chainId }),
     });
     const body = await res.json();
 
@@ -577,6 +589,7 @@ function MemberInfoContent({
   circleStartsTimestamp: bigint;
   depositInterval: bigint;
 }) {
+  const depositToken = useDepositToken();
   const now = useBlockTimestamp();
   const { data: creationTimestamp } = useGetCircleCreated({
     circleId,
@@ -628,7 +641,8 @@ function MemberInfoContent({
             fundsDeposited.data.depositsByMember[
               member.toLowerCase() as Address
             ] ?? []
-          ).reduce((sum, d) => sum + d.amount, BigInt(0))
+          ).reduce((sum, d) => sum + d.amount, BigInt(0)),
+          depositToken.decimals
         ),
         2
       );
