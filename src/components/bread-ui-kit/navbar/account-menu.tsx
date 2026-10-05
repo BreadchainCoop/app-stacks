@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode, useRef, useState } from "react";
-import { Body, useBreadBalance } from "@breadcoop/ui";
+import { Body } from "@breadcoop/ui";
 import { FormattedDecimalNumber } from "../formatted-decimal-number";
 import { CaretDownIcon } from "@phosphor-icons/react";
 import { blo } from "blo";
@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useClickOutside } from "./use-click-outside";
 import { useConnectedAccount } from "./use-connected-account";
 import AccountWidget from "./account-widget";
+import { useDepositTokenBalance } from "@/hooks/use-deposit-token-balance";
 
 interface AccountMenuProps {
   widgetItems?: ReactNode;
@@ -22,7 +23,7 @@ const AccountMenu = ({
   depositSlot,
 }: AccountMenuProps) => {
   const { address, displayName } = useConnectedAccount();
-  const { BREAD } = useBreadBalance({ address: address! });
+  const { balance } = useDepositTokenBalance(address);
   const avatar = blo(address!);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -34,7 +35,7 @@ const AccountMenu = ({
       <div className="flex items-center gap-2.5 bg-paper-main border border-surface-ink overflow-hidden p-2">
         <div className="flex items-center bg-paper-main border border-surface-grey overflow-hidden px-2 py-1">
           <FormattedDecimalNumber
-            value={BREAD}
+            value={balance}
             unit="$"
             compact
             integralPartClassName="text-base"
