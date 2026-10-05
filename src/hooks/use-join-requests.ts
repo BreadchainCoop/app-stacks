@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useUserIdentity } from "@/components/providers/user-identity";
 import { Address } from "viem";
+import { useActiveChainId } from "@/components/providers/active-chain";
 
 export interface JoinRequest {
   id: string;
@@ -27,9 +28,15 @@ export const useJoinRequests = (
   enabled: boolean
 ) => {
   const { getAuthToken } = useUserIdentity();
+  const chainId = useActiveChainId();
 
   return useQuery<JoinRequestsResult>({
-    queryKey: ["join-requests", circleId, requesterAddress?.toLowerCase()],
+    queryKey: [
+      "join-requests",
+      chainId,
+      circleId,
+      requesterAddress?.toLowerCase(),
+    ],
     queryFn: async () => {
       // Only the owner branch needs this — the API verifies it server-side
       // rather than trusting requesterAddress, since a circle's owner
@@ -37,7 +44,7 @@ export const useJoinRequests = (
       const token = await getAuthToken();
 
       const res = await fetch(
-        `/api/stacks/join-request?circleId=${circleId}&requesterWalletAddress=${requesterAddress}`,
+        `/api/stacks/join-request?circleId=${circleId}&requesterWalletAddress=${requesterAddress}&chainId=${chainId}`,
         token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
       );
       const body = await res.json();

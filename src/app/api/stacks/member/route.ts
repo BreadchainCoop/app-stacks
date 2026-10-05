@@ -1,22 +1,22 @@
 import { serverEnv } from "@/lib/envs/server";
 import { createClient } from "@supabase/supabase-js";
+import { Database } from "@/lib/supabase";
 import { NextRequest, NextResponse } from "next/server";
-import { isAddress, type Address } from "viem";
+import { isAddress } from "viem";
 import { createErrorResponse } from "../../utils";
 import { callerOwnsWallet, getPublicClient } from "../authorize";
+import { getServerChainConfig, resolveChainId } from "@/lib/envs/server-chains";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
 
-const supabaseAdmin = createClient(
+const supabaseAdmin = createClient<Database>(
   serverEnv.NEXT_PUBLIC_SUPABASE_URL,
   serverEnv.SUPABASE_SERVICE_ROLE_KEY
 );
 
-const SAVING_CIRCLES_CONTRACT_ADDRESS =
-  serverEnv.NEXT_PUBLIC_SAVING_CIRCLES_CONTRACT_ADDRESS as Address;
-
 interface RemoveMemberRequestBody {
   circleId: string;
   walletAddress: string;
+  chainId: number;
 }
 
 /**
@@ -43,6 +43,14 @@ export async function DELETE(req: NextRequest) {
 
     const { circleId, walletAddress } = body as RemoveMemberRequestBody;
 
+    // One chain id for both the ownership check below and the delete: see
+    // resolveChainId on why checking one chain and writing another is unsafe.
+    const chainId = resolveChainId((body as RemoveMemberRequestBody).chainId);
+
+    if (chainId === null) {
+      return createErrorResponse("chainId is required and must be configured");
+    }
+
     if (!circleId || typeof circleId !== "string") {
       return createErrorResponse("circleId is required and must be a string");
     }
@@ -53,8 +61,8 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const circle = await getPublicClient().readContract({
-      address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+    const circle = await getPublicClient(chainId).readContract({
+      address: getServerChainConfig(chainId).savingCircles,
       abi: savingCirclesAbi,
       functionName: "getCircle",
       args: [BigInt(circleId)],
@@ -92,6 +100,7 @@ export async function DELETE(req: NextRequest) {
       .from("user_stacks")
       .delete()
       .eq("user_id", user.id)
+      .eq("chain_id", chainId)
       .eq("stack_id", circleId);
 
     if (deleteError) {

@@ -1,12 +1,14 @@
 import { serverEnv } from "@/lib/envs/server";
 import { createClient } from "@supabase/supabase-js";
+import { Database } from "@/lib/supabase";
 import { NextRequest, NextResponse } from "next/server";
 import { createErrorResponse, verifyUserToken } from "../../utils";
 import { callerOwnsWallet, getStackOwner, isStackMember } from "../authorize";
 import { parseStackMetadataId } from "@/lib/stack-types";
+import { resolveChainId } from "@/lib/envs/server-chains";
 import { type Address } from "viem";
 
-const supabaseAdmin = createClient(
+const supabaseAdmin = createClient<Database>(
   serverEnv.NEXT_PUBLIC_SUPABASE_URL,
   serverEnv.SUPABASE_SERVICE_ROLE_KEY
 );
@@ -17,6 +19,7 @@ const isVerifiedOwner = (req: NextRequest, ownerAddress: Address) =>
 interface CreateJoinRequestBody {
   circleId: string;
   walletAddress: string;
+  chainId: number;
 }
 
 export async function POST(req: NextRequest) {
@@ -37,6 +40,11 @@ export async function POST(req: NextRequest) {
     }
 
     const { circleId, walletAddress } = body as CreateJoinRequestBody;
+    const chainId = resolveChainId((body as CreateJoinRequestBody).chainId);
+
+    if (chainId === null) {
+      return createErrorResponse("chainId is required and must be configured");
+    }
 
     if (!circleId || typeof circleId !== "string") {
       return createErrorResponse("circleId is required and must be a string");
@@ -62,6 +70,7 @@ export async function POST(req: NextRequest) {
     const { data: existing, error: existingFetchError } = await supabaseAdmin
       .from("join_requests")
       .select("id, status")
+      .eq("chain_id", chainId)
       .eq("stack_id", circleId)
       .eq("wallet_address", walletAddress)
       .maybeSingle();
@@ -75,6 +84,7 @@ export async function POST(req: NextRequest) {
       const { error: insertError } = await supabaseAdmin
         .from("join_requests")
         .insert({
+          chain_id: chainId,
           stack_id: circleId,
           user_id: user.id,
           wallet_address: walletAddress,
@@ -128,13 +138,23 @@ export async function GET(req: NextRequest) {
       return createErrorResponse("circleId is not a valid stack id");
     }
 
-    const isOwner = await isVerifiedOwner(req, await getStackOwner(circleId));
+    const chainId = resolveChainId(req.nextUrl.searchParams.get("chainId"));
+
+    if (chainId === null) {
+      return createErrorResponse("chainId is required and must be configured");
+    }
+
+    const isOwner = await isVerifiedOwner(
+      req,
+      await getStackOwner(circleId, chainId)
+    );
 
     // Anyone can check their own request status — this doesn't leak anyone
     // else's. Only the verified owner gets the full pending list below.
     const { data: ownRequest, error: ownRequestError } = await supabaseAdmin
       .from("join_requests")
       .select("status")
+      .eq("chain_id", chainId)
       .eq("stack_id", circleId)
       .eq("wallet_address", requesterWalletAddress)
       .maybeSingle();
@@ -157,6 +177,7 @@ export async function GET(req: NextRequest) {
     const { data: requests, error: fetchError } = await supabaseAdmin
       .from("join_requests")
       .select("id, wallet_address, created_at")
+      .eq("chain_id", chainId)
       .eq("stack_id", circleId)
       .eq("status", "pending")
       .order("created_at", { ascending: true });
@@ -208,7 +229,7 @@ export async function PATCH(req: NextRequest) {
 
     const { data: joinRequest, error: fetchError } = await supabaseAdmin
       .from("join_requests")
-      .select("stack_id, user_id, wallet_address")
+      .select("chain_id, stack_id, user_id, wallet_address")
       .eq("id", requestId)
       .single();
 
@@ -217,7 +238,17 @@ export async function PATCH(req: NextRequest) {
       return createErrorResponse("Join request not found", 404);
     }
 
-    const owner = await getStackOwner(joinRequest.stack_id);
+    // The chain comes off the row, not the caller: which chain a request
+    // belongs to is server state, and the ownership check below has to run on
+    // the same chain whose rows we are about to write.
+    const chainId = resolveChainId(joinRequest.chain_id);
+
+    if (chainId === null) {
+      console.error("Join request has an unconfigured chain:", joinRequest);
+      return createErrorResponse("Join request chain is not configured", 500);
+    }
+
+    const owner = await getStackOwner(joinRequest.stack_id, chainId);
 
     if (!(await isVerifiedOwner(req, owner))) {
       return createErrorResponse("Only the circle owner can do this", 403);
@@ -226,7 +257,8 @@ export async function PATCH(req: NextRequest) {
     if (status === "added") {
       const isMember = await isStackMember(
         joinRequest.stack_id,
-        joinRequest.wallet_address as Address
+        joinRequest.wallet_address as Address,
+        chainId
       );
 
       if (!isMember) {
@@ -239,8 +271,12 @@ export async function PATCH(req: NextRequest) {
       const { error: userStackError } = await supabaseAdmin
         .from("user_stacks")
         .upsert(
-          { user_id: joinRequest.user_id, stack_id: joinRequest.stack_id },
-          { onConflict: "user_id,stack_id", ignoreDuplicates: true }
+          {
+            user_id: joinRequest.user_id,
+            chain_id: chainId,
+            stack_id: joinRequest.stack_id,
+          },
+          { onConflict: "user_id,chain_id,stack_id", ignoreDuplicates: true }
         );
 
       if (userStackError) {

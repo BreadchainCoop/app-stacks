@@ -16,10 +16,16 @@ import { privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 import { createErrorResponse } from "../../utils";
 import { serverEnv } from "@/lib/envs/server";
+import { getServerChainConfig } from "@/lib/envs/server-chains";
 
 const SEPOLIA_CHAIN_ID = 11155111;
-const DEPOSIT_TOKEN_ADDRESS =
-  serverEnv.NEXT_PUBLIC_DEPOSIT_TOKEN_ADDRESS as Address;
+
+// This faucet only ever runs against Sepolia (see the guard in POST and the
+// hardcoded `chain: sepolia`), so its token comes from that chain's config
+// rather than from the request. Resolved per request, not at import: a
+// deployment that doesn't configure Sepolia must still be able to build.
+const depositTokenAddress = () =>
+  getServerChainConfig(SEPOLIA_CHAIN_ID).depositToken.address;
 
 const BREAD_FUND_AMOUNT = parseEther("50");
 const BREAD_MINIMUM_THRESHOLD = parseEther("20");
@@ -101,7 +107,7 @@ export async function POST(req: NextRequest) {
   const [ethBalance, breadBalance, currentNonce] = await Promise.all([
     publicClient.getBalance({ address: recipient }),
     publicClient.readContract({
-      address: DEPOSIT_TOKEN_ADDRESS,
+      address: depositTokenAddress(),
       abi: erc20Abi,
       functionName: "balanceOf",
       args: [recipient],
@@ -145,7 +151,7 @@ export async function POST(req: NextRequest) {
     const breadPromise = (async () => {
       try {
         const txHash = await walletClient.writeContract({
-          address: DEPOSIT_TOKEN_ADDRESS,
+          address: depositTokenAddress(),
           abi: erc20Abi,
           functionName: "transfer",
           args: [recipient, BREAD_FUND_AMOUNT],

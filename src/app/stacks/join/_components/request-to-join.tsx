@@ -3,8 +3,11 @@
 import Loading from "@/app/loading";
 import LocalButton from "@/components/button";
 import { savingCirclesAbi } from "@/lib/abis/saving-circles";
-import { SAVING_CIRCLES_CONTRACT_ADDRESS } from "@/lib/constants";
-import { getDefaultChainId } from "@/utils/chain";
+import {
+  useActiveChainId,
+  useChainConfig,
+  useChainPath,
+} from "@/components/providers/active-chain";
 import { useAutomaticClaims } from "@/hooks/use-automatic-claims";
 import { useCirclePreview } from "@/hooks/use-circle-preview";
 import { useJoinRequests } from "@/hooks/use-join-requests";
@@ -65,6 +68,7 @@ function RequestToJoinWithCircleId({
   getAuthToken: ReturnType<typeof useUserIdentity>["getAuthToken"];
   router: ReturnType<typeof useRouter>;
 }) {
+  const chainHref = useChainPath();
   const parsedId = BigInt(circleId);
   const address =
     user.status === "CONNECTED" || user.status === "UNSUPPORTED_CHAIN"
@@ -112,7 +116,7 @@ function RequestToJoinWithCircleId({
 
   const { data: isMember, error: isMemberError } = useReadContract({
     abi: savingCirclesAbi,
-    address: SAVING_CIRCLES_CONTRACT_ADDRESS,
+    address: useChainConfig().savingCircles,
     functionName: "isMember",
     args: [parsedId, address as `0x${string}`],
     query: {
@@ -121,7 +125,7 @@ function RequestToJoinWithCircleId({
         !!address,
       refetchInterval: isRequestPending ? 5000 : false,
     },
-    chainId: getDefaultChainId(),
+    chainId: useActiveChainId(),
   });
 
   useEffect(() => {
@@ -131,10 +135,12 @@ function RequestToJoinWithCircleId({
         // Not awaited: the redirect shouldn't wait on the opt-in tx landing.
         enableAutomaticClaims(parsedId, true);
       }
-      router.push(`/stacks/${circleId}`);
+      router.push(chainHref(`/stacks/${circleId}`));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRequestPending, isMember, circleId]);
+
+  const chainId = useActiveChainId();
 
   const requestToJoin = async () => {
     if (!address) return;
@@ -155,6 +161,7 @@ function RequestToJoinWithCircleId({
         body: JSON.stringify({
           circleId,
           walletAddress: address,
+          chainId,
         }),
       });
       const body = await res.json();
