@@ -64,20 +64,45 @@ The frontend is a Next.js App Router application that orchestrates both.
 - `api/user` — look up a user by Privy id.
 - `api/shorten` — invite-link shortening (spoo.me + Upstash Redis).
 
+(Not exhaustive — `api/stacks/*`, `api/profile`, `api/minipay/session` and
+`api/funding/sepolia-embedded` also exist.)
+
 ### Provider stack (`src/components/providers/index.tsx`)
 
-Providers nest in this order (outer → inner):
+The chain is resolved first, then exactly one of two wallet stacks mounts
+(`next/dynamic`, so a client downloads only the one it uses):
 
 ```text
-ToolsProviders            React Query etc. (tooling)
-  PrivyProvider           auth + embedded wallets
-    SupabaseProvider      Supabase client, signs in with the Privy token
-      Web3Provider        wagmi config
-        BreadUIKitProvider  @breadcoop/ui (app="stacks", token config)
-          ConnectedUserProvider
-            SepoliaAutoFund   auto-funds embedded wallets on Sepolia
-              ModalProvider   app modal context
+ActiveChainProvider          the active chain, from ?chain= or the browser
+  IsMiniPayBrowserProvider   is the *browser* MiniPay (regardless of chain)
+    IsMiniPayProvider        did the MiniPay *stack* mount (browser AND Celo)
+      ChainBrowserGuard      stops here if chain and browser don't pair
+        │
+        ├── MiniPayProviders ─ QueryClientProvider → WagmiProvider (injected)
+        │                      → RainbowKitProvider → SupabaseProvider
+        │                      → BreadUIKitProvider → ConnectedUserProvider
+        │                      → MiniPayAutoConnect → ModalProvider
+        │                      → MiniPayIdentityProvider → MiniPayTxSenderProvider
+        │
+        └── PrivyProviders ─── PrivyProvider → SupabaseProvider → Web3Provider
+                               → BreadUIKitProvider → ConnectedUserProvider
+                               → SepoliaAutoFund → ModalProvider
+                               → PrivyUserIdentityProvider → PrivyTxSenderProvider
+                               → OnboardVisitorTracker, LoginTracker
 ```
+
+Two consequences worth knowing:
+
+- `ModalProvider` lives **inside** each stack, so anything calling `useModal()` must be
+  below one. The `ModalPresenter` / `Navbar` / banner / `main` / `Footer` shell is passed
+  in as `children`, which is why it satisfies that.
+- `ChainBrowserGuard` sits **above** both stacks, so when it triggers the entire shell —
+  navbar, banner, page — is replaced by the instruction screen. It therefore cannot use
+  anything from either stack, only `useActiveChainId()` and `useIsMiniPayBrowser()`.
+- A component that is Privy-only must not simply be mounted in the shared shell: it will
+  render inside the MiniPay stack too, where there is no `PrivyProvider`. Gate it on
+  `useIsMiniPay()` in a wrapper so the Privy hooks are never called — see
+  `src/components/migrate-and-transfer-banner.tsx`.
 
 Anything that needs the wallet, Supabase session, or UI-kit context must render inside
 these providers.
@@ -88,16 +113,23 @@ On-chain behavior is defined by the Saving Circles source at
 `contracts/lib/saving-circles/src/` — read it before adding or changing any read/write
 hook (see [AGENTS.md](../AGENTS.md)). The ABIs in `src/lib/abis/` mirror it.
 
-- Contract addresses come from validated env (`src/lib/constants.ts` →
-  `clientEnv`): `SAVING_CIRCLES_CONTRACT_ADDRESS`,
-  `SAVING_CIRCLES_VIEWER_CONTRACT_ADDRESS`. The deposit token address comes from
-  `DEPOSIT_TOKEN` in `src/lib/deposit-token.ts`
-  (`NEXT_PUBLIC_DEPOSIT_TOKEN_ADDRESS`).
+- Contract addresses and the deposit token are **per chain**, read with
+  `useChainConfig()` / `useDepositToken()`
+  (`src/components/providers/active-chain.tsx`) — `savingCircles`,
+  `savingCirclesViewer`, `automaticSavingCircles`, `contractCreationBlock`,
+  `depositToken`. They come from `NEXT_PUBLIC_CHAINS` via `src/lib/chains.ts`; there are
+  no module-level address constants, because a module constant is fixed at import and
+  cannot follow the active chain.
+- In a pure helper, take what you need as a parameter rather than reaching for the active
+  chain: `formatDepositAmount(value, decimals)`,
+  `getChainConfig(chainId)`, `getFeeCurrency(chainId)`.
 - ABIs live in `src/lib/abis/` (`saving-circles`, `saving-circles-viewers`, `bread-abi`,
   `erc20-abi`).
 - **Reads** use `useReadContract` wrapped in a `use-*.ts` hook that passes
-  `chainId: getDefaultChainId()` and a `query.enabled` guard. Template:
-  `src/hooks/use-circle-members.ts`.
+  `chainId: useActiveChainId()` and a `query.enabled` guard. Template:
+  `src/hooks/use-circle-members.ts`. Include the chain in the TanStack query key too —
+  circle ids repeat across chains, so a key of `[..., circleId]` alone serves one chain's
+  data for another.
 - **Writes** go through the transaction hooks (`use-saving-circles-tx`,
   `use-sponsored-tx`, `use-simulate-and-sponsor-tx`, `use-wait-for-tx-receipt`), some of
   which sponsor gas for embedded wallets.
@@ -124,14 +156,43 @@ Do not edit anything under `contracts/lib/**`.
 - All env vars are Zod-validated at load: client vars in `src/lib/env.ts` (`clientEnv`),
   server-only vars in `src/lib/envs/server.ts` (`serverEnv`). The app throws on startup if
   anything required is missing.
-- Chain selection is driven by `NEXT_PUBLIC_CHAIN_ID` (`src/utils/network.ts`,
-  `src/utils/chain.ts`). The app targets a single chain at a time (local Anvil/Gnosis fork,
-  Sepolia, Gnosis mainnet, Celo Sepolia, or Celo mainnet) — Gnosis and Celo are separate
-  deployments (own domain, own Supabase project, own contract addresses), not one
-  deployment serving both.
-- `NEXT_PUBLIC_NODE_ENV` names the deployment's tier _and_ chain, required with no
-  default: `local`, `local-celo`, `development`, `development-celo`, `prod`, `prod-celo`.
-  Code that only cares about tier (not chain) should check `isLocalEnv` (`src/lib/env.ts`)
-  rather than comparing the raw value, since e.g. `local` and `local-celo` are both
-  local-tier.
+- **One deployment serves every configured chain.** `NEXT_PUBLIC_CHAINS` is a JSON map
+  keyed by chain id holding that chain's contracts and deposit token
+  (`src/lib/envs/chain-schema.ts`). Every configured chain must also have a slug in
+  `CHAIN_SLUGS` (`src/lib/chain-slugs.ts`) or the app refuses to boot.
+- **The chain travels in the `?chain=` query param**, e.g. `/stacks/5?chain=celo`. It has
+  to be in the URL because circle ids come from a per-chain counter
+  (`SavingCircles.sol`, `_id = nextId++`), so circle 5 exists on every chain as an
+  unrelated stack. Build in-app links with `useChainPath()` — never concatenate the param
+  by hand, or a path that already has a query string gets a second `?`.
+- The chain is resolved once, in `src/components/providers/index.tsx`, and passed to
+  `ActiveChainProvider`. Everything below reads it with `useActiveChainId()` /
+  `useChainConfig()` / `useDepositToken()` (`src/components/providers/active-chain.tsx`).
+  Never read `NEXT_PUBLIC_CHAIN_ID` in feature code.
+- That resolution runs with `useSearchParams()` in a _client_ component, which still
+  gives the value during the **server** render because every route is dynamic — the
+  layout's `headers()` calls (`isServerMobile`, `isServerMiniPay`) opt the tree in. That
+  matters: if the chain were only known after hydration, `Providers` would pick the
+  MiniPay-vs-Privy branch late and briefly mount the wrong stack.
+- **When the URL doesn't settle it, the browser does:** MiniPay → the first configured
+  Celo chain, anything else → `NEXT_PUBLIC_CHAIN_ID` if configured, else the first
+  configured chain. A `?chain=` naming an unknown or unconfigured chain is treated the
+  same as none — nothing in the app emits one, so that path is only for hand-edited or
+  stale links. There is no middleware and no redirect; a chain-less URL stays as typed.
+- **A chain only works in one browser.** `ChainBrowserGuard`
+  (`src/components/chain-browser-guard.tsx`) replaces the app with an instruction screen
+  when the pairing is wrong: Celo outside MiniPay, or a non-Celo chain inside it. Not a
+  style choice — writes are impossible either way (gas sponsorship is Gnosis-only in
+  `providers/tx-sender.tsx`, the CIP-64 fee currency exists only in the MiniPay sender,
+  and MiniPay has no message signing).
+- Route handlers can't use hooks, so they take the chain from the request and resolve it
+  with `resolveChainId` (`src/lib/envs/server-chains.ts`). The same value must feed both
+  the on-chain authorization check and the database query — checking one chain and
+  reading another would let a caller who owns circle N on chain A read chain B's rows.
+  Where the chain is already server state, read it from there instead: the join-request
+  `PATCH` takes it off the row, not the caller.
+- `NEXT_PUBLIC_CHAIN_ID` names only the fallback chain for a URL that doesn't specify one.
+- `NEXT_PUBLIC_NODE_ENV` names the deployment's tier only, required with no default:
+  `local`, `development`, `prod`. Code that cares about tier should check `isLocalEnv`
+  (`src/lib/env.ts`).
 - When adding an env var, update the Zod schema **and** `.env.local.example`.
