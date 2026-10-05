@@ -100,8 +100,16 @@ so — but the three commands above are the baseline that must pass.
   component files may be PascalCase where the folder already does that (e.g. `Navbar/`).
 - **Imports:** use the `@/*` alias for anything under `src/` (`@/lib/...`, `@/hooks/...`).
 - **Hooks:** one concern per `use-*.ts`. Contract reads wrap `useReadContract` and pass
-  `chainId: getDefaultChainId()` and `query.enabled` guards (see
+  `chainId: useActiveChainId()` and `query.enabled` guards (see
   `src/hooks/use-circle-members.ts` as the template).
+- **Chain-scoped everything.** The app serves several chains from one deployment, and the
+  active chain comes from the `?chain=` URL param. Read it with `useActiveChainId()`,
+  contract addresses and the deposit token with `useChainConfig()` / `useDepositToken()`,
+  and build in-app links with `useChainPath()` — all from
+  `src/components/providers/active-chain.tsx`. Never read `NEXT_PUBLIC_CHAIN_ID` in
+  feature code, and never assume a chain. Circle ids repeat across chains, so anything
+  keyed by circle id — a TanStack query key, a Supabase row, a shared URL — must carry the
+  chain too. See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md#configuration).
 - **Env vars:** never read `process.env` directly in feature code. Client vars go through
   `clientEnv` in `src/lib/env.ts`; server-only vars through `serverEnv` in
   `src/lib/envs/server.ts`. Both are Zod-validated. Add new vars to the schema **and**
@@ -137,8 +145,10 @@ so — but the three commands above are the baseline that must pass.
 - **Contract writes go through the tx hooks — never raw wagmi/Privy.** Use
   `useSavingCirclesTx` for Saving Circles writes; it simulates the call, then sends via the
   sponsored-tx hooks (`use-sponsored-tx`, `use-simulate-and-sponsor-tx`), which sponsor gas
-  on Gnosis (chainId `100`). Calling `writeContract` or `sendTransaction` directly bypasses
-  simulation and gas sponsorship.
+  on Gnosis (chainId `100`) only. Calling `writeContract` or `sendTransaction` directly
+  bypasses simulation and gas sponsorship. On Celo, writes work only through the MiniPay
+  sender, which pays gas via a CIP-64 `feeCurrency` — which is why a Celo URL opened
+  outside MiniPay is stopped by `ChainBrowserGuard` rather than allowed to fail.
 - **Surface contract errors via `parseContractError`.** Don't render raw viem/wagmi error
   strings. `parseContractError` (`src/utils/parse-contract-error.ts`) maps revert names to
   user-friendly messages from `SAVING_CIRCLES_ERRORS` (`src/lib/contract-errors.ts`). When

@@ -13,13 +13,31 @@ One codebase, two provider stacks, chosen at runtime in
 | ------------- | ------------------------- | -------------------------------------------------------- |
 | Wallet        | Privy embedded / external | MiniPay injected (`window.ethereum`)                     |
 | Auth          | Privy access token        | `/api/minipay/session` HMAC JWT off the injected address |
-| Chain         | Gnosis (100) / Sepolia    | Celo (42220) / Celo Sepolia (11142220)                   |
+| Chain         | `?chain=gnosis`/`sepolia` | `?chain=celo`/`celo-sepolia`                             |
 | Deposit token | BREAD (18 dec)            | USDT (6 dec), configurable                               |
 | Gas           | Privy sponsorship         | CIP-64 `feeCurrency`, paid in the stablecoin             |
 
 The MiniPay stack mounts only when **both** hold: the browser is MiniPay, and
-`NEXT_PUBLIC_CHAIN_ID` is a Celo chain. A Gnosis deployment opened inside
-MiniPay keeps the Privy stack.
+the active chain (from `?chain=`) is a Celo chain.
+
+**The two are meant to pair one-to-one**: Celo works only inside MiniPay, and
+every other chain only outside it. When a URL names a chain the current browser
+can't serve, `ChainBrowserGuard`
+(`src/components/chain-browser-guard.tsx`) replaces the app with an instruction
+screen rather than letting the user reach a stack they cannot act on. Writes are
+genuinely impossible in both directions: the Privy sender has no CIP-64
+`feeCurrency` path and sponsors gas only on Gnosis
+(`src/components/providers/tx-sender.tsx`), so an embedded wallet holding no CELO
+fails every Celo write; and MiniPay cannot sign messages at all.
+
+A URL that names no chain falls back to the browser — MiniPay gets the first
+configured Celo chain — so a MiniPay user landing on a bare path gets the Celo
+branch without a redirect. That fallback lives in
+`src/components/providers/index.tsx`; there is no middleware.
+
+Because of the pairing, **`NEXT_PUBLIC_CHAINS` must configure Celo on the same
+deployment the web build uses**. Otherwise a Celo link can't resolve and the
+guard can never explain why.
 
 Detection is seeded server-side from the user agent (`isServerMiniPay()`), so
 SSR and the first client render agree, then confirmed against
@@ -102,7 +120,12 @@ Form: <https://developer.minipay.to/mini-app-listing>
 - [ ] **Terms of Service URL** — not yet in-app
 - [ ] **Privacy Policy URL** — not yet in-app
 - [ ] **Support URL** + 24h critical-fix SLA — not yet in-app
-- [ ] App name, tagline, publisher, category, production App URL
+- [ ] App name, tagline, publisher, category, production App URL. Prefer a URL that
+      names the chain (`…/?chain=celo`): a bare URL works, since the fallback sends
+      MiniPay's user agent to Celo, but that relies on `isMiniPayUserAgent`
+      (`src/utils/minipay.ts`) matching. If MiniPay's UA ever drops the token, a bare URL
+      lands on the default chain and `ChainBrowserGuard` tells the user to open it in a
+      browser — inside MiniPay.
 - [ ] Contracts verified on Celoscan + one sample transaction link per
       user-facing method (deployment now lives in the `saving-circles` repo —
       record the deployed addresses here)
