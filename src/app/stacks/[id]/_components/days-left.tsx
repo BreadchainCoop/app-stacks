@@ -5,7 +5,10 @@ import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { Body } from "@breadcoop/ui";
 import { CalendarStarIcon } from "@phosphor-icons/react";
 import { useQueryClient } from "@tanstack/react-query";
-import { invalidateCircleReads } from "@/utils/invalidate-circle-reads";
+import { useConfig } from "wagmi";
+import { invalidateStackReads } from "@/utils/invalidate-circle-reads";
+import { waitForChainTimestamp } from "@/utils/wait-for-chain-timestamp";
+import { useActiveChainId } from "@/components/providers/active-chain";
 
 const DaysLeft = ({
   depositWindowEnd,
@@ -22,6 +25,8 @@ const DaysLeft = ({
 }) => {
   const blockTimestamp = useBlockTimestamp();
   const queryClient = useQueryClient();
+  const config = useConfig();
+  const chainId = useActiveChainId();
   let daysLeft = "-";
   let progressPercent = 0;
 
@@ -74,7 +79,19 @@ const DaysLeft = ({
         <Countdown
           targetSeconds={Number(depositWindowEnd)}
           onComplete={() => {
-            invalidateCircleReads(queryClient);
+            // The countdown runs off the device clock, so reaching zero does
+            // not mean the chain has rolled the round over yet. Refreshing
+            // now would read the previous round and, because the result is
+            // unchanged, re-render nothing — and the countdown only fires
+            // once per target, so nothing would retry.
+            void (async () => {
+              await waitForChainTimestamp(
+                config,
+                chainId,
+                Number(depositWindowEnd)
+              );
+              invalidateStackReads(queryClient);
+            })();
           }}
         />
       )}
