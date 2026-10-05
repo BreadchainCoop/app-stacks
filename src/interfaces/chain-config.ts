@@ -13,8 +13,10 @@ export interface ChainConfig {
   savingCircles: Address;
   savingCirclesViewer: Address;
   automaticSavingCircles: Address;
-  // Goal savings is newer than the others, so a chain may not have it. The zero
-  // address means "not deployed here"; the surfaces stay feature-gated anyway.
+  // Goal savings is newer than the others, so a chain may not have it; the zero
+  // address means "not deployed here". The `goalSavings` feature flag is
+  // per-deployment rather than per-chain, so see the note in
+  // src/lib/envs/chain-schema.ts before enabling it on a mixed deployment.
   goalSavings: Address;
   // Block the Saving Circles proxy was deployed at: the floor for event scans.
   contractCreationBlock: bigint;

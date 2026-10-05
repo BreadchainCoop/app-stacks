@@ -12,7 +12,9 @@ const chainConfigSchema = z.object({
   savingCirclesViewer: addressSchema,
   automaticSavingCircles: addressSchema,
   // Optional per chain: a chain without Goal savings deployed omits it and gets
-  // the zero address, which the feature gates already treat as absent.
+  // the zero address. NEXT_PUBLIC_FEATURES gates the goal surfaces per
+  // deployment, not per chain, so only enable the `goalSavings` feature where
+  // every configured chain has the contract.
   goalSavings: addressSchema.optional().default(ZERO_ADDRESS),
   // JSON has no bigint, so accept a decimal string (or number) and convert
   // once here — every consumer wants a bigint block number.

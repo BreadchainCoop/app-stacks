@@ -10,6 +10,8 @@ import {
 import type { Icon } from "@phosphor-icons/react";
 import { Body, cn, Heading2, Heading3 } from "@breadcoop/ui";
 import { STACK_TYPE_DESCRIPTIONS, STACK_TYPE_LABELS } from "@/lib/stack-types";
+import BackPage from "@/components/back-page";
+import { useChainPath } from "@/components/providers/active-chain";
 
 /** A stack type the picker can start creating. */
 type PickerCard = {
@@ -48,33 +50,39 @@ const Card = ({ StackIcon, label, description, href }: PickerCard) => {
 const TypePicker = () => {
   const params = useSearchParams();
   const query = params.toString();
+  // Rendered here rather than in page.tsx: the back link has to carry the
+  // active chain, which only a client component can read.
+  const chainHref = useChainPath();
 
   return (
-    <section className="max-w-155 mx-auto">
-      <header className="mb-6 text-center">
-        <Heading2 className="text-primary-blue text-2xl leading-6">
-          What kind of stack?
-        </Heading2>
-        <Body className="mt-3 text-surface-grey-2">
-          What kind of stack would you like to create?
-        </Body>
-      </header>
+    <>
+      <BackPage href={chainHref("/")} label="Return to dashboard" />
+      <section className="max-w-155 mx-auto">
+        <header className="mb-6 text-center">
+          <Heading2 className="text-primary-blue text-2xl leading-6">
+            What kind of stack?
+          </Heading2>
+          <Body className="mt-3 text-surface-grey-2">
+            What kind of stack would you like to create?
+          </Body>
+        </header>
 
-      <div className="flex flex-col gap-4">
-        <Card
-          StackIcon={ArrowClockwiseIcon}
-          label={STACK_TYPE_LABELS.rosca}
-          description={STACK_TYPE_DESCRIPTIONS.rosca}
-          href={query ? `/new/rosca?${query}` : "/new/rosca"}
-        />
-        <Card
-          StackIcon={FlagBannerFoldIcon}
-          label={STACK_TYPE_LABELS.goal}
-          description={STACK_TYPE_DESCRIPTIONS.goal}
-          href="/new/goal"
-        />
-      </div>
-    </section>
+        <div className="flex flex-col gap-4">
+          <Card
+            StackIcon={ArrowClockwiseIcon}
+            label={STACK_TYPE_LABELS.rosca}
+            description={STACK_TYPE_DESCRIPTIONS.rosca}
+            href={chainHref(query ? `/new/rosca?${query}` : "/new/rosca")}
+          />
+          <Card
+            StackIcon={FlagBannerFoldIcon}
+            label={STACK_TYPE_LABELS.goal}
+            description={STACK_TYPE_DESCRIPTIONS.goal}
+            href={chainHref("/new/goal")}
+          />
+        </div>
+      </section>
+    </>
   );
 };
 
