@@ -19,6 +19,7 @@ import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
 import { useResolveInvitee } from "@/hooks/use-resolve-invitee";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { formatAddress } from "@/utils/address";
+import { invalidateStackReads } from "@/utils/invalidate-circle-reads";
 
 const ADD_MEMBERS_ERRORS: Record<string, string> = {
   NotOwner: "Only the Stack creator can add members.",
@@ -147,8 +148,7 @@ const AddMembersCard = ({
         args: [circleId, address],
       });
 
-      queryClient.invalidateQueries({ queryKey: ["readContract"] });
-      queryClient.invalidateQueries({ queryKey: ["readContracts"] });
+      invalidateStackReads(queryClient);
       onAdded?.();
     } catch (err) {
       console.error("removeMember failed:", err);
@@ -176,8 +176,7 @@ const AddMembersCard = ({
         args: [circleId, pending.map((p) => p.address)],
       });
 
-      queryClient.invalidateQueries({ queryKey: ["readContract"] });
-      queryClient.invalidateQueries({ queryKey: ["readContracts"] });
+      invalidateStackReads(queryClient);
       setPending([]);
       onAdded?.();
     } catch (err) {

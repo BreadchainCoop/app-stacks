@@ -8,7 +8,10 @@ import { JoinRequest, useJoinRequests } from "@/hooks/use-join-requests";
 import { useGoalSavingsTx } from "@/hooks/use-goal-savings-tx";
 import { GOAL_ADD_MEMBERS_ERRORS } from "@/lib/contract-errors";
 import { formatDepositAmount } from "@/lib/deposit-token";
-import { useDepositToken } from "@/components/providers/active-chain";
+import {
+  useActiveChainId,
+  useDepositToken,
+} from "@/components/providers/active-chain";
 import { stackMetadataId } from "@/lib/stack-types";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { Body, Chip, formatBalance, Heading3 } from "@breadcoop/ui";
@@ -50,6 +53,7 @@ const JoinRequestItem = ({
 }) => {
   const { sendGoalSavingsTx } = useGoalSavingsTx();
   const { getAuthToken } = useUserIdentity();
+  const chainId = useActiveChainId();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState<"accepting" | "dismissing" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -73,7 +77,7 @@ const JoinRequestItem = ({
     }
 
     queryClient.invalidateQueries({
-      queryKey: ["join-requests", stackMetadataId("goal", id)],
+      queryKey: ["join-requests", chainId, stackMetadataId("goal", id)],
     });
   };
 
