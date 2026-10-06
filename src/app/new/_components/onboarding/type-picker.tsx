@@ -6,9 +6,11 @@ import {
   ArrowClockwiseIcon,
   ArrowRightIcon,
   FlagBannerFoldIcon,
+  HandCoinsIcon,
 } from "@phosphor-icons/react/ssr";
 import type { Icon } from "@phosphor-icons/react";
 import { Body, cn, Heading2, Heading3 } from "@breadcoop/ui";
+import { FeatureGate } from "@/components/feature-gate";
 import { STACK_TYPE_DESCRIPTIONS, STACK_TYPE_LABELS } from "@/lib/stack-types";
 
 /** A stack type the picker can start creating. */
@@ -73,6 +75,14 @@ const TypePicker = () => {
           description={STACK_TYPE_DESCRIPTIONS.goal}
           href="/new/goal"
         />
+        <FeatureGate feature="microloans">
+          <Card
+            StackIcon={HandCoinsIcon}
+            label={STACK_TYPE_LABELS.microloan}
+            description={STACK_TYPE_DESCRIPTIONS.microloan}
+            href="/new/microloan"
+          />
+        </FeatureGate>
       </div>
     </section>
   );

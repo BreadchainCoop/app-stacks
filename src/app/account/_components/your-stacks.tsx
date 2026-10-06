@@ -3,6 +3,7 @@ import { Address } from "viem";
 import AccountTab from "./account-tab";
 import AccountUserStacks from "./account-user-stacks";
 import AccountGoals from "./account-goals";
+import AccountMicroloans from "./account-microloans";
 
 const YourStacks = ({
   address,
@@ -16,6 +17,7 @@ const YourStacks = ({
     <AccountTab basePath={basePath} address={address} />
     <AccountUserStacks address={address} />
     <AccountGoals address={address} />
+    <AccountMicroloans address={address} />
   </div>
 );
 

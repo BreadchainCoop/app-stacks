@@ -3,7 +3,7 @@
  * its own id-space, creation flow, detail route and Supabase metadata id
  * shape (see stackMetadataId below).
  */
-export const STACK_TYPES = ["rosca", "goal"] as const;
+export const STACK_TYPES = ["rosca", "goal", "microloan"] as const;
 
 export type StackType = (typeof STACK_TYPES)[number];
 
@@ -13,17 +13,21 @@ export type NewStackType = Exclude<StackType, "rosca">;
 export const STACK_TYPE_LABELS: Record<StackType, string> = {
   rosca: "Rotating savings",
   goal: "Shared goal",
+  microloan: "Microloan",
 };
 
 export const STACK_TYPE_DESCRIPTIONS: Record<StackType, string> = {
   rosca:
     "Deposit a fixed amount each round and take turns claiming the whole pot.",
   goal: "Pool contributions toward a shared target. If the group hits the goal, funds release. If not, everyone gets their money back.",
+  microloan:
+    "Lend to one borrower with no interest. Escrow a grant that unlocks once the loan is repaid.",
 };
 
 const STACK_TYPE_DETAIL_BASE_PATHS: Record<StackType, string> = {
   rosca: "/stacks",
   goal: "/goals",
+  microloan: "/microloans",
 };
 
 /** Detail-page path for a stack of the given type, e.g. `/goals/3`. */

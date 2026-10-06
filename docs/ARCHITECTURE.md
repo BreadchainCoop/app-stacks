@@ -58,6 +58,9 @@ The frontend is a Next.js App Router application that orchestrates both.
   Rotating savings (`/new/rosca`) or a Shared goal (`/new/goal`). Both flows link back
   to the picker. With the feature off, `/new` keeps the original rotating savings flow.
 - `/goals/[id]` — a Shared goal's detail and actions (feature-gated: `goalSavings`).
+- `/new/microloan`, `/microloans/[id]` — offer a Microloan, and its lender/borrower
+  actions (feature-gated: `microloans`, contract `NEXT_PUBLIC_MICROLOANS_CONTRACT_ADDRESS`).
+  Chain state only: no Supabase metadata or invite links yet.
 - `/stacks/[id]` — a single circle's detail and actions.
 - `/stacks/join` — accept an invite link.
 - `api/onboard` — create the Supabase user record after Privy login.

@@ -36,6 +36,10 @@ const envSchema = z.object({
     .string()
     .optional()
     .default(zeroAddress),
+  NEXT_PUBLIC_MICROLOANS_CONTRACT_ADDRESS: z
+    .string()
+    .optional()
+    .default(zeroAddress),
   NEXT_PUBLIC_DEPOSIT_TOKEN_ADDRESS: z.string(),
   // Empty string (e.g. a blank line copied from .env.local.example) must
   // fall back to the default, not coerce to ""/0
@@ -108,6 +112,8 @@ const parsedSchema = envSchema.safeParse({
     process.env.NEXT_PUBLIC_AUTOMATIC_SAVING_CIRCLES_CONTRACT_ADDRESS,
   NEXT_PUBLIC_GOAL_SAVINGS_CONTRACT_ADDRESS:
     process.env.NEXT_PUBLIC_GOAL_SAVINGS_CONTRACT_ADDRESS,
+  NEXT_PUBLIC_MICROLOANS_CONTRACT_ADDRESS:
+    process.env.NEXT_PUBLIC_MICROLOANS_CONTRACT_ADDRESS,
   NEXT_PUBLIC_DEPOSIT_TOKEN_ADDRESS:
     process.env.NEXT_PUBLIC_DEPOSIT_TOKEN_ADDRESS,
   NEXT_PUBLIC_DEPOSIT_TOKEN_SYMBOL:

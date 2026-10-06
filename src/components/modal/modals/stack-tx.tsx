@@ -63,7 +63,89 @@ const ACTION_COPY: Record<
     successTitle: "Goal cancelled",
     successMsg: "The goal was cancelled",
   },
+  createLoan: {
+    title: "Offer this loan",
+    description:
+      "You are about to move the loan amount and the grant into escrow. You can cancel for a full refund until the borrower accepts.",
+    confirmLabel: "Offer loan",
+    loadingTitle: "Offering loan",
+    successTitle: "Loan offered",
+    successMsg: "Moved into escrow",
+  },
+  setBorrower: {
+    title: "Set the borrower",
+    description:
+      "Only this address will be able to accept the loan. This can't be changed later.",
+    confirmLabel: "Set borrower",
+    loadingTitle: "Setting borrower",
+    successTitle: "Borrower set",
+    successMsg: "The borrower can now accept the loan",
+  },
+  cancelLoan: {
+    title: "Cancel loan offer?",
+    description:
+      "Cancelling is permanent. The loan amount, the grant and any yield come back to you.",
+    confirmLabel: "Cancel offer",
+    loadingTitle: "Cancelling",
+    successTitle: "Offer cancelled",
+    successMsg: "Escrow returned to you",
+  },
+  acceptLoan: {
+    title: "Accept this loan",
+    description:
+      "You are about to receive this loan. The repayment deadline starts now.",
+    confirmLabel: "Accept loan",
+    loadingTitle: "Accepting",
+    successTitle: "Loan accepted",
+    successMsg: "Received",
+  },
+  repay: {
+    title: "Repay loan",
+    description: "You are about to pay back part of this loan.",
+    confirmLabel: "Repay",
+    loadingTitle: "Repaying",
+    successTitle: "Repayment sent",
+    successMsg: "Successfully repaid",
+  },
+  releaseGrant: {
+    title: "Release the grant",
+    description:
+      "The loan is fully repaid. The grant will be sent to the borrower.",
+    confirmLabel: "Release grant",
+    loadingTitle: "Releasing grant",
+    successTitle: "Grant released",
+    successMsg: "Sent to the borrower",
+  },
+  extendLoan: {
+    title: "Give more time",
+    description:
+      "The borrower will have until the new deadline to repay and still receive the grant.",
+    confirmLabel: "Extend deadline",
+    loadingTitle: "Extending",
+    successTitle: "Deadline extended",
+    successMsg: "The new deadline is set",
+  },
+  reclaimGrant: {
+    title: "Reclaim the grant?",
+    description:
+      "Reclaiming is permanent. The borrower will no longer receive the grant, but still owes the rest of the loan.",
+    confirmLabel: "Reclaim grant",
+    loadingTitle: "Reclaiming",
+    successTitle: "Grant reclaimed",
+    successMsg: "Returned to you",
+  },
+  collect: {
+    title: "Collect repayments",
+    description: "You are about to collect the repayments made so far.",
+    confirmLabel: "Collect",
+    loadingTitle: "Collecting",
+    successTitle: "Repayments collected",
+    successMsg: "Successfully collected",
+  },
 };
+
+/** Actions that permanently give something up, styled like goal cancel. */
+const DESTRUCTIVE_ACTIONS: StackTxAction[] = ["cancelLoan", "reclaimGrant"];
 
 export const StackTxInitModal = ({
   modalState,
@@ -73,7 +155,8 @@ export const StackTxInitModal = ({
   const modal = useModal();
   const copy = ACTION_COPY[modalState.action];
   const isCancellingGoal =
-    modalState.stackType === "goal" && modalState.action === "cancel";
+    (modalState.stackType === "goal" && modalState.action === "cancel") ||
+    DESTRUCTIVE_ACTIONS.includes(modalState.action);
 
   return (
     <ModalContainer>

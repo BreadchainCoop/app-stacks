@@ -9,7 +9,7 @@ export const useWaitForTxReceipt = () => {
   const config = useConfig();
 
   const waitForTxReceipt = async (hash: Address) => {
-    await waitForTransactionReceipt(config, {
+    return await waitForTransactionReceipt(config, {
       hash,
       chainId: getDefaultChainId(),
     });
