@@ -2,7 +2,9 @@ packages:
   - "."
 
 blockExoticSubdeps: true
-minimumReleaseAge: 864000 # 10 days
+# Minutes, not seconds (pnpm: 1440 == one day). MiniPay's listing rules
+# require at least 7 days (10080); 10 days keeps our existing margin.
+minimumReleaseAge: 14400 # 10 days
 minimumReleaseAgeExclude:
   - "@breadcoop/ui"
 strictDepBuilds: true
