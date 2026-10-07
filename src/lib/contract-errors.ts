@@ -102,6 +102,42 @@ export const GOAL_SAVINGS_ERRORS: Record<string, string> = {
 
 /**
  * Human-readable messages for every custom error in the
+ * Microloans contract ABI.
+ */
+export const MICROLOANS_ERRORS: Record<string, string> = {
+  // ── Configuration ─────────────────────────────────────────────────
+  TokenNotAllowed: "This token is not allowed for microloans.",
+  InvalidVault: "This yield vault is not allowed for microloans.",
+  InvalidPrincipal: "The loan amount must be greater than zero.",
+  InvalidAcceptBy: "The offer deadline must be in the future.",
+  InvalidRepaymentPeriod:
+    "The repayment deadline must be later than the current one.",
+  InvalidBorrower:
+    "The borrower must be a valid address other than the lender.",
+  BorrowerAlreadySet: "This loan already has a borrower.",
+
+  // ── Roles / lifecycle ─────────────────────────────────────────────
+  LoanNotFound: "This loan does not exist.",
+  NotLender: "Only the lender can perform this action.",
+  NotBorrower: "Only the borrower can accept this loan.",
+  TermsMismatch:
+    "This agreement doesn't match the one the lender attached to the loan.",
+  InvalidState: "This loan can't do that in its current state.",
+  InvalidAmount: "The amount must be greater than zero.",
+  NothingToCollect: "There is nothing to collect yet.",
+
+  // ── OpenZeppelin / low-level ──────────────────────────────────────
+  InvalidInitialization: "Contract initialisation error.",
+  NotInitializing: "Contract is not in an initialisation state.",
+  ReentrancyGuardReentrantCall: "Reentrant call detected — please try again.",
+  OwnableInvalidOwner: "Invalid owner address.",
+  OwnableUnauthorizedAccount:
+    "Your account is not authorised to perform this action.",
+  SafeERC20FailedOperation: "Token transfer failed — check your balance.",
+};
+
+/**
+ * Human-readable messages for every custom error in the
  * CollectiveFundCircles contract ABI.
 
 // ── Operation-scoped subsets ────────────────────────────────────────────────
@@ -205,6 +241,53 @@ export const GOAL_RELEASE_ERRORS: Record<string, string> = pick(
 export const GOAL_CANCEL_ERRORS: Record<string, string> = pick(
   ["GoalNotFound", "NotOwner", "NotCancellable"],
   GOAL_SAVINGS_ERRORS
+);
+
+// ── Microloan operation subsets ─────────────────────────────────────────────
+
+/** Errors that can surface when the lender creates a loan offer. */
+export const MICROLOAN_CREATE_ERRORS: Record<string, string> = pick(
+  [
+    "TokenNotAllowed",
+    "InvalidVault",
+    "InvalidPrincipal",
+    "InvalidAcceptBy",
+    "InvalidRepaymentPeriod",
+    "InvalidBorrower",
+    "SafeERC20FailedOperation",
+  ],
+  MICROLOANS_ERRORS
+);
+
+/** Errors that can surface on lender actions (borrower, cancel, extend, reclaim). */
+export const MICROLOAN_LENDER_ERRORS: Record<string, string> = pick(
+  [
+    "LoanNotFound",
+    "NotLender",
+    "InvalidState",
+    "InvalidBorrower",
+    "BorrowerAlreadySet",
+    "InvalidRepaymentPeriod",
+  ],
+  MICROLOANS_ERRORS
+);
+
+/** Errors that can surface when the borrower accepts a loan. */
+export const MICROLOAN_ACCEPT_ERRORS: Record<string, string> = pick(
+  ["LoanNotFound", "NotBorrower", "InvalidState", "TermsMismatch"],
+  MICROLOANS_ERRORS
+);
+
+/** Errors that can surface when repaying a loan. */
+export const MICROLOAN_REPAY_ERRORS: Record<string, string> = pick(
+  ["LoanNotFound", "InvalidState", "InvalidAmount", "SafeERC20FailedOperation"],
+  MICROLOANS_ERRORS
+);
+
+/** Errors that can surface when releasing the grant or collecting repayments. */
+export const MICROLOAN_PAYOUT_ERRORS: Record<string, string> = pick(
+  ["LoanNotFound", "InvalidState", "NothingToCollect"],
+  MICROLOANS_ERRORS
 );
 
 // ── Internal helper ─────────────────────────────────────────────────────────

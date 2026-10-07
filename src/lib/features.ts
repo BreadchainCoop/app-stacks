@@ -15,7 +15,7 @@ import { clientEnv, isLocalEnv } from "./env";
  * - local always renders every feature regardless of config
  * - goalSavings is temporarily always visible for this branch's rollout
  */
-export const FEATURES = ["goalSavings"] as const;
+export const FEATURES = ["goalSavings", "microloans"] as const;
 
 export type Feature = (typeof FEATURES)[number];
 
