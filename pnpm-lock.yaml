@@ -12,82 +12,82 @@ importers:
   .:
     dependencies:
       "@breadcoop/ui":
-        specifier: ^2.0.5
+        specifier: 2.0.5
         version: 2.0.5(a42f1bd46a91f3e083f3bbbf6d88fc00)
       "@duneanalytics/client-sdk":
-        specifier: ^0.2.5
+        specifier: 0.2.5
         version: 0.2.5
       "@hookform/resolvers":
-        specifier: ^5.2.2
+        specifier: 5.2.2
         version: 5.2.2(react-hook-form@7.71.2(react@19.1.0))
       "@lifi/sdk":
-        specifier: ^3.16.3
+        specifier: 3.16.3
         version: 3.16.3(@solana/wallet-adapter-base@0.9.27(@solana/web3.js@1.98.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)))(@solana/web3.js@1.98.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6))(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.1.0)(typescript@5.9.3)(use-sync-external-store@1.4.0(react@19.1.0))(utf-8-validate@6.0.6)(viem@2.47.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6))(zod@4.3.6)
       "@lifi/widget":
-        specifier: ^3.40.12
+        specifier: 3.40.12
         version: 3.40.12(676bfaa6275312a715bc8b1d5f1c5db1)
       "@mysten/sui":
-        specifier: ^2.16.2
+        specifier: 2.16.2
         version: 2.16.2(typescript@5.9.3)
       "@next/third-parties":
-        specifier: ^15.5.3
+        specifier: 15.5.14
         version: 15.5.14(next@15.4.10(@babel/core@7.29.0)(babel-plugin-macros@3.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)
       "@phosphor-icons/react":
-        specifier: ^2.1.10
+        specifier: 2.1.10
         version: 2.1.10(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       "@privy-io/react-auth":
-        specifier: ^3.13.1
+        specifier: 3.18.0
         version: 3.18.0(@react-native-async-storage/async-storage@1.24.0(react-native@0.85.2(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6)))(@solana-program/system@0.10.0(@solana/kit@5.5.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)))(@solana-program/token@0.9.0(@solana/kit@5.5.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)))(@solana/kit@5.5.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6))(@solana/sysvars@5.5.1(typescript@5.9.3))(@tanstack/query-core@5.91.2)(@tanstack/react-query@5.91.2(react@19.1.0))(@types/react@19.2.14)(@upstash/redis@1.37.0)(bufferutil@4.1.0)(react-dom@19.1.0(react@19.1.0))(react-native@0.85.2(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6))(react@19.1.0)(typescript@5.9.3)(use-sync-external-store@1.4.0(react@19.1.0))(utf-8-validate@6.0.6)(zod@4.3.6)
       "@privy-io/wagmi":
-        specifier: ^4.0.1
+        specifier: 4.0.3
         version: 4.0.3(c7b5fbe6f91ccea64b944947104c57e8)
       "@radix-ui/react-accordion":
-        specifier: ^1.2.12
+        specifier: 1.2.12
         version: 1.2.12(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       "@radix-ui/react-dialog":
-        specifier: ^1.1.15
+        specifier: 1.1.15
         version: 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       "@radix-ui/react-switch":
-        specifier: ^1.1.0
+        specifier: 1.1.1
         version: 1.1.1(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       "@radix-ui/react-tooltip":
-        specifier: ^1.2.8
+        specifier: 1.2.8
         version: 1.2.8(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       "@rainbow-me/rainbowkit":
-        specifier: ^2.2.8
+        specifier: 2.2.10
         version: 2.2.10(@tanstack/react-query@5.91.2(react@19.1.0))(@types/react@19.2.14)(babel-plugin-macros@3.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.9.3)(viem@2.47.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6))(wagmi@2.19.5(@react-native-async-storage/async-storage@1.24.0(react-native@0.85.2(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6)))(@tanstack/query-core@5.91.2)(@tanstack/react-query@5.91.2(react@19.1.0))(@types/react@19.2.14)(@upstash/redis@1.37.0)(bufferutil@4.1.0)(react-native@0.85.2(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6))(react@19.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(viem@2.47.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6))(zod@4.3.6))
       "@supabase/supabase-js":
-        specifier: ^2.50.5
+        specifier: 2.99.3
         version: 2.99.3(bufferutil@4.1.0)(utf-8-validate@6.0.6)
       "@tanstack/react-query":
-        specifier: ^5.85.6
+        specifier: 5.91.2
         version: 5.91.2(react@19.1.0)
       "@upstash/redis":
-        specifier: ^1.36.2
+        specifier: 1.37.0
         version: 1.37.0
       "@wagmi/core":
-        specifier: 2.x.x
+        specifier: 2.22.1
         version: 2.22.1(@tanstack/query-core@5.91.2)(@types/react@19.2.14)(react@19.1.0)(typescript@5.9.3)(use-sync-external-store@1.4.0(react@19.1.0))(viem@2.47.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6))
       "@zkp2p/sdk":
-        specifier: ^0.3.2
+        specifier: 0.3.2
         version: 0.3.2(bufferutil@4.1.0)(react@19.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(viem@2.47.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6))(zod@4.3.6)
       blo:
-        specifier: ^2.0.0
+        specifier: 2.0.0
         version: 2.0.0
       clsx:
-        specifier: ^2.1.1
+        specifier: 2.1.1
         version: 2.1.1
       embla-carousel-react:
-        specifier: ^8.3.1
+        specifier: 8.3.1
         version: 8.3.1(react@19.1.0)
       jose:
-        specifier: ^5.9.6
+        specifier: 5.9.6
         version: 5.9.6
       next:
         specifier: 15.4.10
         version: 15.4.10(@babel/core@7.29.0)(babel-plugin-macros@3.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       obscenity:
-        specifier: ^0.4.1
+        specifier: 0.4.1
         version: 0.4.1
       react:
         specifier: 19.1.0
@@ -96,77 +96,77 @@ importers:
         specifier: 19.1.0
         version: 19.1.0(react@19.1.0)
       react-hook-form:
-        specifier: ^7.68.0
+        specifier: 7.71.2
         version: 7.71.2(react@19.1.0)
       tailwind-merge:
-        specifier: ^3.4.0
+        specifier: 3.5.0
         version: 3.5.0
       uuid:
-        specifier: ^13.0.0
+        specifier: 13.0.0
         version: 13.0.0
       viem:
-        specifier: ^2.38.1
+        specifier: 2.47.5
         version: 2.47.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6)
       wagmi:
-        specifier: ^2.18.0
+        specifier: 2.19.5
         version: 2.19.5(@react-native-async-storage/async-storage@1.24.0(react-native@0.85.2(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6)))(@tanstack/query-core@5.91.2)(@tanstack/react-query@5.91.2(react@19.1.0))(@types/react@19.2.14)(@upstash/redis@1.37.0)(bufferutil@4.1.0)(react-native@0.85.2(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.1.0)(utf-8-validate@6.0.6))(react@19.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(viem@2.47.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6))(zod@4.3.6)
       zod:
-        specifier: ^4.1.13
+        specifier: 4.3.6
         version: 4.3.6
     devDependencies:
       "@eslint/eslintrc":
-        specifier: ^3
+        specifier: 3.3.5
         version: 3.3.5
       "@tailwindcss/postcss":
-        specifier: ^4
+        specifier: 4.2.2
         version: 4.2.2
       "@types/node":
-        specifier: ^20
+        specifier: 20.19.37
         version: 20.19.37
       "@types/react":
-        specifier: ^19
+        specifier: 19.2.14
         version: 19.2.14
       "@types/react-dom":
-        specifier: ^19
+        specifier: 19.2.3
         version: 19.2.3(@types/react@19.2.14)
       dotenv-cli:
-        specifier: ^7.4.2
+        specifier: 7.4.2
         version: 7.4.2
       eslint:
-        specifier: ^9
+        specifier: 9.39.4
         version: 9.39.4(jiti@2.6.1)
       eslint-config-next:
         specifier: 15.4.6
         version: 15.4.6(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3)
       eslint-config-prettier:
-        specifier: ^10.1.8
+        specifier: 10.1.8
         version: 10.1.8(eslint@9.39.4(jiti@2.6.1))
       eslint-plugin-prettier:
-        specifier: ^5.5.5
+        specifier: 5.5.5
         version: 5.5.5(eslint-config-prettier@10.1.8(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1))(prettier@3.8.1)
       eslint-plugin-unused-imports:
-        specifier: ^4.4.1
+        specifier: 4.4.1
         version: 4.4.1(@typescript-eslint/eslint-plugin@8.57.1(@typescript-eslint/parser@8.57.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))
       husky:
-        specifier: ^9.1.7
+        specifier: 9.1.7
         version: 9.1.7
       lint-staged:
-        specifier: ^16.2.7
+        specifier: 16.4.0
         version: 16.4.0
       prettier:
-        specifier: ^3.8.1
+        specifier: 3.8.1
         version: 3.8.1
       prettier-plugin-tailwindcss:
-        specifier: ^0.7.2
+        specifier: 0.7.2
         version: 0.7.2(prettier@3.8.1)
       tailwindcss:
-        specifier: ^4
+        specifier: 4.2.2
         version: 4.2.2
       ts-prune:
-        specifier: ^0.10.3
+        specifier: 0.10.3
         version: 0.10.3
       typescript:
-        specifier: ^5
+        specifier: 5.9.3
         version: 5.9.3
 
 packages:
