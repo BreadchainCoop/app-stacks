@@ -16,6 +16,13 @@ export const LINKS = {
   newsletter: "http://paragraph.com/@breadcoop",
   openCollective: "https://opencollective.com/breadchain-cooperative",
   postCapitalistIdea: "https://form.typeform.com/to/opwqWG8j",
+  // Required by MiniPay's listing rules, which want all three reachable from
+  // inside the Mini App. Terms and Privacy are app routes rather than external
+  // URLs so they stay in-app inside MiniPay's browser. Support has no page —
+  // it needs a real contact channel; <LegalLinks/> hides it while it is empty.
+  privacyPolicy: "/privacy",
+  support: "",
+  termsOfService: "/terms",
   projectApplicationForm: "https://forms.gle/DeTETFxCxZbKRCzS7",
   solidarityFund: "https://app.breadchain.xyz",
   sourdoughSystems: "https://www.sourdough.systems/",
