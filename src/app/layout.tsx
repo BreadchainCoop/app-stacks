@@ -4,6 +4,9 @@
 import "@rainbow-me/rainbowkit/styles.css";
 import "./globals.css";
 import { generateMetadata } from "@/utils/metadata";
+// Root-layout viewport applies to every route, so the per-page metadata
+// exports don't each need one.
+export { viewport } from "@/utils/metadata";
 import ModalPresenter from "@/components/modal/presenter";
 import { Navbar } from "@/components/Navbar/Navbar";
 import Providers from "@/components/providers";
@@ -11,9 +14,7 @@ import { isServerMobile } from "@/lib/server-mobile";
 import { isServerMiniPay } from "@/lib/server-minipay";
 import { Footer } from "@breadcoop/ui";
 import MigrateAndTransferBanner from "@/components/migrate-and-transfer-banner";
-// TEMPORARY: renders only when NEXT_PUBLIC_DEBUG_TX=1. Remove with
-// src/utils/debug-tx.ts.
-import DebugTxPanel from "@/components/debug-tx-panel";
+import LegalLinks from "@/components/legal-links";
 
 export const metadata = generateMetadata();
 
@@ -38,7 +39,7 @@ export default async function RootLayout({
             <MigrateAndTransferBanner />
             <main className="page-layout py-8">{children}</main>
             <Footer mode="transparent" className="page-layout mt-auto" />
-            <DebugTxPanel />
+            <LegalLinks />
           </Providers>
         </div>
       </body>

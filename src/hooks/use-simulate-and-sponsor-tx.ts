@@ -14,8 +14,6 @@ import {
   useChainConfig,
 } from "@/components/providers/active-chain";
 import { useWaitForTxReceipt } from "./use-wait-for-tx-receipt";
-import { logTxDiagnostics } from "@/utils/debug-tx";
-import { useConfig } from "wagmi";
 
 type MutableFunctionName<TAbi extends Abi> = ContractFunctionName<
   TAbi,
@@ -50,7 +48,6 @@ export const useSimulateAndSponsorTx = () => {
       : undefined;
   const chainId = useActiveChainId();
   const { savingCircles } = useChainConfig();
-  const config = useConfig();
 
   const simulateAndSponsorTx = async <
     TAbi extends Abi,
@@ -86,12 +83,7 @@ export const useSimulateAndSponsorTx = () => {
       options
     );
 
-    const receipt = await waitForTxReceipt(hash);
-
-    // TEMPORARY diagnostic, no-op unless NEXT_PUBLIC_DEBUG_TX=1.
-    await logTxDiagnostics(config, chainId, receipt, String(functionName));
-
-    return receipt;
+    return waitForTxReceipt(hash);
   };
 
   return { simulateAndSponsorTx };
