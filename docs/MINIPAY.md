@@ -114,12 +114,17 @@ Form: <https://developer.minipay.to/mini-app-listing>
 - [x] Celo mainnet support
 - [x] HTTPS
 - [x] 512×512 icon (`public/web-app-manifest-512x512.png`)
-- [x] Dependency security — `minimumReleaseAge`, `strictDepBuilds` +
-      `allowBuilds` allowlist, committed lockfile, `--frozen-lockfile` installs
-      (see note below)
-- [ ] **Terms of Service URL** — not yet in-app
-- [ ] **Privacy Policy URL** — not yet in-app
-- [ ] **Support URL** + 24h critical-fix SLA — not yet in-app
+- [x] Dependency security — exact versions pinned, `minimumReleaseAge`,
+      `strictDepBuilds` + `allowBuilds` allowlist, committed lockfile,
+      `--frozen-lockfile` installs (see note below)
+- [x] Mobile viewport declared (`src/utils/metadata.ts` `viewport` export,
+      `width=device-width, initial-scale=1`; pinch-zoom left enabled)
+- [ ] **Terms of Service URL** — wired, URL needed
+- [ ] **Privacy Policy URL** — wired, URL needed
+- [ ] **Support URL** + 24h critical-fix SLA — wired, URL needed
+      <br>All three render from `LINKS` via `src/components/legal-links.tsx`,
+      which shows only the entries that have a value — set them in
+      `src/constants/links.ts` and they appear under the footer on every page.
 - [ ] App name, tagline, publisher, category, production App URL. Prefer a URL that
       names the chain (`…/?chain=celo`): a bare URL works, since the fallback sends
       MiniPay's user agent to Celo, but that relies on `isMiniPayUserAgent`
@@ -134,21 +139,33 @@ Form: <https://developer.minipay.to/mini-app-listing>
 
 ### Note on dependency pinning
 
-MiniPay's checklist asks for exact versions in `package.json`. This repo keeps
-caret ranges plus a committed `pnpm-lock.yaml` and `--frozen-lockfile`
-installs, which pins every package — transitive ones included — more
-completely than the manifest can.
+MiniPay's checklist asks for exact versions in `package.json`, and they are
+pinned — along with a committed `pnpm-lock.yaml` and `--frozen-lockfile`
+installs, which also pin every transitive package.
 
-Pinning the manifest was attempted and reverted: changing the specifiers forces
-a full lockfile re-resolution, which trips `trustPolicy: no-downgrade` on
-several transitive packages (`undici-types`, `ua-parser-js`, `slow-redact`,
-`@noble/hashes`, …). Satisfying the letter of the checklist would mean adding
-each to `trustPolicyExclude` — weakening a supply-chain guard, including on a
-crypto library, to gain nothing the lockfile does not already provide. If a
-reviewer insists, bump the offending direct dependencies rather than widening
-the exclude list.
+An earlier attempt was reverted because changing the specifiers forced a full
+lockfile re-resolution, which trips `trustPolicy: no-downgrade` on several
+transitive packages (`undici-types`, `ua-parser-js`, `slow-redact`,
+`@noble/hashes`, …); satisfying the checklist that way would have meant
+widening `trustPolicyExclude`, including on a crypto library.
+
+That is no longer necessary. The lockfile records the specifier it resolved
+each package from, so pinning the manifest alone leaves the two disagreeing and
+pnpm re-resolves to reconcile them. Rewriting those `specifier:` fields to the
+pinned versions keeps them in agreement, and pnpm then reports "Lockfile is up
+to date, resolution step is skipped" — no re-resolution, no trust-policy
+change, and the resolved versions are byte-identical.
+
+The trust wall is still there for anything that _does_ re-resolve (`pnpm add`,
+`pnpm update`), exactly as before this change. Bump the offending direct
+dependency rather than widening the exclude list.
 
 Likewise `ignore-scripts=true` is **not** set: pnpm 11's `strictDepBuilds` +
 `allowBuilds` already blocks dependency build scripts by default with an
 explicit allowlist, and a blanket flag would break the five packages that
 legitimately need to build.
+
+Note that `minimumReleaseAge` is in **minutes** (pnpm: `1440` is one day). It
+previously read `864000` with a `# 10 days` comment, which was 600 days and
+would have blocked every recent release had anything re-resolved; it is now
+`14400`, above MiniPay's 7-day (`10080`) floor.
