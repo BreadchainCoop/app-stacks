@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+import { Metadata, Viewport } from "next";
 
 interface MetadataConfig {
   title?: string;
@@ -95,7 +95,6 @@ export function generateMetadata(config: MetadataConfig = {}): Metadata {
       ],
     },
     manifest: "/manifest.json",
-    themeColor: mergedConfig.themeColor,
     appleWebApp: {
       capable: true,
       statusBarStyle: "default",
@@ -106,3 +105,17 @@ export function generateMetadata(config: MetadataConfig = {}): Metadata {
     },
   };
 }
+
+/**
+ * Next 15 wants themeColor in a viewport export, not metadata — it warns at
+ * build time otherwise.
+ *
+ * The width/initial-scale pair is Next's own default, stated explicitly here
+ * because MiniPay requires the app to work at a 360x640 viewport and reviews
+ * for it. `maximumScale` is deliberately left alone so pinch-zoom still works.
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: defaultConfig.themeColor,
+};
