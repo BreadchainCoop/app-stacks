@@ -16,28 +16,17 @@ supabase login
 
 ## Applying migrations to an environment
 
-One deployment now serves every chain it configures (see
-docs/ARCHITECTURE.md), and `stacks_metadata` and its dependants are keyed by
-`(chain_id, id)` so one project can hold them all. The per-chain projects and
-push targets below predate that and are being revisited — until then a tier
-still has a project per chain: local, local-celo, development,
-development-celo, prod, celo. (Celo production is named for its branch, `celo`;
-its env vars keep the `PROD_CELO` suffix.) Put each project's database URL in
-`.env.local` (see `.env.local.example`; Dashboard -> Settings -> Database ->
-Connection string), then:
+One deployment serves every chain it configures (see docs/ARCHITECTURE.md),
+and `stacks_metadata` and its dependants are keyed by `(chain_id, id)`, so one
+project per tier holds every chain: local, development, prod. Put each
+project's database URL in `.env.local` (see `.env.local.example`; Dashboard ->
+Settings -> Database -> Connection string), then:
 
 ```bash
 pnpm db:push:local
-pnpm db:push:local-celo
 pnpm db:push:development
-pnpm db:push:development-celo
 pnpm db:push:prod
-pnpm db:push:celo
 ```
-
-Each tier also has an `-all` script (`db:push:local-all`,
-`db:push:development-all`, `db:push:prod-all`) that pushes both chains in one
-go, stopping if the first fails.
 
 Every chain shares one migration set — Celo needs no schema of its own, since a
 MiniPay user is an ordinary row in `users` with `privy_user_id` set to
