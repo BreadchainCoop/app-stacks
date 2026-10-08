@@ -102,9 +102,6 @@ const PageContent = ({ id }: { id: string }) => {
                 userCircleData.circleData.isDecommissioned) && (
                 <OwedRefunds
                   id={id}
-                  depositAmount={
-                    userCircleData.circleData.circleInfo.depositAmount
-                  }
                   totalRounds={
                     +userCircleData.circleData.totalRounds.toString()
                   }
