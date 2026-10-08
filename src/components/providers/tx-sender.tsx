@@ -4,6 +4,7 @@ import { createContext, ReactNode, useCallback, useContext } from "react";
 import { useSendTransaction } from "@privy-io/react-auth";
 import { useConnectedUser } from "@breadcoop/ui";
 import { useActiveChainId } from "./active-chain";
+import { useEmbeddedWalletAddress } from "@/hooks/use-linked-external-wallet";
 
 // The transaction sender for the mounted provider stack. Contract writes all
 // funnel through useSponsoredTx -> this context, so the Privy stack (embedded
@@ -47,22 +48,24 @@ export const PrivyTxSenderProvider = ({
       : undefined;
 
   const chainId = useActiveChainId();
+  const embeddedAddress = useEmbeddedWalletAddress();
 
   const sender = useCallback<TxSender>(
-    (input, options) =>
-      sendTransaction(input, {
-        // Privy's own default (when address is omitted) doesn't necessarily
-        // match whichever wallet is actually connected via wagmi/RainbowKit —
-        // default to it here so every caller gets this right without having
-        // to pass it explicitly. Callers that must sign from a specific,
-        // different wallet (e.g. an embedded wallet acting as msg.sender)
-        // still override it via options.address.
+    (input, options) => {
+      const signer = options?.address ?? connectedAddress;
+
+      const isEmbeddedSigner =
+        Boolean(signer) &&
+        signer?.toLowerCase() === embeddedAddress?.toLowerCase();
+
+      return sendTransaction(input, {
         address: connectedAddress,
         ...options,
-        sponsor: chainId === 100,
+        sponsor: chainId === 100 && isEmbeddedSigner,
         uiOptions: { showWalletUIs: false, ...options?.uiOptions },
-      }),
-    [sendTransaction, connectedAddress, chainId]
+      });
+    },
+    [sendTransaction, connectedAddress, embeddedAddress, chainId]
   );
 
   return <TxSenderProvider value={sender}>{children}</TxSenderProvider>;
