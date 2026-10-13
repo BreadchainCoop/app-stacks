@@ -22,6 +22,20 @@ import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
 import { useCircleState } from "@/hooks/use-circles-state";
 import { CircleState } from "@/lib/circle-state";
 import { useChainPath } from "@/components/providers/active-chain";
+import { useCircleMembersWithBalances } from "@/hooks/use-circle-members";
+import { useGetCircleCreated } from "@/hooks/use-get-cricle-created";
+
+/**
+ * Starts the reads the sections below make that need only the circle id, so
+ * they run alongside getUserCircleData instead of after it resolves and the
+ * sections mount. The sections' identical hook calls then hit the cache.
+ * Renders nothing; as its own component it re-renders alone as they resolve.
+ */
+const PrefetchCircleReads = ({ id }: { id: string }) => {
+  useCircleMembersWithBalances(BigInt(id));
+  useGetCircleCreated({ circleId: id });
+  return null;
+};
 
 const PageContent = ({ id }: { id: string }) => {
   const chainHref = useChainPath();
@@ -37,6 +51,10 @@ const PageContent = ({ id }: { id: string }) => {
     circleId: BigInt(id),
     member,
     enabled: Boolean(member),
+    // `member` is zeroAddress until the wallet resolves. Without this the
+    // switch drops the page back to the spinner, unmounting every section,
+    // and their reads all refetch when the sections mount again.
+    keepPrevious: true,
   });
 
   const nowSeconds = BigInt(Math.floor(now / 1000));
@@ -67,6 +85,7 @@ const PageContent = ({ id }: { id: string }) => {
 
   return (
     <>
+      <PrefetchCircleReads id={id} />
       <BackMeta
         className="mb-4! -mt-3 md:hidden"
         isLoadingCircleData={userCircleData.isLoading}
