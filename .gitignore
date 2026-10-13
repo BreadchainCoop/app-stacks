@@ -47,6 +47,11 @@ supabase/.temp
 
 # claude
 ~/.claude-personal
+.claude/*
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/webview-e2e/
+~/.claude-*
 
 # figma
 fig/
