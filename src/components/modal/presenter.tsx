@@ -1,38 +1,120 @@
 "use client";
 import * as Dialog from "@radix-ui/react-dialog";
+import dynamic from "next/dynamic";
 
 import { useModal } from "./context";
 import { forwardRef, Ref, useEffect, useState } from "react";
-import DepositInitModal from "./modals/deposit-init";
-import DepositResult from "./modals/deposit-result";
-import ClaimModal from "./modals/claim";
-import StackInitModal from "./modals/stack-init";
-import {
-  StackFailedResultModal,
-  StackSuccessResultModal,
-} from "./modals/stack-result";
-import StackFailed from "./modals/stack-failed";
-import WithdrawBreadModal from "./modals/withdraw-bread";
-import WalletFundingStatusModal from "./modals/wallet-funding-status";
-import ReminderModal from "@/components/reminder/modal";
-import NewUserOnboarding from "./modals/new-user-onboarding";
-import SetAliasModal from "./modals/set-alias";
-import FundWallet from "./modals/fund-wallet/fund-wallet";
-import LiFiSwapModal from "../lifi/swap-modal";
-import InstallPeerModal from "../peer/install-modal";
-import FundWithConnectedWalletModalAmount from "./modals/fund-wallet/fund-with-connected-wallet-modal-amount";
-import StartStackWarningModal from "./modals/start-stack-warning";
-import AutomaticClaimsModal from "./modals/automatic-claims";
-import VisitorOnboarding from "../onboard/visitor-onboard-modal";
-import AutomaticDepositsModal from "@/components/automatic-deposits/modal";
-import RemoveMemberWarningModal from "./modals/remove-member-warning";
-import MigrateAndTransferModal from "./modals/migrate-and-transfer";
-import GoalInitModal from "./modals/goal-init";
-import {
-  GoalFailedResultModal,
-  GoalSuccessResultModal,
-} from "./modals/goal-result";
-import { StackTxInitModal, StackTxStatusModal } from "./modals/stack-tx";
+import { ModalContainer } from "./components";
+import { CircularProgressIcon } from "../icons/circular-progress";
+
+// The presenter is mounted by the root layout, so a static import here puts a
+// modal's code in every page's first load. No modal is open on first paint, so
+// each is loaded the first time it opens instead. This is what keeps the LI.FI
+// widget (and the MUI it brings) out of the initial bundle.
+const ModalLoading = () => (
+  <ModalContainer>
+    <CircularProgressIcon />
+  </ModalContainer>
+);
+
+const DepositInitModal = dynamic(() => import("./modals/deposit-init"), {
+  loading: ModalLoading,
+});
+const DepositResult = dynamic(() => import("./modals/deposit-result"), {
+  loading: ModalLoading,
+});
+const ClaimModal = dynamic(() => import("./modals/claim"), {
+  loading: ModalLoading,
+});
+const StackInitModal = dynamic(() => import("./modals/stack-init"), {
+  loading: ModalLoading,
+});
+const StackSuccessResultModal = dynamic(
+  () => import("./modals/stack-result").then((m) => m.StackSuccessResultModal),
+  { loading: ModalLoading }
+);
+const StackFailedResultModal = dynamic(
+  () => import("./modals/stack-result").then((m) => m.StackFailedResultModal),
+  { loading: ModalLoading }
+);
+const StackFailed = dynamic(() => import("./modals/stack-failed"), {
+  loading: ModalLoading,
+});
+const WithdrawBreadModal = dynamic(() => import("./modals/withdraw-bread"), {
+  loading: ModalLoading,
+});
+const WalletFundingStatusModal = dynamic(
+  () => import("./modals/wallet-funding-status"),
+  { loading: ModalLoading }
+);
+const ReminderModal = dynamic(() => import("@/components/reminder/modal"), {
+  loading: ModalLoading,
+});
+const NewUserOnboarding = dynamic(
+  () => import("./modals/new-user-onboarding"),
+  { loading: ModalLoading }
+);
+const SetAliasModal = dynamic(() => import("./modals/set-alias"), {
+  loading: ModalLoading,
+});
+const FundWallet = dynamic(() => import("./modals/fund-wallet/fund-wallet"), {
+  loading: ModalLoading,
+});
+const LiFiSwapModal = dynamic(() => import("../lifi/swap-modal"), {
+  loading: ModalLoading,
+});
+const InstallPeerModal = dynamic(() => import("../peer/install-modal"), {
+  loading: ModalLoading,
+});
+const FundWithConnectedWalletModalAmount = dynamic(
+  () => import("./modals/fund-wallet/fund-with-connected-wallet-modal-amount"),
+  { loading: ModalLoading }
+);
+const StartStackWarningModal = dynamic(
+  () => import("./modals/start-stack-warning"),
+  { loading: ModalLoading }
+);
+const AutomaticClaimsModal = dynamic(
+  () => import("./modals/automatic-claims"),
+  {
+    loading: ModalLoading,
+  }
+);
+const VisitorOnboarding = dynamic(
+  () => import("../onboard/visitor-onboard-modal"),
+  { loading: ModalLoading }
+);
+const AutomaticDepositsModal = dynamic(
+  () => import("@/components/automatic-deposits/modal"),
+  { loading: ModalLoading }
+);
+const RemoveMemberWarningModal = dynamic(
+  () => import("./modals/remove-member-warning"),
+  { loading: ModalLoading }
+);
+const MigrateAndTransferModal = dynamic(
+  () => import("./modals/migrate-and-transfer"),
+  { loading: ModalLoading }
+);
+const GoalInitModal = dynamic(() => import("./modals/goal-init"), {
+  loading: ModalLoading,
+});
+const GoalSuccessResultModal = dynamic(
+  () => import("./modals/goal-result").then((m) => m.GoalSuccessResultModal),
+  { loading: ModalLoading }
+);
+const GoalFailedResultModal = dynamic(
+  () => import("./modals/goal-result").then((m) => m.GoalFailedResultModal),
+  { loading: ModalLoading }
+);
+const StackTxInitModal = dynamic(
+  () => import("./modals/stack-tx").then((m) => m.StackTxInitModal),
+  { loading: ModalLoading }
+);
+const StackTxStatusModal = dynamic(
+  () => import("./modals/stack-tx").then((m) => m.StackTxStatusModal),
+  { loading: ModalLoading }
+);
 
 const ModalPresenter = () => {
   const { modalState, setModal } = useModal();
