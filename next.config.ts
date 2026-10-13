@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // @breadcoop/ui's root is a barrel that re-exports its Privy/RainbowKit
+    // components; without this, importing typography pulls that wallet code
+    // into the importing page's client bundle.
+    optimizePackageImports: ["@breadcoop/ui"],
+  },
   async redirects() {
     return [
       {
