@@ -103,19 +103,22 @@ async function pooledMap<T, R>(
 /**
  * Memoised block-timestamp fetcher shared across both binary searches.
  * Eliminates redundant RPC calls when the two searches probe the same block numbers.
+ * Caches the promise, not the value: the searches run concurrently and both start
+ * on the range's endpoints, so a value cache would miss for each of them.
  */
 function makeBlockCache(publicClient: PublicClient, signal?: AbortSignal) {
-  const cache = new Map<bigint, bigint>(); // blockNumber → timestamp
+  const cache = new Map<bigint, Promise<bigint>>(); // blockNumber → timestamp
 
-  return async function getTimestamp(blockNumber: bigint): Promise<bigint> {
-    const cached = cache.get(blockNumber);
-    if (cached !== undefined) return cached;
-    const block = await withAbort(
-      publicClient.getBlock({ blockNumber }),
-      signal
-    );
-    cache.set(blockNumber, block.timestamp);
-    return block.timestamp;
+  return function getTimestamp(blockNumber: bigint): Promise<bigint> {
+    let timestamp = cache.get(blockNumber);
+    if (timestamp === undefined) {
+      timestamp = withAbort(
+        publicClient.getBlock({ blockNumber }),
+        signal
+      ).then((block) => block.timestamp);
+      cache.set(blockNumber, timestamp);
+    }
+    return timestamp;
   };
 }
 
@@ -131,11 +134,13 @@ async function findLastBlockBeforeTimestamp(
   targetTimestamp: bigint,
   signal?: AbortSignal
 ): Promise<bigint | null> {
-  if ((await getTimestamp(low)) > targetTimestamp) return null;
+  let [lowTs, highTs] = await Promise.all([
+    getTimestamp(low),
+    getTimestamp(high),
+  ]);
+  if (lowTs > targetTimestamp) return null;
 
   let result = low;
-  let lowTs = await getTimestamp(low);
-  let highTs = await getTimestamp(high);
 
   while (low <= high) {
     assertNotAborted(signal);
@@ -173,11 +178,13 @@ async function findFirstBlockAfterTimestamp(
   targetTimestamp: bigint,
   signal?: AbortSignal
 ): Promise<bigint | null> {
-  if ((await getTimestamp(high)) < targetTimestamp) return null;
+  let [lowTs, highTs] = await Promise.all([
+    getTimestamp(low),
+    getTimestamp(high),
+  ]);
+  if (highTs < targetTimestamp) return null;
 
   let result = high;
-  let lowTs = await getTimestamp(low);
-  let highTs = await getTimestamp(high);
 
   while (low <= high) {
     assertNotAborted(signal);
