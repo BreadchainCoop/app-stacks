@@ -9,10 +9,10 @@ import { earliestDeadlineDate } from "@/utils/time";
 import { Body, Heading3, Logo } from "@breadcoop/ui";
 import { MouseEventHandler, ReactNode } from "react";
 import { useFormContext } from "react-hook-form";
-import { MicroloanFormSchemaData } from "./schema";
+import { ConditionalGrantFormSchemaData } from "./schema";
 
-const MicroloanForm = ({ onContinue }: { onContinue: () => void }) => {
-  const form = useFormContext<MicroloanFormSchemaData>();
+const ConditionalGrantForm = ({ onContinue }: { onContinue: () => void }) => {
+  const form = useFormContext<ConditionalGrantFormSchemaData>();
   const { errors } = form.formState;
 
   const validate: MouseEventHandler<HTMLButtonElement> = async (e) => {
@@ -26,30 +26,30 @@ const MicroloanForm = ({ onContinue }: { onContinue: () => void }) => {
       <section className="bg-paper-0 p-6 flex flex-col gap-4 shadow-[0px_4px_12px_0px_#1B201A26]">
         <header>
           <Heading3 className="mb-4 pb-4 border-b border-blue-0 text-2xl">
-            Offer a microloan
+            Offer a conditional grant
           </Heading3>
           <Body className="text-surface-grey">
-            Lend to one borrower with no interest. The grant is held in escrow
-            and sent to the borrower once they repay the loan in full.
+            Lend to one grantee with no interest. The grant is held in escrow
+            and sent to the grantee once they pay back the advance in full.
           </Body>
         </header>
         <div className="flex flex-col gap-4 mb-4">
           <Field>
-            <Label htmlFor="principal">Loan amount</Label>
-            <InputDescription desc="Sent to the borrower when they accept" />
+            <Label htmlFor="advance">Advance</Label>
+            <InputDescription desc="Sent to the grantee when they accept" />
             <TokenInput>
               <NumericInput
-                {...form.register("principal", { valueAsNumber: true })}
-                id="principal"
+                {...form.register("advance", { valueAsNumber: true })}
+                id="advance"
                 className="w-full pr-12"
                 allowDecimal
               />
             </TokenInput>
-            <ErrorMessage msg={errors.principal?.message} />
+            <ErrorMessage msg={errors.advance?.message} />
           </Field>
           <Field>
-            <Label htmlFor="grant">Grant on repayment</Label>
-            <InputDescription desc="Released to the borrower once the loan is fully repaid. Use 0 for a plain loan." />
+            <Label htmlFor="grant">Grant on pay-back</Label>
+            <InputDescription desc="Released to the grantee once the advance is fully paid back. Use 0 for no grant." />
             <TokenInput>
               <NumericInput
                 {...form.register("grant", { valueAsNumber: true })}
@@ -61,19 +61,19 @@ const MicroloanForm = ({ onContinue }: { onContinue: () => void }) => {
             <ErrorMessage msg={errors.grant?.message} />
           </Field>
           <Field>
-            <Label htmlFor="borrower">Borrower address</Label>
+            <Label htmlFor="grantee">Grantee address</Label>
             <InputDescription desc="Only this wallet can accept. You can leave it empty and add it later." />
             <Input
-              {...form.register("borrower")}
-              id="borrower"
+              {...form.register("grantee")}
+              id="grantee"
               className="w-full"
               placeholder="0x… (optional)"
             />
-            <ErrorMessage msg={errors.borrower?.message} />
+            <ErrorMessage msg={errors.grantee?.message} />
           </Field>
           <Field>
             <Label htmlFor="acceptBy">Offer open until</Label>
-            <InputDescription desc="The borrower must accept before 12am (midnight) on this date. After that you can cancel for a full refund." />
+            <InputDescription desc="The grantee must accept before 12am (midnight) on this date. After that you can cancel for a full refund." />
             <Input
               {...form.register("acceptBy")}
               id="acceptBy"
@@ -84,12 +84,12 @@ const MicroloanForm = ({ onContinue }: { onContinue: () => void }) => {
             <ErrorMessage msg={errors.acceptBy?.message} />
           </Field>
           <Field>
-            <Label htmlFor="repaymentDays">Time to repay</Label>
-            <InputDescription desc="Days the borrower has after accepting to repay and earn the grant" />
+            <Label htmlFor="payBackDays">Time to pay back</Label>
+            <InputDescription desc="Days the grantee has after accepting to pay back and earn the grant" />
             <div className="relative">
               <NumericInput
-                {...form.register("repaymentDays", { valueAsNumber: true })}
-                id="repaymentDays"
+                {...form.register("payBackDays", { valueAsNumber: true })}
+                id="payBackDays"
                 className="w-full pr-16"
               />
               <Body
@@ -99,17 +99,17 @@ const MicroloanForm = ({ onContinue }: { onContinue: () => void }) => {
                 Days
               </Body>
             </div>
-            <ErrorMessage msg={errors.repaymentDays?.message} />
+            <ErrorMessage msg={errors.payBackDays?.message} />
           </Field>
           <Field>
             <Label htmlFor="agreement">Agreement (optional)</Label>
-            <InputDescription desc="The conditions in plain language. Share this exact text with the borrower: they paste it to accept, which records on-chain that they agreed to it." />
+            <InputDescription desc="The conditions in plain language. Share this exact text with the grantee: they paste it to accept, which records on-chain that they agreed to it." />
             <textarea
               {...form.register("agreement")}
               id="agreement"
               rows={4}
               className="w-full border border-paper-2 bg-paper-1 py-3 px-4 placeholder:text-surface-grey text-surface-grey-2 placeholder:font-light"
-              placeholder="e.g. 1,000 USDT for computers, repaid in monthly installments"
+              placeholder="e.g. 1,000 USDT for computers, paid back in monthly installments"
             />
           </Field>
         </div>
@@ -147,4 +147,4 @@ function ErrorMessage({ msg }: { msg?: string }) {
   return <p className="text-red-500 text-sm">{msg}</p>;
 }
 
-export default MicroloanForm;
+export default ConditionalGrantForm;

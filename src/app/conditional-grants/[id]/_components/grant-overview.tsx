@@ -1,9 +1,9 @@
 "use client";
 
 import Countdown from "@/components/countdown";
-import { LoanStatus, LoanTerms } from "@/hooks/use-microloan";
+import { GrantStatus, GrantTerms } from "@/hooks/use-conditional-grant";
 import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
-import { LoanState, loanRepaidPercent } from "@/lib/microloan-state";
+import { GrantState, paidBackPercent } from "@/lib/conditional-grant-state";
 import { formatAddress } from "@/utils/address";
 import { formatShortDate } from "@/utils/time";
 import { Body, formatBalance, Heading3, Logo } from "@breadcoop/ui";
@@ -11,36 +11,37 @@ import Link from "next/link";
 import { ReactNode } from "react";
 import { zeroAddress, zeroHash } from "viem";
 
-const LoanOverview = ({
-  loanId,
+const GrantOverview = ({
+  grantId,
   terms,
   status,
   state,
   outstanding,
 }: {
-  loanId: bigint;
-  terms: LoanTerms;
-  status: LoanStatus;
-  state: LoanState;
+  grantId: bigint;
+  terms: GrantTerms;
+  status: GrantStatus;
+  state: GrantState;
   outstanding: bigint;
 }) => {
   const accepted = status.acceptedAt > BigInt(0);
-  const percentage = loanRepaidPercent(status.repaid, status.disbursed);
-  const repaying = state === LoanState.Active || state === LoanState.Overdue;
+  const percentage = paidBackPercent(status.paidBack, status.disbursed);
+  const payingBack =
+    state === GrantState.Active || state === GrantState.Overdue;
 
   return (
     <section className="bg-paper-0 p-5 *:mb-4 last:mb-0">
       <header className="flex items-center justify-between flex-wrap gap-2">
-        <Heading3 className="text-2xl shrink-0">Loan overview</Heading3>
+        <Heading3 className="text-2xl shrink-0">Overview</Heading3>
         <Body bold className="text-xs shrink-0">
           <span className="font-normal">ID: </span>
-          <span>{loanId.toString()}</span>
+          <span>{grantId.toString()}</span>
         </Body>
       </header>
       {accepted && (
         <div className="border-b border-paper-2 pb-4">
           <div className="flex items-center justify-between mb-2">
-            <Body bold>Repaid</Body>
+            <Body bold>Paid back</Body>
             <Body bold>{percentage}%</Body>
           </div>
           <div className="w-full h-3.5 p-0.75 bg-paper-main">
@@ -52,22 +53,22 @@ const LoanOverview = ({
         </div>
       )}
       <div className="grid grid-cols-2 gap-4 border-b border-paper-2 pb-4">
-        <Amount label="Loan amount" amount={terms.principal} />
-        <Amount label="Grant on repayment" amount={terms.grant} />
-        {accepted && <Amount label="Repaid" amount={status.repaid} />}
+        <Amount label="Advance" amount={terms.advance} />
+        <Amount label="Grant on pay-back" amount={terms.grant} />
+        {accepted && <Amount label="Paid back" amount={status.paidBack} />}
         {accepted && <Amount label="Still owed" amount={outstanding} />}
       </div>
       <div>
         {accepted ? (
           <>
-            <BreakdownRow label="Repay by">
+            <BreakdownRow label="Pay back by">
               <p className="text-h2 text-2xl leading-6 tracking-[-2%]">
-                {formatShortDate(Number(status.repayBy) * 1000)}
+                {formatShortDate(Number(status.payBackBy) * 1000)}
               </p>
             </BreakdownRow>
-            {repaying && (
+            {payingBack && (
               <BreakdownRow label="Time left">
-                <Countdown targetSeconds={Number(status.repayBy)} />
+                <Countdown targetSeconds={Number(status.payBackBy)} />
               </BreakdownRow>
             )}
           </>
@@ -78,29 +79,29 @@ const LoanOverview = ({
                 {formatShortDate(Number(terms.acceptBy) * 1000)}
               </p>
             </BreakdownRow>
-            <BreakdownRow label="Time to repay">
+            <BreakdownRow label="Time to pay back">
               <p>
-                {Number(terms.repaymentPeriod / BigInt(86400))} days after
+                {Number(terms.payBackPeriod / BigInt(86400))} days after
                 accepting
               </p>
             </BreakdownRow>
           </>
         )}
-        <BreakdownRow label="Lender">
-          <AddressLink address={status.lender} />
+        <BreakdownRow label="Grantor">
+          <AddressLink address={status.grantor} />
         </BreakdownRow>
-        <BreakdownRow label="Borrower">
-          {status.borrower === zeroAddress ? (
+        <BreakdownRow label="Grantee">
+          {status.grantee === zeroAddress ? (
             <p>Not set yet</p>
           ) : (
-            <AddressLink address={status.borrower} />
+            <AddressLink address={status.grantee} />
           )}
         </BreakdownRow>
         <BreakdownRow label="Agreement">
           <p>
             {terms.termsHash === zeroHash
               ? "None"
-              : "Attached (shared with the borrower)"}
+              : "Attached (shared with the grantee)"}
           </p>
         </BreakdownRow>
       </div>
@@ -146,4 +147,4 @@ function BreakdownRow({
   );
 }
 
-export default LoanOverview;
+export default GrantOverview;

@@ -1,20 +1,20 @@
 import { generateMetadata } from "@/utils/metadata";
 import { FeatureGate } from "@/components/feature-gate";
 import BackPage from "@/components/back-page";
-import MicroloanFormContainer from "./_components/form-container";
+import ConditionalGrantFormContainer from "./_components/form-container";
 
 export const metadata = generateMetadata({
-  title: "New Microloan - Bread Cooperative",
+  title: "New Conditional Grant - Bread Cooperative",
   description:
-    "Lend with no interest and reward repayment with an escrowed grant.",
-  url: "/new/microloan",
+    "Advance money with no interest and reward paying it back with an escrowed grant.",
+  url: "/new/conditional-grant",
 });
 
 export default function Page() {
   return (
-    <FeatureGate feature="microloans">
+    <FeatureGate feature="conditionalGrants">
       <BackPage href="/new" label="Back to stack types" />
-      <MicroloanFormContainer />
+      <ConditionalGrantFormContainer />
     </FeatureGate>
   );
 }

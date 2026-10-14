@@ -10,10 +10,10 @@ export async function generateMetadata({
   const { id } = await params;
 
   return _generateMetadata({
-    title: "View Microloan - Bread Cooperative",
+    title: "View Conditional grant - Bread Cooperative",
     description:
-      "A zero-interest loan with a grant that unlocks once it is repaid.",
-    url: `/microloans/${id}`,
+      "A zero-interest advance with a grant that unlocks once it is paid back.",
+    url: `/conditional-grants/${id}`,
   });
 }
 

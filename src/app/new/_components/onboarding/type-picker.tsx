@@ -75,12 +75,12 @@ const TypePicker = () => {
           description={STACK_TYPE_DESCRIPTIONS.goal}
           href="/new/goal"
         />
-        <FeatureGate feature="microloans">
+        <FeatureGate feature="conditionalGrants">
           <Card
             StackIcon={HandCoinsIcon}
-            label={STACK_TYPE_LABELS.microloan}
-            description={STACK_TYPE_DESCRIPTIONS.microloan}
-            href="/new/microloan"
+            label={STACK_TYPE_LABELS.conditionalGrant}
+            description={STACK_TYPE_DESCRIPTIONS.conditionalGrant}
+            href="/new/conditional-grant"
           />
         </FeatureGate>
       </div>

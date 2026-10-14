@@ -1,13 +1,13 @@
 "use client";
 
-import BalanceHint from "@/app/microloans/_components/balance-hint";
+import BalanceHint from "@/app/conditional-grants/_components/balance-hint";
 import LocalButton from "@/components/button";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
-import { useMicroloanAction } from "@/hooks/use-microloan-action";
-import { microloansAbi } from "@/lib/abis/microloans";
-import { MICROLOAN_CREATE_ERRORS } from "@/lib/contract-errors";
+import { useConditionalGrantAction } from "@/hooks/use-conditional-grant-action";
+import { conditionalGrantsAbi } from "@/lib/abis/conditional-grants";
+import { CONDITIONAL_GRANT_CREATE_ERRORS } from "@/lib/contract-errors";
 import { DEPOSIT_TOKEN, parseDepositAmount } from "@/lib/deposit-token";
-import { agreementHash } from "@/lib/microloan-terms";
+import { agreementHash } from "@/lib/conditional-grant-terms";
 import { stackTypeDetailPath } from "@/lib/stack-types";
 import { formatAddress } from "@/utils/address";
 import { dateInputToMs, formatShortDate } from "@/utils/time";
@@ -32,7 +32,7 @@ import { useModal } from "@/components/modal/context";
 import { useRouter } from "next/navigation";
 import { useFormContext } from "react-hook-form";
 import { Address, parseEventLogs, zeroAddress } from "viem";
-import { MicroloanFormSchemaData } from "./schema";
+import { ConditionalGrantFormSchemaData } from "./schema";
 
 const SECONDS_PER_DAY = BigInt(24 * 60 * 60);
 
@@ -42,27 +42,27 @@ const toAmount = (value: number) =>
     ? parseDepositAmount(String(value))
     : BigInt(0);
 
-const MicroloanOverviewForm = ({ onBack }: { onBack: () => void }) => {
+const ConditionalGrantOverviewForm = ({ onBack }: { onBack: () => void }) => {
   const router = useRouter();
   const modal = useModal();
   const blockTimestamp = useBlockTimestamp();
-  const form = useFormContext<MicroloanFormSchemaData>();
+  const form = useFormContext<ConditionalGrantFormSchemaData>();
   const { user } = useConnectedUser();
-  const { runMicroloanAction, balance } = useMicroloanAction(
+  const { runConditionalGrantAction, balance } = useConditionalGrantAction(
     DEPOSIT_TOKEN.address
   );
 
-  const principal = form.watch("principal");
+  const advance = form.watch("advance");
   const grant = form.watch("grant");
-  const borrower = form.watch("borrower");
+  const grantee = form.watch("grantee");
   const acceptBy = form.watch("acceptBy");
-  const repaymentDays = form.watch("repaymentDays");
+  const payBackDays = form.watch("payBackDays");
   const agreement = form.watch("agreement");
 
-  const total = toAmount(principal) + toAmount(grant);
+  const total = toAmount(advance) + toAmount(grant);
   const acceptByMs = acceptBy ? dateInputToMs(acceptBy) : NaN;
 
-  const createLoan = (data: MicroloanFormSchemaData) => {
+  const createGrant = (data: ConditionalGrantFormSchemaData) => {
     // A date input yields YYYY-MM-DD; the offer closes at midnight at the
     // start of that date, in the user's own timezone.
     const acceptBySeconds = BigInt(
@@ -75,44 +75,44 @@ const MicroloanOverviewForm = ({ onBack }: { onBack: () => void }) => {
       return;
     }
 
-    const loanPrincipal = toAmount(data.principal);
-    const loanGrant = toAmount(data.grant);
+    const advanceAmount = toAmount(data.advance);
+    const grantAmount = toAmount(data.grant);
     const terms = {
       token: DEPOSIT_TOKEN.address,
       vault: zeroAddress,
-      principal: loanPrincipal,
-      grant: loanGrant,
+      advance: advanceAmount,
+      grant: grantAmount,
       acceptBy: acceptBySeconds,
-      repaymentPeriod: BigInt(data.repaymentDays) * SECONDS_PER_DAY,
+      payBackPeriod: BigInt(data.payBackDays) * SECONDS_PER_DAY,
       termsHash: agreementHash(data.agreement),
     };
-    const borrowerAddress = data.borrower
-      ? (data.borrower as Address)
+    const granteeAddress = data.grantee
+      ? (data.grantee as Address)
       : zeroAddress;
 
     modal.setModal({
       type: "STACK_TX_INIT",
-      stackType: "microloan",
-      action: "createLoan",
+      stackType: "conditionalGrant",
+      action: "createGrant",
       id: BigInt(0),
-      amount: loanPrincipal + loanGrant,
+      amount: advanceAmount + grantAmount,
       onConfirm: () =>
-        runMicroloanAction({
-          action: "createLoan",
+        runConditionalGrantAction({
+          action: "createGrant",
           functionName: "create",
-          args: [terms, borrowerAddress],
-          errors: MICROLOAN_CREATE_ERRORS,
-          approveAmount: loanPrincipal + loanGrant,
-          amount: loanPrincipal + loanGrant,
+          args: [terms, granteeAddress],
+          errors: CONDITIONAL_GRANT_CREATE_ERRORS,
+          approveAmount: advanceAmount + grantAmount,
+          amount: advanceAmount + grantAmount,
           onSuccess: (receipt) => {
             const [log] = parseEventLogs({
-              abi: microloansAbi,
+              abi: conditionalGrantsAbi,
               logs: receipt.logs,
-              eventName: "LoanCreated",
+              eventName: "GrantCreated",
             });
             if (log) {
               form.reset();
-              router.push(stackTypeDetailPath("microloan", log.args.id));
+              router.push(stackTypeDetailPath("conditionalGrant", log.args.id));
             }
           },
         }),
@@ -125,13 +125,15 @@ const MicroloanOverviewForm = ({ onBack }: { onBack: () => void }) => {
         <Heading3 className="mb-4 pb-4 border-b border-blue-0 text-2xl">
           Overview
         </Heading3>
-        <Body className="text-surface-grey">Please review your loan.</Body>
+        <Body className="text-surface-grey">
+          Please review your conditional grant.
+        </Body>
       </header>
       <div className="flex flex-col gap-4 pb-4 border-b border-blue-0">
         <ReviewedRow
           RIcon={UserIcon}
-          title="Borrower"
-          body={borrower ? formatAddress(borrower as Address) : "Add it later"}
+          title="Grantee"
+          body={grantee ? formatAddress(grantee as Address) : "Add it later"}
         />
         <ReviewedRow
           RIcon={GiftIcon}
@@ -149,10 +151,10 @@ const MicroloanOverviewForm = ({ onBack }: { onBack: () => void }) => {
         />
         <ReviewedRow
           RIcon={HourglassIcon}
-          title="Time to repay"
+          title="Time to pay back"
           body={
-            Number.isFinite(repaymentDays) && repaymentDays > 0
-              ? `${repaymentDays} days`
+            Number.isFinite(payBackDays) && payBackDays > 0
+              ? `${payBackDays} days`
               : "-"
           }
         />
@@ -163,22 +165,22 @@ const MicroloanOverviewForm = ({ onBack }: { onBack: () => void }) => {
         />
       </div>
       <div className="flex items-center justify-between">
-        <Body>Loan amount</Body>
+        <Body>Advance</Body>
         <div className="p-1 shrink-0 border border-system-green">
           <Body bold>
-            {Number.isFinite(principal)
-              ? `${formatBalance(principal, 2)} ${DEPOSIT_TOKEN.symbol}`
+            {Number.isFinite(advance)
+              ? `${formatBalance(advance, 2)} ${DEPOSIT_TOKEN.symbol}`
               : "-"}
           </Body>
         </div>
       </div>
       <div className="px-6 py-3 bg-paper-1">
         <Body className="text-xs text-surface-grey-2">
-          The loan amount and the grant move into escrow now. You can cancel for
-          a full refund until the borrower accepts.
+          The advance and the grant move into escrow now. You can cancel for a
+          full refund until the grantee accepts.
         </Body>
         <Body className="text-xs text-surface-grey-2">
-          The loan has no interest. If the borrower is late, you can give more
+          The advance has no interest. If the grantee is late, you can give more
           time or take the grant back.
         </Body>
       </div>
@@ -187,11 +189,11 @@ const MicroloanOverviewForm = ({ onBack }: { onBack: () => void }) => {
           <>
             <LocalButton
               leftIcon={<SparkleIcon size={24} />}
-              onClick={form.handleSubmit(createLoan)}
+              onClick={form.handleSubmit(createGrant)}
               type="submit"
               disabled={balance !== undefined && balance < total}
             >
-              Offer Loan
+              Offer Grant
             </LocalButton>
             <BalanceHint balance={balance} amount={total} />
           </>
@@ -234,4 +236,4 @@ function ReviewedRow({
   );
 }
 
-export default MicroloanOverviewForm;
+export default ConditionalGrantOverviewForm;

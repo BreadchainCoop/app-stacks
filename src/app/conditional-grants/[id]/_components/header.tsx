@@ -4,19 +4,19 @@ import Alert from "@/components/alert";
 import BackPage from "@/components/back-page";
 import LocalButton from "@/components/button";
 import {
-  LOAN_STATE_CHIP_CLASSES,
-  LOAN_STATE_LABELS,
-  LoanState,
-} from "@/lib/microloan-state";
+  GRANT_STATE_CHIP_CLASSES,
+  GRANT_STATE_LABELS,
+  GrantState,
+} from "@/lib/conditional-grant-state";
 import { Chip, cn, Heading2, useCopyToClipboard } from "@breadcoop/ui";
 import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
-import type { LoanRole } from "./page-content";
+import type { GrantRole } from "./page-content";
 
-function CopyLoanLink({ id }: { id: string }) {
+function CopyGrantLink({ id }: { id: string }) {
   const [origin, setOrigin] = useState("");
   const { copy, copied } = useCopyToClipboard({
-    textToCopy: `${origin}/microloans/${id}`,
+    textToCopy: `${origin}/conditional-grants/${id}`,
   });
 
   useEffect(() => {
@@ -37,74 +37,75 @@ function CopyLoanLink({ id }: { id: string }) {
       onClick={() => copy()}
       disabled={!origin}
     >
-      {copied ? "Copied!" : "Copy loan link"}
+      {copied ? "Copied!" : "Copy link"}
     </LocalButton>
   );
 }
 
-function stateAlert(state: LoanState, role: LoanRole) {
+function stateAlert(state: GrantState, role: GrantRole) {
   switch (state) {
-    case LoanState.Offered:
+    case GrantState.Offered:
       return {
-        title: "Waiting for the borrower",
+        title: "Waiting for the grantee",
         description:
-          role === "borrower"
-            ? "This loan is offered to you. The loan amount and the grant are already in escrow. Accept below to receive the loan."
-            : "The loan amount and the grant are in escrow. The borrower can accept until the offer closes.",
+          role === "grantee"
+            ? "This conditional grant is offered to you. The advance and the grant are already in escrow. Accept below to receive the advance."
+            : "The advance and the grant are in escrow. The grantee can accept until the offer closes.",
       };
-    case LoanState.Expired:
+    case GrantState.Expired:
       return {
         title: "The offer expired",
         description:
-          "The borrower didn't accept in time. The lender can cancel to get the escrow back.",
+          "The grantee didn't accept in time. The grantor can cancel to get the escrow back.",
       };
-    case LoanState.Cancelled:
+    case GrantState.Cancelled:
       return {
-        title: "This loan was cancelled",
-        description: "The lender cancelled the offer and got the escrow back.",
+        title: "This offer was cancelled",
+        description: "The grantor cancelled the offer and got the escrow back.",
       };
-    case LoanState.Active:
+    case GrantState.Active:
       return {
-        title: "Loan in progress",
+        title: "Paying back the advance",
         description:
-          "Repay the full loan before the deadline to unlock the grant. Any amount can be repaid at any time.",
+          "Pay back the full advance before the deadline to unlock the grant. Pay any amount whenever you like until then.",
       };
-    case LoanState.Overdue:
+    case GrantState.Overdue:
       return {
-        title: "Repayment is late",
+        title: "Payment is late",
         description:
-          "The deadline has passed. The borrower can still repay and receive the grant until the lender takes it back or gives more time.",
+          "The deadline has passed. The grantee can still pay back and receive the grant until the grantor takes it back or gives more time.",
       };
-    case LoanState.Repaid:
+    case GrantState.PaidBack:
       return {
-        title: "Loan repaid!",
+        title: "Advance paid back!",
         description:
-          "The loan is fully repaid. The grant can now be released to the borrower.",
+          "The advance is fully paid back. The grant can now be released to the grantee.",
       };
-    case LoanState.Completed:
+    case GrantState.Completed:
       return {
-        title: "Loan completed",
-        description: "The loan was repaid and the grant (if any) was paid out.",
+        title: "Completed",
+        description:
+          "The advance was paid back and the grant (if any) was paid out.",
       };
-    case LoanState.Defaulted:
+    case GrantState.Defaulted:
       return {
         title: "The grant was taken back",
         description:
-          "The loan was late and the lender reclaimed the grant. Any remaining loan amount can still be repaid.",
+          "The advance was late and the grantor reclaimed the grant. Any remaining advance can still be paid back.",
       };
   }
 }
 
-const SUCCESS_STATES = [LoanState.Repaid, LoanState.Completed];
+const SUCCESS_STATES = [GrantState.PaidBack, GrantState.Completed];
 
-const LoanHeader = ({
+const GrantHeader = ({
   id,
   role,
   state,
 }: {
   id: string;
-  role: LoanRole;
-  state: LoanState | undefined;
+  role: GrantRole;
+  state: GrantState | undefined;
 }) => {
   const alert = state !== undefined ? stateAlert(state, role) : null;
 
@@ -112,11 +113,11 @@ const LoanHeader = ({
     <header className="flex flex-col mb-3.5 md:mb-6">
       <div className="flex flex-col items-start gap-2.5 mb-4 md:flex-row md:items-center md:justify-between md:flex-wrap">
         <BackPage label="Return to Dashboard" href="/" className="m-0!" />
-        <CopyLoanLink id={id} />
+        <CopyGrantLink id={id} />
       </div>
       <div className="flex flex-col flex-wrap gap-4 mb-5.25 sm:flex-row sm:items-center sm:justify-between md:order-first md:mb-7.25">
         <Heading2 className="text-primary-blue text-2xl md:text-5xl">
-          Microloan {id}
+          Conditional grant {id}
         </Heading2>
         <div className="flex items-center gap-2">
           {role && (
@@ -128,10 +129,10 @@ const LoanHeader = ({
             <Chip
               className={cn(
                 "bg-paper-main max-w-max hover:border-current",
-                LOAN_STATE_CHIP_CLASSES[state]
+                GRANT_STATE_CHIP_CLASSES[state]
               )}
             >
-              {LOAN_STATE_LABELS[state]}
+              {GRANT_STATE_LABELS[state]}
             </Chip>
           )}
         </div>
@@ -148,4 +149,4 @@ const LoanHeader = ({
   );
 };
 
-export default LoanHeader;
+export default GrantHeader;

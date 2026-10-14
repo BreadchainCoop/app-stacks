@@ -2,43 +2,43 @@
 
 import LocalButton from "@/components/button";
 import { useModal } from "@/components/modal/context";
-import { LoanTerms } from "@/hooks/use-microloan";
-import { useMicroloanAction } from "@/hooks/use-microloan-action";
-import { MICROLOAN_PAYOUT_ERRORS } from "@/lib/contract-errors";
-import { LoanState } from "@/lib/microloan-state";
+import { GrantTerms } from "@/hooks/use-conditional-grant";
+import { useConditionalGrantAction } from "@/hooks/use-conditional-grant-action";
+import { CONDITIONAL_GRANT_PAYOUT_ERRORS } from "@/lib/contract-errors";
+import { GrantState } from "@/lib/conditional-grant-state";
 import { Body, Heading3 } from "@breadcoop/ui";
 
 /**
- * Once the loan is repaid, anyone can release the grant; it can only ever go
- * to the borrower.
+ * Once the advance is paid back, anyone can release the grant; it can only ever go
+ * to the grantee.
  */
 const GrantPanel = ({
-  loanId,
+  grantId,
   terms,
   state,
 }: {
-  loanId: bigint;
-  terms: LoanTerms;
-  state: LoanState;
+  grantId: bigint;
+  terms: GrantTerms;
+  state: GrantState;
 }) => {
   const { setModal } = useModal();
-  const { runMicroloanAction } = useMicroloanAction();
+  const { runConditionalGrantAction } = useConditionalGrantAction();
 
-  if (state !== LoanState.Repaid) return null;
+  if (state !== GrantState.PaidBack) return null;
 
   const release = () =>
     setModal({
       type: "STACK_TX_INIT",
-      stackType: "microloan",
+      stackType: "conditionalGrant",
       action: "releaseGrant",
-      id: loanId,
+      id: grantId,
       amount: terms.grant,
       onConfirm: () =>
-        runMicroloanAction({
+        runConditionalGrantAction({
           action: "releaseGrant",
           functionName: "releaseGrant",
-          args: [loanId],
-          errors: MICROLOAN_PAYOUT_ERRORS,
+          args: [grantId],
+          errors: CONDITIONAL_GRANT_PAYOUT_ERRORS,
           amount: terms.grant,
         }),
     });
@@ -49,8 +49,8 @@ const GrantPanel = ({
         <Heading3 className="text-2xl">Release the grant</Heading3>
       </header>
       <Body className="text-surface-grey">
-        The loan is fully repaid. Anyone can release the grant, and it always
-        goes to the borrower.
+        The advance is fully paid back. Anyone can release the grant, and it
+        always goes to the grantee.
       </Body>
       <LocalButton
         variant="positive"

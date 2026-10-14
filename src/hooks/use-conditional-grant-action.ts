@@ -1,10 +1,10 @@
 import { StackTxAction, useModal } from "@/components/modal/context";
-import { useMicroloansTx } from "@/hooks/use-microloans-tx";
+import { useConditionalGrantsTx } from "@/hooks/use-conditional-grants-tx";
 import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
 import { useWaitForTxReceipt } from "@/hooks/use-wait-for-tx-receipt";
-import { microloansAbi } from "@/lib/abis/microloans";
-import { MICROLOANS_CONTRACT_ADDRESS } from "@/lib/constants";
-import { MICROLOANS_ERRORS } from "@/lib/contract-errors";
+import { conditionalGrantsAbi } from "@/lib/abis/conditional-grants";
+import { CONDITIONAL_GRANTS_CONTRACT_ADDRESS } from "@/lib/constants";
+import { CONDITIONAL_GRANTS_ERRORS } from "@/lib/contract-errors";
 import { getDefaultChainId } from "@/utils/chain";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { MAX_UINT256 } from "@/utils/solidity";
@@ -20,25 +20,25 @@ import {
 } from "viem";
 import { useReadContract } from "wagmi";
 
-type MicroloansAbi = typeof microloansAbi;
+type ConditionalGrantsAbi = typeof conditionalGrantsAbi;
 
 /**
- * Runs a microloans write behind the generic STACK_TX_LOADING /
+ * Runs a conditional grants write behind the generic STACK_TX_LOADING /
  * STACK_TX_RESULT modals: optionally ensures the ERC-20 allowance first
- * (for token-pulling actions like create and repay), sends the tx through
- * the microloans tx hook, then refreshes contract reads and reports the
+ * (for token-pulling actions like create and pay back), sends the tx through
+ * the conditional grants tx hook, then refreshes contract reads and reports the
  * outcome. Mirrors useGoalAction.
  *
  * Also exposes the connected wallet's token balance so callers can route a
  * low balance in MiniPay to Add Cash before sending anything.
  *
- * @param tokenAddress The loan token — required only by actions that pass
+ * @param tokenAddress The token — required only by actions that pass
  *   `approveAmount`, and for `balance`.
  */
-export function useMicroloanAction(tokenAddress?: Address) {
+export function useConditionalGrantAction(tokenAddress?: Address) {
   const modal = useModal();
   const queryClient = useQueryClient();
-  const { sendMicroloansTx } = useMicroloansTx();
+  const { sendConditionalGrantsTx } = useConditionalGrantsTx();
   const { sendSponsoredTransaction } = useSponsoredTx();
   const { waitForTxReceipt } = useWaitForTxReceipt();
   const { user } = useConnectedUser();
@@ -48,7 +48,7 @@ export function useMicroloanAction(tokenAddress?: Address) {
     address: tokenAddress,
     abi: erc20Abi,
     functionName: "allowance",
-    args: [userAddress!, MICROLOANS_CONTRACT_ADDRESS],
+    args: [userAddress!, CONDITIONAL_GRANTS_CONTRACT_ADDRESS],
     query: { enabled: !!userAddress && !!tokenAddress },
     chainId: getDefaultChainId(),
   });
@@ -62,8 +62,11 @@ export function useMicroloanAction(tokenAddress?: Address) {
     chainId: getDefaultChainId(),
   });
 
-  const runMicroloanAction = async <
-    TFunctionName extends ContractFunctionName<MicroloansAbi, "nonpayable">,
+  const runConditionalGrantAction = async <
+    TFunctionName extends ContractFunctionName<
+      ConditionalGrantsAbi,
+      "nonpayable"
+    >,
   >({
     action,
     functionName,
@@ -75,8 +78,12 @@ export function useMicroloanAction(tokenAddress?: Address) {
   }: {
     action: StackTxAction;
     functionName: TFunctionName;
-    args: ContractFunctionArgs<MicroloansAbi, "nonpayable", TFunctionName>;
-    /** Operation-specific error map (merged over the full microloans map). */
+    args: ContractFunctionArgs<
+      ConditionalGrantsAbi,
+      "nonpayable",
+      TFunctionName
+    >;
+    /** Operation-specific error map (merged over the full conditional grants map). */
     errors: Record<string, string>;
     /** For token-pulling actions: ensure at least this allowance first. */
     approveAmount?: bigint;
@@ -87,7 +94,7 @@ export function useMicroloanAction(tokenAddress?: Address) {
   }) => {
     modal.setModal({
       type: "STACK_TX_LOADING",
-      stackType: "microloan",
+      stackType: "conditionalGrant",
       action,
     });
 
@@ -100,7 +107,7 @@ export function useMicroloanAction(tokenAddress?: Address) {
         const approveData = encodeFunctionData({
           abi: erc20Abi,
           functionName: "approve",
-          args: [MICROLOANS_CONTRACT_ADDRESS, MAX_UINT256],
+          args: [CONDITIONAL_GRANTS_CONTRACT_ADDRESS, MAX_UINT256],
         });
 
         const { hash } = await sendSponsoredTransaction({
@@ -111,14 +118,14 @@ export function useMicroloanAction(tokenAddress?: Address) {
         await waitForTxReceipt(hash);
       }
 
-      const receipt = await sendMicroloansTx({ functionName, args });
+      const receipt = await sendConditionalGrantsTx({ functionName, args });
 
       queryClient.invalidateQueries({ queryKey: ["readContract"] });
       queryClient.invalidateQueries({ queryKey: ["readContracts"] });
       onSuccess?.(receipt);
       modal.setModal({
         type: "STACK_TX_RESULT",
-        stackType: "microloan",
+        stackType: "conditionalGrant",
         action,
         result: "success",
         amount,
@@ -126,13 +133,16 @@ export function useMicroloanAction(tokenAddress?: Address) {
     } catch (error) {
       modal.setModal({
         type: "STACK_TX_RESULT",
-        stackType: "microloan",
+        stackType: "conditionalGrant",
         action,
         result: "error",
-        msg: parseContractError(error, { ...MICROLOANS_ERRORS, ...errors }),
+        msg: parseContractError(error, {
+          ...CONDITIONAL_GRANTS_ERRORS,
+          ...errors,
+        }),
       });
     }
   };
 
-  return { runMicroloanAction, balance };
+  return { runConditionalGrantAction, balance };
 }

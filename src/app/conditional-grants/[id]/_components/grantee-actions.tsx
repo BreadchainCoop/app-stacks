@@ -1,53 +1,63 @@
 "use client";
 
-import BalanceHint from "@/app/microloans/_components/balance-hint";
+import BalanceHint from "@/app/conditional-grants/_components/balance-hint";
 import LocalButton from "@/components/button";
 import NumericInput from "@/components/numeric-input";
 import { useModal } from "@/components/modal/context";
-import { LoanTerms } from "@/hooks/use-microloan";
-import { useMicroloanAction } from "@/hooks/use-microloan-action";
+import { GrantTerms } from "@/hooks/use-conditional-grant";
+import { useConditionalGrantAction } from "@/hooks/use-conditional-grant-action";
 import {
-  MICROLOAN_ACCEPT_ERRORS,
-  MICROLOAN_REPAY_ERRORS,
+  CONDITIONAL_GRANT_ACCEPT_ERRORS,
+  CONDITIONAL_GRANT_PAY_BACK_ERRORS,
 } from "@/lib/contract-errors";
 import {
   DEPOSIT_TOKEN,
   formatDepositAmount,
   parseDepositAmount,
 } from "@/lib/deposit-token";
-import { agreementHash } from "@/lib/microloan-terms";
-import { isLoanRepayable, LoanState } from "@/lib/microloan-state";
+import { agreementHash } from "@/lib/conditional-grant-terms";
+import { canPayBack, GrantState } from "@/lib/conditional-grant-state";
 import { Body, formatBalance, Heading3, Logo } from "@breadcoop/ui";
 import { useState } from "react";
 import { zeroHash } from "viem";
 
-const BorrowerActions = ({
-  loanId,
+const GranteeActions = ({
+  grantId,
   terms,
   state,
   outstanding,
 }: {
-  loanId: bigint;
-  terms: LoanTerms;
-  state: LoanState;
+  grantId: bigint;
+  terms: GrantTerms;
+  state: GrantState;
   outstanding: bigint;
 }) => {
-  if (state === LoanState.Offered) {
-    return <AcceptLoan loanId={loanId} terms={terms} />;
+  if (state === GrantState.Offered) {
+    return <AcceptGrant grantId={grantId} terms={terms} />;
   }
 
-  if (isLoanRepayable(state, outstanding)) {
+  if (canPayBack(state, outstanding)) {
     return (
-      <RepayLoan loanId={loanId} terms={terms} outstanding={outstanding} />
+      <PayBackAdvance
+        grantId={grantId}
+        terms={terms}
+        outstanding={outstanding}
+      />
     );
   }
 
   return null;
 };
 
-function AcceptLoan({ loanId, terms }: { loanId: bigint; terms: LoanTerms }) {
+function AcceptGrant({
+  grantId,
+  terms,
+}: {
+  grantId: bigint;
+  terms: GrantTerms;
+}) {
   const { setModal } = useModal();
-  const { runMicroloanAction } = useMicroloanAction();
+  const { runConditionalGrantAction } = useConditionalGrantAction();
   const [agreement, setAgreement] = useState("");
 
   const needsAgreement = terms.termsHash !== zeroHash;
@@ -57,35 +67,35 @@ function AcceptLoan({ loanId, terms }: { loanId: bigint; terms: LoanTerms }) {
   const accept = () =>
     setModal({
       type: "STACK_TX_INIT",
-      stackType: "microloan",
-      action: "acceptLoan",
-      id: loanId,
-      amount: terms.principal,
+      stackType: "conditionalGrant",
+      action: "acceptGrant",
+      id: grantId,
+      amount: terms.advance,
       onConfirm: () =>
-        runMicroloanAction({
-          action: "acceptLoan",
+        runConditionalGrantAction({
+          action: "acceptGrant",
           functionName: "accept",
-          args: [loanId, terms.termsHash],
-          errors: MICROLOAN_ACCEPT_ERRORS,
-          amount: terms.principal,
+          args: [grantId, terms.termsHash],
+          errors: CONDITIONAL_GRANT_ACCEPT_ERRORS,
+          amount: terms.advance,
         }),
     });
 
   return (
     <section className="bg-paper-0 p-5 *:mb-4 last:mb-0">
       <header className="border-b border-paper-2 pb-4">
-        <Heading3 className="text-2xl">Accept the loan</Heading3>
+        <Heading3 className="text-2xl">Accept the offer</Heading3>
       </header>
       <Body className="text-surface-grey">
-        You receive {formatToken(terms.principal)} now with no interest. Repay
-        it in full within {Number(terms.repaymentPeriod / BigInt(86400))} days
-        to also receive the {formatToken(terms.grant)} grant.
+        You receive {formatToken(terms.advance)} now with no interest. Pay back
+        it in full within {Number(terms.payBackPeriod / BigInt(86400))} days to
+        also receive the {formatToken(terms.grant)} grant.
       </Body>
       {needsAgreement && (
         <div className="flex flex-col gap-2">
-          <Body bold>Loan agreement</Body>
+          <Body bold>Agreement</Body>
           <Body className="text-xs text-surface-grey">
-            Paste the agreement the lender shared with you. Accepting records
+            Paste the agreement the grantor shared with you. Accepting records
             on-chain that you agreed to exactly this text.
           </Body>
           <textarea
@@ -100,8 +110,8 @@ function AcceptLoan({ loanId, terms }: { loanId: bigint; terms: LoanTerms }) {
               className={`text-xs ${matches ? "text-system-green" : "text-system-red"}`}
             >
               {matches
-                ? "This matches the lender's agreement."
-                : "This doesn't match the lender's agreement. Check you copied all of it."}
+                ? "This matches the grantor's agreement."
+                : "This doesn't match the grantor's agreement. Check you copied all of it."}
             </Body>
           )}
         </div>
@@ -111,23 +121,25 @@ function AcceptLoan({ loanId, terms }: { loanId: bigint; terms: LoanTerms }) {
         onClick={accept}
         disabled={!matches}
       >
-        Accept loan
+        Accept offer
       </LocalButton>
     </section>
   );
 }
 
-function RepayLoan({
-  loanId,
+function PayBackAdvance({
+  grantId,
   terms,
   outstanding,
 }: {
-  loanId: bigint;
-  terms: LoanTerms;
+  grantId: bigint;
+  terms: GrantTerms;
   outstanding: bigint;
 }) {
   const { setModal } = useModal();
-  const { runMicroloanAction, balance } = useMicroloanAction(terms.token);
+  const { runConditionalGrantAction, balance } = useConditionalGrantAction(
+    terms.token
+  );
   const [amountInput, setAmountInput] = useState("");
 
   let amount = BigInt(0);
@@ -137,30 +149,30 @@ function RepayLoan({
     // Unparseable input stays at zero and keeps the button disabled
   }
   // The contract only pulls what is owed, so never ask for more
-  const payAmount = amount > outstanding ? outstanding : amount;
+  const payBackAmount = amount > outstanding ? outstanding : amount;
 
-  const repay = () =>
+  const payBack = () =>
     setModal({
       type: "STACK_TX_INIT",
-      stackType: "microloan",
-      action: "repay",
-      id: loanId,
-      amount: payAmount,
+      stackType: "conditionalGrant",
+      action: "payBack",
+      id: grantId,
+      amount: payBackAmount,
       onConfirm: () =>
-        runMicroloanAction({
-          action: "repay",
-          functionName: "repay",
-          args: [loanId, payAmount],
-          errors: MICROLOAN_REPAY_ERRORS,
-          approveAmount: payAmount,
-          amount: payAmount,
+        runConditionalGrantAction({
+          action: "payBack",
+          functionName: "payBack",
+          args: [grantId, payBackAmount],
+          errors: CONDITIONAL_GRANT_PAY_BACK_ERRORS,
+          approveAmount: payBackAmount,
+          amount: payBackAmount,
         }),
     });
 
   return (
     <section className="bg-paper-0 p-5 *:mb-4 last:mb-0">
       <header className="border-b border-paper-2 pb-4">
-        <Heading3 className="text-2xl">Repay</Heading3>
+        <Heading3 className="text-2xl">Pay back</Heading3>
       </header>
       <Body className="text-surface-grey">
         You still owe {formatToken(outstanding)}. Pay any amount, any time.
@@ -193,15 +205,15 @@ function RepayLoan({
         </div>
         <LocalButton
           className="w-full font-bold"
-          onClick={repay}
+          onClick={payBack}
           disabled={
-            payAmount === BigInt(0) ||
-            (balance !== undefined && balance < payAmount)
+            payBackAmount === BigInt(0) ||
+            (balance !== undefined && balance < payBackAmount)
           }
         >
-          Repay
+          Pay back
         </LocalButton>
-        <BalanceHint balance={balance} amount={payAmount} />
+        <BalanceHint balance={balance} amount={payBackAmount} />
       </div>
     </section>
   );
@@ -210,4 +222,4 @@ function RepayLoan({
 const formatToken = (amount: bigint) =>
   `${formatBalance(+formatDepositAmount(amount), 2)} ${DEPOSIT_TOKEN.symbol}`;
 
-export default BorrowerActions;
+export default GranteeActions;

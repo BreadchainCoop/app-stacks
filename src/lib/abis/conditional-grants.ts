@@ -1,4 +1,4 @@
-export const microloansAbi = [
+export const conditionalGrantsAbi = [
   {
     type: "constructor",
     inputs: [],
@@ -53,9 +53,9 @@ export const microloansAbi = [
     name: "create",
     inputs: [
       {
-        name: "_loanTerms",
+        name: "_grantTerms",
         type: "tuple",
-        internalType: "struct IMicroloans.LoanTerms",
+        internalType: "struct IConditionalGrants.GrantTerms",
         components: [
           {
             name: "token",
@@ -68,7 +68,7 @@ export const microloansAbi = [
             internalType: "address",
           },
           {
-            name: "principal",
+            name: "advance",
             type: "uint256",
             internalType: "uint256",
           },
@@ -83,7 +83,7 @@ export const microloansAbi = [
             internalType: "uint256",
           },
           {
-            name: "repaymentPeriod",
+            name: "payBackPeriod",
             type: "uint256",
             internalType: "uint256",
           },
@@ -95,7 +95,7 @@ export const microloansAbi = [
         ],
       },
       {
-        name: "_borrower",
+        name: "_grantee",
         type: "address",
         internalType: "address",
       },
@@ -130,7 +130,7 @@ export const microloansAbi = [
   },
   {
     type: "function",
-    name: "extendRepayBy",
+    name: "extendPayBackBy",
     inputs: [
       {
         name: "_id",
@@ -138,7 +138,7 @@ export const microloansAbi = [
         internalType: "uint256",
       },
       {
-        name: "_newRepayBy",
+        name: "_newPayBackBy",
         type: "uint256",
         internalType: "uint256",
       },
@@ -148,45 +148,7 @@ export const microloansAbi = [
   },
   {
     type: "function",
-    name: "getBorrowerLoans",
-    inputs: [
-      {
-        name: "_borrower",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "_ids",
-        type: "uint256[]",
-        internalType: "uint256[]",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getLenderLoans",
-    inputs: [
-      {
-        name: "_lender",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "_ids",
-        type: "uint256[]",
-        internalType: "uint256[]",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getLoan",
+    name: "getGrant",
     inputs: [
       {
         name: "_id",
@@ -196,9 +158,9 @@ export const microloansAbi = [
     ],
     outputs: [
       {
-        name: "_loanTerms",
+        name: "_grantTerms",
         type: "tuple",
-        internalType: "struct IMicroloans.LoanTerms",
+        internalType: "struct IConditionalGrants.GrantTerms",
         components: [
           {
             name: "token",
@@ -211,7 +173,7 @@ export const microloansAbi = [
             internalType: "address",
           },
           {
-            name: "principal",
+            name: "advance",
             type: "uint256",
             internalType: "uint256",
           },
@@ -226,7 +188,7 @@ export const microloansAbi = [
             internalType: "uint256",
           },
           {
-            name: "repaymentPeriod",
+            name: "payBackPeriod",
             type: "uint256",
             internalType: "uint256",
           },
@@ -238,17 +200,17 @@ export const microloansAbi = [
         ],
       },
       {
-        name: "_loanStatus",
+        name: "_grantStatus",
         type: "tuple",
-        internalType: "struct IMicroloans.LoanStatus",
+        internalType: "struct IConditionalGrants.GrantStatus",
         components: [
           {
-            name: "lender",
+            name: "grantor",
             type: "address",
             internalType: "address",
           },
           {
-            name: "borrower",
+            name: "grantee",
             type: "address",
             internalType: "address",
           },
@@ -258,7 +220,7 @@ export const microloansAbi = [
             internalType: "uint256",
           },
           {
-            name: "repayBy",
+            name: "payBackBy",
             type: "uint256",
             internalType: "uint256",
           },
@@ -268,7 +230,7 @@ export const microloansAbi = [
             internalType: "uint256",
           },
           {
-            name: "repaid",
+            name: "paidBack",
             type: "uint256",
             internalType: "uint256",
           },
@@ -278,7 +240,7 @@ export const microloansAbi = [
             internalType: "uint256",
           },
           {
-            name: "lenderOwed",
+            name: "grantorOwed",
             type: "uint256",
             internalType: "uint256",
           },
@@ -298,6 +260,63 @@ export const microloansAbi = [
             internalType: "bool",
           },
         ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getGranteeGrants",
+    inputs: [
+      {
+        name: "_grantee",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "_ids",
+        type: "uint256[]",
+        internalType: "uint256[]",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getGrantorGrants",
+    inputs: [
+      {
+        name: "_grantor",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "_ids",
+        type: "uint256[]",
+        internalType: "uint256[]",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "grantState",
+    inputs: [
+      {
+        name: "_id",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "_s",
+        type: "uint8",
+        internalType: "enum IConditionalGrants.GrantState",
       },
     ],
     stateMutability: "view",
@@ -355,25 +374,6 @@ export const microloansAbi = [
   },
   {
     type: "function",
-    name: "loanState",
-    inputs: [
-      {
-        name: "_id",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [
-      {
-        name: "_s",
-        type: "uint8",
-        internalType: "enum IMicroloans.LoanState",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "nextId",
     inputs: [],
     outputs: [
@@ -419,6 +419,24 @@ export const microloansAbi = [
   },
   {
     type: "function",
+    name: "payBack",
+    inputs: [
+      {
+        name: "_id",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "_amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "reclaimGrant",
     inputs: [
       {
@@ -452,7 +470,7 @@ export const microloansAbi = [
   },
   {
     type: "function",
-    name: "repay",
+    name: "setGrantee",
     inputs: [
       {
         name: "_id",
@@ -460,25 +478,7 @@ export const microloansAbi = [
         internalType: "uint256",
       },
       {
-        name: "_amount",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "setBorrower",
-    inputs: [
-      {
-        name: "_id",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "_borrower",
+        name: "_grantee",
         type: "address",
         internalType: "address",
       },
@@ -537,7 +537,7 @@ export const microloansAbi = [
   },
   {
     type: "event",
-    name: "BorrowerSet",
+    name: "AdvancePaidBack",
     inputs: [
       {
         name: "id",
@@ -546,10 +546,140 @@ export const microloansAbi = [
         internalType: "uint256",
       },
       {
-        name: "borrower",
+        name: "payer",
         type: "address",
         indexed: true,
         internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "totalPaidBack",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "GrantAccepted",
+    inputs: [
+      {
+        name: "id",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "grantee",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "disbursed",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "payBackBy",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "GrantCancelled",
+    inputs: [
+      {
+        name: "id",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "refunded",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "GrantCreated",
+    inputs: [
+      {
+        name: "id",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "grantor",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "grantee",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "terms",
+        type: "tuple",
+        indexed: false,
+        internalType: "struct IConditionalGrants.GrantTerms",
+        components: [
+          {
+            name: "token",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "vault",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "advance",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "grant",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "acceptBy",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "payBackPeriod",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "termsHash",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+        ],
       },
     ],
     anonymous: false,
@@ -584,7 +714,51 @@ export const microloansAbi = [
         internalType: "uint256",
       },
       {
-        name: "borrower",
+        name: "grantee",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "GranteeSet",
+    inputs: [
+      {
+        name: "id",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "grantee",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "GrantorCollected",
+    inputs: [
+      {
+        name: "id",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "grantor",
         type: "address",
         indexed: true,
         internalType: "address",
@@ -613,149 +787,6 @@ export const microloansAbi = [
   },
   {
     type: "event",
-    name: "LenderCollected",
-    inputs: [
-      {
-        name: "id",
-        type: "uint256",
-        indexed: true,
-        internalType: "uint256",
-      },
-      {
-        name: "lender",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "amount",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "LoanAccepted",
-    inputs: [
-      {
-        name: "id",
-        type: "uint256",
-        indexed: true,
-        internalType: "uint256",
-      },
-      {
-        name: "borrower",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "disbursed",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-      {
-        name: "repayBy",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "LoanCancelled",
-    inputs: [
-      {
-        name: "id",
-        type: "uint256",
-        indexed: true,
-        internalType: "uint256",
-      },
-      {
-        name: "refunded",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "LoanCreated",
-    inputs: [
-      {
-        name: "id",
-        type: "uint256",
-        indexed: true,
-        internalType: "uint256",
-      },
-      {
-        name: "lender",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "borrower",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "terms",
-        type: "tuple",
-        indexed: false,
-        internalType: "struct IMicroloans.LoanTerms",
-        components: [
-          {
-            name: "token",
-            type: "address",
-            internalType: "address",
-          },
-          {
-            name: "vault",
-            type: "address",
-            internalType: "address",
-          },
-          {
-            name: "principal",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "grant",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "acceptBy",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "repaymentPeriod",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "termsHash",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
-        ],
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
     name: "OwnershipTransferred",
     inputs: [
       {
@@ -775,7 +806,7 @@ export const microloansAbi = [
   },
   {
     type: "event",
-    name: "Repaid",
+    name: "PayBackByExtended",
     inputs: [
       {
         name: "id",
@@ -784,38 +815,7 @@ export const microloansAbi = [
         internalType: "uint256",
       },
       {
-        name: "payer",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "amount",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-      {
-        name: "totalRepaid",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "RepayByExtended",
-    inputs: [
-      {
-        name: "id",
-        type: "uint256",
-        indexed: true,
-        internalType: "uint256",
-      },
-      {
-        name: "repayBy",
+        name: "payBackBy",
         type: "uint256",
         indexed: false,
         internalType: "uint256",
@@ -882,7 +882,12 @@ export const microloansAbi = [
   },
   {
     type: "error",
-    name: "BorrowerAlreadySet",
+    name: "GrantNotFound",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "GranteeAlreadySet",
     inputs: [],
   },
   {
@@ -892,12 +897,17 @@ export const microloansAbi = [
   },
   {
     type: "error",
+    name: "InvalidAdvance",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "InvalidAmount",
     inputs: [],
   },
   {
     type: "error",
-    name: "InvalidBorrower",
+    name: "InvalidGrantee",
     inputs: [],
   },
   {
@@ -907,12 +917,7 @@ export const microloansAbi = [
   },
   {
     type: "error",
-    name: "InvalidPrincipal",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "InvalidRepaymentPeriod",
+    name: "InvalidPayBackPeriod",
     inputs: [],
   },
   {
@@ -927,22 +932,17 @@ export const microloansAbi = [
   },
   {
     type: "error",
-    name: "LoanNotFound",
+    name: "NotGrantee",
     inputs: [],
   },
   {
     type: "error",
-    name: "NotBorrower",
+    name: "NotGrantor",
     inputs: [],
   },
   {
     type: "error",
     name: "NotInitializing",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "NotLender",
     inputs: [],
   },
   {
