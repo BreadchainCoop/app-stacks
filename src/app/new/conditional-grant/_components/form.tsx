@@ -29,8 +29,9 @@ const ConditionalGrantForm = ({ onContinue }: { onContinue: () => void }) => {
             Offer a conditional grant
           </Heading3>
           <Body className="text-surface-grey">
-            Lend to one grantee with no interest. The grant is held in escrow
-            and sent to the grantee once they pay back the advance in full.
+            Advance money to one grantee with no interest. The grant is held in
+            escrow and sent to the grantee once they pay back the advance in
+            full.
           </Body>
         </header>
         <div className="flex flex-col gap-4 mb-4">
