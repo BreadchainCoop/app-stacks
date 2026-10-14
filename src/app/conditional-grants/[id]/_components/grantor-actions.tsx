@@ -12,7 +12,11 @@ import {
 } from "@/lib/contract-errors";
 import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
 import { GrantState } from "@/lib/conditional-grant-state";
-import { dateInputToMs, earliestDeadlineDate } from "@/utils/time";
+import {
+  dateInputToMs,
+  earliestDeadlineDate,
+  formatShortDate,
+} from "@/utils/time";
 import { Body, formatBalance, Heading3 } from "@breadcoop/ui";
 import { ReactNode, useState } from "react";
 import { Address, isAddress, zeroAddress } from "viem";
@@ -22,11 +26,14 @@ const GrantorActions = ({
   terms,
   status,
   state,
+  reclaimableAt,
 }: {
   grantId: bigint;
   terms: GrantTerms;
   status: GrantStatus;
   state: GrantState;
+  /** From the contract's reclaimableAt(); 0 when the grant can't be reclaimed */
+  reclaimableAt: bigint;
 }) => {
   const now = useBlockTimestamp();
   const { setModal } = useModal();
@@ -39,10 +46,26 @@ const GrantorActions = ({
   const canCancel =
     state === GrantState.Offered || state === GrantState.Expired;
   const canExtend = state === GrantState.Active || state === GrantState.Overdue;
-  const canReclaim = state === GrantState.Overdue && terms.grant > BigInt(0);
   const canCollect = status.grantorOwed > BigInt(0);
+  // The contract opens reclaiming 7 days after the deadline (or 90 days after
+  // pay-back for a grant nobody released); before that, show when it opens.
+  const nowSeconds = BigInt(Math.floor(now / 1000));
+  const reclaimable =
+    terms.grant > BigInt(0) &&
+    (state === GrantState.Overdue || state === GrantState.PaidBack) &&
+    reclaimableAt > BigInt(0);
+  const canReclaim = reclaimable && nowSeconds >= reclaimableAt;
+  const reclaimOpensLater =
+    reclaimable && !canReclaim && state === GrantState.Overdue;
 
-  if (!canSetGrantee && !canCancel && !canExtend && !canReclaim && !canCollect)
+  if (
+    !canSetGrantee &&
+    !canCancel &&
+    !canExtend &&
+    !canReclaim &&
+    !reclaimOpensLater &&
+    !canCollect
+  )
     return null;
 
   const granteeValid =
@@ -165,8 +188,20 @@ const GrantorActions = ({
         </Action>
       )}
 
+      {reclaimOpensLater && (
+        <Action
+          note={`If the advance still isn't paid back, you can take the grant back from ${formatShortDate(Number(reclaimableAt) * 1000)}, 7 days after the deadline.`}
+        />
+      )}
+
       {canReclaim && (
-        <Action note="The advance is late. Taking the grant back is permanent; the grantee still owes the rest of the advance.">
+        <Action
+          note={
+            state === GrantState.PaidBack
+              ? "The advance was paid back, but nobody has released the grant for 90 days. You can take it back."
+              : "The advance is late. Taking the grant back is permanent; the grantee still owes the rest of the advance."
+          }
+        >
           <LocalButton
             variant="destructive"
             className="w-full font-bold"
@@ -216,7 +251,7 @@ const GrantorActions = ({
   );
 };
 
-function Action({ note, children }: { note: string; children: ReactNode }) {
+function Action({ note, children }: { note: string; children?: ReactNode }) {
   return (
     <div className="flex flex-col gap-2 border-b border-paper-2 pb-4 last:border-b-0 last:pb-0">
       <Body className="text-surface-grey">{note}</Body>

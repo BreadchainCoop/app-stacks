@@ -6,6 +6,45 @@ export const conditionalGrantsAbi = [
   },
   {
     type: "function",
+    name: "MAX_PAY_BACK_PERIOD",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "RECLAIM_GRACE_PERIOD",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "STUCK_GRANT_PERIOD",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "accept",
     inputs: [
       {
@@ -235,6 +274,11 @@ export const conditionalGrantsAbi = [
             internalType: "uint256",
           },
           {
+            name: "paidBackAt",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
             name: "held",
             type: "uint256",
             internalType: "uint256",
@@ -447,6 +491,25 @@ export const conditionalGrantsAbi = [
     ],
     outputs: [],
     stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "reclaimableAt",
+    inputs: [
+      {
+        name: "_id",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "_timestamp",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -971,6 +1034,11 @@ export const conditionalGrantsAbi = [
         internalType: "address",
       },
     ],
+  },
+  {
+    type: "error",
+    name: "ReclaimTooEarly",
+    inputs: [],
   },
   {
     type: "error",

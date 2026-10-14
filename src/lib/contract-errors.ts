@@ -124,6 +124,8 @@ export const CONDITIONAL_GRANTS_ERRORS: Record<string, string> = {
   InvalidState: "This conditional grant can't do that in its current state.",
   InvalidAmount: "The amount must be greater than zero.",
   NothingToCollect: "There is nothing to collect yet.",
+  ReclaimTooEarly:
+    "The grant can't be taken back yet: that opens 7 days after the deadline.",
 
   // ── OpenZeppelin / low-level ──────────────────────────────────────
   InvalidInitialization: "Contract initialisation error.",
@@ -267,6 +269,7 @@ export const CONDITIONAL_GRANT_GRANTOR_ERRORS: Record<string, string> = pick(
     "InvalidGrantee",
     "GranteeAlreadySet",
     "InvalidPayBackPeriod",
+    "ReclaimTooEarly",
   ],
   CONDITIONAL_GRANTS_ERRORS
 );

@@ -73,7 +73,7 @@ function stateAlert(state: GrantState, role: GrantRole) {
       return {
         title: "Payment is late",
         description:
-          "The deadline has passed. The grantee can still pay back and receive the grant until the grantor takes it back or gives more time.",
+          "The deadline has passed. The grantee can still pay back and receive the grant. The grantor can give more time, or take the grant back starting 7 days after the deadline.",
       };
     case GrantState.PaidBack:
       return {

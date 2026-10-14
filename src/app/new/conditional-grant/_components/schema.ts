@@ -15,7 +15,9 @@ const conditionalGrantSchema = z
     payBackDays: z
       .number({ error: "Enter the number of days to pay back" })
       .int("Use a whole number of days")
-      .positive("Allow at least 1 day to pay back"),
+      .positive("Allow at least 1 day to pay back")
+      // The contract's MAX_PAY_BACK_PERIOD is 10 years
+      .max(3650, "Keep the time to pay back under 10 years"),
     agreement: z.string().optional(),
   })
   .superRefine((data, ctx) => {

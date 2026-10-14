@@ -10,7 +10,7 @@ export async function generateMetadata({
   const { id } = await params;
 
   return _generateMetadata({
-    title: "View Conditional grant - Bread Cooperative",
+    title: "View Conditional Grant - Bread Cooperative",
     description:
       "A zero-interest advance with a grant that unlocks once it is paid back.",
     url: `/conditional-grants/${id}`,

@@ -12,7 +12,8 @@ const conditionalGrantsContract = {
 } as const;
 
 /**
- * One conditional grant's terms, status, derived state and outstanding advance, read in
+ * One conditional grant's terms, status, derived state, outstanding advance and earliest
+ * grant reclaim time, read in
  * a single multicall.
  */
 export function useConditionalGrant(grantId: bigint | undefined) {
@@ -22,12 +23,17 @@ export function useConditionalGrant(grantId: bigint | undefined) {
       { ...conditionalGrantsContract, functionName: "getGrant", args: [id] },
       { ...conditionalGrantsContract, functionName: "grantState", args: [id] },
       { ...conditionalGrantsContract, functionName: "outstanding", args: [id] },
+      {
+        ...conditionalGrantsContract,
+        functionName: "reclaimableAt",
+        args: [id],
+      },
     ],
     allowFailure: false,
     query: { enabled: grantId !== undefined },
   });
 
-  const [grantData, state, outstanding] = result.data ?? [];
+  const [grantData, state, outstanding, reclaimableAt] = result.data ?? [];
 
   return {
     ...result,
@@ -35,6 +41,8 @@ export function useConditionalGrant(grantId: bigint | undefined) {
     status: grantData?.[1],
     state: state !== undefined ? (state as GrantState) : undefined,
     outstanding,
+    /** When the grantor may reclaim the grant; 0 if it can't be reclaimed. */
+    reclaimableAt,
   };
 }
 

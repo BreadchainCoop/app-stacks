@@ -69,6 +69,7 @@ const ConditionalGrantPageContent = ({ id }: { id: string }) => {
               terms={terms}
               status={status}
               state={state}
+              reclaimableAt={conditionalGrant.reclaimableAt ?? BigInt(0)}
             />
           )}
         </div>
