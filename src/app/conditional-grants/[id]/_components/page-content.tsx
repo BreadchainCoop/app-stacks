@@ -44,7 +44,12 @@ const ConditionalGrantPageContent = ({ id }: { id: string }) => {
 
   return (
     <>
-      <GrantHeader id={id} role={role} state={state} />
+      <GrantHeader
+        id={id}
+        role={role}
+        state={state}
+        noDeadline={status?.payBackBy === BigInt(0)}
+      />
       {terms && status && state !== undefined && outstanding !== undefined ? (
         <div className="*:mb-4 last:mb-0 md:mb-6 md:last:mb-0">
           <GrantOverview

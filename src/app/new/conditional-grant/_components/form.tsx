@@ -4,16 +4,18 @@ import Input, { InputDescription } from "@/components/input";
 import { Label } from "@/components/label";
 import LocalButton from "@/components/button";
 import NumericInput from "@/components/numeric-input";
+import { Switch } from "@/components/switch";
 import { DEPOSIT_TOKEN } from "@/lib/deposit-token";
 import { earliestDeadlineDate } from "@/utils/time";
 import { Body, Heading3, Logo } from "@breadcoop/ui";
 import { MouseEventHandler, ReactNode } from "react";
-import { useFormContext } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
 import { ConditionalGrantFormSchemaData } from "./schema";
 
 const ConditionalGrantForm = ({ onContinue }: { onContinue: () => void }) => {
   const form = useFormContext<ConditionalGrantFormSchemaData>();
   const { errors } = form.formState;
+  const noDeadline = form.watch("noDeadline");
 
   const validate: MouseEventHandler<HTMLButtonElement> = async (e) => {
     e.preventDefault();
@@ -86,20 +88,45 @@ const ConditionalGrantForm = ({ onContinue }: { onContinue: () => void }) => {
           </Field>
           <Field>
             <Label htmlFor="payBackDays">Time to pay back</Label>
-            <InputDescription desc="Days the grantee has after accepting to pay back and earn the grant" />
-            <div className="relative">
-              <NumericInput
-                {...form.register("payBackDays", { valueAsNumber: true })}
-                id="payBackDays"
-                className="w-full pr-16"
+            <InputDescription
+              desc={
+                noDeadline
+                  ? "No deadline: the grantee can take as long as they need. You can set a deadline later, but it must be at least 30 days away."
+                  : "Days the grantee has after accepting to pay back and earn the grant"
+              }
+            />
+            <div className="flex items-center justify-between gap-4 py-1">
+              <Label htmlFor="noDeadline">No deadline</Label>
+              <Controller
+                control={form.control}
+                name="noDeadline"
+                render={({ field }) => (
+                  <Switch
+                    id="noDeadline"
+                    checked={field.value}
+                    onCheckedChange={(checked) => {
+                      field.onChange(checked);
+                      form.clearErrors("payBackDays");
+                    }}
+                  />
+                )}
               />
-              <Body
-                bold
-                className="absolute top-1/2 -translate-y-1/2 right-3 text-surface-grey"
-              >
-                Days
-              </Body>
             </div>
+            {!noDeadline && (
+              <div className="relative">
+                <NumericInput
+                  {...form.register("payBackDays", { valueAsNumber: true })}
+                  id="payBackDays"
+                  className="w-full pr-16"
+                />
+                <Body
+                  bold
+                  className="absolute top-1/2 -translate-y-1/2 right-3 text-surface-grey"
+                >
+                  Days
+                </Body>
+              </div>
+            )}
             <ErrorMessage msg={errors.payBackDays?.message} />
           </Field>
           <Field>

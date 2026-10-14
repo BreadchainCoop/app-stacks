@@ -60,9 +60,13 @@ const ConditionalGrantList = ({
               {
                 label: accepted ? "Pay back by" : "Offer open until",
                 icon: <CalendarIcon />,
-                value: formatShortDate(
-                  Number(accepted ? status.payBackBy : terms.acceptBy) * 1000
-                ),
+                value:
+                  accepted && status.payBackBy === BigInt(0)
+                    ? "No deadline"
+                    : formatShortDate(
+                        Number(accepted ? status.payBackBy : terms.acceptBy) *
+                          1000
+                      ),
               },
             ]}
           />

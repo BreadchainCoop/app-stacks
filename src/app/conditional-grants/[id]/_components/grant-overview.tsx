@@ -28,6 +28,7 @@ const GrantOverview = ({
   const percentage = paidBackPercent(status.paidBack, status.disbursed);
   // Past the deadline a countdown only reads "0 days"; the banner explains it
   const payingBack = state === GrantState.Active;
+  const noDeadline = status.payBackBy === BigInt(0);
 
   return (
     <section className="bg-paper-0 p-5 *:mb-4 last:mb-0">
@@ -63,10 +64,12 @@ const GrantOverview = ({
           <>
             <BreakdownRow label="Pay back by">
               <p className="text-h2 text-2xl leading-6 tracking-[-2%]">
-                {formatShortDate(Number(status.payBackBy) * 1000)}
+                {noDeadline
+                  ? "No deadline"
+                  : formatShortDate(Number(status.payBackBy) * 1000)}
               </p>
             </BreakdownRow>
-            {payingBack && (
+            {payingBack && !noDeadline && (
               <BreakdownRow label="Time left">
                 <Countdown targetSeconds={Number(status.payBackBy)} />
               </BreakdownRow>
@@ -81,8 +84,9 @@ const GrantOverview = ({
             </BreakdownRow>
             <BreakdownRow label="Time to pay back">
               <p>
-                {Number(terms.payBackPeriod / BigInt(86400))} days after
-                accepting
+                {terms.payBackPeriod === BigInt(0)
+                  ? "No deadline (the grantor can set one with 30 days' notice)"
+                  : `${Number(terms.payBackPeriod / BigInt(86400))} days after accepting`}
               </p>
             </BreakdownRow>
           </>

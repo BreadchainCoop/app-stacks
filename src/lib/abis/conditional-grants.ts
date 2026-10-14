@@ -6,6 +6,19 @@ export const conditionalGrantsAbi = [
   },
   {
     type: "function",
+    name: "DEADLINE_NOTICE_PERIOD",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "MAX_PAY_BACK_PERIOD",
     inputs: [],
     outputs: [
@@ -551,6 +564,24 @@ export const conditionalGrantsAbi = [
   },
   {
     type: "function",
+    name: "setPayBackBy",
+    inputs: [
+      {
+        name: "_id",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "_payBackBy",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "setTokenAllowed",
     inputs: [
       {
@@ -870,6 +901,25 @@ export const conditionalGrantsAbi = [
   {
     type: "event",
     name: "PayBackByExtended",
+    inputs: [
+      {
+        name: "id",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "payBackBy",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "PayBackBySet",
     inputs: [
       {
         name: "id",

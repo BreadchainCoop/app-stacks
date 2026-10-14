@@ -57,6 +57,7 @@ const ConditionalGrantOverviewForm = ({ onBack }: { onBack: () => void }) => {
   const grantee = form.watch("grantee");
   const acceptBy = form.watch("acceptBy");
   const payBackDays = form.watch("payBackDays");
+  const noDeadline = form.watch("noDeadline");
   const agreement = form.watch("agreement");
 
   const total = toAmount(advance) + toAmount(grant);
@@ -83,7 +84,10 @@ const ConditionalGrantOverviewForm = ({ onBack }: { onBack: () => void }) => {
       advance: advanceAmount,
       grant: grantAmount,
       acceptBy: acceptBySeconds,
-      payBackPeriod: BigInt(data.payBackDays) * SECONDS_PER_DAY,
+      // A period of 0 tells the contract there is no deadline
+      payBackPeriod: data.noDeadline
+        ? BigInt(0)
+        : BigInt(data.payBackDays ?? 0) * SECONDS_PER_DAY,
       termsHash: agreementHash(data.agreement),
     };
     const granteeAddress = data.grantee
@@ -153,9 +157,13 @@ const ConditionalGrantOverviewForm = ({ onBack }: { onBack: () => void }) => {
           RIcon={HourglassIcon}
           title="Time to pay back"
           body={
-            Number.isFinite(payBackDays) && payBackDays > 0
-              ? `${payBackDays} days`
-              : "-"
+            noDeadline
+              ? "No deadline"
+              : payBackDays !== undefined &&
+                  Number.isFinite(payBackDays) &&
+                  payBackDays > 0
+                ? `${payBackDays} days`
+                : "-"
           }
         />
         <ReviewedRow

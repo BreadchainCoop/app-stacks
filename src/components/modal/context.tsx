@@ -192,6 +192,7 @@ export type StackTxAction =
   | "payBack"
   | "releaseGrant"
   | "extendDeadline"
+  | "setDeadline"
   | "reclaimGrant"
   | "collect";
 

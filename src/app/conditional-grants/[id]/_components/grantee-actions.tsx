@@ -87,9 +87,10 @@ function AcceptGrant({
         <Heading3 className="text-2xl">Accept the offer</Heading3>
       </header>
       <Body className="text-surface-grey">
-        You receive {formatToken(terms.advance)} now with no interest. Pay it
-        back in full within {Number(terms.payBackPeriod / BigInt(86400))} days
-        to also receive the {formatToken(terms.grant)} grant.
+        You receive {formatToken(terms.advance)} now with no interest.{" "}
+        {terms.payBackPeriod === BigInt(0)
+          ? `There's no deadline: pay it back in full whenever you can to also receive the ${formatToken(terms.grant)} grant. The grantor can set a deadline later, but must give you at least 30 days.`
+          : `Pay it back in full within ${Number(terms.payBackPeriod / BigInt(86400))} days to also receive the ${formatToken(terms.grant)} grant.`}
       </Body>
       {needsAgreement && (
         <div className="flex flex-col gap-2">

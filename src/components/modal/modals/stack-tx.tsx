@@ -125,6 +125,15 @@ const ACTION_COPY: Record<
     successTitle: "Deadline extended",
     successMsg: "The new deadline is set",
   },
+  setDeadline: {
+    title: "Set a deadline?",
+    description:
+      "The grantee must pay back in full by this date to receive the grant. Once set, you can only move it later.",
+    confirmLabel: "Set deadline",
+    loadingTitle: "Setting deadline",
+    successTitle: "Deadline set",
+    successMsg: "The grantee has been given notice",
+  },
   reclaimGrant: {
     title: "Reclaim the grant?",
     description:

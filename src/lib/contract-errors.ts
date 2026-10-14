@@ -111,7 +111,7 @@ export const CONDITIONAL_GRANTS_ERRORS: Record<string, string> = {
   InvalidAdvance: "The advance must be greater than zero.",
   InvalidAcceptBy: "The offer deadline must be in the future.",
   InvalidPayBackPeriod:
-    "The pay-back deadline must be later than the current one.",
+    "The pay-back deadline must be later than the current one, and at least 30 days away when there was no deadline.",
   InvalidGrantee: "The grantee must be a valid address other than the grantor.",
   GranteeAlreadySet: "This conditional grant already has a grantee.",
 

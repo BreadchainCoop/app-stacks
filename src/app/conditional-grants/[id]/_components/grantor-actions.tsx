@@ -45,7 +45,12 @@ const GrantorActions = ({
     state === GrantState.Offered && status.grantee === zeroAddress;
   const canCancel =
     state === GrantState.Offered || state === GrantState.Expired;
-  const canExtend = state === GrantState.Active || state === GrantState.Overdue;
+  // An open-ended grant has no deadline (payBackBy 0) until the grantor sets
+  // one, which the contract requires to be at least 30 days away.
+  const openEnded = status.payBackBy === BigInt(0);
+  const canSetDeadline = state === GrantState.Active && openEnded;
+  const canExtend =
+    (state === GrantState.Active || state === GrantState.Overdue) && !openEnded;
   const canCollect = status.grantorOwed > BigInt(0);
   // The contract opens reclaiming 7 days after the deadline (or 90 days after
   // pay-back for a grant nobody released); before that, show when it opens.
@@ -62,6 +67,7 @@ const GrantorActions = ({
     !canSetGrantee &&
     !canCancel &&
     !canExtend &&
+    !canSetDeadline &&
     !canReclaim &&
     !reclaimOpensLater &&
     !canCollect
@@ -81,9 +87,17 @@ const GrantorActions = ({
     newPayBackBy !== undefined &&
     newPayBackBy > status.payBackBy &&
     newPayBackBy > BigInt(Math.floor(now / 1000));
+  const setDeadlineValid =
+    newPayBackBy !== undefined &&
+    newPayBackBy >= BigInt(Math.floor(now / 1000)) + DEADLINE_NOTICE_SECONDS;
 
   const confirm = (
-    action: "setGrantee" | "cancelGrant" | "extendDeadline" | "reclaimGrant",
+    action:
+      | "setGrantee"
+      | "cancelGrant"
+      | "extendDeadline"
+      | "setDeadline"
+      | "reclaimGrant",
     run: () => Promise<void>,
     amount?: bigint
   ) =>
@@ -188,6 +202,35 @@ const GrantorActions = ({
         </Action>
       )}
 
+      {canSetDeadline && (
+        <Action note="There's no deadline yet. You can set one, at least 30 days from now. If the advance isn't paid back by then, you can take the grant back 7 days later.">
+          <Input
+            value={extendInput}
+            onChange={(e) => setExtendInput(e.target.value)}
+            type="date"
+            min={earliestDeadlineDate(31)}
+            className="w-full"
+          />
+          <LocalButton
+            variant="secondary"
+            className="w-full font-bold"
+            disabled={!setDeadlineValid}
+            onClick={() =>
+              confirm("setDeadline", () =>
+                runConditionalGrantAction({
+                  action: "setDeadline",
+                  functionName: "setPayBackBy",
+                  args: [grantId, newPayBackBy!],
+                  errors: CONDITIONAL_GRANT_GRANTOR_ERRORS,
+                })
+              )
+            }
+          >
+            Set deadline
+          </LocalButton>
+        </Action>
+      )}
+
       {reclaimOpensLater && (
         <Action
           note={`If the advance still isn't paid back, you can take the grant back from ${formatShortDate(Number(reclaimableAt) * 1000)}, 7 days after the deadline.`}
@@ -259,6 +302,9 @@ function Action({ note, children }: { note: string; children?: ReactNode }) {
     </div>
   );
 }
+
+// The contract's DEADLINE_NOTICE_PERIOD
+const DEADLINE_NOTICE_SECONDS = BigInt(30 * 86400);
 
 const formatToken = (amount: bigint) =>
   `${formatBalance(+formatDepositAmount(amount), 2)} ${DEPOSIT_TOKEN.symbol}`;

@@ -42,7 +42,7 @@ function CopyGrantLink({ id }: { id: string }) {
   );
 }
 
-function stateAlert(state: GrantState, role: GrantRole) {
+function stateAlert(state: GrantState, role: GrantRole, noDeadline: boolean) {
   switch (state) {
     case GrantState.Offered:
       return {
@@ -66,8 +66,9 @@ function stateAlert(state: GrantState, role: GrantRole) {
     case GrantState.Active:
       return {
         title: "Paying back the advance",
-        description:
-          "Pay back the full advance before the deadline to unlock the grant. Pay any amount whenever you like until then.",
+        description: noDeadline
+          ? "There's no deadline. Pay any amount whenever you like; once the full advance is paid back, the grant unlocks. The grantor can set a deadline, but only at least 30 days out."
+          : "Pay back the full advance before the deadline to unlock the grant. Pay any amount whenever you like until then.",
       };
     case GrantState.Overdue:
       return {
@@ -102,12 +103,15 @@ const GrantHeader = ({
   id,
   role,
   state,
+  noDeadline,
 }: {
   id: string;
   role: GrantRole;
   state: GrantState | undefined;
+  noDeadline: boolean;
 }) => {
-  const alert = state !== undefined ? stateAlert(state, role) : null;
+  const alert =
+    state !== undefined ? stateAlert(state, role, noDeadline) : null;
 
   return (
     <header className="flex flex-col mb-3.5 md:mb-6">
