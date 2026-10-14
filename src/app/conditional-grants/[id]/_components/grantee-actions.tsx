@@ -87,9 +87,9 @@ function AcceptGrant({
         <Heading3 className="text-2xl">Accept the offer</Heading3>
       </header>
       <Body className="text-surface-grey">
-        You receive {formatToken(terms.advance)} now with no interest. Pay back
-        it in full within {Number(terms.payBackPeriod / BigInt(86400))} days to
-        also receive the {formatToken(terms.grant)} grant.
+        You receive {formatToken(terms.advance)} now with no interest. Pay it
+        back in full within {Number(terms.payBackPeriod / BigInt(86400))} days
+        to also receive the {formatToken(terms.grant)} grant.
       </Body>
       {needsAgreement && (
         <div className="flex flex-col gap-2">
@@ -175,7 +175,8 @@ function PayBackAdvance({
         <Heading3 className="text-2xl">Pay back</Heading3>
       </header>
       <Body className="text-surface-grey">
-        You still owe {formatToken(outstanding)}. Pay any amount, any time.
+        You still owe {formatToken(outstanding)}. Pay any amount whenever you
+        like before the deadline to keep the grant.
       </Body>
       <div className="flex flex-col gap-2">
         <div className="relative">

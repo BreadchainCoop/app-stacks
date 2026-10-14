@@ -26,8 +26,8 @@ const GrantOverview = ({
 }) => {
   const accepted = status.acceptedAt > BigInt(0);
   const percentage = paidBackPercent(status.paidBack, status.disbursed);
-  const payingBack =
-    state === GrantState.Active || state === GrantState.Overdue;
+  // Past the deadline a countdown only reads "0 days"; the banner explains it
+  const payingBack = state === GrantState.Active;
 
   return (
     <section className="bg-paper-0 p-5 *:mb-4 last:mb-0">
