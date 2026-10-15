@@ -66,6 +66,7 @@ const ConditionalGrantPageContent = ({ id }: { id: string }) => {
               terms={terms}
               state={state}
               outstanding={outstanding}
+              noDeadline={status.payBackBy === BigInt(0)}
             />
           )}
           {role === "grantor" && (

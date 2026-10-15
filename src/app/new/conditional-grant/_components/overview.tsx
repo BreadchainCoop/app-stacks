@@ -188,8 +188,9 @@ const ConditionalGrantOverviewForm = ({ onBack }: { onBack: () => void }) => {
           full refund until the grantee accepts.
         </Body>
         <Body className="text-xs text-surface-grey-2">
-          The advance has no interest. If the grantee is late, you can give more
-          time or take the grant back.
+          {noDeadline
+            ? "The advance has no interest and no deadline. You can set a deadline later with at least 30 days' notice; until then the grant can't be taken back."
+            : "The advance has no interest. If the grantee is late, you can give more time or take the grant back."}
         </Body>
       </div>
       <div className="flex flex-col gap-4">

@@ -26,11 +26,14 @@ const GranteeActions = ({
   terms,
   state,
   outstanding,
+  noDeadline,
 }: {
   grantId: bigint;
   terms: GrantTerms;
   state: GrantState;
   outstanding: bigint;
+  /** Open-ended grant with no deadline set yet */
+  noDeadline: boolean;
 }) => {
   if (state === GrantState.Offered) {
     return <AcceptGrant grantId={grantId} terms={terms} />;
@@ -42,6 +45,7 @@ const GranteeActions = ({
         grantId={grantId}
         terms={terms}
         outstanding={outstanding}
+        noDeadline={noDeadline}
       />
     );
   }
@@ -132,10 +136,12 @@ function PayBackAdvance({
   grantId,
   terms,
   outstanding,
+  noDeadline,
 }: {
   grantId: bigint;
   terms: GrantTerms;
   outstanding: bigint;
+  noDeadline: boolean;
 }) {
   const { setModal } = useModal();
   const { runConditionalGrantAction, balance } = useConditionalGrantAction(
@@ -176,8 +182,10 @@ function PayBackAdvance({
         <Heading3 className="text-2xl">Pay back</Heading3>
       </header>
       <Body className="text-surface-grey">
-        You still owe {formatToken(outstanding)}. Pay any amount whenever you
-        like before the deadline to keep the grant.
+        You still owe {formatToken(outstanding)}.{" "}
+        {noDeadline
+          ? "Pay any amount whenever you like. There's no deadline, so the grant is yours once it's all paid back."
+          : "Pay any amount whenever you like before the deadline to keep the grant."}
       </Body>
       <div className="flex flex-col gap-2">
         <div className="relative">
