@@ -37,8 +37,10 @@ branch without a redirect. That fallback lives in
 
 **The pairing is split across two sites.** The web site (`stacks.bread.coop`)
 configures only the Privy chain, and the mini site (`mini.stacks.bread.coop`)
-only Celo; dev mirrors this on `development.` and `mini-development.`. Both build
-the same branch against the same Supabase project. A Celo link that reaches the
+only Celo; dev mirrors this on `development.` and `mini-development.`. The mini
+site builds the `mini` / `mini-development` branches, which
+`.github/workflows/sync-mini-branches.yml` mirrors from `main` / `development`
+on every push, so both run the same code against the same Supabase project. A Celo link that reaches the
 web site, such as one shared before the split, would otherwise fall back to the
 web site's chain and open an unrelated stack with the same id. So each site
 redirects a `?chain=` it doesn't configure to that chain's site, as listed in
