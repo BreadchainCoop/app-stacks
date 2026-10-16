@@ -156,7 +156,7 @@ Do not edit anything under `contracts/lib/**`.
 - All env vars are Zod-validated at load: client vars in `src/lib/env.ts` (`clientEnv`),
   server-only vars in `src/lib/envs/server.ts` (`serverEnv`). The app throws on startup if
   anything required is missing.
-- **One deployment serves every configured chain.** `NEXT_PUBLIC_CHAINS` is a JSON map
+- **A deployment serves every chain it configures.** `NEXT_PUBLIC_CHAINS` is a JSON map
   keyed by chain id holding that chain's contracts and deposit token
   (`src/lib/envs/chain-schema.ts`). Every configured chain must also have a slug in
   `CHAIN_SLUGS` (`src/lib/chain-slugs.ts`) or the app refuses to boot.
@@ -185,6 +185,15 @@ Do not edit anything under `contracts/lib/**`.
   style choice — writes are impossible either way (gas sponsorship is Gnosis-only in
   `providers/tx-sender.tsx`, the CIP-64 fee currency exists only in the MiniPay sender,
   and MiniPay has no message signing).
+- **Each tier runs the pairing as two sites**: the web site (`stacks.bread.coop` in prod,
+  `development.stacks.bread.coop` in dev) configures only the Privy chain, and the mini
+  site (`mini.` / `mini-development.`) only Celo. Both build the same branch against
+  the same Supabase project; only their env differs. `CHAIN_SITES`
+  (`src/lib/chain-sites.ts`) names the site for each chain. A request whose `?chain=`
+  names a chain this site doesn't configure is redirected to that chain's site
+  (`next.config.ts`), so a link shared before the split still opens the right stack
+  instead of falling back to this site's default chain. A deployment that configures
+  several chains, or a chain with no entry like local, gets no redirect for them.
 - Route handlers can't use hooks, so they take the chain from the request and resolve it
   with `resolveChainId` (`src/lib/envs/server-chains.ts`). The same value must feed both
   the on-chain authorization check and the database query — checking one chain and

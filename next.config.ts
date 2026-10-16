@@ -1,4 +1,24 @@
 import type { NextConfig } from "next";
+import { CHAIN_PARAM, chainSlug } from "./src/lib/chain-slugs";
+import { CHAIN_SITES } from "./src/lib/chain-sites";
+import { isConfiguredChain } from "./src/lib/configured-chains";
+
+// A `?chain=` link for a chain another site serves (a Celo link shared before
+// Celo moved to the mini site, say) goes to that site. Left alone, a chain this
+// deployment doesn't configure falls back to its default chain
+// (providers/index.tsx) and opens an unrelated stack with the same id. Chains
+// served here are skipped, so a site never redirects to itself.
+const chainSiteRedirects = Object.entries(CHAIN_SITES)
+  .map(([chainId, origin]) => [Number(chainId), origin] as const)
+  .filter(([chainId]) => !isConfiguredChain(chainId))
+  .map(([chainId, origin]) => ({
+    source: "/:path*",
+    has: [
+      { type: "query" as const, key: CHAIN_PARAM, value: chainSlug(chainId) },
+    ],
+    destination: `${origin}/:path*`,
+    permanent: false,
+  }));
 
 const nextConfig: NextConfig = {
   experimental: {
@@ -14,6 +34,7 @@ const nextConfig: NextConfig = {
         destination: "/account",
         permanent: true,
       },
+      ...chainSiteRedirects,
     ];
   },
   webpack: (config) => {
