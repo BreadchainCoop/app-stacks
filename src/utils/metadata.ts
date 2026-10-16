@@ -1,4 +1,5 @@
 import { Metadata, Viewport } from "next";
+import { CHAIN_SITES } from "@/lib/chain-sites";
 
 interface MetadataConfig {
   title?: string;
@@ -17,7 +18,11 @@ interface MetadataConfig {
 }
 
 const SITE_NAME = "Stacks - Bread Cooperative";
-const BASE_URL = "https://stacks.bread.coop";
+// Each site's own origin, so a mini-site link previews as the mini site. A
+// deployment's default chain is one it serves, so its site is this one.
+const BASE_URL =
+  CHAIN_SITES[Number(process.env.NEXT_PUBLIC_CHAIN_ID)] ??
+  "https://stacks.bread.coop";
 const DEFAULT_OG_IMAGE_VERSION = "v1";
 
 const defaultConfig: Omit<MetadataConfig, "ogImageVersion"> = {

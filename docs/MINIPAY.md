@@ -35,9 +35,15 @@ configured Celo chain — so a MiniPay user landing on a bare path gets the Celo
 branch without a redirect. That fallback lives in
 `src/components/providers/index.tsx`; there is no middleware.
 
-Because of the pairing, **`NEXT_PUBLIC_CHAINS` must configure Celo on the same
-deployment the web build uses**. Otherwise a Celo link can't resolve and the
-guard can never explain why.
+**The pairing is split across two sites.** The web site (`stacks.bread.coop`)
+configures only the Privy chain, and the mini site (`mini.stacks.bread.coop`)
+only Celo; dev mirrors this on `development.` and `mini-development.`. Both build
+the same branch against the same Supabase project. A Celo link that reaches the
+web site, such as one shared before the split, would otherwise fall back to the
+web site's chain and open an unrelated stack with the same id. So each site
+redirects a `?chain=` it doesn't configure to that chain's site, as listed in
+`CHAIN_SITES` (`src/lib/chain-sites.ts`; see
+[ARCHITECTURE.md](./ARCHITECTURE.md)).
 
 Detection is seeded server-side from the user agent (`isServerMiniPay()`), so
 SSR and the first client render agree, then confirmed against
@@ -125,12 +131,10 @@ Form: <https://developer.minipay.to/mini-app-listing>
       <br>All three render from `LINKS` via `src/components/legal-links.tsx`,
       which shows only the entries that have a value — set them in
       `src/constants/links.ts` and they appear under the footer on every page.
-- [ ] App name, tagline, publisher, category, production App URL. Prefer a URL that
-      names the chain (`…/?chain=celo`): a bare URL works, since the fallback sends
-      MiniPay's user agent to Celo, but that relies on `isMiniPayUserAgent`
-      (`src/utils/minipay.ts`) matching. If MiniPay's UA ever drops the token, a bare URL
-      lands on the default chain and `ChainBrowserGuard` tells the user to open it in a
-      browser — inside MiniPay.
+- [ ] App name, tagline, publisher, category, production App URL: the mini site,
+      `https://mini.stacks.bread.coop`, not `stacks.bread.coop`. A bare URL is fine
+      there: the mini site configures only Celo, so it lands on Celo even if MiniPay's
+      user agent stops matching `isMiniPayUserAgent` (`src/utils/minipay.ts`).
 - [ ] Contracts verified on Celoscan + one sample transaction link per
       user-facing method (deployment now lives in the `saving-circles` repo —
       record the deployed addresses here)
