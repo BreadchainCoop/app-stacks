@@ -84,7 +84,7 @@ const ACTION_COPY: Record<
   cancelGrant: {
     title: "Cancel this offer?",
     description:
-      "Cancelling is permanent. The advance, the grant and any yield come back to you.",
+      "Cancelling is permanent. The advance and the grant come back to you.",
     confirmLabel: "Cancel offer",
     loadingTitle: "Cancelling",
     successTitle: "Offer cancelled",

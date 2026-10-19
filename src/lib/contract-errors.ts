@@ -107,7 +107,6 @@ export const GOAL_SAVINGS_ERRORS: Record<string, string> = {
 export const CONDITIONAL_GRANTS_ERRORS: Record<string, string> = {
   // ── Configuration ─────────────────────────────────────────────────
   TokenNotAllowed: "This token is not allowed for conditional grants.",
-  InvalidVault: "This yield vault is not allowed for conditional grants.",
   InvalidAdvance: "The advance must be greater than zero.",
   InvalidAcceptBy: "The offer deadline must be in the future.",
   InvalidPayBackPeriod:
@@ -250,7 +249,6 @@ export const GOAL_CANCEL_ERRORS: Record<string, string> = pick(
 export const CONDITIONAL_GRANT_CREATE_ERRORS: Record<string, string> = pick(
   [
     "TokenNotAllowed",
-    "InvalidVault",
     "InvalidAdvance",
     "InvalidAcceptBy",
     "InvalidPayBackPeriod",

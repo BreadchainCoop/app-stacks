@@ -25,7 +25,7 @@ const GrantOverview = ({
   outstanding: bigint;
 }) => {
   const accepted = status.acceptedAt > BigInt(0);
-  const percentage = paidBackPercent(status.paidBack, status.disbursed);
+  const percentage = paidBackPercent(status.paidBack, terms.advance);
   // Past the deadline a countdown only reads "0 days"; the banner explains it
   const payingBack = state === GrantState.Active;
   const noDeadline = status.payBackBy === BigInt(0);

@@ -118,7 +118,7 @@ const GrantorActions = ({
 
       {canCollect && (
         <Action
-          note={`${formatToken(status.grantorOwed)} in payments and yield is ready for you.`}
+          note={`${formatToken(status.grantorOwed)} in payments is ready for you.`}
         >
           <LocalButton
             variant="positive"
@@ -268,7 +268,7 @@ const GrantorActions = ({
       )}
 
       {canCancel && (
-        <Action note="Cancelling returns the advance, the grant and any yield to you. It can't be undone.">
+        <Action note="Cancelling returns the advance and the grant to you. It can't be undone.">
           <LocalButton
             variant="destructive"
             className="w-full font-bold"

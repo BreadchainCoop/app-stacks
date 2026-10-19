@@ -80,7 +80,6 @@ const ConditionalGrantOverviewForm = ({ onBack }: { onBack: () => void }) => {
     const grantAmount = toAmount(data.grant);
     const terms = {
       token: DEPOSIT_TOKEN.address,
-      vault: zeroAddress,
       advance: advanceAmount,
       grant: grantAmount,
       acceptBy: acceptBySeconds,

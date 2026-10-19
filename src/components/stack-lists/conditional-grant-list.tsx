@@ -45,7 +45,7 @@ const ConditionalGrantList = ({
             href={stackTypeDetailPath("conditionalGrant", id)}
             name={isGrantor ? `Grant ${id} (given)` : `Grant ${id} (received)`}
             id={id.toString()}
-            progress={paidBackPercent(status.paidBack, status.disbursed)}
+            progress={paidBackPercent(status.paidBack, terms.advance)}
             progressLabel="Paid back"
             chip={{
               label: GRANT_STATE_LABELS[state],

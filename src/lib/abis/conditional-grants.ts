@@ -115,11 +115,6 @@ export const conditionalGrantsAbi = [
             internalType: "address",
           },
           {
-            name: "vault",
-            type: "address",
-            internalType: "address",
-          },
-          {
             name: "advance",
             type: "uint256",
             internalType: "uint256",
@@ -163,25 +158,6 @@ export const conditionalGrantsAbi = [
   },
   {
     type: "function",
-    name: "escrowValue",
-    inputs: [
-      {
-        name: "_id",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [
-      {
-        name: "_amount",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "extendPayBackBy",
     inputs: [
       {
@@ -216,11 +192,6 @@ export const conditionalGrantsAbi = [
         components: [
           {
             name: "token",
-            type: "address",
-            internalType: "address",
-          },
-          {
-            name: "vault",
             type: "address",
             internalType: "address",
           },
@@ -273,11 +244,6 @@ export const conditionalGrantsAbi = [
           },
           {
             name: "payBackBy",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "disbursed",
             type: "uint256",
             internalType: "uint256",
           },
@@ -397,25 +363,6 @@ export const conditionalGrantsAbi = [
     inputs: [
       {
         name: "_token",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "_allowed",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "isVaultAllowed",
-    inputs: [
-      {
-        name: "_vault",
         type: "address",
         internalType: "address",
       },
@@ -600,24 +547,6 @@ export const conditionalGrantsAbi = [
   },
   {
     type: "function",
-    name: "setVaultAllowed",
-    inputs: [
-      {
-        name: "_vault",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "_allowed",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
     name: "transferOwnership",
     inputs: [
       {
@@ -677,7 +606,7 @@ export const conditionalGrantsAbi = [
         internalType: "address",
       },
       {
-        name: "disbursed",
+        name: "advance",
         type: "uint256",
         indexed: false,
         internalType: "uint256",
@@ -740,11 +669,6 @@ export const conditionalGrantsAbi = [
         components: [
           {
             name: "token",
-            type: "address",
-            internalType: "address",
-          },
-          {
-            name: "vault",
             type: "address",
             internalType: "address",
           },
@@ -956,44 +880,6 @@ export const conditionalGrantsAbi = [
     anonymous: false,
   },
   {
-    type: "event",
-    name: "VaultAllowed",
-    inputs: [
-      {
-        name: "vault",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "allowed",
-        type: "bool",
-        indexed: true,
-        internalType: "bool",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "YieldCredited",
-    inputs: [
-      {
-        name: "id",
-        type: "uint256",
-        indexed: true,
-        internalType: "uint256",
-      },
-      {
-        name: "amount",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-    ],
-    anonymous: false,
-  },
-  {
     type: "error",
     name: "GrantNotFound",
     inputs: [],
@@ -1036,11 +922,6 @@ export const conditionalGrantsAbi = [
   {
     type: "error",
     name: "InvalidState",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "InvalidVault",
     inputs: [],
   },
   {

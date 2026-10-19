@@ -55,8 +55,8 @@ export function canPayBack(state: GrantState, outstanding: bigint) {
 }
 
 /** Payment progress in percent (0-100, two decimals) for an advance. */
-export function paidBackPercent(paidBack: bigint, disbursed: bigint): number {
-  if (disbursed === BigInt(0)) return 0;
-  if (paidBack >= disbursed) return 100;
-  return Number((paidBack * BigInt(10000)) / disbursed) / 100;
+export function paidBackPercent(paidBack: bigint, advance: bigint): number {
+  if (advance === BigInt(0)) return 0;
+  if (paidBack >= advance) return 100;
+  return Number((paidBack * BigInt(10000)) / advance) / 100;
 }
