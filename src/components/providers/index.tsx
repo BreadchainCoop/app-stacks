@@ -5,8 +5,13 @@ import { ReactNode, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { isMiniPayBrowser } from "@/utils/minipay";
+import { isNimiqPayBrowser } from "@/utils/nimiq-pay";
 import { isCeloChain } from "@/utils/celo";
-import { IsMiniPayBrowserProvider, IsMiniPayProvider } from "./is-minipay";
+import {
+  IsMiniPayBrowserProvider,
+  WalletHost,
+  WalletHostProvider,
+} from "./is-minipay";
 import { ActiveChainProvider } from "./active-chain";
 import ChainBrowserGuard from "../chain-browser-guard";
 import { CHAIN_PARAM, chainIdFromSlug } from "@/lib/chain-slugs";
@@ -40,11 +45,15 @@ const browserChainId = (miniPay: boolean): number => {
 };
 
 // Only one of these stacks ever mounts, so each is code-split: a MiniPay user
-// never downloads Privy/RainbowKit, and the web build never downloads the
-// MiniPay wagmi config. Both still render on the server (the UA hint below
-// picks the branch), so the initial HTML is unaffected.
+// never downloads Privy, and the web build never downloads either wallet
+// host's wagmi config. MiniPay and Privy still render on the server (the UA
+// hint below picks the branch), so the initial HTML is unaffected. Nimiq Pay
+// has no such hint yet, so its users still load Privy for the first render.
 const MiniPayProviders = dynamic(() =>
   import("./minipay").then((m) => m.MiniPayProviders)
+);
+const NimiqPayProviders = dynamic(() =>
+  import("./nimiq-pay").then((m) => m.NimiqPayProviders)
 );
 const PrivyProviders = dynamic(() => import("./privy"));
 
@@ -61,6 +70,16 @@ const Providers = ({
   // window.ethereum.isMiniPay flag is authoritative and corrects the hint
   // after mount (MiniPay's UA and injected flag agree in practice).
   const [miniPay, setMiniPay] = useState(isMiniPay);
+  // No server-side hint for Nimiq Pay yet — whether its user agent identifies
+  // it is unverified — so the server and first client render take the Privy
+  // branch, and this switches the stack right after hydration.
+  // window.nimiqPay is injected before page scripts run, so one check is
+  // conclusive.
+  const [nimiqPay, setNimiqPay] = useState(false);
+
+  useEffect(() => {
+    setNimiqPay(isNimiqPayBrowser());
+  }, []);
 
   // Read here rather than passed down from the layout: a layout can't see
   // searchParams, but this is a client component and every route is dynamic
@@ -100,20 +119,29 @@ const Providers = ({
 
   // The MiniPay stack only makes sense on a Celo chain; a Gnosis URL opened
   // inside MiniPay's browser keeps the Privy stack and hits the guard below.
-  const useMiniPayStack = miniPay && isCeloChain(chainId);
+  // Nimiq Pay is the reverse: its wallet serves the non-Celo chains, and a
+  // Celo URL opened in it hits the guard ("Open this in MiniPay").
+  const walletHost: WalletHost =
+    miniPay && isCeloChain(chainId)
+      ? "minipay"
+      : nimiqPay && !isCeloChain(chainId)
+        ? "nimiqpay"
+        : "privy";
 
   return (
     <ActiveChainProvider chainId={chainId}>
       <IsMiniPayBrowserProvider value={miniPay}>
-        <IsMiniPayProvider value={useMiniPayStack}>
+        <WalletHostProvider value={walletHost}>
           <ChainBrowserGuard>
-            {useMiniPayStack ? (
+            {walletHost === "minipay" ? (
               <MiniPayProviders>{children}</MiniPayProviders>
+            ) : walletHost === "nimiqpay" ? (
+              <NimiqPayProviders>{children}</NimiqPayProviders>
             ) : (
               <PrivyProviders isMobile={isMobile}>{children}</PrivyProviders>
             )}
           </ChainBrowserGuard>
-        </IsMiniPayProvider>
+        </WalletHostProvider>
       </IsMiniPayBrowserProvider>
     </ActiveChainProvider>
   );

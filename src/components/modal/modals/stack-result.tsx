@@ -18,7 +18,6 @@ import {
 import Link from "next/link";
 import LocalButton from "@/components/button";
 import { useEffect, useRef, useState } from "react";
-import { usePrivy } from "@privy-io/react-auth";
 import { shortenUrl } from "@/utils/shorten";
 import AddMembersCard from "@/components/add-members/add-members-card";
 import {
@@ -36,9 +35,9 @@ export function buildInviteUrl(baseUrl: string, circleId: string): string {
 }
 
 /**
- * MiniPay cannot mount Privy (whose hooks the invite-link variant needs), and
- * its owners add members directly via the signing-free addMembers contract
- * call instead of sharing a join link.
+ * MiniPay owners add members directly via the signing-free addMembers contract
+ * call instead of sharing a join link. Everyone else — Privy and Nimiq Pay —
+ * gets the invite link.
  */
 export const StackSuccessResultModal = ({
   modalState,
@@ -51,7 +50,7 @@ export const StackSuccessResultModal = ({
     return <MiniPayStackSuccessModal modalState={modalState} />;
   }
 
-  return <PrivyStackSuccessModal modalState={modalState} />;
+  return <InviteLinkStackSuccessModal modalState={modalState} />;
 };
 
 const MiniPayStackSuccessModal = ({
@@ -123,12 +122,12 @@ const MiniPayStackSuccessModal = ({
   );
 };
 
-const PrivyStackSuccessModal = ({
+const InviteLinkStackSuccessModal = ({
   modalState,
 }: {
   modalState: StackInitSuccessModalState;
 }) => {
-  const { user: privyUser } = usePrivy();
+  const { userId } = useUserIdentity();
   const modal = useModal();
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -162,7 +161,7 @@ const PrivyStackSuccessModal = ({
           id: modalState.circle.id,
           stackname: modalState.circle.name,
           expected_members: modalState.circle.members,
-          privyUserId: privyUser?.id,
+          privyUserId: userId,
           chainId,
         }),
       });

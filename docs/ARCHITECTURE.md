@@ -64,18 +64,21 @@ The frontend is a Next.js App Router application that orchestrates both.
 - `api/user` — look up a user by Privy id.
 - `api/shorten` — invite-link shortening (spoo.me + Upstash Redis).
 
-(Not exhaustive — `api/stacks/*`, `api/profile`, `api/minipay/session` and
-`api/funding/sepolia-embedded` also exist.)
+(Not exhaustive — `api/stacks/*`, `api/profile`, `api/minipay/session`,
+`api/nimiq-pay/nonce`, `api/nimiq-pay/session` and `api/funding/sepolia-embedded` also
+exist.)
 
 ### Provider stack (`src/components/providers/index.tsx`)
 
-The chain is resolved first, then exactly one of two wallet stacks mounts
-(`next/dynamic`, so a client downloads only the one it uses):
+The chain is resolved first, then exactly one of three wallet stacks mounts
+(`next/dynamic`, so a client downloads only the one it uses). Which one is the **wallet
+host**, published as `useWalletHost()`: `"privy"`, `"minipay"` or `"nimiqpay"`.
 
 ```text
 ActiveChainProvider          the active chain, from ?chain= or the browser
   IsMiniPayBrowserProvider   is the *browser* MiniPay (regardless of chain)
-    IsMiniPayProvider        did the MiniPay *stack* mount (browser AND Celo)
+    WalletHostProvider       which stack mounted: MiniPay (browser AND Celo),
+                             Nimiq Pay (browser AND not Celo), else Privy
       ChainBrowserGuard      stops here if chain and browser don't pair
         │
         ├── MiniPayProviders ─ QueryClientProvider → WagmiProvider (injected)
@@ -84,6 +87,12 @@ ActiveChainProvider          the active chain, from ?chain= or the browser
         │                      → MiniPayAutoConnect → ModalProvider
         │                      → MiniPayIdentityProvider → MiniPayTxSenderProvider
         │
+        ├── NimiqPayProviders  QueryClientProvider → WagmiProvider (injected)
+        │                      → RainbowKitProvider → SupabaseProvider
+        │                      → BreadUIKitProvider → ConnectedUserProvider
+        │                      → SepoliaAutoFund → ModalProvider
+        │                      → NimiqPayIdentityProvider → NimiqPayTxSenderProvider
+        │
         └── PrivyProviders ─── PrivyProvider → SupabaseProvider → Web3Provider
                                → BreadUIKitProvider → ConnectedUserProvider
                                → SepoliaAutoFund → ModalProvider
@@ -91,18 +100,22 @@ ActiveChainProvider          the active chain, from ?chain= or the browser
                                → OnboardVisitorTracker, LoginTracker
 ```
 
+MiniPay and Nimiq Pay are covered in [MINIPAY.md](./MINIPAY.md) and
+[NIMIQ-PAY.md](./NIMIQ-PAY.md).
+
 Two consequences worth knowing:
 
 - `ModalProvider` lives **inside** each stack, so anything calling `useModal()` must be
   below one. The `ModalPresenter` / `Navbar` / banner / `main` / `Footer` shell is passed
   in as `children`, which is why it satisfies that.
-- `ChainBrowserGuard` sits **above** both stacks, so when it triggers the entire shell —
+- `ChainBrowserGuard` sits **above** the stacks, so when it triggers the entire shell —
   navbar, banner, page — is replaced by the instruction screen. It therefore cannot use
-  anything from either stack, only `useActiveChainId()` and `useIsMiniPayBrowser()`.
+  anything from any stack, only `useActiveChainId()` and `useIsMiniPayBrowser()`.
 - A component that is Privy-only must not simply be mounted in the shared shell: it will
-  render inside the MiniPay stack too, where there is no `PrivyProvider`. Gate it on
-  `useIsMiniPay()` in a wrapper so the Privy hooks are never called — see
-  `src/components/migrate-and-transfer-banner.tsx`.
+  render inside the MiniPay and Nimiq Pay stacks too, where there is no `PrivyProvider`.
+  Gate it on `useWalletHost() === "privy"` in a wrapper so the Privy hooks are never
+  called — see `src/components/migrate-and-transfer-banner.tsx`. Not on
+  `!useIsMiniPay()`, which is also true in Nimiq Pay.
 
 Anything that needs the wallet, Supabase session, or UI-kit context must render inside
 these providers.

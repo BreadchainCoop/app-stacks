@@ -1,5 +1,5 @@
-import { Redis } from "@upstash/redis";
 import { serverEnv } from "@/lib/envs/server";
+import { redis } from "@/lib/redis";
 import {
   CachedShortUrl,
   SpooMeListResponse,
@@ -10,10 +10,6 @@ import {
 
 const URL_PROTOCOLS = ["http://", "https://"] as const;
 
-const redis = new Redis({
-  url: serverEnv.UPSTASH_REDIS_REST_URL,
-  token: serverEnv.UPSTASH_REDIS_REST_TOKEN,
-});
 const CACHE_TTL = 30 * 24 * 60 * 60; // 30 days
 const EXPANDED_CACHE_TTL = 10 * 24 * 60 * 60; // 10 days
 

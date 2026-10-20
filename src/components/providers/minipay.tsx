@@ -26,6 +26,7 @@ import { TxSender, TxSenderProvider } from "./tx-sender";
 import { UserIdentityProvider } from "./user-identity";
 import { isMiniPayBrowser, minipayUserId } from "@/utils/minipay";
 import { getFeeCurrency } from "@/utils/celo";
+import { isTokenExpired } from "@/utils/jwt";
 import { useActiveChainId, useDepositToken } from "./active-chain";
 
 // MiniPay provider stack: no Privy (MiniPay *is* the wallet), no RainbowKit.
@@ -102,17 +103,6 @@ const MiniPayTxSenderProvider = ({ children }: { children: ReactNode }) => {
   );
 
   return <TxSenderProvider value={sender}>{children}</TxSenderProvider>;
-};
-
-const isTokenExpired = (token: string): boolean => {
-  try {
-    // JWT segments are base64url ("-"/"_", no padding); atob wants base64
-    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
-    const { exp } = JSON.parse(atob(base64)) as { exp?: number };
-    return typeof exp !== "number" || Date.now() / 1000 > exp - 60;
-  } catch {
-    return true;
-  }
 };
 
 /**
