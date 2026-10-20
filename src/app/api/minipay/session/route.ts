@@ -1,15 +1,10 @@
 import { serverEnv } from "@/lib/envs/server";
-import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
-import { getAddress, isAddress } from "viem";
+import { isAddress } from "viem";
 import { createErrorResponse } from "../../utils";
 import { minipayUserId } from "@/utils/minipay";
-import { mintMiniPaySessionToken } from "../auth";
-
-const supabaseAdmin = createClient(
-  serverEnv.NEXT_PUBLIC_SUPABASE_URL,
-  serverEnv.SUPABASE_SERVICE_ROLE_KEY
-);
+import { MINIPAY_SESSION, mintSessionToken } from "../../session-token";
+import { OnboardError, onboardExternalUser } from "../../onboard-external-user";
 
 // Onboards a MiniPay user from their injected wallet address and mints a
 // session token, mirroring /api/onboard + the Privy access token. There is
@@ -39,63 +34,18 @@ export async function POST(req: NextRequest) {
 
     const externalUserId = minipayUserId(address);
 
-    const { data: existingUser, error: lookupError } = await supabaseAdmin
-      .from("users")
-      .select("id")
-      .eq("privy_user_id", externalUserId)
-      .maybeSingle();
+    let isNewUser: boolean;
 
-    if (lookupError) {
-      console.error("Failed to look up user:", lookupError);
-      return createErrorResponse("Failed to look up user", 500);
-    }
-
-    const isNewUser = !existingUser;
-    let userId = existingUser?.id;
-
-    if (!userId) {
-      const { error: userError } = await supabaseAdmin.from("users").upsert(
-        {
-          id: crypto.randomUUID(),
-          privy_user_id: externalUserId,
-          wallet_address: getAddress(address),
-        },
-        { onConflict: "privy_user_id", ignoreDuplicates: true }
-      );
-
-      if (userError) {
-        console.error("Failed to upsert user:", userError);
-        return createErrorResponse("Failed to create user", 500);
+    try {
+      ({ isNewUser } = await onboardExternalUser(externalUserId, address));
+    } catch (err) {
+      if (err instanceof OnboardError) {
+        return createErrorResponse(err.message, 500);
       }
-
-      // Fetch the actual id — differs if a concurrent request won the upsert
-      const { data: user, error: fetchError } = await supabaseAdmin
-        .from("users")
-        .select("id")
-        .eq("privy_user_id", externalUserId)
-        .single();
-
-      if (fetchError || !user) {
-        console.error("Failed to fetch user:", fetchError);
-        return createErrorResponse("Failed to fetch user", 500);
-      }
-
-      userId = user.id;
+      throw err;
     }
 
-    const { error: profileError } = await supabaseAdmin
-      .from("profiles")
-      .upsert(
-        { user_id: userId },
-        { onConflict: "user_id", ignoreDuplicates: true }
-      );
-
-    if (profileError) {
-      console.error("Failed to upsert profile:", profileError);
-      return createErrorResponse("Failed to create profile", 500);
-    }
-
-    const token = await mintMiniPaySessionToken(externalUserId);
+    const token = await mintSessionToken(MINIPAY_SESSION, externalUserId);
 
     return NextResponse.json({ token, isNewUser });
   } catch (err) {

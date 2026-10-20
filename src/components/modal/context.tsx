@@ -107,6 +107,12 @@ export type SetAliasModalState = {
   onDone?: () => void;
 };
 
+export type NimiqPaySignInModalState = {
+  type: "NIMIQ_PAY_SIGN_IN";
+  /** Resolves once signed in, having replaced this modal with the next one. */
+  onSignIn: () => Promise<void>;
+};
+
 export type FundWalletModalState = {
   type: "FUND_WALLET";
   address: Address;
@@ -223,6 +229,7 @@ export type ModalState =
   | ReminderModalState
   | NewUserOnboardingModalState
   | SetAliasModalState
+  | NimiqPaySignInModalState
   | FundWalletModalState
   | LiFiBridgeSwapModalState
   | PeerOnRampInstallModalState

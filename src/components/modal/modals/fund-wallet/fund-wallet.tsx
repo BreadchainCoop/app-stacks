@@ -12,6 +12,7 @@ import Alert from "@/components/alert";
 import BreadInfoNote from "@/components/bread-info-note";
 import { PeerIntentFulfilledResult } from "@zkp2p/sdk";
 import { isCeloChain } from "@/utils/celo";
+import { useWalletHost } from "@/components/providers/is-minipay";
 import {
   useActiveChainId,
   useDepositToken,
@@ -25,6 +26,7 @@ const FundWallet = ({ modalState }: { modalState: FundWalletModalState }) => {
   const [result, _setResult] = useState<PeerIntentFulfilledResult | null>(null);
   const { setModal } = useModal();
   const { user } = useConnectedUser();
+  const walletHost = useWalletHost();
 
   const [listenForXDaiConversion, setListenForXDaiConversion] = useState(false);
 
@@ -70,7 +72,12 @@ const FundWallet = ({ modalState }: { modalState: FundWalletModalState }) => {
       </div>
       <div className={result ? "h-0 overflow-hidden" : ""}>
         <StacksBalance address={modalState.address} />
-        <FundWithConnectedWallet handleListerForXDai={handleListerForXDai} />
+        {/* Moving funds from an external wallet into the Privy embedded one.
+            In Nimiq Pay the connected wallet *is* the Stacks wallet, and
+            there is no Privy for its hooks. */}
+        {walletHost === "privy" && (
+          <FundWithConnectedWallet handleListerForXDai={handleListerForXDai} />
+        )}
         {!isCelo && (
           <div className="*:mb-2">
             <FundWithLifi address={modalState.address} />

@@ -3,15 +3,15 @@
 import { SignOutIcon } from "@phosphor-icons/react";
 import { usePrivy } from "@privy-io/react-auth";
 import { LiftedButton } from "@breadcoop/ui";
-import { useIsMiniPay } from "@/components/providers/is-minipay";
+import { useWalletHost } from "@/components/providers/is-minipay";
 
 /**
- * Signing out of the Privy session. Privy only: MiniPay *is* the wallet and
- * there is no session to end, so the control has nothing to do there — and the
- * MiniPay stack mounts no PrivyProvider for `logout` to act on.
+ * Signing out of the Privy session. Privy only: in MiniPay and Nimiq Pay the
+ * host *is* the wallet, so the control has nothing to do there — and their
+ * stacks mount no PrivyProvider for `logout` to act on.
  *
- * Split in two so the Privy hook below is never *called* under MiniPay, the
- * same reasoning as `src/components/migrate-and-transfer-banner.tsx`:
+ * Split in two so the Privy hook below is never *called* outside the Privy
+ * stack, the same reasoning as `src/components/migrate-and-transfer-banner.tsx`:
  * `usePrivy()` tolerates a missing provider today by reading a default context,
  * but other Privy hooks throw without one, so relying on that is fragile.
  *
@@ -20,9 +20,9 @@ import { useIsMiniPay } from "@/components/providers/is-minipay";
  * `providers/privy.tsx` disables Privy's own wallet UIs).
  */
 const SignOutButton = ({ className }: { className?: string }) => {
-  const isMiniPay = useIsMiniPay();
+  const walletHost = useWalletHost();
 
-  if (isMiniPay) return null;
+  if (walletHost !== "privy") return null;
 
   return <PrivySignOutButton className={className} />;
 };

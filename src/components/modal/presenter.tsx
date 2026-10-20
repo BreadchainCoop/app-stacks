@@ -57,6 +57,12 @@ const NewUserOnboarding = dynamic(
 const SetAliasModal = dynamic(() => import("./modals/set-alias"), {
   loading: ModalLoading,
 });
+const NimiqPaySignInModal = dynamic(
+  () => import("./modals/nimiq-pay-sign-in"),
+  {
+    loading: ModalLoading,
+  }
+);
 const FundWallet = dynamic(() => import("./modals/fund-wallet/fund-wallet"), {
   loading: ModalLoading,
 });
@@ -164,6 +170,9 @@ const ModalPresenter = () => {
               )}
               {modalState.type === "SET_ALIAS" && (
                 <SetAliasModal modalState={modalState} />
+              )}
+              {modalState.type === "NIMIQ_PAY_SIGN_IN" && (
+                <NimiqPaySignInModal modalState={modalState} />
               )}
               {modalState.type === "FUND_WALLET" && (
                 <FundWallet modalState={modalState} />

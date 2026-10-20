@@ -11,23 +11,23 @@ import {
 import { useEmbeddedWalletBalances } from "@/hooks/use-embedded-wallet-balances";
 import { useHasTransferredToWallet } from "@/hooks/use-has-transferred-to-wallet";
 import { usePrivy } from "@privy-io/react-auth";
-import { useIsMiniPay } from "@/components/providers/is-minipay";
+import { useWalletHost } from "@/components/providers/is-minipay";
 
 /**
  * Moving funds from a Privy embedded wallet to a linked external one. Privy
- * only: MiniPay *is* the wallet, so there is nothing to migrate, and the
- * MiniPay stack mounts no PrivyProvider.
+ * only: in MiniPay and Nimiq Pay the host *is* the wallet, so there is nothing
+ * to migrate, and their stacks mount no PrivyProvider.
  *
- * Split in two so the Privy hooks below are never *called* under MiniPay.
- * `usePrivy()` happens to tolerate a missing provider today — it reads a
- * default context rather than throwing — but that is not a guarantee: other
+ * Split in two so the Privy hooks below are never *called* outside the Privy
+ * stack. `usePrivy()` happens to tolerate a missing provider today — it reads
+ * a default context rather than throwing — but that is not a guarantee: other
  * Privy hooks (`useSyncJwtBasedAuthState`) do throw without one. Relying on
- * the empty context would make the whole MiniPay build hostage to that.
+ * the empty context would make those builds hostage to that.
  */
 const MigrateAndTransferBanner = () => {
-  const isMiniPay = useIsMiniPay();
+  const walletHost = useWalletHost();
 
-  if (isMiniPay) return null;
+  if (walletHost !== "privy") return null;
 
   return <PrivyMigrateAndTransferBanner />;
 };
