@@ -10,6 +10,12 @@ import { invalidateStackReads } from "@/utils/invalidate-circle-reads";
 import { waitForChainTimestamp } from "@/utils/wait-for-chain-timestamp";
 import { useActiveChainId } from "@/components/providers/active-chain";
 
+const formatDate = (seconds: number) =>
+  new Date(seconds * 1000).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
+
 const DaysLeft = ({
   depositWindowEnd,
   effectiveCircleStartTime,
@@ -29,6 +35,11 @@ const DaysLeft = ({
   const chainId = useActiveChainId();
   let daysLeft = "-";
   let progressPercent = 0;
+  // Percentage of the current round still REMAINING: the bar is full at the
+  // start of the round and empties as it counts down (matches "days left").
+  // let remainingPercent = 0;
+  let roundStartLabel = "-";
+  let roundEndLabel = "-";
 
   if (
     depositWindowEnd &&
@@ -45,8 +56,10 @@ const DaysLeft = ({
       Number(depositInterval) * Number(currentIndex);
 
     const totalDuration = Number(depositInterval);
-
     const timeLeft = currentRoundEnd - now;
+
+    roundStartLabel = formatDate(currentRoundStart);
+    roundEndLabel = formatDate(currentRoundEnd);
 
     if (timeLeft > 0) {
       const _daysLeft = Math.floor(timeLeft / (60 * 60 * 24));
@@ -69,11 +82,15 @@ const DaysLeft = ({
         </div>
         <p className="text-h2 text-2xl leading-6 mt-2">{daysLeft}</p>
       </div>
-      <div className="w-full h-4 bg-paper-2 mt-4 mb-2 p-0.75">
+      <div className="w-full h-4 bg-paper-2 mt-4 mb-1 p-0.75">
         <div
-          className="h-full bg-primary-blue"
+          className="h-full bg-primary-blue transition-all"
           style={{ width: `${progressPercent}%` }}
         />
+      </div>
+      <div className="flex items-center justify-between text-sm opacity-70 mb-2">
+        <span>Round started {roundStartLabel}</span>
+        <span>Ends {roundEndLabel}</span>
       </div>
       {Boolean(Number(effectiveCircleStartTime)) && isActive && (
         <Countdown
