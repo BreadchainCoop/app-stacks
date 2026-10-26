@@ -25,13 +25,8 @@ import { isGoalOpen } from "@/lib/goal-state";
 import { stackMetadataId, stackTypeDetailPath } from "@/lib/stack-types";
 import { formatAddress } from "@/utils/address";
 import { formatShortDate } from "@/utils/time";
-import {
-  Body,
-  formatBalance,
-  Heading1,
-  LoginButton,
-  useConnectedUser,
-} from "@breadcoop/ui";
+import { Body, formatBalance, Heading1, useConnectedUser } from "@breadcoop/ui";
+import LoginButton from "@/components/login-button";
 import { CheckIcon, ConfettiIcon } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";

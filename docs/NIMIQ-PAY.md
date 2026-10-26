@@ -53,10 +53,12 @@ an `isServerNimiqPay()` beside `src/lib/server-minipay.ts`, as MiniPay does.
 Nimiq Pay opens a native dialog for every account request and signature, and its mini
 app guidelines ask that each follow a deliberate tap and that none open on page load. So:
 
-1. **Connect** — the ui-kit `LoginButton` opens RainbowKit's connect modal, which lists
-   the injected wallet (`connectorsForWallets` with `injectedWallet`; a bare wagmi
-   `injected()` leaves that modal empty). wagmi's silent reconnect (`eth_accounts`)
-   restores the connection on later opens.
+1. **Connect** — "Sign In" (`src/components/login-button.tsx`) connects the injected
+   wallet directly, so the tap opens Nimiq Pay's connect dialog. The ui-kit's own
+   `LoginButton` would open RainbowKit's connect modal, which on a phone is a sheet with
+   one "Browser Wallet" above a "Get a Wallet" pitch, and reads as a prompt to install a
+   wallet. wagmi's silent reconnect (`eth_accounts`) restores the connection on later
+   opens.
 2. **Sign in** — once connected without a session, the "Sign in to Stacks" modal
    (`src/components/modal/modals/nimiq-pay-sign-in.tsx`) asks once per page load. Its
    button fetches a nonce (`/api/nimiq-pay/nonce`, single-use, 5 minutes in Upstash

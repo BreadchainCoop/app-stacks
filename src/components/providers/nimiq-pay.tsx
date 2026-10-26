@@ -48,17 +48,18 @@ import { useActiveChainId, useDepositToken } from "./active-chain";
 // Nimiq Pay provider stack: no Privy — Nimiq Pay's injected wallet is the
 // wallet. Unlike MiniPay it neither auto-connects nor trusts the bare address:
 // connecting and signing in each open a native Nimiq Pay dialog, so each
-// follows a tap (the ui-kit LoginButton, then the sign-in modal), and the
-// session is minted from a signed nonce. Gas is paid by the user in the
-// chain's native token — there is no sponsorship outside Privy.
+// follows a tap (Sign In, src/components/login-button.tsx, then the sign-in
+// modal), and the session is minted from a signed nonce. Gas is paid by the
+// user in the chain's native token — there is no sponsorship outside Privy.
 export const nimiqPayWagmiConfig = createConfig({
   // Polygon (the nimiq site's USDT stacks) and the Privy-chain stacks, plus the
   // chains the LI.FI widget in the fund modal bridges from
   // (src/components/lifi/config.ts)
   chains: [polygon, gnosis, sepolia, mainnet, arbitrum, base, bsc, optimism],
-  // Through RainbowKit rather than wagmi's bare injected(): the ui-kit's
-  // LoginButton opens RainbowKit's connect modal, which lists only connectors
-  // RainbowKit built (and EIP-6963 announcements) — a bare one leaves it empty.
+  // Through RainbowKit rather than wagmi's bare injected(): RainbowKit's
+  // connect modal lists only connectors RainbowKit built (and EIP-6963
+  // announcements) — a bare one leaves it empty. Sign In skips that modal in
+  // Nimiq Pay and connects this connector ("injected") directly.
   connectors: connectorsForWallets(
     [{ groupName: "Nimiq Pay", wallets: [injectedWallet] }],
     {
