@@ -44,7 +44,7 @@ const MemberContribution = ({
   const address = user.status === "CONNECTED" ? user.address : undefined;
   const { position } = useGoalMemberContribution(goalId, address);
   const { data: totalDeposited } = useGoalTotalDeposited(goalId);
-  const { runGoalAction } = useGoalAction(goal.token);
+  const { runGoalAction, approvesOnly } = useGoalAction(goal.token);
   const [amountInput, setAmountInput] = useState("");
   const depositToken = useDepositToken();
 
@@ -52,6 +52,7 @@ const MemberContribution = ({
     ? parseDepositAmount(amountInput, depositToken.decimals)
     : BigInt(0);
   const hasAmount = amount > BigInt(0);
+  const allowOnly = hasAmount && approvesOnly(amount);
 
   const nowSeconds = BigInt(Math.floor(now / 1000));
   const hasBeneficiary = goal.beneficiary !== zeroAddress;
@@ -71,23 +72,28 @@ const MemberContribution = ({
       : "Contributions are locked until the goal is decided.";
   const contribution = position?.contribution ?? BigInt(0);
 
-  const deposit = () =>
-    setModal({
-      type: "STACK_TX_INIT",
-      stackType: "goal",
+  const runDeposit = () =>
+    runGoalAction({
       action: "deposit",
-      id: goalId,
+      functionName: "deposit",
+      args: [goalId, amount],
+      errors: GOAL_DEPOSIT_ERRORS,
+      approveAmount: amount,
       amount,
-      onConfirm: () =>
-        runGoalAction({
-          action: "deposit",
-          functionName: "deposit",
-          args: [goalId, amount],
-          errors: GOAL_DEPOSIT_ERRORS,
-          approveAmount: amount,
-          amount,
-        }),
     });
+
+  // An allow-only tap moves no funds, so it skips the deposit confirmation.
+  const deposit = () =>
+    allowOnly
+      ? runDeposit()
+      : setModal({
+          type: "STACK_TX_INIT",
+          stackType: "goal",
+          action: "deposit",
+          id: goalId,
+          amount,
+          onConfirm: runDeposit,
+        });
 
   const withdraw = () =>
     setModal({
@@ -148,7 +154,7 @@ const MemberContribution = ({
           onClick={deposit}
           disabled={!hasAmount || !depositOpen}
         >
-          Deposit
+          {allowOnly ? `Allow ${depositToken.symbol}` : "Deposit"}
         </LocalButton>
         {!depositOpen && (
           <Body className="text-xs text-surface-grey">

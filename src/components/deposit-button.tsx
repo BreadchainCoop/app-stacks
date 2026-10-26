@@ -20,7 +20,7 @@ import { useSavingCirclesTx } from "@/hooks/use-saving-circles-tx";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { DEPOSIT_ERRORS } from "@/lib/contract-errors";
 import { formatDepositAmount } from "@/lib/deposit-token";
-import { useIsMiniPay } from "@/components/providers/is-minipay";
+import { useIsMiniPay, useWalletHost } from "@/components/providers/is-minipay";
 import LocalButton from "./button";
 import { invalidateStackReads } from "@/utils/invalidate-circle-reads";
 
@@ -52,15 +52,17 @@ const DepositButton = ({
   const userAddress = user.status === "CONNECTED" ? user.address : undefined;
   const modal = useModal();
   const isMiniPay = useIsMiniPay();
+  const isNimiqPay = useWalletHost() === "nimiqpay";
 
-  const { data: allowance = BigInt(0) } = useReadContract({
-    address: tokenAddress,
-    abi: erc20Abi,
-    functionName: "allowance",
-    args: [userAddress!, savingCircles],
-    query: { enabled: !!userAddress },
-    chainId: useActiveChainId(),
-  });
+  const { data: allowance = BigInt(0), refetch: refetchAllowance } =
+    useReadContract({
+      address: tokenAddress,
+      abi: erc20Abi,
+      functionName: "allowance",
+      args: [userAddress!, savingCircles],
+      query: { enabled: !!userAddress },
+      chainId: useActiveChainId(),
+    });
 
   const { data: balance = BigInt(0) } = useReadContract({
     address: tokenAddress,
@@ -77,6 +79,12 @@ const DepositButton = ({
   }, [allowance, amount, userAddress]);
 
   const hasInsufficientBalance = !!userAddress && balance < amount;
+
+  // Each Nimiq Pay transaction opens a native dialog, and Nimiq's mini app
+  // guidelines ask that each follow its own tap, so there the first deposit's
+  // approval is a step of its own rather than a second dialog straight after
+  // the first.
+  const approveOnly = isNimiqPay && needsApproval;
 
   const missingAmount = hasInsufficientBalance
     ? formatAmount(
@@ -117,6 +125,12 @@ const DepositButton = ({
         });
 
         await waitForTxReceipt(approveHash);
+
+        if (approveOnly) {
+          await refetchAllowance();
+          modal.setModal(null);
+          return;
+        }
       }
 
       await sendSavingCirclesTx({
@@ -155,6 +169,8 @@ const DepositButton = ({
         </span>
       ) : hasInsufficientBalance ? (
         `Need ${missingAmount} More ${depositToken.symbol}`
+      ) : approveOnly ? (
+        `Allow ${depositToken.symbol}`
       ) : (
         label
       )}
