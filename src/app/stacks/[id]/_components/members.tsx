@@ -16,6 +16,8 @@ import {
   useChainPath,
   useDepositToken,
 } from "@/components/providers/active-chain";
+import { useWalletHost } from "@/components/providers/is-minipay";
+import { nimiqPayOpenLink } from "@/utils/nimiq-pay";
 
 const TopRowInfo = ({
   LIcon,
@@ -49,6 +51,7 @@ const StackMembers = ({
   circleStatus: ICircleStatus | null;
 }) => {
   const chainHref = useChainPath();
+  const isNimiqPay = useWalletHost() === "nimiqpay";
   const info = useCircleMembersWithBalances(BigInt(id));
   const isOwner = circle.owner === member;
 
@@ -75,13 +78,17 @@ const StackMembers = ({
 
   // buildInviteUrl merges into whatever query string chainHref produced; string
   // concatenation here would emit a second "?".
-  const generalInviteUrl =
+  const inviteUrl =
     isOwner && isPendingStart
       ? buildInviteUrl(
           `${typeof window !== "undefined" ? window.location.origin : ""}${chainHref("/stacks/join")}`,
           id
         )
       : null;
+  // A Nimiq Pay user shares from inside Nimiq Pay, so the link opens there too.
+  // Only ever client-side, where the origin above is set.
+  const generalInviteUrl =
+    inviteUrl && isNimiqPay ? nimiqPayOpenLink(inviteUrl) : inviteUrl;
 
   return (
     <section className="p-4 flex flex-col gap-4">
