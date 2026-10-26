@@ -11,7 +11,11 @@ import { Body, useConnectedUser } from "@breadcoop/ui";
 import Alert from "@/components/alert";
 import BreadInfoNote from "@/components/bread-info-note";
 import { PeerIntentFulfilledResult } from "@zkp2p/sdk";
-import { isCeloChain } from "@/utils/celo";
+import {
+  getChainDetail,
+  isStablecoinChain,
+  networkFeeNote,
+} from "@/utils/chain";
 import { useWalletHost } from "@/components/providers/is-minipay";
 import {
   useActiveChainId,
@@ -20,9 +24,13 @@ import {
 
 const FundWallet = ({ modalState }: { modalState: FundWalletModalState }) => {
   const depositToken = useDepositToken();
-  // The xDAI/bake mechanic and the LiFi bridge are Gnosis-only rails; on Celo
-  // the modal is a plain deposit-token transfer.
-  const isCelo = isCeloChain(useActiveChainId());
+  // The xDAI/bake mechanic and the LiFi bridge are Gnosis-only rails; on the
+  // stablecoin chains (Celo, Polygon) the modal is a plain deposit-token
+  // transfer.
+  const chainId = useActiveChainId();
+  const isStablecoin = isStablecoinChain(chainId);
+  const chainName = getChainDetail(chainId).name;
+  const feeNote = networkFeeNote(chainId);
   const [result, _setResult] = useState<PeerIntentFulfilledResult | null>(null);
   const { setModal } = useModal();
   const { user } = useConnectedUser();
@@ -53,7 +61,7 @@ const FundWallet = ({ modalState }: { modalState: FundWalletModalState }) => {
     <ModalContainer className="bg-[#FDFAF3]! border-paper-1! shadow-[0px_4px_12px_0px_#1B201A26] max-w-140.75!">
       <ModalHeader title={result ? "Peer Successful" : "Fund your account"} />
       <Body className="-mt-4">
-        {isCelo
+        {isStablecoin
           ? `Send ${depositToken.symbol} to your wallet to deposit into your Stacks`
           : "Send xDAI to your wallet and automatically get BREAD"}
       </Body>
@@ -78,7 +86,7 @@ const FundWallet = ({ modalState }: { modalState: FundWalletModalState }) => {
         {walletHost === "privy" && (
           <FundWithConnectedWallet handleListerForXDai={handleListerForXDai} />
         )}
-        {!isCelo && (
+        {!isStablecoin && (
           <div className="*:mb-2">
             <FundWithLifi address={modalState.address} />
             {/* <FundWithPeer
@@ -92,13 +100,13 @@ const FundWallet = ({ modalState }: { modalState: FundWalletModalState }) => {
         <Alert
           variant="warning"
           title={
-            isCelo
+            isStablecoin
               ? `IMPORTANT: Always send ${depositToken.symbol}`
               : "IMPORTANT: Always get xDAI"
           }
           description={
-            isCelo
-              ? `The token you need to send to your wallet is ${depositToken.symbol} on the Celo network.`
+            isStablecoin
+              ? `The token you need to send to your wallet is ${depositToken.symbol} on ${chainName}.${feeNote ? ` ${feeNote}` : ""}`
               : "The token you need to send to your wallet is xDAI from Gnosis chain."
           }
           closeAble={false}

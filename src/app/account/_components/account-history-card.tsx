@@ -83,8 +83,8 @@ const AccountHistoryCard = ({ address }: { address: Address }) => {
                   <div className="flex items-center gap-2">
                     <Body className="text-surface-grey">
                       {isDeposit
-                        ? `Deposited ${amount} BREAD in ${stackName}`
-                        : `Withdrew ${amount} BREAD from ${stackName}`}
+                        ? `Deposited ${amount} ${depositToken.symbol} in ${stackName}`
+                        : `Withdrew ${amount} ${depositToken.symbol} from ${stackName}`}
                     </Body>
                     {entry.txHash && (
                       <>

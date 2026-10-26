@@ -5,7 +5,7 @@ import { ReactNode, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { isMiniPayBrowser } from "@/utils/minipay";
-import { isNimiqPayBrowser } from "@/utils/nimiq-pay";
+import { isNimiqPayBrowser, isNimiqPayChain } from "@/utils/nimiq-pay";
 import { isCeloChain } from "@/utils/celo";
 import {
   IsMiniPayBrowserProvider,
@@ -27,13 +27,18 @@ const defaultChainId = Number(process.env.NEXT_PUBLIC_CHAIN_ID);
  * The chain a browser gets when the URL doesn't settle it.
  *
  * MiniPay only ever runs against Celo and the Privy stack cannot transact on it,
- * so the browser determines the chain: MiniPay -> Celo, anything else -> the
- * deployment's default.
+ * so the browser determines the chain: MiniPay -> Celo, Nimiq Pay -> its own
+ * chain (Polygon) when configured, anything else -> the deployment's default.
  */
-const browserChainId = (miniPay: boolean): number => {
+const browserChainId = (miniPay: boolean, nimiqPay: boolean): number => {
   if (miniPay) {
     const celo = CELO_CHAIN_IDS.find((id) => CONFIGURED_CHAIN_IDS.includes(id));
     if (celo !== undefined) return celo;
+  }
+
+  if (nimiqPay) {
+    const nimiq = CONFIGURED_CHAIN_IDS.find(isNimiqPayChain);
+    if (nimiq !== undefined) return nimiq;
   }
 
   // NEXT_PUBLIC_CHAIN_ID can name a chain NEXT_PUBLIC_CHAINS doesn't configure
@@ -74,8 +79,8 @@ const Providers = ({
   // it is unverified — so the server and first client render take the Privy
   // branch, and this switches the stack right after hydration.
   // window.nimiqPay is injected before page scripts run, so one check is
-  // conclusive.
-  const [nimiqPay, setNimiqPay] = useState(false);
+  // conclusive. null until that check has run.
+  const [nimiqPay, setNimiqPay] = useState<boolean | null>(null);
 
   useEffect(() => {
     setNimiqPay(isNimiqPayBrowser());
@@ -115,7 +120,12 @@ const Providers = ({
   const chainId =
     fromParam !== undefined && isConfiguredChain(fromParam)
       ? fromParam
-      : browserChainId(miniPay);
+      : browserChainId(miniPay, nimiqPay === true);
+
+  // A Nimiq Pay-only chain can't tell its stack from the guard ("Open this in
+  // Nimiq Pay") until the check has run, so it renders neither rather than
+  // flashing the guard inside Nimiq Pay.
+  if (nimiqPay === null && isNimiqPayChain(chainId)) return null;
 
   // The MiniPay stack only makes sense on a Celo chain; a Gnosis URL opened
   // inside MiniPay's browser keeps the Privy stack and hits the guard below.

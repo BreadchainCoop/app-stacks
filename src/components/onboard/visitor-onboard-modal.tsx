@@ -19,11 +19,11 @@ import {
   useActiveChainId,
   useDepositToken,
 } from "@/components/providers/active-chain";
-import { isCeloChain } from "@/utils/celo";
+import { isStablecoinChain } from "@/utils/chain";
 
-// The xDAI/bake mechanic is Gnosis-only; on Celo funding is a plain
-// deposit-token transfer.
-const getSteps = (isCelo: boolean, depositToken: DepositTokenConfig) => [
+// The xDAI/bake mechanic is Gnosis-only; on the stablecoin chains (Celo,
+// Polygon) funding is a plain deposit-token transfer.
+const getSteps = (isStablecoin: boolean, depositToken: DepositTokenConfig) => [
   {
     icon: IdentificationBadgeIcon,
     title: "Create your account in Stacks",
@@ -35,10 +35,10 @@ const getSteps = (isCelo: boolean, depositToken: DepositTokenConfig) => [
   {
     icon: CoinsIcon,
     title: "Fund your wallet",
-    boldText: isCelo
+    boldText: isStablecoin
       ? `You can fund your wallet by sending ${depositToken.symbol} from another wallet.`
       : "You can fund your wallet by sending BREAD or xDAI from your wallet.",
-    regularText: isCelo
+    regularText: isStablecoin
       ? "Just click on Fund your wallet button on the menu bar wallet section."
       : "Or you can buy xDAI from other distributors. Just click on Fund your wallet button on the menu bar wallet section.",
   },
@@ -78,7 +78,7 @@ const getSteps = (isCelo: boolean, depositToken: DepositTokenConfig) => [
 
 export default function VisitorOnboarding() {
   const chainId = useActiveChainId();
-  const steps = getSteps(isCeloChain(chainId), useDepositToken());
+  const steps = getSteps(isStablecoinChain(chainId), useDepositToken());
   const [currentStep, setCurrentStep] = useState(0);
   const { setModal } = useModal();
 

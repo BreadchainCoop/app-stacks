@@ -26,7 +26,11 @@ import {
   useActiveChainId,
   useDepositToken,
 } from "@/components/providers/active-chain";
-import { isCeloChain } from "@/utils/celo";
+import {
+  getChainDetail,
+  isStablecoinChain,
+  networkFeeNote,
+} from "@/utils/chain";
 
 function BreadBalance({ address }: { address: Address }) {
   const depositToken = useDepositToken();
@@ -65,7 +69,10 @@ const NewUserOnboarding = ({
   modalState: NewUserOnboardingModalState;
 }) => {
   const depositToken = useDepositToken();
-  const isCelo = isCeloChain(useActiveChainId());
+  const chainId = useActiveChainId();
+  const isStablecoin = isStablecoinChain(chainId);
+  const chainName = getChainDetail(chainId).name;
+  const feeNote = networkFeeNote(chainId);
   const pathname = usePathname();
   const { setModal } = useModal();
   const { user } = useConnectedUser();
@@ -116,15 +123,15 @@ const NewUserOnboarding = ({
           <Body bold className="text-surface-grey-2">
             {fundingStatus === "success"
               ? "With funds in your wallet you can join a Stack or create one."
-              : isCelo
+              : isStablecoin
                 ? `Send ${depositToken.symbol} to your wallet to use Stacks`
                 : "Send xDAI to your wallet and automatically get BREAD"}
           </Body>
           <Body className="max-w-140 text-sm leading-normal text-surface-grey">
             {fundingStatus === "success"
               ? "You can always visit your wallet to check your balance or withdrawal your money by clicking on the menu bar."
-              : isCelo
-                ? `You can send ${depositToken.symbol} on the Celo network from an external wallet to your Stacks wallet address below.`
+              : isStablecoin
+                ? `You can send ${depositToken.symbol} on ${chainName} from an external wallet to your Stacks wallet address below.`
                 : "You can send xDAI from an external wallet or the wallet you connected when you signed up and we will automatically get you BREAD."}
           </Body>
 
@@ -180,13 +187,13 @@ const NewUserOnboarding = ({
               <Alert
                 variant="warning"
                 title={
-                  isCelo
+                  isStablecoin
                     ? `IMPORTANT: Always send ${depositToken.symbol}`
                     : "IMPORTANT: Always get xDAI"
                 }
                 description={
-                  isCelo
-                    ? `The token you need to send to your wallet is ${depositToken.symbol} on the Celo network.`
+                  isStablecoin
+                    ? `The token you need to send to your wallet is ${depositToken.symbol} on ${chainName}.${feeNote ? ` ${feeNote}` : ""}`
                     : "The token you need to send to your wallet is xDAI from Gnosis chain."
                 }
                 closeAble={false}

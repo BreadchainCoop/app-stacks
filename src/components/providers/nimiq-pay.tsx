@@ -16,6 +16,7 @@ import {
   gnosis,
   mainnet,
   optimism,
+  polygon,
   sepolia,
 } from "viem/chains";
 import {
@@ -51,9 +52,10 @@ import { useActiveChainId, useDepositToken } from "./active-chain";
 // session is minted from a signed nonce. Gas is paid by the user in the
 // chain's native token — there is no sponsorship outside Privy.
 export const nimiqPayWagmiConfig = createConfig({
-  // The Privy-chain stacks, plus the chains the LI.FI widget in the fund
-  // modal bridges from (src/components/lifi/config.ts)
-  chains: [gnosis, sepolia, mainnet, arbitrum, base, bsc, optimism],
+  // Polygon (the nimiq site's USDT stacks) and the Privy-chain stacks, plus the
+  // chains the LI.FI widget in the fund modal bridges from
+  // (src/components/lifi/config.ts)
+  chains: [polygon, gnosis, sepolia, mainnet, arbitrum, base, bsc, optimism],
   // Through RainbowKit rather than wagmi's bare injected(): the ui-kit's
   // LoginButton opens RainbowKit's connect modal, which lists only connectors
   // RainbowKit built (and EIP-6963 announcements) — a bare one leaves it empty.
@@ -65,6 +67,7 @@ export const nimiqPayWagmiConfig = createConfig({
     }
   ),
   transports: {
+    [polygon.id]: http(),
     [gnosis.id]: http(),
     [sepolia.id]: http(),
     [mainnet.id]: http(),

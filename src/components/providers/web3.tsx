@@ -23,6 +23,7 @@ import {
   gnosis,
   mainnet,
   optimism,
+  polygon,
   sepolia,
 } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -71,6 +72,9 @@ export const wagmiConfig = createConfig({
       sepolia,
       celo,
       celoSepolia,
+      // Nimiq Pay's chain. The Privy stack never transacts on it, but on the
+      // nimiq site it renders before window.nimiqPay is detected.
+      polygon,
       mainnet,
       arbitrum,
       base,
@@ -88,6 +92,7 @@ export const wagmiConfig = createConfig({
     [sepolia.id]: http(),
     [celo.id]: http(),
     [celoSepolia.id]: http(),
+    [polygon.id]: http(),
     // for lifi
     [mainnet.id]: http(),
     [arbitrum.id]: http(),
