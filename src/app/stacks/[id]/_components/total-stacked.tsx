@@ -1,6 +1,7 @@
 "use client";
 
-import { Body, Heading3, LoginButton, useConnectedUser } from "@breadcoop/ui";
+import { Body, Heading3, useConnectedUser } from "@breadcoop/ui";
+import LoginButton from "@/components/login-button";
 import { FormattedDecimalNumber } from "@/components/bread-ui-kit/formatted-decimal-number";
 import { useCircleStatus } from "@/hooks/use-circle-status";
 import Loading from "@/app/loading";

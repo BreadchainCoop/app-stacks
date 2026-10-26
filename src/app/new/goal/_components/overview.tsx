@@ -1,13 +1,8 @@
 "use client";
 
 import LocalButton from "@/components/button";
-import {
-  Body,
-  formatBalance,
-  Heading3,
-  LoginButton,
-  useConnectedUser,
-} from "@breadcoop/ui";
+import { Body, formatBalance, Heading3, useConnectedUser } from "@breadcoop/ui";
+import LoginButton from "@/components/login-button";
 import {
   ArrowLeftIcon,
   CalendarIcon,

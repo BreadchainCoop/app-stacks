@@ -1,13 +1,8 @@
 "use client";
 
 import { useUserCircleData } from "@/hooks/use-user-circle-data";
-import {
-  Body,
-  cn,
-  Heading3,
-  LoginButton,
-  useConnectedUser,
-} from "@breadcoop/ui";
+import { Body, cn, Heading3, useConnectedUser } from "@breadcoop/ui";
+import LoginButton from "@/components/login-button";
 import DaysLeft from "./days-left";
 import {
   FAILED_STACK_STATUSES,

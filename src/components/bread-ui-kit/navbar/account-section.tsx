@@ -1,7 +1,8 @@
 "use client";
 
 import { ReactNode } from "react";
-import { LoginButton, useConnectedUser } from "@breadcoop/ui";
+import { useConnectedUser } from "@breadcoop/ui";
+import LoginButton from "@/components/login-button";
 import { SignInIcon } from "@phosphor-icons/react";
 import AccountMenu from "./account-menu";
 
