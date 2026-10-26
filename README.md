@@ -245,3 +245,7 @@ npm run dev -- -p 3001
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Foundry Book](https://book.getfoundry.sh/)
 - [Anvil Documentation](https://book.getfoundry.sh/anvil/)
+
+## License
+
+[MIT](./LICENSE) © Breadchain Cooperative
