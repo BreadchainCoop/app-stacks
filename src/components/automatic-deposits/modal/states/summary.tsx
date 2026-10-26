@@ -3,7 +3,7 @@
 import LocalButton from "@/components/button";
 import { ModalContainer } from "@/components/modal/components";
 import { formatAddress } from "@/utils/address";
-import { Body, Caption, Heading3 } from "@breadcoop/ui";
+import { Body, Heading3 } from "@breadcoop/ui";
 import {
   ArrowsClockwiseIcon,
   ArrowUpRightIcon,
@@ -20,6 +20,7 @@ import {
   getIntervalLabels,
   ModalClose,
   SummaryRow,
+  UsdRateCaption,
 } from "../shared";
 
 export const SummaryState = ({
@@ -27,6 +28,7 @@ export const SummaryState = ({
   remainingRounds,
   depositInterval,
   totalDeposit,
+  permissionGranted = false,
   onClose,
   onActivate,
 }: {
@@ -34,6 +36,8 @@ export const SummaryState = ({
   remainingRounds: number;
   depositInterval: bigint;
   totalDeposit: bigint;
+  /** The approval has landed and only enabling is left (Nimiq Pay). */
+  permissionGranted?: boolean;
   onClose: () => void;
   onActivate: () => void;
 }) => {
@@ -48,7 +52,9 @@ export const SummaryState = ({
         <HandDepositIcon size={48} className="fill-primary-blue" />
         <Heading3 className="text-2xl">Automatic Deposits</Heading3>
         <Body bold className="text-surface-grey-2">
-          You&apos;re granting a limited spending permission
+          {permissionGranted
+            ? "Spending permission granted"
+            : "You're granting a limited spending permission"}
         </Body>
       </div>
 
@@ -87,7 +93,7 @@ export const SummaryState = ({
         <SummaryRow label="Total Deposit">
           <BreadAmount value={totalDeposit} highlighted />
         </SummaryRow>
-        <Caption className="text-surface-grey">1 BREAD = 1 USD</Caption>
+        <UsdRateCaption />
       </div>
 
       <Body className="text-center text-surface-grey">
@@ -102,7 +108,7 @@ export const SummaryState = ({
           rightIcon={<HandDepositIcon />}
           onClick={onActivate}
         >
-          Grant Permission and Activate
+          {permissionGranted ? "Activate" : "Grant Permission and Activate"}
         </LocalButton>
       </div>
     </ModalContainer>

@@ -8,6 +8,7 @@ import {
   useActiveChainId,
   useChainConfig,
 } from "@/components/providers/active-chain";
+import { useWalletHost } from "@/components/providers/is-minipay";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { MAX_UINT256 } from "@/utils/solidity";
 import { useConnectedUser } from "@breadcoop/ui";
@@ -43,15 +44,26 @@ export function useGoalAction(tokenAddress?: Address) {
   const userAddress = user.status === "CONNECTED" ? user.address : undefined;
   const { goalSavings } = useChainConfig();
   const chainId = useActiveChainId();
+  const isNimiqPay = useWalletHost() === "nimiqpay";
 
-  const { data: allowance = BigInt(0) } = useReadContract({
-    address: tokenAddress,
-    abi: erc20Abi,
-    functionName: "allowance",
-    args: [userAddress!, goalSavings],
-    query: { enabled: !!userAddress && !!tokenAddress },
-    chainId,
-  });
+  const { data: allowance = BigInt(0), refetch: refetchAllowance } =
+    useReadContract({
+      address: tokenAddress,
+      abi: erc20Abi,
+      functionName: "allowance",
+      args: [userAddress!, goalSavings],
+      query: { enabled: !!userAddress && !!tokenAddress },
+      chainId,
+    });
+
+  /**
+   * Whether an action pulling `amount` runs only its approval. Each Nimiq Pay
+   * transaction opens a native dialog, and Nimiq's mini app guidelines ask
+   * that each follow its own tap, so there the approval is a step of its own
+   * and the caller runs the action again once it lands.
+   */
+  const approvesOnly = (amount: bigint) =>
+    isNimiqPay && !!tokenAddress && allowance < amount;
 
   const runGoalAction = async <
     TFunctionName extends ContractFunctionName<GoalAbi, "nonpayable">,
@@ -93,6 +105,12 @@ export function useGoalAction(tokenAddress?: Address) {
         });
 
         await waitForTxReceipt(hash);
+
+        if (isNimiqPay) {
+          await refetchAllowance();
+          modal.setModal(null);
+          return;
+        }
       }
 
       await sendGoalSavingsTx({ functionName, args });
@@ -117,5 +135,5 @@ export function useGoalAction(tokenAddress?: Address) {
     }
   };
 
-  return { runGoalAction };
+  return { runGoalAction, approvesOnly };
 }

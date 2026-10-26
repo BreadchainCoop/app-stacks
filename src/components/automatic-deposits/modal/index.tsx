@@ -30,7 +30,7 @@ const AutomaticDepositsModal = ({
   } = modalState;
 
   const modal = useModal();
-  const { activate, deactivate, status, setStatus } =
+  const { activate, enable, deactivate, status, setStatus } =
     useAutomaticDeposits(stackId);
 
   const enabling = !currentValue;
@@ -59,6 +59,19 @@ const AutomaticDepositsModal = ({
 
   if (status === "success")
     return <SuccessState enabling={enabling} onClose={closeModal} />;
+
+  if (status === "granted")
+    return (
+      <SummaryState
+        depositAmount={depositAmount}
+        remainingRounds={remainingRounds}
+        depositInterval={depositInterval}
+        totalDeposit={totalDeposit}
+        permissionGranted
+        onClose={closeModal}
+        onActivate={enable}
+      />
+    );
 
   if (status === "error" && insufficientBalance)
     return (

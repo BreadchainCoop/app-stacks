@@ -1,6 +1,7 @@
 import { useConnectedUser } from "@breadcoop/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUserIdentity } from "@/components/providers/user-identity";
+import { useWalletHost } from "@/components/providers/is-minipay";
 import { useState } from "react";
 import { Address, encodeFunctionData, erc20Abi } from "viem";
 import { readContractQueryKey } from "wagmi/query";
@@ -13,7 +14,12 @@ import { useAutomaticSavingCirclesTx } from "@/hooks/use-automatic-saving-circle
 import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
 import { useWaitForTxReceipt } from "@/hooks/use-wait-for-tx-receipt";
 
-export type AutomaticDepositsStatus = "idle" | "loading" | "success" | "error";
+export type AutomaticDepositsStatus =
+  | "idle"
+  | "loading"
+  | "granted"
+  | "success"
+  | "error";
 
 export function useAutomaticDeposits(stackId: string) {
   const { sendAutomaticSavingCirclesTx } = useAutomaticSavingCirclesTx();
@@ -26,6 +32,7 @@ export function useAutomaticDeposits(stackId: string) {
   const queryClient = useQueryClient();
   const chainId = useActiveChainId();
   const { automaticSavingCircles } = useChainConfig();
+  const isNimiqPay = useWalletHost() === "nimiqpay";
 
   const setEnabledQueryData = (enabled: boolean) => {
     if (!address) return;
@@ -42,9 +49,23 @@ export function useAutomaticDeposits(stackId: string) {
     queryClient.invalidateQueries({ queryKey });
   };
 
+  const sendEnable = async () => {
+    await sendAutomaticSavingCirclesTx({
+      functionName: "setAutomaticDepositsEnabled",
+      args: [BigInt(stackId), true],
+    });
+
+    setEnabledQueryData(true);
+    setStatus("success");
+  };
+
   /**
    * Grants the limited spending permission (ERC20 approval to the automatic
    * contract) then enables automatic deposits for this circle.
+   *
+   * Each Nimiq Pay transaction opens a native dialog, and Nimiq's mini app
+   * guidelines ask that each follow its own tap, so there it stops at
+   * "granted" and `enable` sends the second transaction.
    */
   const activate = async ({
     tokenAddress,
@@ -74,15 +95,27 @@ export function useAutomaticDeposits(stackId: string) {
 
       await waitForTxReceipt(hash);
 
-      await sendAutomaticSavingCirclesTx({
-        functionName: "setAutomaticDepositsEnabled",
-        args: [BigInt(stackId), true],
-      });
+      if (isNimiqPay) {
+        setStatus("granted");
+        return;
+      }
 
-      setEnabledQueryData(true);
-      setStatus("success");
+      await sendEnable();
     } catch (err) {
       console.error("useAutomaticDeposits activate error:", err);
+      setStatus("error");
+    }
+  };
+
+  const enable = async () => {
+    if (status === "loading" || !userId || !address) return;
+
+    setStatus("loading");
+
+    try {
+      await sendEnable();
+    } catch (err) {
+      console.error("useAutomaticDeposits enable error:", err);
       setStatus("error");
     }
   };
@@ -106,5 +139,5 @@ export function useAutomaticDeposits(stackId: string) {
     }
   };
 
-  return { activate, deactivate, status, setStatus };
+  return { activate, enable, deactivate, status, setStatus };
 }

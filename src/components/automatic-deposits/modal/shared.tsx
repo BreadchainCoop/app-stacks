@@ -9,7 +9,7 @@ import {
 } from "@/utils/deposit-interval";
 import { formatAmount } from "@/utils/format-amount";
 import { formatDepositAmount } from "@/lib/deposit-token";
-import { Body, Logo } from "@breadcoop/ui";
+import { Body, Caption, Logo } from "@breadcoop/ui";
 import { ReactNode } from "react";
 import { DepositTokenConfig } from "@/interfaces/chain-config";
 import { useDepositToken } from "@/components/providers/active-chain";
@@ -65,6 +65,12 @@ export const BreadAmount = ({
     </span>
   );
 };
+
+export const UsdRateCaption = () => (
+  <Caption className="text-surface-grey">
+    1 {useDepositToken().symbol} = 1 USD
+  </Caption>
+);
 
 export const SummaryRow = ({
   label,

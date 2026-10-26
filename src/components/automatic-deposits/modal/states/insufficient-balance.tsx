@@ -2,9 +2,9 @@
 
 import LocalButton from "@/components/button";
 import { ModalContainer, ModalStatus } from "@/components/modal/components";
-import { Body, Caption, Heading3 } from "@breadcoop/ui";
+import { Body, Heading3 } from "@breadcoop/ui";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react";
-import { BreadAmount, ModalClose, SummaryRow } from "../shared";
+import { BreadAmount, ModalClose, SummaryRow, UsdRateCaption } from "../shared";
 
 export const InsufficientBalanceState = ({
   required,
@@ -41,7 +41,7 @@ export const InsufficientBalanceState = ({
       <SummaryRow label="Missing">
         <BreadAmount value={missing} highlighted />
       </SummaryRow>
-      <Caption className="text-surface-grey">1 BREAD = 1 USD</Caption>
+      <UsdRateCaption />
     </div>
     <div className="lifted-button-container">
       <LocalButton
