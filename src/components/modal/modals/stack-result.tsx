@@ -24,7 +24,8 @@ import {
   useActiveChainId,
   useChainPath,
 } from "@/components/providers/active-chain";
-import { useIsMiniPay } from "@/components/providers/is-minipay";
+import { useIsMiniPay, useWalletHost } from "@/components/providers/is-minipay";
+import { nimiqPayOpenLink } from "@/utils/nimiq-pay";
 import { useUserIdentity } from "@/components/providers/user-identity";
 
 export function buildInviteUrl(baseUrl: string, circleId: string): string {
@@ -133,6 +134,7 @@ const InviteLinkStackSuccessModal = ({
   const [error, setError] = useState<string | null>(null);
   const chainHref = useChainPath();
   const chainId = useActiveChainId();
+  const isNimiqPay = useWalletHost() === "nimiqpay";
   const [generalInviteUrl, setGeneralInviteUrl] = useState("");
   const hasStartedRef = useRef(false);
 
@@ -145,7 +147,10 @@ const InviteLinkStackSuccessModal = ({
       // across chains, so a bare /stacks/join?circleId=5 resolves to
       // whichever chain the recipient happens to land on.
       const baseUrl = `${window.location.origin}${chainHref("/stacks/join")}`;
-      const url = buildInviteUrl(baseUrl, modalState.circle.id);
+      const inviteUrl = buildInviteUrl(baseUrl, modalState.circle.id);
+      // A Nimiq Pay user shares from inside Nimiq Pay, so the link opens
+      // there too
+      const url = isNimiqPay ? nimiqPayOpenLink(inviteUrl) : inviteUrl;
 
       let shortUrl = url;
       try {
