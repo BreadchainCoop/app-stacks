@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { Address, erc20Abi, Hex } from "viem";
+import { Address, Chain, erc20Abi, Hex } from "viem";
 import {
   arbitrum,
   base,
@@ -40,7 +40,8 @@ import { ModalProvider, useModal } from "../modal/context";
 import { TxSender, TxSenderProvider } from "./tx-sender";
 import { UserIdentityProvider } from "./user-identity";
 import SepoliaAutoFund from "./sepolia-auto-fund";
-import { nimiqPayUserId } from "@/utils/nimiq-pay";
+import { isNimiqPayChain, nimiqPayUserId } from "@/utils/nimiq-pay";
+import { CHAINS } from "@/lib/chains";
 import { isTokenExpired } from "@/utils/jwt";
 import { nimiqPaySignInTypedData } from "@/lib/nimiq-pay-sign-in";
 import { useActiveChainId, useDepositToken } from "./active-chain";
@@ -51,11 +52,32 @@ import { useActiveChainId, useDepositToken } from "./active-chain";
 // follows a tap (Sign In, src/components/login-button.tsx, then the sign-in
 // modal), and the session is minted from a signed nonce. Gas is paid by the
 // user in the chain's native token — there is no sponsorship outside Privy.
+
+// Polygon (the nimiq site's USDT stacks) and the Privy-chain stacks, plus the
+// chains the LI.FI widget in the fund modal bridges from
+// (src/components/lifi/config.ts)
+const NIMIQ_PAY_CHAINS = [
+  polygon,
+  gnosis,
+  sepolia,
+  mainnet,
+  arbitrum,
+  base,
+  bsc,
+  optimism,
+] as const;
+
+// RainbowKit's Switch Networks modal lists the config's chains. The nimiq site
+// serves only Polygon, so it offers only Polygon; elsewhere Nimiq Pay keeps
+// the rest.
+const chains: readonly [Chain, ...Chain[]] = Object.keys(CHAINS).every((id) =>
+  isNimiqPayChain(Number(id))
+)
+  ? [polygon]
+  : NIMIQ_PAY_CHAINS;
+
 export const nimiqPayWagmiConfig = createConfig({
-  // Polygon (the nimiq site's USDT stacks) and the Privy-chain stacks, plus the
-  // chains the LI.FI widget in the fund modal bridges from
-  // (src/components/lifi/config.ts)
-  chains: [polygon, gnosis, sepolia, mainnet, arbitrum, base, bsc, optimism],
+  chains,
   // Through RainbowKit rather than wagmi's bare injected(): RainbowKit's
   // connect modal lists only connectors RainbowKit built (and EIP-6963
   // announcements) — a bare one leaves it empty. Sign In skips that modal in
