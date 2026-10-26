@@ -121,10 +121,6 @@ deferred, for taking NIM anyway, and the one taken instead:
   Polygon, Arbitrum One, Optimism, Base, BNB Smart Chain, Sepolia); `wallet_addEthereumChain`
   is documented but unconfirmed for chain `100`. Prod no longer depends on this, since it
   runs on Polygon. It matters only for a web-site (Gnosis) link opened in Nimiq Pay.
-- **Do Nimiq Pay deeplinks keep the path?** Invite links shared from Nimiq Pay are
-  wrapped as `https://nimpay.app/miniapps/open/<host><path>?<query>`
-  (`nimiqPayOpenLink()`). Nobody has confirmed on a device that Nimiq Pay keeps the path
-  and query rather than opening the site root.
 
 ## Testing
 
@@ -150,7 +146,15 @@ The rest of its env matches the web site's.
 
 ## Listing
 
-Share or list the nimiq site's URL. Deeplinks that open it inside Nimiq Pay:
-`nimiqpay://miniapp?url=nimiq.stacks.bread.coop` or
-`https://nimpay.app/miniapps/open/nimiq.stacks.bread.coop`. Invite links created inside
-Nimiq Pay already use the second form.
+List the nimiq site in Nimiq's mini app directory, by a PR adding it to
+`src/data/nimiq-mini-apps.json` in [nimiq/awesome](https://github.com/nimiq/awesome).
+Deeplinks that open it inside Nimiq Pay: `nimiqpay://miniapp?url=nimiq.stacks.bread.coop`
+or `https://nimpay.app/miniapps/open/nimiq.stacks.bread.coop`.
+
+The listing is also what makes the second form work. A phone that hands the link to
+Nimiq Pay opens it directly, but anywhere else (no app, a desktop, the redirect from a
+spoo.me short link) `nimpay.app/miniapps/open/<host><path>?<query>` serves an "Open in
+Nimiq Pay" page, which keeps the path and query, only for listed hosts. Any other host,
+deploy previews included, gets a 404 "Unknown mini app host". So only links that can't
+work outside Nimiq Pay use it (`nimiqPayOpenLink()`): Polygon invite links and the
+`ChainBrowserGuard` button. Invites on other chains stay plain links.

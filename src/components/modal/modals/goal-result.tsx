@@ -29,8 +29,7 @@ import {
   useChainPath,
   useDepositToken,
 } from "@/components/providers/active-chain";
-import { useWalletHost } from "@/components/providers/is-minipay";
-import { nimiqPayOpenLink } from "@/utils/nimiq-pay";
+import { isNimiqPayChain, nimiqPayOpenLink } from "@/utils/nimiq-pay";
 
 export function buildInviteUrl(baseUrl: string, goalId: string): string {
   const url = new URL(baseUrl);
@@ -50,7 +49,6 @@ export const GoalSuccessResultModal = ({
   const depositToken = useDepositToken();
   const chainId = useActiveChainId();
   const chainHref = useChainPath();
-  const isNimiqPay = useWalletHost() === "nimiqpay";
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [inviteUrl, setInviteUrl] = useState("");
@@ -65,9 +63,10 @@ export const GoalSuccessResultModal = ({
       // string concatenation here would emit a second "?".
       const baseUrl = `${window.location.origin}${chainHref("/stacks/join")}`;
       const inviteUrl = buildInviteUrl(baseUrl, modalState.goal.id);
-      // A Nimiq Pay user shares from inside Nimiq Pay, so the link opens
-      // there too
-      const url = isNimiqPay ? nimiqPayOpenLink(inviteUrl) : inviteUrl;
+      // A Polygon goal works only in Nimiq Pay, so its link opens there
+      const url = isNimiqPayChain(chainId)
+        ? nimiqPayOpenLink(inviteUrl)
+        : inviteUrl;
 
       let shortUrl = url;
       try {

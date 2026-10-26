@@ -16,8 +16,11 @@ export const isNimiqPayChain = (chainId: number): boolean =>
 
 /**
  * A link that opens `url` inside Nimiq Pay, so someone tapping it on their
- * phone lands in the mini app rather than in their browser. Nimiq Pay warns
- * before opening a site its mini app list doesn't include.
+ * phone lands in the mini app rather than in their browser. Where the phone
+ * doesn't hand the link to Nimiq Pay (no app, a desktop, a link shortener's
+ * redirect), nimpay.app serves an "Open in Nimiq Pay" page, but only for sites
+ * listed in Nimiq's mini app directory (nimiq/awesome); any other host gets a
+ * 404. So only links that can't work outside Nimiq Pay anyway use it.
  */
 export const nimiqPayOpenLink = (url: string): string => {
   const { host, pathname, search, hash } = new URL(url);
