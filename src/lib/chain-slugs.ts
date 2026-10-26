@@ -7,6 +7,7 @@ export const CHAIN_SLUGS: Record<number, string> = {
   42220: "celo",
   11155111: "sepolia",
   11142220: "celo-sepolia",
+  137: "polygon",
   31337: "local",
 };
 

@@ -194,15 +194,18 @@ Do not edit anything under `contracts/lib/**`.
   stale links. There is no middleware and no redirect; a chain-less URL stays as typed.
 - **A chain only works in one browser.** `ChainBrowserGuard`
   (`src/components/chain-browser-guard.tsx`) replaces the app with an instruction screen
-  when the pairing is wrong: Celo outside MiniPay, or a non-Celo chain inside it. Not a
+  when the pairing is wrong: Celo outside MiniPay, a non-Celo chain inside it, or Polygon
+  outside Nimiq Pay. Not a
   style choice — writes are impossible either way (gas sponsorship is Gnosis-only in
   `providers/tx-sender.tsx`, the CIP-64 fee currency exists only in the MiniPay sender,
   and MiniPay has no message signing).
-- **Each tier runs the pairing as two sites**: the web site (`stacks.bread.coop` in prod,
-  `development.stacks.bread.coop` in dev) configures only the Privy chain, and the mini
-  site (`mini.` / `mini-development.`) only Celo. The mini site builds the `mini` /
-  `mini-development` branches, which `.github/workflows/sync-mini-branches.yml`
-  mirrors from `main` / `development` on every push, so both run the same code
+- **Each tier runs the pairing as separate sites**: the web site (`stacks.bread.coop` in
+  prod, `development.stacks.bread.coop` in dev) configures only the Privy chain, the mini
+  site (`mini.` / `mini-development.`) only Celo, and in prod the nimiq site
+  (`nimiq.stacks.bread.coop`) only Polygon, for Nimiq Pay (see
+  [NIMIQ-PAY.md](./NIMIQ-PAY.md)). The mini and nimiq sites build the `mini` /
+  `mini-development` / `nimiq` branches, which `.github/workflows/sync-mini-branches.yml`
+  mirrors from `main` / `development` on every push, so all of them run the same code
   against the same Supabase project; only their env differs. `CHAIN_SITES`
   (`src/lib/chain-sites.ts`) names the site for each chain. A request whose `?chain=`
   names a chain this site doesn't configure is redirected to that chain's site

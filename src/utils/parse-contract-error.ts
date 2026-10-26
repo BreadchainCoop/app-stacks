@@ -50,7 +50,7 @@ export function parseContractError(
     message.includes("gas required exceeds allowance") ||
     message.includes("insufficient funds")
   )
-    return "Not enough xDAI to cover the network fee. Please top up your wallet and try again.";
+    return "Not enough funds to cover the network fee. Top up your wallet's gas token (xDAI on Gnosis, POL on Polygon) and try again.";
 
   // Step 5 — string-match fallback for errors viem couldn't decode
   const combined = { ...SAVING_CIRCLES_ERRORS, ...operationErrors };
