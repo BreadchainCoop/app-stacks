@@ -1,13 +1,17 @@
 name: Sync mini branches
 
-# The mini site (MiniPay) is the same code as the web site — it differs only in
-# environment (Celo chain config in NEXT_PUBLIC_CHAINS, see docs/MINIPAY.md),
-# set per branch in the same Netlify project. So each mini branch is a plain
+# The mini site (MiniPay) and the nimiq site (Nimiq Pay) are the same code as
+# the web site — they differ only in environment (Celo or Polygon chain config
+# in NEXT_PUBLIC_CHAINS, see docs/MINIPAY.md and docs/NIMIQ-PAY.md), set per
+# branch in the same Netlify project. So each of these branches is a plain
 # mirror of its web counterpart, existing only to give Netlify a branch to build
 # with that env.
 #
 #   development -> mini-development
-#   main        -> mini
+#   main        -> mini, nimiq
+#
+# The development tier has no nimiq branch: Nimiq Pay is tested there against
+# the web site's Sepolia stacks.
 #
 # Because it is a mirror, anything committed onto a mini branch directly is
 # discarded on the next push upstream. Mini-only changes belong in that branch's
@@ -35,15 +39,15 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Mirror onto the matching mini branch
+      - name: Mirror onto the matching mini branches
         env:
           # Via env rather than inline interpolation, so a branch name is never
           # pasted into the shell.
           SOURCE_BRANCH: ${{ github.ref_name }}
         run: |
           case "$SOURCE_BRANCH" in
-            development) target=mini-development ;;
-            main) target=mini ;;
+            development) targets="mini-development" ;;
+            main) targets="mini nimiq" ;;
             *)
               echo "No mini branch is mapped to $SOURCE_BRANCH"
               exit 1
@@ -56,6 +60,8 @@ jobs:
           # Pushing the commit straight at the target ref creates the branch if
           # it does not exist yet and force-updates it if it does, so no local
           # checkout of the target is needed (and none exists on a first run).
-          git push --force origin "HEAD:refs/heads/$target"
+          for target in $targets; do
+            git push --force origin "HEAD:refs/heads/$target"
 
-          echo "✓ $target now matches $SOURCE_BRANCH ($(git rev-parse --short HEAD))"
+            echo "✓ $target now matches $SOURCE_BRANCH ($(git rev-parse --short HEAD))"
+          done
