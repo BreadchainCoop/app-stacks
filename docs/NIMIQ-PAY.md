@@ -82,9 +82,7 @@ on Ethereum; for a chain it doesn't list, such as Gnosis, the injected connector
 then sends. There is **no gas sponsorship** outside Privy: the user needs POL on Polygon,
 xDAI on Gnosis, or Sepolia ETH in dev. On Polygon the fund modal asks for USDT and
 mentions the POL; on the BREAD chains it shows the LI.FI bridge. Neither shows the
-Privy-only "fund from your connected wallet" section. The "Switch Networks" modal (behind
-"Change network") offers only Polygon on the nimiq site; elsewhere it also lists the Privy
-chains and the chains the bridge starts from.
+Privy-only "fund from your connected wallet" section.
 
 Each transaction opens a native dialog, so a first deposit takes two taps: "Allow USDT"
 (the approve), then "Pay Deposit" (`src/components/deposit-button.tsx`). A first goal
