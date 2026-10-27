@@ -95,8 +95,9 @@ Each transaction opens a native dialog, so a first deposit takes two taps: "Allo
 deposit is the same, "Allow USDT" then "Deposit"
 (`src/app/goals/[id]/_components/use-goal-action.ts`), and turning on automatic deposits
 is "Grant Permission and Activate" then "Activate"
-(`src/components/automatic-deposits/use-automatic-deposits.ts`). Elsewhere the approve and
-the action share one tap.
+(`src/components/automatic-deposits/use-automatic-deposits.ts`). Both "Allow USDT"
+buttons carry a line saying the permission is one-time and the deposit comes next.
+Elsewhere the approve and the action share one tap.
 
 On Sepolia, `SepoliaAutoFund` tops the connected address up with Sepolia ETH and test
 BREAD, so the dev site can be tested end to end.
