@@ -42,7 +42,12 @@ function CopyGrantLink({ id }: { id: string }) {
   );
 }
 
-function stateAlert(state: GrantState, role: GrantRole, noDeadline: boolean) {
+function stateAlert(
+  state: GrantState,
+  role: GrantRole,
+  noDeadline: boolean,
+  feeDue: bigint
+) {
   switch (state) {
     case GrantState.Offered:
       return {
@@ -80,7 +85,9 @@ function stateAlert(state: GrantState, role: GrantRole, noDeadline: boolean) {
       return {
         title: "Advance paid back!",
         description:
-          "The advance is fully paid back. The grant can now be released to the grantee.",
+          feeDue > BigInt(0)
+            ? "The advance is paid back and the grant has unlocked. The grantee can pay the fee to receive the full grant, or release it now with the fee taken out."
+            : "The advance is fully paid back. The grant can now be released to the grantee.",
       };
     case GrantState.Completed:
       return {
@@ -104,14 +111,17 @@ const GrantHeader = ({
   role,
   state,
   noDeadline,
+  feeDue,
 }: {
   id: string;
   role: GrantRole;
   state: GrantState | undefined;
   noDeadline: boolean;
+  /** Fee still unpaid after the grant unlocked; it comes out of the grant on release */
+  feeDue: bigint;
 }) => {
   const alert =
-    state !== undefined ? stateAlert(state, role, noDeadline) : null;
+    state !== undefined ? stateAlert(state, role, noDeadline, feeDue) : null;
 
   return (
     <header className="flex flex-col mb-3.5 md:mb-6">

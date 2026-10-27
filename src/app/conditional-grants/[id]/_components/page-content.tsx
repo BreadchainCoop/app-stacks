@@ -3,6 +3,7 @@
 import { FeatureGate } from "@/components/feature-gate";
 import { CircularProgressIcon } from "@/components/icons/circular-progress";
 import { useConditionalGrant } from "@/hooks/use-conditional-grant";
+import { GrantState } from "@/lib/conditional-grant-state";
 import { Body, useConnectedUser } from "@breadcoop/ui";
 import GranteeActions from "./grantee-actions";
 import GrantPanel from "./grant-panel";
@@ -42,6 +43,13 @@ const ConditionalGrantPageContent = ({ id }: { id: string }) => {
           : undefined
       : undefined;
 
+  // Once the grant has unlocked, whatever is still owed is fee the grantee can
+  // pay, or leave to be taken out of the grant on release.
+  const feeDue =
+    state === GrantState.PaidBack && outstanding !== undefined
+      ? outstanding
+      : BigInt(0);
+
   return (
     <>
       <GrantHeader
@@ -49,6 +57,7 @@ const ConditionalGrantPageContent = ({ id }: { id: string }) => {
         role={role}
         state={state}
         noDeadline={status?.payBackBy === BigInt(0)}
+        feeDue={feeDue}
       />
       {terms && status && state !== undefined && outstanding !== undefined ? (
         <div className="*:mb-4 last:mb-0 md:mb-6 md:last:mb-0">
@@ -59,7 +68,13 @@ const ConditionalGrantPageContent = ({ id }: { id: string }) => {
             state={state}
             outstanding={outstanding}
           />
-          <GrantPanel grantId={grantId} terms={terms} state={state} />
+          <GrantPanel
+            grantId={grantId}
+            terms={terms}
+            state={state}
+            role={role}
+            feeDue={feeDue}
+          />
           {role === "grantee" && (
             <GranteeActions
               grantId={grantId}

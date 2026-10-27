@@ -25,7 +25,10 @@ const GrantOverview = ({
   outstanding: bigint;
 }) => {
   const accepted = status.acceptedAt > BigInt(0);
-  const percentage = paidBackPercent(status.paidBack, terms.advance);
+  const percentage = paidBackPercent(
+    status.paidBack,
+    terms.advance + terms.fee
+  );
   // Past the deadline a countdown only reads "0 days"; the banner explains it
   const payingBack = state === GrantState.Active;
   const noDeadline = status.payBackBy === BigInt(0);
@@ -56,6 +59,7 @@ const GrantOverview = ({
       <div className="grid grid-cols-2 gap-4 border-b border-paper-2 pb-4">
         <Amount label="Advance" amount={terms.advance} />
         <Amount label="Grant on pay-back" amount={terms.grant} />
+        {terms.fee > BigInt(0) && <Amount label="Fee" amount={terms.fee} />}
         {accepted && <Amount label="Paid back" amount={status.paidBack} />}
         {accepted && <Amount label="Still owed" amount={outstanding} />}
       </div>

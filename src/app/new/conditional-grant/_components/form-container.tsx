@@ -16,6 +16,7 @@ const ConditionalGrantFormContainer = () => {
     defaultValues: {
       grantee: "",
       grant: 0,
+      fee: 0,
       noDeadline: false,
       acceptBy: "",
       agreement: "",

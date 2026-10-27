@@ -21,6 +21,7 @@ import {
 import {
   ArrowLeftIcon,
   CalendarIcon,
+  CoinsIcon,
   FileTextIcon,
   GiftIcon,
   HourglassIcon,
@@ -54,6 +55,7 @@ const ConditionalGrantOverviewForm = ({ onBack }: { onBack: () => void }) => {
 
   const advance = form.watch("advance");
   const grant = form.watch("grant");
+  const fee = form.watch("fee");
   const grantee = form.watch("grantee");
   const acceptBy = form.watch("acceptBy");
   const payBackDays = form.watch("payBackDays");
@@ -82,6 +84,7 @@ const ConditionalGrantOverviewForm = ({ onBack }: { onBack: () => void }) => {
       token: DEPOSIT_TOKEN.address,
       advance: advanceAmount,
       grant: grantAmount,
+      fee: toAmount(data.fee),
       acceptBy: acceptBySeconds,
       // A period of 0 tells the contract there is no deadline
       payBackPeriod: data.noDeadline
@@ -145,6 +148,15 @@ const ConditionalGrantOverviewForm = ({ onBack }: { onBack: () => void }) => {
             Number.isFinite(grant)
               ? `${formatBalance(grant, 2)} ${DEPOSIT_TOKEN.symbol}`
               : "-"
+          }
+        />
+        <ReviewedRow
+          RIcon={CoinsIcon}
+          title="Fee"
+          body={
+            Number.isFinite(fee) && fee > 0
+              ? `${formatBalance(fee, 2)} ${DEPOSIT_TOKEN.symbol}`
+              : "None"
           }
         />
         <ReviewedRow

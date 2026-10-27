@@ -16,7 +16,11 @@ import {
   parseDepositAmount,
 } from "@/lib/deposit-token";
 import { agreementHash } from "@/lib/conditional-grant-terms";
-import { canPayBack, GrantState } from "@/lib/conditional-grant-state";
+import {
+  canPayBack,
+  GrantState,
+  unlockAmount,
+} from "@/lib/conditional-grant-state";
 import { Body, formatBalance, Heading3, Logo } from "@breadcoop/ui";
 import { useState } from "react";
 import { zeroHash } from "viem";
@@ -46,6 +50,7 @@ const GranteeActions = ({
         terms={terms}
         outstanding={outstanding}
         noDeadline={noDeadline}
+        state={state}
       />
     );
   }
@@ -95,6 +100,7 @@ function AcceptGrant({
         {terms.payBackPeriod === BigInt(0)
           ? `There's no deadline: pay it back in full whenever you can to also receive the ${formatToken(terms.grant)} grant. The grantor can set a deadline later, but must give you at least 30 days.`
           : `Pay it back in full within ${Number(terms.payBackPeriod / BigInt(86400))} days to also receive the ${formatToken(terms.grant)} grant.`}
+        {terms.fee > BigInt(0) && ` ${feeNote(terms)}`}
       </Body>
       {needsAgreement && (
         <div className="flex flex-col gap-2">
@@ -137,12 +143,19 @@ function PayBackAdvance({
   terms,
   outstanding,
   noDeadline,
+  state,
 }: {
   grantId: bigint;
   terms: GrantTerms;
   outstanding: bigint;
   noDeadline: boolean;
+  state: GrantState;
 }) {
+  // Cash still needed to unlock the grant; the rest of the fee can come out of it
+  const paid = terms.advance + terms.fee - outstanding;
+  const unlock = unlockAmount(terms);
+  const toUnlock = unlock > paid ? unlock - paid : BigInt(0);
+  const onlyFeeLeft = state === GrantState.PaidBack;
   const { setModal } = useModal();
   const { runConditionalGrantAction, balance } = useConditionalGrantAction(
     terms.token
@@ -179,13 +192,20 @@ function PayBackAdvance({
   return (
     <section className="bg-paper-0 p-5 *:mb-4 last:mb-0">
       <header className="border-b border-paper-2 pb-4">
-        <Heading3 className="text-2xl">Pay back</Heading3>
+        <Heading3 className="text-2xl">
+          {onlyFeeLeft ? "Pay the fee" : "Pay back"}
+        </Heading3>
       </header>
       <Body className="text-surface-grey">
-        You still owe {formatToken(outstanding)}.{" "}
-        {noDeadline
-          ? "Pay any amount whenever you like. There's no deadline, so the grant is yours once it's all paid back."
-          : "Pay any amount whenever you like before the deadline to keep the grant."}
+        {onlyFeeLeft
+          ? `Pay the ${formatToken(outstanding)} fee to receive the full ${formatToken(terms.grant)} grant, or skip this and release the grant above with the fee taken out.`
+          : terms.fee === BigInt(0)
+            ? `You still owe ${formatToken(outstanding)}. ${
+                noDeadline
+                  ? "Pay any amount whenever you like. There's no deadline, so the grant is yours once it's all paid back."
+                  : "Pay any amount whenever you like before the deadline to keep the grant."
+              }`
+            : `You still owe ${formatToken(outstanding)}, including the ${formatToken(terms.fee)} fee. Paying ${formatToken(toUnlock)} unlocks the grant${noDeadline ? "" : " (pay it before the deadline)"}; the rest of the fee can be paid or taken out of the grant.`}
       </Body>
       <div className="flex flex-col gap-2">
         <div className="relative">
@@ -228,6 +248,12 @@ function PayBackAdvance({
     </section>
   );
 }
+
+/** How the fee works, in the grantee's terms */
+const feeNote = (terms: GrantTerms) =>
+  terms.fee <= terms.grant
+    ? `There's also a ${formatToken(terms.fee)} fee: pay it to receive the full grant, or have it taken out of the grant.`
+    : `There's also a ${formatToken(terms.fee)} fee. The grant covers ${formatToken(terms.grant)} of it; the other ${formatToken(terms.fee - terms.grant)} must be paid before the grant unlocks.`;
 
 const formatToken = (amount: bigint) =>
   `${formatBalance(+formatDepositAmount(amount), 2)} ${DEPOSIT_TOKEN.symbol}`;

@@ -42,15 +42,32 @@ export const GRANT_STATE_CHIP_CLASSES: Record<GrantState, string> = {
 };
 
 /**
- * Whether the grantee can still pay back: accepted and not fully paid back. A
+ * Whether the grantee can still pay: accepted and advance + fee not fully paid.
+ * In PaidBack only the fee is left, which they may pay for the full grant. A
  * Defaulted advance can still be paid back (only the grant is gone).
  */
 export function canPayBack(state: GrantState, outstanding: bigint) {
   return (
     (state === GrantState.Active ||
       state === GrantState.Overdue ||
+      state === GrantState.PaidBack ||
       state === GrantState.Defaulted) &&
     outstanding > BigInt(0)
+  );
+}
+
+/**
+ * Mirrors the contract's unlock amount: what must be paid in cash to unlock the
+ * grant. The advance, plus any part of the fee the grant is too small to cover.
+ */
+export function unlockAmount(terms: {
+  advance: bigint;
+  grant: bigint;
+  fee: bigint;
+}) {
+  return (
+    terms.advance +
+    (terms.fee > terms.grant ? terms.fee - terms.grant : BigInt(0))
   );
 }
 

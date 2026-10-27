@@ -125,6 +125,11 @@ export const conditionalGrantsAbi = [
             internalType: "uint256",
           },
           {
+            name: "fee",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
             name: "acceptBy",
             type: "uint256",
             internalType: "uint256",
@@ -202,6 +207,11 @@ export const conditionalGrantsAbi = [
           },
           {
             name: "grant",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "fee",
             type: "uint256",
             internalType: "uint256",
           },
@@ -683,6 +693,11 @@ export const conditionalGrantsAbi = [
             internalType: "uint256",
           },
           {
+            name: "fee",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
             name: "acceptBy",
             type: "uint256",
             internalType: "uint256",
@@ -739,6 +754,12 @@ export const conditionalGrantsAbi = [
       },
       {
         name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "feeFromGrant",
         type: "uint256",
         indexed: false,
         internalType: "uint256",

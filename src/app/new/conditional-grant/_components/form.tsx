@@ -64,6 +64,19 @@ const ConditionalGrantForm = ({ onContinue }: { onContinue: () => void }) => {
             <ErrorMessage msg={errors.grant?.message} />
           </Field>
           <Field>
+            <Label htmlFor="fee">Fee</Label>
+            <InputDescription desc="Owed by the grantee on top of the advance. They can pay it to get the full grant, or have it taken out of the grant. Use 0 for no fee." />
+            <TokenInput>
+              <NumericInput
+                {...form.register("fee", { valueAsNumber: true })}
+                id="fee"
+                className="w-full pr-12"
+                allowDecimal
+              />
+            </TokenInput>
+            <ErrorMessage msg={errors.fee?.message} />
+          </Field>
+          <Field>
             <Label htmlFor="grantee">Grantee address</Label>
             <InputDescription desc="Only this wallet can accept. You can leave it empty and add it later." />
             <Input
