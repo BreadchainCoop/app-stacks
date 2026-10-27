@@ -57,8 +57,10 @@ app guidelines ask that each follow a deliberate tap and that none open on page 
    wallet directly, so the tap opens Nimiq Pay's connect dialog. The ui-kit's own
    `LoginButton` would open RainbowKit's connect modal, which on a phone is a sheet with
    one "Browser Wallet" above a "Get a Wallet" pitch, and reads as a prompt to install a
-   wallet. wagmi's silent reconnect (`eth_accounts`) restores the connection on later
-   opens.
+   wallet. Nimiq Pay forgets the connection on every page load, reloads included: wagmi's
+   silent reconnect (`eth_accounts`) gets no account, so each visit starts at Sign In
+   and its connect dialog. Connecting on page load instead would open that dialog
+   without a tap.
 2. **Sign in** — once connected without a session, the "Sign in to Stacks" modal
    (`src/components/modal/modals/nimiq-pay-sign-in.tsx`) asks once per page load. Its
    button fetches a nonce (`/api/nimiq-pay/nonce`, single-use, 5 minutes in Upstash
@@ -71,6 +73,10 @@ app guidelines ask that each follow a deliberate tap and that none open on page 
 3. **"Not now"** leaves the user connected but signed out: contract reads and writes
    work, authenticated API routes (join requests, profile) don't, until the app is
    reopened.
+4. **Switch** — Nimiq Pay connects on Ethereum, and a network switch is a confirmed
+   request too, so once connected the Sign In button reads "Switch to Polygon" (or the
+   page's chain) and switches straight to it. The ui-kit's own button reads "Change
+   network" and opens RainbowKit's network list first.
 
 Unlike MiniPay's session, which trusts the injected address, this one requires proof of
 key possession — Nimiq Pay can sign, so it must.
