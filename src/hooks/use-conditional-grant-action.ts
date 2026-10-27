@@ -8,7 +8,9 @@ import { CONDITIONAL_GRANTS_ERRORS } from "@/lib/contract-errors";
 import { getDefaultChainId } from "@/utils/chain";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { MAX_UINT256 } from "@/utils/solidity";
+import { wagmiConfig } from "@/components/providers/web3";
 import { useConnectedUser } from "@breadcoop/ui";
+import { readContract } from "@wagmi/core";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Address,
@@ -116,6 +118,10 @@ export function useConditionalGrantAction(tokenAddress?: Address) {
         });
 
         await waitForTxReceipt(hash);
+        // Public RPCs are load-balanced and a node can lag the one that saw
+        // the receipt; simulating there would revert on the old allowance.
+        await waitForAllowance(tokenAddress, userAddress, approveAmount);
+        queryClient.invalidateQueries({ queryKey: ["readContract"] });
       }
 
       const receipt = await sendConditionalGrantsTx({ functionName, args });
@@ -145,4 +151,24 @@ export function useConditionalGrantAction(tokenAddress?: Address) {
   };
 
   return { runConditionalGrantAction, balance };
+}
+
+/** Poll the same RPC the simulation uses until it reports the new allowance. */
+async function waitForAllowance(
+  token: Address,
+  owner: Address | undefined,
+  amount: bigint
+) {
+  if (!owner) return;
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const current = await readContract(wagmiConfig, {
+      address: token,
+      abi: erc20Abi,
+      functionName: "allowance",
+      args: [owner, CONDITIONAL_GRANTS_CONTRACT_ADDRESS],
+      chainId: getDefaultChainId(),
+    }).catch(() => BigInt(0));
+    if (current >= amount) return;
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+  }
 }
