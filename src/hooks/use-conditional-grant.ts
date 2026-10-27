@@ -5,6 +5,12 @@ import { getDefaultChainId } from "@/utils/chain";
 import { Address } from "viem";
 import { useReadContract, useReadContracts } from "wagmi";
 
+// Both parties act on the same grant, so poll to show the other side's changes
+// (and a fresh read when the RPC lagged right after our own tx). TanStack pauses
+// polling in background tabs.
+const GRANT_REFETCH_MS = 5_000;
+const LIST_REFETCH_MS = 10_000;
+
 const conditionalGrantsContract = {
   address: CONDITIONAL_GRANTS_CONTRACT_ADDRESS,
   abi: conditionalGrantsAbi,
@@ -30,7 +36,10 @@ export function useConditionalGrant(grantId: bigint | undefined) {
       },
     ],
     allowFailure: false,
-    query: { enabled: grantId !== undefined },
+    query: {
+      enabled: grantId !== undefined,
+      refetchInterval: GRANT_REFETCH_MS,
+    },
   });
 
   const [grantData, state, outstanding, reclaimableAt] = result.data ?? [];
@@ -70,13 +79,13 @@ export function useAddressConditionalGrants(address: Address | undefined) {
     ...conditionalGrantsContract,
     functionName: "getGrantorGrants",
     args: address ? [address] : undefined,
-    query: { enabled: !!address },
+    query: { enabled: !!address, refetchInterval: LIST_REFETCH_MS },
   });
   const granteeIds = useReadContract({
     ...conditionalGrantsContract,
     functionName: "getGranteeGrants",
     args: address ? [address] : undefined,
-    query: { enabled: !!address },
+    query: { enabled: !!address, refetchInterval: LIST_REFETCH_MS },
   });
 
   // An id appears in only one index per address (a grantor can't be its own grantee)
@@ -95,7 +104,7 @@ export function useAddressConditionalGrants(address: Address | undefined) {
         args: [id] as const,
       },
     ]),
-    query: { enabled: ids.length > 0 },
+    query: { enabled: ids.length > 0, refetchInterval: LIST_REFETCH_MS },
   });
 
   const grants: ConditionalGrantSummary[] = ids.flatMap((id, index) => {

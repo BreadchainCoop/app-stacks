@@ -126,8 +126,15 @@ export function useConditionalGrantAction(tokenAddress?: Address) {
 
       const receipt = await sendConditionalGrantsTx({ functionName, args });
 
-      queryClient.invalidateQueries({ queryKey: ["readContract"] });
-      queryClient.invalidateQueries({ queryKey: ["readContracts"] });
+      // Refresh now, then again shortly after in case the RPC node that
+      // answers the first refetch hasn't seen this block yet
+      const refresh = () => {
+        queryClient.invalidateQueries({ queryKey: ["readContract"] });
+        queryClient.invalidateQueries({ queryKey: ["readContracts"] });
+      };
+      refresh();
+      setTimeout(refresh, 2_000);
+      setTimeout(refresh, 6_000);
       onSuccess?.(receipt);
       modal.setModal({
         type: "STACK_TX_RESULT",

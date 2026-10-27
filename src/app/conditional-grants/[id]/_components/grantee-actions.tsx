@@ -194,6 +194,7 @@ function PayBackAdvance({
           errors: CONDITIONAL_GRANT_PAY_BACK_ERRORS,
           approveAmount: payBackAmount,
           amount: payBackAmount,
+          onSuccess: () => setAmountInput(""),
         }),
     });
 

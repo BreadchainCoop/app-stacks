@@ -164,6 +164,7 @@ const GrantorActions = ({
                   functionName: "setGrantee",
                   args: [grantId, granteeInput as Address],
                   errors: CONDITIONAL_GRANT_GRANTOR_ERRORS,
+                  onSuccess: () => setGranteeInput(""),
                 })
               )
             }
@@ -193,6 +194,7 @@ const GrantorActions = ({
                   functionName: "extendPayBackBy",
                   args: [grantId, newPayBackBy!],
                   errors: CONDITIONAL_GRANT_GRANTOR_ERRORS,
+                  onSuccess: () => setExtendInput(""),
                 })
               )
             }
@@ -222,6 +224,7 @@ const GrantorActions = ({
                   functionName: "setPayBackBy",
                   args: [grantId, newPayBackBy!],
                   errors: CONDITIONAL_GRANT_GRANTOR_ERRORS,
+                  onSuccess: () => setExtendInput(""),
                 })
               )
             }
