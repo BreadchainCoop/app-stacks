@@ -156,6 +156,13 @@ function PayBackAdvance({
   const unlock = unlockAmount(terms);
   const toUnlock = unlock > paid ? unlock - paid : BigInt(0);
   const onlyFeeLeft = state === GrantState.PaidBack;
+  // While paying back, offer the two ways to settle the fee side by side
+  const feeChoice =
+    (state === GrantState.Active || state === GrantState.Overdue) &&
+    terms.fee > BigInt(0) &&
+    toUnlock < outstanding;
+  // Fee left unpaid if they stop at the unlock amount; it comes out of the grant
+  const feeFromGrant = outstanding - toUnlock;
   const { setModal } = useModal();
   const { runConditionalGrantAction, balance } = useConditionalGrantAction(
     terms.token
@@ -205,8 +212,29 @@ function PayBackAdvance({
                   ? "Pay any amount whenever you like. There's no deadline, so the grant is yours once it's all paid back."
                   : "Pay any amount whenever you like before the deadline to keep the grant."
               }`
-            : `You still owe ${formatToken(outstanding)}, including the ${formatToken(terms.fee)} fee. Paying ${formatToken(toUnlock)} unlocks the grant${noDeadline ? "" : " (pay it before the deadline)"}; the rest of the fee can be paid or taken out of the grant.`}
+            : feeChoice
+              ? `You still owe ${formatToken(outstanding)}, including the ${formatToken(terms.fee)} fee. Choose how to settle the fee${noDeadline ? "" : ", and pay before the deadline"}:`
+              : `You still owe ${formatToken(outstanding)}, including the ${formatToken(terms.fee)} fee. Pay any amount whenever you like.`}
       </Body>
+      {feeChoice && (
+        <div className="flex flex-col gap-2">
+          <FeeOption
+            selected={amountInput === formatDepositAmount(toUnlock)}
+            onSelect={() => setAmountInput(formatDepositAmount(toUnlock))}
+            title="Use the grant to pay the fee"
+            detail={`Pay ${formatToken(toUnlock)}, then release the grant: you receive ${formatToken(terms.grant - feeFromGrant)} and the ${formatToken(feeFromGrant)} fee comes out of it.`}
+          />
+          <FeeOption
+            selected={amountInput === formatDepositAmount(outstanding)}
+            onSelect={() => setAmountInput(formatDepositAmount(outstanding))}
+            title="Pay the fee too"
+            detail={`Pay ${formatToken(outstanding)} and receive the full ${formatToken(terms.grant)} grant.`}
+          />
+          <Body className="text-xs text-surface-grey">
+            Or enter any amount below and decide later.
+          </Body>
+        </div>
+      )}
       <div className="flex flex-col gap-2">
         <div className="relative">
           <NumericInput
@@ -246,6 +274,30 @@ function PayBackAdvance({
         <BalanceHint balance={balance} amount={payBackAmount} />
       </div>
     </section>
+  );
+}
+
+function FeeOption({
+  selected,
+  onSelect,
+  title,
+  detail,
+}: {
+  selected: boolean;
+  onSelect: () => void;
+  title: string;
+  detail: string;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={onSelect}
+      className={`w-full text-left border p-3 ${selected ? "border-primary-blue bg-paper-1" : "border-paper-2 hover:border-primary-blue"}`}
+    >
+      <Body bold>{title}</Body>
+      <Body className="text-xs text-surface-grey">{detail}</Body>
+    </button>
   );
 }
 
