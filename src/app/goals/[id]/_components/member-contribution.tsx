@@ -156,6 +156,12 @@ const MemberContribution = ({
         >
           {allowOnly ? `Allow ${depositToken.symbol}` : "Deposit"}
         </LocalButton>
+        {allowOnly && (
+          <Body className="text-xs text-surface-grey">
+            A one-time permission for Stacks to collect your{" "}
+            {depositToken.symbol} goal deposits. You deposit next.
+          </Body>
+        )}
         {!depositOpen && (
           <Body className="text-xs text-surface-grey">
             {settled

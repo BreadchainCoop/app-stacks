@@ -1,6 +1,6 @@
 "use client";
 
-import { ButtonProps, useConnectedUser } from "@breadcoop/ui";
+import { Body, ButtonProps, useConnectedUser } from "@breadcoop/ui";
 import { formatAmount } from "@/utils/format-amount";
 import { useModal } from "./modal/context";
 import { useReadContract } from "wagmi";
@@ -152,7 +152,7 @@ const DepositButton = ({
   };
 
   // TODO: Since privy is being used, show wrong chain button if user is on unsupported chain
-  return (
+  const button = (
     <LocalButton
       {...props}
       onClick={deposit}
@@ -175,6 +175,18 @@ const DepositButton = ({
         label
       )}
     </LocalButton>
+  );
+
+  if (!approveOnly || hasInsufficientBalance) return button;
+
+  return (
+    <div className="flex flex-col gap-2">
+      {button}
+      <Body className="text-xs text-surface-grey">
+        A one-time permission for Stacks to collect your {depositToken.symbol}{" "}
+        deposits. You pay the deposit next.
+      </Body>
+    </div>
   );
 };
 
