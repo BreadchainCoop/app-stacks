@@ -73,7 +73,7 @@ function stateAlert(
         title: "Paying back the advance",
         description: noDeadline
           ? "There's no deadline. Pay any amount whenever you like; once the full advance is paid back, the grant unlocks. The grantor can set a deadline, but only at least 30 days out."
-          : "Pay back the full advance before the deadline to unlock the grant. Pay any amount whenever you like until then.",
+          : "Pay back before the deadline to unlock the grant. Pay any amount whenever you like until then.",
       };
     case GrantState.Overdue:
       return {

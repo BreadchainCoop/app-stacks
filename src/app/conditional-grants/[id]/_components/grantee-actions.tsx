@@ -241,7 +241,7 @@ function PayBackAdvance({
             (balance !== undefined && balance < payBackAmount)
           }
         >
-          Pay back
+          {onlyFeeLeft ? "Pay fee" : "Pay back"}
         </LocalButton>
         <BalanceHint balance={balance} amount={payBackAmount} />
       </div>
