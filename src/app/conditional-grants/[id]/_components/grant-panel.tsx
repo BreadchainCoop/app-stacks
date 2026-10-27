@@ -33,9 +33,12 @@ const GrantPanel = ({
   const { runConditionalGrantAction } = useConditionalGrantAction();
 
   if (state !== GrantState.PaidBack) return null;
+  // With fee due, the grantee releases from their own pay card
+  if (feeDue > BigInt(0) && role === "grantee") return null;
 
   const toGrantee = terms.grant - feeDue;
-  const canRelease = feeDue === BigInt(0) || role === "grantee";
+  // Fee due and not the grantee: only they may choose to take it from the grant
+  const canRelease = feeDue === BigInt(0);
 
   const release = () =>
     setModal({
@@ -62,9 +65,7 @@ const GrantPanel = ({
       <Body className="text-surface-grey">
         {feeDue === BigInt(0)
           ? "The advance is fully paid back. Anyone can release the grant, and it always goes to the grantee."
-          : role === "grantee"
-            ? `Release now to receive ${formatToken(toGrantee)}: the unpaid ${formatToken(feeDue)} fee comes out of the grant. Or pay the fee below to receive the full ${formatToken(terms.grant)}.`
-            : `Waiting for the grantee to pay the ${formatToken(feeDue)} fee, or release the grant with the fee taken out.`}
+          : `Waiting for the grantee to pay the ${formatToken(feeDue)} fee, or release the grant with the fee taken out.`}
       </Body>
       {canRelease && (
         <LocalButton
@@ -72,9 +73,7 @@ const GrantPanel = ({
           className="w-full font-bold"
           onClick={release}
         >
-          {feeDue === BigInt(0)
-            ? "Release grant"
-            : `Release ${formatToken(toGrantee)}`}
+          Release grant
         </LocalButton>
       )}
     </section>

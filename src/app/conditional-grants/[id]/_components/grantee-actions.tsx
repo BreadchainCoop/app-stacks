@@ -9,6 +9,7 @@ import { useConditionalGrantAction } from "@/hooks/use-conditional-grant-action"
 import {
   CONDITIONAL_GRANT_ACCEPT_ERRORS,
   CONDITIONAL_GRANT_PAY_BACK_ERRORS,
+  CONDITIONAL_GRANT_PAYOUT_ERRORS,
 } from "@/lib/contract-errors";
 import {
   DEPOSIT_TOKEN,
@@ -196,16 +197,49 @@ function PayBackAdvance({
         }),
     });
 
+  // The grant has unlocked with fee still unpaid: releasing now takes it from the grant
+  const toGrantee = terms.grant - outstanding;
+  const release = () =>
+    setModal({
+      type: "STACK_TX_INIT",
+      stackType: "conditionalGrant",
+      action: "releaseGrant",
+      id: grantId,
+      amount: toGrantee,
+      onConfirm: () =>
+        runConditionalGrantAction({
+          action: "releaseGrant",
+          functionName: "releaseGrant",
+          args: [grantId],
+          errors: CONDITIONAL_GRANT_PAYOUT_ERRORS,
+          amount: toGrantee,
+        }),
+    });
+
   return (
     <section className="bg-paper-0 p-5 *:mb-4 last:mb-0">
       <header className="border-b border-paper-2 pb-4">
         <Heading3 className="text-2xl">
-          {onlyFeeLeft ? "Pay the fee" : "Pay back"}
+          {onlyFeeLeft ? "Receive your grant" : "Pay back"}
         </Heading3>
       </header>
+      {onlyFeeLeft && (
+        <div className="flex flex-col gap-2 border-b border-paper-2 pb-4">
+          <Body className="text-surface-grey">
+            {`The advance is paid back. Release the grant now: you receive ${formatToken(toGrantee)} and the ${formatToken(outstanding)} fee comes out of it.`}
+          </Body>
+          <LocalButton
+            variant="positive"
+            className="w-full font-bold"
+            onClick={release}
+          >
+            {`Release ${formatToken(toGrantee)}`}
+          </LocalButton>
+        </div>
+      )}
       <Body className="text-surface-grey">
         {onlyFeeLeft
-          ? `Pay the ${formatToken(outstanding)} fee to receive the full ${formatToken(terms.grant)} grant, or skip this and release the grant above with the fee taken out.`
+          ? `Or pay the ${formatToken(outstanding)} fee yourself and receive the full ${formatToken(terms.grant)} grant.`
           : terms.fee === BigInt(0)
             ? `You still owe ${formatToken(outstanding)}. ${
                 noDeadline
