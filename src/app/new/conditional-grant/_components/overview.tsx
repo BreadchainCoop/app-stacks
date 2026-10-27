@@ -145,9 +145,9 @@ const ConditionalGrantOverviewForm = ({ onBack }: { onBack: () => void }) => {
           RIcon={GiftIcon}
           title="Grant"
           body={
-            Number.isFinite(grant)
+            Number.isFinite(grant) && grant > 0
               ? `${formatBalance(grant, 2)} ${DEPOSIT_TOKEN.symbol}`
-              : "-"
+              : "None"
           }
         />
         <ReviewedRow

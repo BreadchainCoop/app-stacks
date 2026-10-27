@@ -8,12 +8,9 @@ const conditionalGrantSchema = z
     advance: z
       .number({ error: "Enter the advance" })
       .positive("The advance must be greater than 0"),
-    grant: z
-      .number({ error: "Enter a grant amount, or 0" })
-      .min(0, "The grant can't be negative"),
-    fee: z
-      .number({ error: "Enter a fee, or 0" })
-      .min(0, "The fee can't be negative"),
+    // Optional: an empty input (NaN) means none
+    grant: z.number().min(0, "The grant can't be negative").or(z.nan()),
+    fee: z.number().min(0, "The fee can't be negative").or(z.nan()),
     acceptBy: z.string().min(1, "Please select a date"),
     noDeadline: z.boolean(),
     // Checked in superRefine: only required when there is a deadline
