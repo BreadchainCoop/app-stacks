@@ -7,7 +7,6 @@ import { CONDITIONAL_GRANTS_CONTRACT_ADDRESS } from "@/lib/constants";
 import { CONDITIONAL_GRANTS_ERRORS } from "@/lib/contract-errors";
 import { getDefaultChainId } from "@/utils/chain";
 import { parseContractError } from "@/utils/parse-contract-error";
-import { MAX_UINT256 } from "@/utils/solidity";
 import { wagmiConfig } from "@/components/providers/web3";
 import { useConnectedUser } from "@breadcoop/ui";
 import { readContract } from "@wagmi/core";
@@ -45,15 +44,6 @@ export function useConditionalGrantAction(tokenAddress?: Address) {
   const { waitForTxReceipt } = useWaitForTxReceipt();
   const { user } = useConnectedUser();
   const userAddress = user.status === "CONNECTED" ? user.address : undefined;
-
-  const { data: allowance = BigInt(0) } = useReadContract({
-    address: tokenAddress,
-    abi: erc20Abi,
-    functionName: "allowance",
-    args: [userAddress!, CONDITIONAL_GRANTS_CONTRACT_ADDRESS],
-    query: { enabled: !!userAddress && !!tokenAddress },
-    chainId: getDefaultChainId(),
-  });
 
   const { data: balance } = useReadContract({
     address: tokenAddress,
@@ -101,15 +91,18 @@ export function useConditionalGrantAction(tokenAddress?: Address) {
     });
 
     try {
+      // Approve exactly what this action pulls, decided from a fresh read: the
+      // contract is upgradeable, so a standing unlimited allowance would put the
+      // whole wallet balance behind the upgrade key, not just what is escrowed.
       if (
         approveAmount !== undefined &&
         tokenAddress &&
-        allowance < approveAmount
+        (await readAllowance(tokenAddress, userAddress)) < approveAmount
       ) {
         const approveData = encodeFunctionData({
           abi: erc20Abi,
           functionName: "approve",
-          args: [CONDITIONAL_GRANTS_CONTRACT_ADDRESS, MAX_UINT256],
+          args: [CONDITIONAL_GRANTS_CONTRACT_ADDRESS, approveAmount],
         });
 
         const { hash } = await sendSponsoredTransaction({
@@ -160,22 +153,29 @@ export function useConditionalGrantAction(tokenAddress?: Address) {
   return { runConditionalGrantAction, balance };
 }
 
-/** Poll the same RPC the simulation uses until it reports the new allowance. */
+/** The allowance as the RPC the simulation uses sees it right now. */
+function readAllowance(token: Address, owner: Address | undefined) {
+  if (!owner) return Promise.resolve(BigInt(0));
+  return readContract(wagmiConfig, {
+    address: token,
+    abi: erc20Abi,
+    functionName: "allowance",
+    args: [owner, CONDITIONAL_GRANTS_CONTRACT_ADDRESS],
+    chainId: getDefaultChainId(),
+  }).catch(() => BigInt(0));
+}
+
+/** Poll until the RPC reports the new allowance, so the simulation won't revert on the old one. */
 async function waitForAllowance(
   token: Address,
   owner: Address | undefined,
   amount: bigint
 ) {
-  if (!owner) return;
   for (let attempt = 0; attempt < 10; attempt++) {
-    const current = await readContract(wagmiConfig, {
-      address: token,
-      abi: erc20Abi,
-      functionName: "allowance",
-      args: [owner, CONDITIONAL_GRANTS_CONTRACT_ADDRESS],
-      chainId: getDefaultChainId(),
-    }).catch(() => BigInt(0));
-    if (current >= amount) return;
+    if ((await readAllowance(token, owner)) >= amount) return;
     await new Promise((resolve) => setTimeout(resolve, 1500));
   }
+  throw new Error(
+    "The approval went through but the network hasn't caught up yet. Please try again in a moment."
+  );
 }

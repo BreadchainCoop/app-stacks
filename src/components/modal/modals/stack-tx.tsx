@@ -242,7 +242,8 @@ export const StackTxStatusModal = ({
 
   return (
     <ModalContainer status={status}>
-      <ModalHeader title={title} />
+      {/* No closing while a transaction is in flight, or the action could be sent twice */}
+      <ModalHeader title={title} showCloseIcon={status !== "loading"} />
       <ModalStatus status={status} msg={msg} />
     </ModalContainer>
   );

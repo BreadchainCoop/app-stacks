@@ -38,10 +38,15 @@ import { ConditionalGrantFormSchemaData } from "./schema";
 const SECONDS_PER_DAY = BigInt(24 * 60 * 60);
 
 /** A form number as token base units; invalid or empty input is zero. */
-const toAmount = (value: number) =>
-  Number.isFinite(value) && value > 0
-    ? parseDepositAmount(String(value))
-    : BigInt(0);
+const toAmount = (value: number) => {
+  if (!Number.isFinite(value) || value <= 0) return BigInt(0);
+  try {
+    // toFixed avoids exponent notation ("1e-7"), which parseUnits rejects
+    return parseDepositAmount(value.toFixed(DEPOSIT_TOKEN.decimals));
+  } catch {
+    return BigInt(0);
+  }
+};
 
 const ConditionalGrantOverviewForm = ({ onBack }: { onBack: () => void }) => {
   const router = useRouter();

@@ -38,7 +38,14 @@ const ModalPresenter = () => {
   const { modalState, setModal } = useModal();
 
   return (
-    <Dialog.Root open={!!modalState} onOpenChange={() => setModal(null)}>
+    <Dialog.Root
+      open={!!modalState}
+      onOpenChange={() => {
+        // Escape can't dismiss a transaction that is still in flight
+        if (modalState?.type === "STACK_TX_LOADING") return;
+        setModal(null);
+      }}
+    >
       <Dialog.Portal forceMount>
         {modalState && (
           <>

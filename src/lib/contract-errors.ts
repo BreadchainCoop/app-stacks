@@ -117,14 +117,15 @@ export const CONDITIONAL_GRANTS_ERRORS: Record<string, string> = {
   // ── Roles / lifecycle ─────────────────────────────────────────────
   GrantNotFound: "This conditional grant does not exist.",
   NotGrantor: "Only the grantor can perform this action.",
-  NotGrantee: "Only the grantee can accept this offer.",
+  NotGrantee:
+    "Only the grantee can do this: accept the offer, or release the grant while a fee would come out of it.",
   TermsMismatch:
     "This agreement doesn't match the one the grantor attached to the offer.",
   InvalidState: "This conditional grant can't do that in its current state.",
   InvalidAmount: "The amount must be greater than zero.",
   NothingToCollect: "There is nothing to collect yet.",
   ReclaimTooEarly:
-    "The grant can't be taken back yet: that opens 7 days after the deadline.",
+    "The grant can't be taken back yet: that opens 7 days after a missed deadline, or 90 days after a pay-back if nobody released it.",
 
   // ── OpenZeppelin / low-level ──────────────────────────────────────
   InvalidInitialization: "Contract initialisation error.",

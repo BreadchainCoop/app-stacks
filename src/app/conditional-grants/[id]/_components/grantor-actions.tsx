@@ -76,6 +76,7 @@ const GrantorActions = ({
 
   const granteeValid =
     isAddress(granteeInput) &&
+    granteeInput.toLowerCase() !== zeroAddress &&
     granteeInput.toLowerCase() !== status.grantor.toLowerCase();
 
   // A date input yields YYYY-MM-DD; the new deadline is midnight at its start
@@ -180,7 +181,7 @@ const GrantorActions = ({
             value={extendInput}
             onChange={(e) => setExtendInput(e.target.value)}
             type="date"
-            min={earliestDeadlineDate()}
+            min={earliestExtensionDate(status.payBackBy)}
             className="w-full"
           />
           <LocalButton
@@ -305,6 +306,15 @@ function Action({ note, children }: { note: string; children?: ReactNode }) {
     </div>
   );
 }
+
+/** The day after the current deadline, or tomorrow if that is later. */
+const earliestExtensionDate = (payBackBy: bigint) => {
+  const tomorrow = earliestDeadlineDate();
+  const afterDeadline = new Date(Number(payBackBy) * 1000);
+  afterDeadline.setDate(afterDeadline.getDate() + 1);
+  const value = `${afterDeadline.getFullYear()}-${String(afterDeadline.getMonth() + 1).padStart(2, "0")}-${String(afterDeadline.getDate()).padStart(2, "0")}`;
+  return value > tomorrow ? value : tomorrow;
+};
 
 // The contract's DEADLINE_NOTICE_PERIOD
 const DEADLINE_NOTICE_SECONDS = BigInt(30 * 86400);
