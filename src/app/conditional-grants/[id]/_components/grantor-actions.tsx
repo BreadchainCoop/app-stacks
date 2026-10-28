@@ -246,7 +246,7 @@ const GrantorActions = ({
           note={
             state === GrantState.PaidBack
               ? "The advance was paid back, but nobody has released the grant for 90 days. You can take it back."
-              : "The advance is late. Taking the grant back is permanent; the grantee still owes the rest of the advance."
+              : "The advance is late. Taking the grant back is permanent and closes this grant: the rest of the advance is written off."
           }
         >
           <LocalButton

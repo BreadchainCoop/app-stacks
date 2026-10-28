@@ -99,7 +99,7 @@ function stateAlert(
       return {
         title: "The grant was taken back",
         description:
-          "The advance was late and the grantor reclaimed the grant. Any remaining advance can still be paid back.",
+          "The grantor took the grant back, which closes this conditional grant. Nothing more is owed, and payments made before stay with the grantor.",
       };
   }
 }

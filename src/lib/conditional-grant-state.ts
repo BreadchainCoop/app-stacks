@@ -44,14 +44,13 @@ export const GRANT_STATE_CHIP_CLASSES: Record<GrantState, string> = {
 /**
  * Whether the grantee can still pay: accepted and advance + fee not fully paid.
  * In PaidBack only the fee is left, which they may pay for the full grant. A
- * Defaulted advance can still be paid back (only the grant is gone).
+ * reclaim (Defaulted) closes the grant, so nothing more can be paid.
  */
 export function canPayBack(state: GrantState, outstanding: bigint) {
   return (
     (state === GrantState.Active ||
       state === GrantState.Overdue ||
-      state === GrantState.PaidBack ||
-      state === GrantState.Defaulted) &&
+      state === GrantState.PaidBack) &&
     outstanding > BigInt(0)
   );
 }

@@ -137,7 +137,7 @@ const ACTION_COPY: Record<
   reclaimGrant: {
     title: "Reclaim the grant?",
     description:
-      "Reclaiming is permanent. The grantee will no longer receive the grant, but still owes the rest of the advance.",
+      "Reclaiming is permanent and closes this conditional grant: the grantee no longer receives the grant, and the rest of the advance is written off. Payments already made stay yours.",
     confirmLabel: "Reclaim grant",
     loadingTitle: "Reclaiming",
     successTitle: "Grant reclaimed",
