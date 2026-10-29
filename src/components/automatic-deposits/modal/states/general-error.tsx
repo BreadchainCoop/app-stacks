@@ -9,15 +9,17 @@ import {
 import { Body } from "@breadcoop/ui";
 
 export const GeneralErrorState = ({
+  message,
   onTryAgain,
 }: {
+  message: string | null;
   onTryAgain: () => void;
 }) => (
   <ModalContainer status="error" className="max-w-142!">
     <ModalHeader title="Automatic Deposits failed" />
     <ModalStatus status="error" statusMsg="Transaction failed" />
     <Body bold className="text-center text-surface-grey">
-      Something went wrong. Please try again!
+      {message ?? "Something went wrong. Please try again!"}
     </Body>
     <LocalButton
       variant="destructive"

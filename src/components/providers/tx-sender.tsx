@@ -3,8 +3,12 @@
 import { createContext, ReactNode, useCallback, useContext } from "react";
 import { useSendTransaction } from "@privy-io/react-auth";
 import { useConnectedUser } from "@breadcoop/ui";
+import { Address, Hex } from "viem";
+import { useConfig } from "wagmi";
+import { getPublicClient } from "@wagmi/core";
 import { useActiveChainId } from "./active-chain";
 import { useEmbeddedWalletAddress } from "@/hooks/use-linked-external-wallet";
+import { assertCanPayGas } from "@/utils/network-fee";
 
 // The transaction sender for the mounted provider stack. Contract writes all
 // funnel through useSponsoredTx -> this context, so the Privy stack (embedded
@@ -49,23 +53,37 @@ export const PrivyTxSenderProvider = ({
 
   const chainId = useActiveChainId();
   const embeddedAddress = useEmbeddedWalletAddress();
+  const config = useConfig();
 
   const sender = useCallback<TxSender>(
-    (input, options) => {
+    async (input, options) => {
       const signer = options?.address ?? connectedAddress;
 
       const isEmbeddedSigner =
         Boolean(signer) &&
         signer?.toLowerCase() === embeddedAddress?.toLowerCase();
+      const sponsor = chainId === 100 && isEmbeddedSigner;
+
+      // Unsponsored, the signer pays gas itself, so a wallet short of the gas
+      // token stops here with a message naming the token
+      const client = getPublicClient(config, { chainId });
+      if (!sponsor && signer && input.to && client) {
+        await assertCanPayGas(client, {
+          account: signer as Address,
+          to: input.to as Address,
+          data: input.data as Hex | undefined,
+          value: input.value === undefined ? undefined : BigInt(input.value),
+        });
+      }
 
       return sendTransaction(input, {
         address: connectedAddress,
         ...options,
-        sponsor: chainId === 100 && isEmbeddedSigner,
+        sponsor,
         uiOptions: { showWalletUIs: false, ...options?.uiOptions },
       });
     },
-    [sendTransaction, connectedAddress, embeddedAddress, chainId]
+    [sendTransaction, connectedAddress, embeddedAddress, chainId, config]
   );
 
   return <TxSenderProvider value={sender}>{children}</TxSenderProvider>;

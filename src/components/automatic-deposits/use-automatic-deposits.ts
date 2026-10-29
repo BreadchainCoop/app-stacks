@@ -13,6 +13,7 @@ import {
 import { useAutomaticSavingCirclesTx } from "@/hooks/use-automatic-saving-circles-tx";
 import { useSponsoredTx } from "@/hooks/use-sponsored-tx";
 import { useWaitForTxReceipt } from "@/hooks/use-wait-for-tx-receipt";
+import { parseContractError } from "@/utils/parse-contract-error";
 
 export type AutomaticDepositsStatus =
   | "idle"
@@ -29,6 +30,8 @@ export function useAutomaticDeposits(stackId: string) {
   const { user } = useConnectedUser();
   const address = user.status === "CONNECTED" ? user.address : undefined;
   const [status, setStatus] = useState<AutomaticDepositsStatus>("idle");
+  // Why the last transaction failed, shown by the modal's error state
+  const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const chainId = useActiveChainId();
   const { automaticSavingCircles } = useChainConfig();
@@ -103,6 +106,7 @@ export function useAutomaticDeposits(stackId: string) {
       await sendEnable();
     } catch (err) {
       console.error("useAutomaticDeposits activate error:", err);
+      setError(parseContractError(err));
       setStatus("error");
     }
   };
@@ -116,6 +120,7 @@ export function useAutomaticDeposits(stackId: string) {
       await sendEnable();
     } catch (err) {
       console.error("useAutomaticDeposits enable error:", err);
+      setError(parseContractError(err));
       setStatus("error");
     }
   };
@@ -135,9 +140,10 @@ export function useAutomaticDeposits(stackId: string) {
       setStatus("success");
     } catch (err) {
       console.error("useAutomaticDeposits deactivate error:", err);
+      setError(parseContractError(err));
       setStatus("error");
     }
   };
 
-  return { activate, enable, deactivate, status, setStatus };
+  return { activate, enable, deactivate, status, setStatus, error };
 }

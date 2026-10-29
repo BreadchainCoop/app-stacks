@@ -90,6 +90,11 @@ xDAI on Gnosis, or Sepolia ETH in dev. On Polygon the fund modal asks for USDT a
 mentions the POL; on the BREAD chains it shows the LI.FI bridge. Neither shows the
 Privy-only "fund from your connected wallet" section.
 
+Before each send, `assertCanPayGas` (`src/utils/network-fee.ts`) estimates the fee and
+checks the wallet's balance of the gas token. A wallet that can't pay stops there, before
+Nimiq Pay's dialog, and the failure modal says so: "Not enough POL on Polygon to cover
+the network fee…". Privy's sender runs the same check whenever it doesn't sponsor gas.
+
 Each transaction opens a native dialog, so a first deposit takes two taps: "Allow USDT"
 (the approve), then "Pay Deposit" (`src/components/deposit-button.tsx`). A first goal
 deposit is the same, "Allow USDT" then "Deposit"
