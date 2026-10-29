@@ -30,7 +30,7 @@ const AutomaticDepositsModal = ({
   } = modalState;
 
   const modal = useModal();
-  const { activate, enable, deactivate, status, setStatus } =
+  const { activate, enable, deactivate, status, setStatus, error } =
     useAutomaticDeposits(stackId);
 
   const enabling = !currentValue;
@@ -87,6 +87,7 @@ const AutomaticDepositsModal = ({
   if (status === "error")
     return (
       <GeneralErrorState
+        message={error}
         onTryAgain={() => {
           setInsufficientBalance(false);
           setStatus("idle");

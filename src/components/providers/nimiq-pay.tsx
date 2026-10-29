@@ -26,7 +26,12 @@ import {
   useSignTypedData,
   WagmiProvider,
 } from "wagmi";
-import { getAccount, sendTransaction, switchChain } from "@wagmi/core";
+import {
+  getAccount,
+  getPublicClient,
+  sendTransaction,
+  switchChain,
+} from "@wagmi/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { hashFn } from "wagmi/query";
 import {
@@ -41,6 +46,7 @@ import { TxSender, TxSenderProvider } from "./tx-sender";
 import { UserIdentityProvider } from "./user-identity";
 import SepoliaAutoFund from "./sepolia-auto-fund";
 import { nimiqPayUserId } from "@/utils/nimiq-pay";
+import { assertCanPayGas } from "@/utils/network-fee";
 import { isTokenExpired } from "@/utils/jwt";
 import { nimiqPaySignInTypedData } from "@/lib/nimiq-pay-sign-in";
 import { useActiveChainId, useDepositToken } from "./active-chain";
@@ -109,6 +115,21 @@ const NimiqPayTxSenderProvider = ({ children }: { children: ReactNode }) => {
           : typeof input.value === "bigint"
             ? input.value
             : BigInt(input.value);
+
+      // The user pays gas, so a wallet short of the gas token stops here,
+      // before Nimiq Pay's dialog, with a message naming the token
+      const { address } = getAccount(nimiqPayWagmiConfig);
+      if (address) {
+        await assertCanPayGas(
+          getPublicClient(nimiqPayWagmiConfig, { chainId }),
+          {
+            account: address,
+            to: input.to as Address,
+            data: input.data as Hex | undefined,
+            value,
+          }
+        );
+      }
 
       // The wallet can be on any chain (Nimiq Pay opens on Ethereum), and
       // wagmi won't send on a chain the wallet isn't on. Switching asks the

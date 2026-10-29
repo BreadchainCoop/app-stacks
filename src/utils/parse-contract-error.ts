@@ -3,6 +3,7 @@ import {
   ContractFunctionExecutionError,
 } from "viem";
 import { SAVING_CIRCLES_ERRORS } from "@/lib/contract-errors";
+import { InsufficientGasError, isInsufficientFundsError } from "./network-fee";
 
 /**
  * Converts a raw contract / wagmi error into a human-readable string.
@@ -14,7 +15,8 @@ import { SAVING_CIRCLES_ERRORS } from "@/lib/contract-errors";
  *     a. `operationErrors` (caller-supplied, operation-specific map)
  *     b. `SAVING_CIRCLES_ERRORS` (full contract-level fallback)
  *  3. Detect user-rejection strings in the error message.
- *  4. Detect node-level "can't pay for this" errors, which are not reverts.
+ *  4. Detect "can't pay the network fee" errors — the pre-send check's
+ *     (./network-fee) or the wallet's and node's — which are not reverts.
  *  5. String-match the error message against all known error names.
  *  6. Return `fallback`.
  */
@@ -41,12 +43,18 @@ export function parseContractError(
   if (error.message.includes("User rejected"))
     return "Transaction was rejected.";
 
-  // Step 4 — the node refused on cost rather than contract logic. Nodes phrase
-  // this as either "gas required exceeds allowance (N)" — where N is the gas
-  // the sender's balance can buy — or "insufficient funds for gas * price +
-  // value". Both mean the sender cannot pay, and neither is a revert.
+  // Step 4 — the sender can't pay the network fee. The pre-send check
+  // already names the chain's gas token.
+  if (error instanceof InsufficientGasError) return error.message;
+
+  // Otherwise the wallet or node refused on cost rather than contract logic.
+  // Nodes phrase this as either "gas required exceeds allowance (N)" — where
+  // N is the gas the sender's balance can buy — or "insufficient funds for
+  // gas * price + value". Both mean the sender cannot pay, and neither is a
+  // revert.
   const message = error.message.toLowerCase();
   if (
+    isInsufficientFundsError(error) ||
     message.includes("gas required exceeds allowance") ||
     message.includes("insufficient funds")
   )
