@@ -1,5 +1,6 @@
 "use client";
 
+import AgreementText from "@/app/conditional-grants/_components/agreement-text";
 import BalanceHint from "@/app/conditional-grants/_components/balance-hint";
 import LocalButton from "@/components/button";
 import NumericInput from "@/components/numeric-input";
@@ -16,7 +17,6 @@ import {
   formatDepositAmount,
   parseDepositAmount,
 } from "@/lib/deposit-token";
-import { agreementHash } from "@/lib/conditional-grant-terms";
 import {
   canPayBack,
   GrantState,
@@ -24,7 +24,6 @@ import {
 } from "@/lib/conditional-grant-state";
 import { Body, formatBalance, Heading3, Logo } from "@breadcoop/ui";
 import { useState } from "react";
-import { zeroHash } from "viem";
 
 const GranteeActions = ({
   grantId,
@@ -68,12 +67,6 @@ function AcceptGrant({
 }) {
   const { setModal } = useModal();
   const { runConditionalGrantAction } = useConditionalGrantAction();
-  const [agreement, setAgreement] = useState("");
-
-  const needsAgreement = terms.termsHash !== zeroHash;
-  const matches =
-    !needsAgreement || agreementHash(agreement) === terms.termsHash;
-
   const accept = () =>
     setModal({
       type: "STACK_TX_INIT",
@@ -85,7 +78,7 @@ function AcceptGrant({
         runConditionalGrantAction({
           action: "acceptGrant",
           functionName: "accept",
-          args: [grantId, terms.termsHash],
+          args: [grantId],
           errors: CONDITIONAL_GRANT_ACCEPT_ERRORS,
           amount: terms.advance,
         }),
@@ -103,36 +96,17 @@ function AcceptGrant({
           : `Pay it back in full within ${Number(terms.payBackPeriod / BigInt(86400))} days to also receive the ${formatToken(terms.grant)} grant.`}
         {terms.fee > BigInt(0) && ` ${feeNote(terms)}`}
       </Body>
-      {needsAgreement && (
+      {terms.agreement && (
         <div className="flex flex-col gap-2">
           <Body bold>Agreement</Body>
+          <AgreementText text={terms.agreement} />
           <Body className="text-xs text-surface-grey">
-            Paste the agreement the grantor shared with you. Accepting records
-            on-chain that you agreed to exactly this text.
+            By accepting, you agree to this agreement. It is stored with the
+            grant and can&apos;t be changed.
           </Body>
-          <textarea
-            value={agreement}
-            onChange={(e) => setAgreement(e.target.value)}
-            rows={4}
-            className="w-full border border-paper-2 bg-paper-1 py-3 px-4 placeholder:text-surface-grey text-surface-grey-2 placeholder:font-light"
-            placeholder="Paste the agreement here"
-          />
-          {agreement.trim() && (
-            <Body
-              className={`text-xs ${matches ? "text-system-green" : "text-system-red"}`}
-            >
-              {matches
-                ? "This matches the grantor's agreement."
-                : "This doesn't match the grantor's agreement. Check you copied all of it."}
-            </Body>
-          )}
         </div>
       )}
-      <LocalButton
-        className="w-full font-bold"
-        onClick={accept}
-        disabled={!matches}
-      >
+      <LocalButton className="w-full font-bold" onClick={accept}>
         Accept offer
       </LocalButton>
     </section>

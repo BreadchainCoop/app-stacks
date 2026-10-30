@@ -15,7 +15,14 @@ const conditionalGrantSchema = z
     noDeadline: z.boolean(),
     // Checked in superRefine: only required when there is a deadline
     payBackDays: z.number().or(z.nan()).optional(),
-    agreement: z.string().optional(),
+    agreement: z
+      .string()
+      .optional()
+      // The contract's MAX_AGREEMENT_LENGTH is 2000 bytes
+      .refine(
+        (text) => new TextEncoder().encode(text?.trim() ?? "").length <= 2000,
+        "Keep the agreement under 2000 characters, or link to a longer document"
+      ),
   })
   .superRefine((data, ctx) => {
     if (Number.isNaN(dateInputToMs(data.acceptBy))) {

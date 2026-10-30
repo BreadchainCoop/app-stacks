@@ -7,7 +7,6 @@ import { useConditionalGrantAction } from "@/hooks/use-conditional-grant-action"
 import { conditionalGrantsAbi } from "@/lib/abis/conditional-grants";
 import { CONDITIONAL_GRANT_CREATE_ERRORS } from "@/lib/contract-errors";
 import { DEPOSIT_TOKEN, parseDepositAmount } from "@/lib/deposit-token";
-import { agreementHash } from "@/lib/conditional-grant-terms";
 import { stackTypeDetailPath } from "@/lib/stack-types";
 import { formatAddress } from "@/utils/address";
 import { dateInputToMs, formatShortDate } from "@/utils/time";
@@ -95,7 +94,7 @@ const ConditionalGrantOverviewForm = ({ onBack }: { onBack: () => void }) => {
       payBackPeriod: data.noDeadline
         ? BigInt(0)
         : BigInt(data.payBackDays ?? 0) * SECONDS_PER_DAY,
-      termsHash: agreementHash(data.agreement),
+      agreement: data.agreement?.trim() ?? "",
     };
     const granteeAddress = data.grantee
       ? (data.grantee as Address)
@@ -185,7 +184,7 @@ const ConditionalGrantOverviewForm = ({ onBack }: { onBack: () => void }) => {
         <ReviewedRow
           RIcon={FileTextIcon}
           title="Agreement"
-          body={agreement?.trim() ? "Attached" : "None"}
+          body={agreement?.trim() ? "Shown on the grant" : "None"}
         />
       </div>
       <div className="flex items-center justify-between">

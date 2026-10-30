@@ -144,7 +144,7 @@ const ConditionalGrantForm = ({ onContinue }: { onContinue: () => void }) => {
           </Field>
           <Field>
             <Label htmlFor="agreement">Agreement (optional)</Label>
-            <InputDescription desc="The conditions in plain language. Share this exact text with the grantee: they paste it to accept, which records on-chain that they agreed to it." />
+            <InputDescription desc="The conditions in plain language, up to 2000 characters (or a link to a longer document). It is shown on the grant, and accepting the offer means agreeing to it. It can't be changed later." />
             <textarea
               {...form.register("agreement")}
               id="agreement"
@@ -152,6 +152,7 @@ const ConditionalGrantForm = ({ onContinue }: { onContinue: () => void }) => {
               className="w-full border border-paper-2 bg-paper-1 py-3 px-4 placeholder:text-surface-grey text-surface-grey-2 placeholder:font-light"
               placeholder="e.g. 1,000 USDT for computers, paid back in monthly installments"
             />
+            <ErrorMessage msg={errors.agreement?.message} />
           </Field>
         </div>
         <LocalButton

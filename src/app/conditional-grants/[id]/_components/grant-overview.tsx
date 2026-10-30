@@ -1,5 +1,6 @@
 "use client";
 
+import AgreementText from "@/app/conditional-grants/_components/agreement-text";
 import Countdown from "@/components/countdown";
 import { GrantStatus, GrantTerms } from "@/hooks/use-conditional-grant";
 import { DEPOSIT_TOKEN, formatDepositAmount } from "@/lib/deposit-token";
@@ -9,7 +10,7 @@ import { formatShortDate } from "@/utils/time";
 import { Body, formatBalance, Heading3, Logo } from "@breadcoop/ui";
 import Link from "next/link";
 import { ReactNode } from "react";
-import { zeroAddress, zeroHash } from "viem";
+import { zeroAddress } from "viem";
 
 const GrantOverview = ({
   grantId,
@@ -105,13 +106,16 @@ const GrantOverview = ({
             <AddressLink address={status.grantee} />
           )}
         </BreakdownRow>
-        <BreakdownRow label="Agreement">
-          <p>
-            {terms.termsHash === zeroHash
-              ? "None"
-              : "Attached (shared with the grantee)"}
-          </p>
-        </BreakdownRow>
+        {terms.agreement ? (
+          <div className="bg-paper-1 py-2 px-4 flex flex-col gap-2.5 mb-2 last:mb-0">
+            <Body className="text-surface-grey-2">Agreement</Body>
+            <AgreementText text={terms.agreement} />
+          </div>
+        ) : (
+          <BreakdownRow label="Agreement">
+            <p>None</p>
+          </BreakdownRow>
+        )}
       </div>
     </section>
   );

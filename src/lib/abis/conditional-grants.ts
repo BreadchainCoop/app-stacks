@@ -19,6 +19,19 @@ export const conditionalGrantsAbi = [
   },
   {
     type: "function",
+    name: "MAX_AGREEMENT_LENGTH",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "MAX_PAY_BACK_PERIOD",
     inputs: [],
     outputs: [
@@ -64,11 +77,6 @@ export const conditionalGrantsAbi = [
         name: "_id",
         type: "uint256",
         internalType: "uint256",
-      },
-      {
-        name: "_termsHash",
-        type: "bytes32",
-        internalType: "bytes32",
       },
     ],
     outputs: [],
@@ -140,9 +148,9 @@ export const conditionalGrantsAbi = [
             internalType: "uint256",
           },
           {
-            name: "termsHash",
-            type: "bytes32",
-            internalType: "bytes32",
+            name: "agreement",
+            type: "string",
+            internalType: "string",
           },
         ],
       },
@@ -226,9 +234,9 @@ export const conditionalGrantsAbi = [
             internalType: "uint256",
           },
           {
-            name: "termsHash",
-            type: "bytes32",
-            internalType: "bytes32",
+            name: "agreement",
+            type: "string",
+            internalType: "string",
           },
         ],
       },
@@ -708,9 +716,9 @@ export const conditionalGrantsAbi = [
             internalType: "uint256",
           },
           {
-            name: "termsHash",
-            type: "bytes32",
-            internalType: "bytes32",
+            name: "agreement",
+            type: "string",
+            internalType: "string",
           },
         ],
       },
@@ -902,6 +910,11 @@ export const conditionalGrantsAbi = [
   },
   {
     type: "error",
+    name: "AgreementTooLong",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "GrantNotFound",
     inputs: [],
   },
@@ -1007,11 +1020,6 @@ export const conditionalGrantsAbi = [
         internalType: "address",
       },
     ],
-  },
-  {
-    type: "error",
-    name: "TermsMismatch",
-    inputs: [],
   },
   {
     type: "error",

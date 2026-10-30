@@ -111,6 +111,8 @@ export const CONDITIONAL_GRANTS_ERRORS: Record<string, string> = {
   InvalidAcceptBy: "The offer deadline must be in the future.",
   InvalidPayBackPeriod:
     "The pay-back deadline must be later than the current one, and at least 30 days away when there was no deadline.",
+  AgreementTooLong:
+    "The agreement is too long. Keep it under 2000 characters, or link to a longer document.",
   InvalidGrantee: "The grantee must be a valid address other than the grantor.",
   GranteeAlreadySet: "This conditional grant already has a grantee.",
 
@@ -119,8 +121,6 @@ export const CONDITIONAL_GRANTS_ERRORS: Record<string, string> = {
   NotGrantor: "Only the grantor can perform this action.",
   NotGrantee:
     "Only the grantee can do this: accept the offer, or release the grant while a fee would come out of it.",
-  TermsMismatch:
-    "This agreement doesn't match the one the grantor attached to the offer.",
   InvalidState: "This conditional grant can't do that in its current state.",
   InvalidAmount: "The amount must be greater than zero.",
   NothingToCollect: "There is nothing to collect yet.",
@@ -253,6 +253,7 @@ export const CONDITIONAL_GRANT_CREATE_ERRORS: Record<string, string> = pick(
     "InvalidAdvance",
     "InvalidAcceptBy",
     "InvalidPayBackPeriod",
+    "AgreementTooLong",
     "InvalidGrantee",
     "SafeERC20FailedOperation",
   ],
@@ -275,7 +276,7 @@ export const CONDITIONAL_GRANT_GRANTOR_ERRORS: Record<string, string> = pick(
 
 /** Errors that can surface when the grantee accepts an offer. */
 export const CONDITIONAL_GRANT_ACCEPT_ERRORS: Record<string, string> = pick(
-  ["GrantNotFound", "NotGrantee", "InvalidState", "TermsMismatch"],
+  ["GrantNotFound", "NotGrantee", "InvalidState"],
   CONDITIONAL_GRANTS_ERRORS
 );
 
