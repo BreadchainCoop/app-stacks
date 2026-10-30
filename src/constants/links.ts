@@ -19,9 +19,10 @@ export const LINKS = {
   // Required by MiniPay's listing rules, which want all three reachable from
   // inside the Mini App. Terms and Privacy are app routes rather than external
   // URLs so they stay in-app inside MiniPay's browser. Support has no page —
-  // it needs a real contact channel; <LegalLinks/> hides it while it is empty.
+  // it is an invite into the Discord support channel, which (unlike a channel
+  // link) also works for people who aren't in the server yet.
   privacyPolicy: "/privacy",
-  support: "",
+  support: "https://discord.gg/5U7EaSnRC",
   termsOfService: "/terms",
   projectApplicationForm: "https://forms.gle/DeTETFxCxZbKRCzS7",
   solidarityFund: "https://app.breadchain.xyz",

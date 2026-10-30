@@ -84,35 +84,59 @@ Physical Android/iOS device only — no emulators.
 
 ## Network manifest
 
-Every origin the app contacts, for the submission form.
+Every origin the mini site (`https://mini.stacks.bread.coop`) uses, for the
+submission form. Recorded on 2026-10-30 by loading the live site in a 360×640
+browser with a MiniPay user agent and an injected MiniPay provider, plus every
+link in `src/` and in `@breadcoop/ui` (which renders the footer).
 
-**Core**
+**Requested by the page**
 
-| Origin                                | Purpose                                          |
-| ------------------------------------- | ------------------------------------------------ |
-| `<your-supabase-ref>.supabase.co`     | Stack metadata, profiles (per environment)       |
-| `forno.celo.org`                      | Celo mainnet RPC (viem default)                  |
-| `forno.celo-sepolia.celo-testnet.org` | Celo Sepolia RPC                                 |
-| `link.minipay.xyz`                    | Add Cash deeplink                                |
-| `celoscan.io`                         | Transaction/contract links                       |
-| `celo-sepolia.blockscout.com`         | Testnet explorer links                           |
-| `spoo.me`                             | Invite-link shortening (web build only)          |
-| `auth.privy.io`                       | Privy JWKS — server-side token verification only |
+| Origin                             | Purpose                                                                    |
+| ---------------------------------- | -------------------------------------------------------------------------- |
+| `mini.stacks.bread.coop`           | The app itself: pages, JS, CSS, fonts, images and its `/api` routes        |
+| `vsmzhxyeytgktpsjlspe.supabase.co` | Supabase (production): stack metadata, profiles                            |
+| `forno.celo.org`                   | Celo mainnet RPC (viem default)                                            |
+| `eth-mainnet.g.alchemy.com`        | Ethereum mainnet RPC for ENS names (`src/hooks/use-preferred-ens-name.ts`) |
+| `ethereum.publicnode.com`          | Fallback for the ENS RPC above                                             |
+| `lb.drpc.org`, `scroll.3668.io`    | ENS offchain-lookup (EIP-3668) gateways for L2 names, seen in the capture  |
 
-**Web-build only** (not loaded in MiniPay, since the Privy stack is
-code-split): `*.privy.io`, WalletConnect relays, `docs.li.fi` and LiFi
-endpoints, `dune.com`, `ethereum.publicnode.com`.
+The ENS gateways are chosen by ENS's contracts at lookup time, not by this
+code, so other gateway hosts can appear for other addresses.
 
-**Static/outbound links** (footer and content, no data exchanged):
-`app.breadchain.xyz`, `docs.bread.coop`, `fund.bread.coop`,
-`stacks.bread.coop`, `www.sourdough.systems`, `github.com`,
-`opencollective.com`, `giveth.io`, `discord.com`, `farcaster.xyz`, `x.com`,
-`www.linkedin.com`, `www.youtube.com`, `forms.gle`, `form.typeform.com`,
-`docs.google.com`, calendar links (`calendar.google.com`,
-`calendar.yahoo.com`, `outlook.cloud.microsoft`).
+**Requested by the server only** (Netlify functions, never the browser):
+Supabase (same project), the Upstash Redis host (`*.upstash.io`),
+`forno.celo.org`, `spoo.me` (invite-link shortening, web build only) and
+`auth.privy.io` (Privy JWKS for web-site sessions).
 
-> Regenerate with:
-> `grep -rhoE "https://[a-zA-Z0-9.-]+\.[a-z]{2,}" src/ --include=*.ts --include=*.tsx | sort -u`
+**Links the user can open** (navigation only, no data exchanged):
+
+- MiniPay and Celo: `link.minipay.xyz` (Add Cash), `celoscan.io`
+  (transactions), `www.opera.com` (Get MiniPay, on the screen shown when a
+  Celo link is opened outside MiniPay)
+- Support: `discord.gg`. Terms and Privacy are in-app routes.
+- Bread: `bread.coop`, `app.breadchain.xyz`, `docs.bread.coop`,
+  `fund.bread.coop`, `www.sourdough.systems`
+- Footer: `discord.com`, `x.com`, `bsky.app`, `farcaster.xyz`,
+  `www.linkedin.com`, `www.youtube.com`, `paragraph.com`, `github.com`,
+  `opencollective.com`, `giveth.io`, `dune.com`
+- Forms: `forms.gle`, `docs.google.com`, `form.typeform.com`
+- Calendar reminders: `calendar.google.com`, `calendar.yahoo.com`,
+  `outlook.cloud.microsoft`
+- The other Stacks sites, where `?chain=` links for chains the mini site
+  doesn't serve redirect: `stacks.bread.coop`, `nimiq.stacks.bread.coop`,
+  `development.stacks.bread.coop`, `mini-development.stacks.bread.coop`
+
+**In the code but not used on the mini site:** `*.privy.io` and WalletConnect
+relays (Privy's code is downloaded in MiniPay but makes no requests), `docs.li.fi`
+and LiFi endpoints, `nimpay.app` (Nimiq Pay), the explorers for other chains
+(`gnosisscan.io`, `polygonscan.com`, `sepolia.etherscan.io`), and Celo Sepolia
+(`forno.celo-sepolia.celo-testnet.org`, `celo-sepolia.blockscout.com`, used by
+mini-development). Not hosts at all: `www.w3.org` (SVG namespace),
+`stacks.invalid` (URL-parsing placeholder), `docs.privy.io` (a code comment).
+
+> To regenerate: grep `src/` and `node_modules/@breadcoop/ui/dist` for
+> `https?://` origins for the links, then load the site as MiniPay and record
+> the hosts it requests — the ENS gateways only show up at runtime.
 
 ## Submission checklist
 
@@ -129,7 +153,8 @@ Form: <https://developer.minipay.to/mini-app-listing>
       `width=device-width, initial-scale=1`; pinch-zoom left enabled)
 - [ ] **Terms of Service URL** — wired, URL needed
 - [ ] **Privacy Policy URL** — wired, URL needed
-- [ ] **Support URL** + 24h critical-fix SLA — wired, URL needed
+- [x] **Support URL** — the Discord support channel (`LINKS.support`); the
+      24h critical-fix SLA still applies
       <br>All three render from `LINKS` via `src/components/legal-links.tsx`,
       which shows only the entries that have a value — set them in
       `src/constants/links.ts` and they appear under the footer on every page.
