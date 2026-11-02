@@ -186,7 +186,21 @@ export type GoalCreationFailedModalState = {
 // One confirm/loading/result trio parameterized by stack type + action,
 // mirroring the DEPOSIT_INIT / DEPOSIT_LOADING / DEPOSIT_RESULT pattern.
 
-export type StackTxAction = "deposit" | "withdraw" | "release" | "cancel";
+export type StackTxAction =
+  | "deposit"
+  | "withdraw"
+  | "release"
+  | "cancel"
+  | "createGrant"
+  | "setGrantee"
+  | "cancelGrant"
+  | "acceptGrant"
+  | "payBack"
+  | "releaseGrant"
+  | "extendDeadline"
+  | "setDeadline"
+  | "reclaimGrant"
+  | "collect";
 
 export type StackTxInitModalState = {
   type: "STACK_TX_INIT";

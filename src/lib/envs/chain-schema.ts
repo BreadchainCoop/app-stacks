@@ -16,6 +16,9 @@ const chainConfigSchema = z.object({
   // deployment, not per chain, so only enable the `goalSavings` feature where
   // every configured chain has the contract.
   goalSavings: addressSchema.optional().default(ZERO_ADDRESS),
+  // Optional per chain, like goalSavings: conditional grants are deployed on
+  // Celo only, and a chain without the contract gets the zero address.
+  conditionalGrants: addressSchema.optional().default(ZERO_ADDRESS),
   // JSON has no bigint, so accept a decimal string (or number) and convert
   // once here — every consumer wants a bigint block number.
   contractCreationBlock: z

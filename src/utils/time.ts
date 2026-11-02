@@ -51,11 +51,12 @@ export const dateInputToMs = (value: string): number => {
 
 /**
  * The earliest date a user may pick as a deadline, as a `YYYY-MM-DD` value.
- * Midnight today has already passed, so the first valid deadline is tomorrow.
+ * Midnight today has already passed, so the first valid deadline is tomorrow
+ * (or `daysAhead` days from today).
  */
-export const earliestDeadlineDate = (): string => {
+export const earliestDeadlineDate = (daysAhead = 1): string => {
   const date = new Date();
-  date.setDate(date.getDate() + 1);
+  date.setDate(date.getDate() + daysAhead);
 
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 };
