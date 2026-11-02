@@ -18,6 +18,8 @@ export interface ChainConfig {
   // per-deployment rather than per-chain, so see the note in
   // src/lib/envs/chain-schema.ts before enabling it on a mixed deployment.
   goalSavings: Address;
+  // Conditional grants, the zero address where not deployed (see goalSavings)
+  conditionalGrants: Address;
   // Block the Saving Circles proxy was deployed at: the floor for event scans.
   contractCreationBlock: bigint;
   depositToken: DepositTokenConfig;

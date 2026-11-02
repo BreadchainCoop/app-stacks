@@ -6,9 +6,11 @@ import {
   ArrowClockwiseIcon,
   ArrowRightIcon,
   FlagBannerFoldIcon,
+  HandCoinsIcon,
 } from "@phosphor-icons/react/ssr";
 import type { Icon } from "@phosphor-icons/react";
 import { Body, cn, Heading2, Heading3 } from "@breadcoop/ui";
+import { ConditionalGrantsGate } from "@/components/conditional-grants-gate";
 import { STACK_TYPE_DESCRIPTIONS, STACK_TYPE_LABELS } from "@/lib/stack-types";
 import BackPage from "@/components/back-page";
 import { useChainPath } from "@/components/providers/active-chain";
@@ -80,6 +82,14 @@ const TypePicker = () => {
             description={STACK_TYPE_DESCRIPTIONS.goal}
             href={chainHref("/new/goal")}
           />
+          <ConditionalGrantsGate>
+            <Card
+              StackIcon={HandCoinsIcon}
+              label={STACK_TYPE_LABELS.conditionalGrant}
+              description={STACK_TYPE_DESCRIPTIONS.conditionalGrant}
+              href={chainHref("/new/conditional-grant")}
+            />
+          </ConditionalGrantsGate>
         </div>
       </section>
     </>

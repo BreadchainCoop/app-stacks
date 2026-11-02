@@ -21,6 +21,7 @@ const StackCard = ({
   name,
   id,
   progress,
+  progressLabel = "Goal progress",
   chip,
   stats,
 }: {
@@ -28,6 +29,7 @@ const StackCard = ({
   name: string;
   id: string;
   progress: number;
+  progressLabel?: string;
   chip?: { label: string; className?: string };
   stats: StackCardStat[];
 }) => {
@@ -56,7 +58,7 @@ const StackCard = ({
       <div>
         <div className="flex items-center justify-between mb-2">
           <Body bold className="text-xs sm:text-base">
-            Goal progress
+            {progressLabel}
           </Body>
           <Body bold className="text-xs sm:text-base">
             {progress}%
@@ -64,7 +66,7 @@ const StackCard = ({
         </div>
         <div
           role="progressbar"
-          aria-label="Goal progress"
+          aria-label={progressLabel}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={progress}

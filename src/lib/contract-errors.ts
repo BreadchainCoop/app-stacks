@@ -102,6 +102,43 @@ export const GOAL_SAVINGS_ERRORS: Record<string, string> = {
 
 /**
  * Human-readable messages for every custom error in the
+ * Conditional grants contract ABI.
+ */
+export const CONDITIONAL_GRANTS_ERRORS: Record<string, string> = {
+  // ── Configuration ─────────────────────────────────────────────────
+  TokenNotAllowed: "This token is not allowed for conditional grants.",
+  InvalidAdvance: "The advance must be greater than zero.",
+  InvalidAcceptBy: "The offer deadline must be in the future.",
+  InvalidPayBackPeriod:
+    "The pay-back deadline must be later than the current one, and at least 30 days away when there was no deadline.",
+  AgreementTooLong:
+    "The agreement is too long. Keep it under 2000 characters, or link to a longer document.",
+  InvalidGrantee: "The grantee must be a valid address other than the grantor.",
+  GranteeAlreadySet: "This conditional grant already has a grantee.",
+
+  // ── Roles / lifecycle ─────────────────────────────────────────────
+  GrantNotFound: "This conditional grant does not exist.",
+  NotGrantor: "Only the grantor can perform this action.",
+  NotGrantee:
+    "Only the grantee can do this: accept the offer, or release the grant while a fee would come out of it.",
+  InvalidState: "This conditional grant can't do that in its current state.",
+  InvalidAmount: "The amount must be greater than zero.",
+  NothingToCollect: "There is nothing to collect yet.",
+  ReclaimTooEarly:
+    "The grant can't be taken back yet: that opens 7 days after a missed deadline, or 90 days after a pay-back if nobody released it.",
+
+  // ── OpenZeppelin / low-level ──────────────────────────────────────
+  InvalidInitialization: "Contract initialisation error.",
+  NotInitializing: "Contract is not in an initialisation state.",
+  ReentrancyGuardReentrantCall: "Reentrant call detected — please try again.",
+  OwnableInvalidOwner: "Invalid owner address.",
+  OwnableUnauthorizedAccount:
+    "Your account is not authorised to perform this action.",
+  SafeERC20FailedOperation: "Token transfer failed — check your balance.",
+};
+
+/**
+ * Human-readable messages for every custom error in the
  * CollectiveFundCircles contract ABI.
 
 // ── Operation-scoped subsets ────────────────────────────────────────────────
@@ -205,6 +242,59 @@ export const GOAL_RELEASE_ERRORS: Record<string, string> = pick(
 export const GOAL_CANCEL_ERRORS: Record<string, string> = pick(
   ["GoalNotFound", "NotOwner", "NotCancellable"],
   GOAL_SAVINGS_ERRORS
+);
+
+// ── Conditional grant operation subsets ─────────────────────────────────────────────
+
+/** Errors that can surface when the grantor creates an offer. */
+export const CONDITIONAL_GRANT_CREATE_ERRORS: Record<string, string> = pick(
+  [
+    "TokenNotAllowed",
+    "InvalidAdvance",
+    "InvalidAcceptBy",
+    "InvalidPayBackPeriod",
+    "AgreementTooLong",
+    "InvalidGrantee",
+    "SafeERC20FailedOperation",
+  ],
+  CONDITIONAL_GRANTS_ERRORS
+);
+
+/** Errors that can surface on grantor actions (grantee, cancel, extend, reclaim). */
+export const CONDITIONAL_GRANT_GRANTOR_ERRORS: Record<string, string> = pick(
+  [
+    "GrantNotFound",
+    "NotGrantor",
+    "InvalidState",
+    "InvalidGrantee",
+    "GranteeAlreadySet",
+    "InvalidPayBackPeriod",
+    "ReclaimTooEarly",
+  ],
+  CONDITIONAL_GRANTS_ERRORS
+);
+
+/** Errors that can surface when the grantee accepts an offer. */
+export const CONDITIONAL_GRANT_ACCEPT_ERRORS: Record<string, string> = pick(
+  ["GrantNotFound", "NotGrantee", "InvalidState"],
+  CONDITIONAL_GRANTS_ERRORS
+);
+
+/** Errors that can surface when paying back an advance. */
+export const CONDITIONAL_GRANT_PAY_BACK_ERRORS: Record<string, string> = pick(
+  [
+    "GrantNotFound",
+    "InvalidState",
+    "InvalidAmount",
+    "SafeERC20FailedOperation",
+  ],
+  CONDITIONAL_GRANTS_ERRORS
+);
+
+/** Errors that can surface when releasing the grant or collecting payments. */
+export const CONDITIONAL_GRANT_PAYOUT_ERRORS: Record<string, string> = pick(
+  ["GrantNotFound", "InvalidState", "NothingToCollect"],
+  CONDITIONAL_GRANTS_ERRORS
 );
 
 // ── Internal helper ─────────────────────────────────────────────────────────

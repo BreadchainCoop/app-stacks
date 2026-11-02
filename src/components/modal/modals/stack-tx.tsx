@@ -64,7 +64,98 @@ const ACTION_COPY: Record<
     successTitle: "Goal cancelled",
     successMsg: "The goal was cancelled",
   },
+  createGrant: {
+    title: "Offer this conditional grant",
+    description:
+      "You are about to move the advance and the grant into escrow. You can cancel for a full refund until the grantee accepts.",
+    confirmLabel: "Offer",
+    loadingTitle: "Offering",
+    successTitle: "Offer sent",
+    successMsg: "Moved into escrow",
+  },
+  setGrantee: {
+    title: "Set the grantee",
+    description:
+      "Only this address will be able to accept the offer. This can't be changed later.",
+    confirmLabel: "Set grantee",
+    loadingTitle: "Setting grantee",
+    successTitle: "Grantee set",
+    successMsg: "The grantee can now accept the offer",
+  },
+  cancelGrant: {
+    title: "Cancel this offer?",
+    description:
+      "Cancelling is permanent. The advance and the grant come back to you.",
+    confirmLabel: "Cancel offer",
+    loadingTitle: "Cancelling",
+    successTitle: "Offer cancelled",
+    successMsg: "Escrow returned to you",
+  },
+  acceptGrant: {
+    title: "Accept this offer",
+    description:
+      "You are about to receive the advance. The pay-back deadline starts now.",
+    confirmLabel: "Accept offer",
+    loadingTitle: "Accepting",
+    successTitle: "Offer accepted",
+    successMsg: "Received",
+  },
+  payBack: {
+    title: "Pay back the advance",
+    description: "You are about to pay back part of the advance.",
+    confirmLabel: "Pay back",
+    loadingTitle: "Paying back",
+    successTitle: "Payment sent",
+    successMsg: "Successfully paid back",
+  },
+  releaseGrant: {
+    title: "Release the grant",
+    description:
+      "The advance is fully paid back. The grant will be sent to the grantee.",
+    confirmLabel: "Release grant",
+    loadingTitle: "Releasing grant",
+    successTitle: "Grant released",
+    successMsg: "Sent to the grantee",
+  },
+  extendDeadline: {
+    title: "Give more time",
+    description:
+      "The grantee will have until the new deadline to pay back and still receive the grant.",
+    confirmLabel: "Extend deadline",
+    loadingTitle: "Extending",
+    successTitle: "Deadline extended",
+    successMsg: "The new deadline is set",
+  },
+  setDeadline: {
+    title: "Set a deadline?",
+    description:
+      "The grantee must pay back in full by this date to receive the grant. Once set, you can only move it later.",
+    confirmLabel: "Set deadline",
+    loadingTitle: "Setting deadline",
+    successTitle: "Deadline set",
+    successMsg: "The grantee has been given notice",
+  },
+  reclaimGrant: {
+    title: "Reclaim the grant?",
+    description:
+      "Reclaiming is permanent and closes this conditional grant: the grantee no longer receives the grant, and the rest of the advance is written off. Payments already made stay yours.",
+    confirmLabel: "Reclaim grant",
+    loadingTitle: "Reclaiming",
+    successTitle: "Grant reclaimed",
+    successMsg: "Returned to you",
+  },
+  collect: {
+    title: "Collect payments",
+    description: "You are about to collect the payments made so far.",
+    confirmLabel: "Collect",
+    loadingTitle: "Collecting",
+    successTitle: "Payments collected",
+    successMsg: "Successfully collected",
+  },
 };
+
+/** Actions that permanently give something up, styled like goal cancel. */
+const DESTRUCTIVE_ACTIONS: StackTxAction[] = ["cancelGrant", "reclaimGrant"];
 
 export const StackTxInitModal = ({
   modalState,
@@ -75,7 +166,8 @@ export const StackTxInitModal = ({
   const copy = ACTION_COPY[modalState.action];
   const depositToken = useDepositToken();
   const isCancellingGoal =
-    modalState.stackType === "goal" && modalState.action === "cancel";
+    (modalState.stackType === "goal" && modalState.action === "cancel") ||
+    DESTRUCTIVE_ACTIONS.includes(modalState.action);
 
   return (
     <ModalContainer>
@@ -161,7 +253,8 @@ export const StackTxStatusModal = ({
 
   return (
     <ModalContainer status={status}>
-      <ModalHeader title={title} />
+      {/* No closing while a transaction is in flight, or the action could be sent twice */}
+      <ModalHeader title={title} showCloseIcon={status !== "loading"} />
       <ModalStatus status={status} msg={msg} />
     </ModalContainer>
   );

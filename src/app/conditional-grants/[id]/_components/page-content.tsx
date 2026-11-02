@@ -1,0 +1,112 @@
+"use client";
+
+import { ConditionalGrantsGate } from "@/components/conditional-grants-gate";
+import { CircularProgressIcon } from "@/components/icons/circular-progress";
+import { useConditionalGrant } from "@/hooks/use-conditional-grant";
+import { GrantState } from "@/lib/conditional-grant-state";
+import { Body, useConnectedUser } from "@breadcoop/ui";
+import GranteeActions from "./grantee-actions";
+import GrantPanel from "./grant-panel";
+import GrantHeader from "./header";
+import GrantorActions from "./grantor-actions";
+import GrantOverview from "./grant-overview";
+
+const PageContent = ({ id }: { id: string }) => {
+  return (
+    <ConditionalGrantsGate>
+      {/^\d+$/.test(id) ? (
+        <ConditionalGrantPageContent id={id} />
+      ) : (
+        <Body className="text-system-red">
+          This conditional grant does not exist.
+        </Body>
+      )}
+    </ConditionalGrantsGate>
+  );
+};
+
+export type GrantRole = "grantor" | "grantee" | undefined;
+
+const ConditionalGrantPageContent = ({ id }: { id: string }) => {
+  const grantId = BigInt(id);
+  const { user } = useConnectedUser();
+  const address = user.status === "CONNECTED" ? user.address : undefined;
+  const conditionalGrant = useConditionalGrant(grantId);
+  const { terms, status, state, outstanding } = conditionalGrant;
+
+  const role: GrantRole =
+    address && status
+      ? status.grantor.toLowerCase() === address.toLowerCase()
+        ? "grantor"
+        : status.grantee.toLowerCase() === address.toLowerCase()
+          ? "grantee"
+          : undefined
+      : undefined;
+
+  // Once the grant has unlocked, whatever is still owed is fee the grantee can
+  // pay, or leave to be taken out of the grant on release.
+  const feeDue =
+    state === GrantState.PaidBack && outstanding !== undefined
+      ? outstanding
+      : BigInt(0);
+
+  return (
+    <>
+      <GrantHeader
+        id={id}
+        role={role}
+        state={state}
+        noDeadline={status?.payBackBy === BigInt(0)}
+        feeDue={feeDue}
+      />
+      {terms && status && state !== undefined && outstanding !== undefined ? (
+        <div className="*:mb-4 last:mb-0 md:mb-6 md:last:mb-0">
+          <GrantOverview
+            grantId={grantId}
+            terms={terms}
+            status={status}
+            state={state}
+            outstanding={outstanding}
+          />
+          <GrantPanel
+            grantId={grantId}
+            terms={terms}
+            state={state}
+            role={role}
+            feeDue={feeDue}
+          />
+          {role === "grantee" && (
+            <GranteeActions
+              grantId={grantId}
+              terms={terms}
+              state={state}
+              outstanding={outstanding}
+              noDeadline={status.payBackBy === BigInt(0)}
+            />
+          )}
+          {role === "grantor" && (
+            <GrantorActions
+              grantId={grantId}
+              terms={terms}
+              status={status}
+              state={state}
+              reclaimableAt={conditionalGrant.reclaimableAt ?? BigInt(0)}
+            />
+          )}
+        </div>
+      ) : conditionalGrant.error ? (
+        <Body className="text-system-red">
+          {conditionalGrant.error.message.includes("GrantNotFound")
+            ? "This conditional grant does not exist."
+            : "Unable to load this conditional grant."}
+        </Body>
+      ) : (
+        <div className="flex items-center justify-center">
+          <CircularProgressIcon />
+        </div>
+      )}
+    </>
+  );
+};
+
+export default PageContent;
