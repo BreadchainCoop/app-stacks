@@ -7,6 +7,7 @@ import { CONDITIONAL_GRANTS_ERRORS } from "@/lib/contract-errors";
 import {
   useActiveChainId,
   useChainConfig,
+  useDepositToken,
 } from "@/components/providers/active-chain";
 import { parseContractError } from "@/utils/parse-contract-error";
 import { useConnectedUser } from "@breadcoop/ui";
@@ -23,6 +24,12 @@ import {
 import { type Config, useConfig, useReadContract } from "wagmi";
 
 type ConditionalGrantsAbi = typeof conditionalGrantsAbi;
+
+/** The second step's name, for the actions that pull tokens after an approval */
+const ACTION_LABELS: Partial<Record<StackTxAction, string>> = {
+  createGrant: "Offer the grant",
+  payBack: "Pay back",
+};
 
 /**
  * Runs a conditional grants write behind the generic STACK_TX_LOADING /
@@ -49,6 +56,7 @@ export function useConditionalGrantAction(tokenAddress?: Address) {
   const config = useConfig();
   const chainId = useActiveChainId();
   const { conditionalGrants } = useChainConfig();
+  const depositToken = useDepositToken();
 
   const { data: balance } = useReadContract({
     address: tokenAddress,
@@ -95,11 +103,14 @@ export function useConditionalGrantAction(tokenAddress?: Address) {
     /** Runs after the tx is mined, before the success modal (e.g. redirect). */
     onSuccess?: (receipt: TransactionReceipt) => void;
   }) => {
-    modal.setModal({
-      type: "STACK_TX_LOADING",
-      stackType: "conditionalGrant",
-      action,
-    });
+    const loading = (steps?: { current: number; labels: string[] }) =>
+      modal.setModal({
+        type: "STACK_TX_LOADING",
+        stackType: "conditionalGrant",
+        action,
+        steps,
+      });
+    loading();
 
     try {
       // Approve exactly what this action pulls, decided from a fresh read: the
@@ -111,6 +122,13 @@ export function useConditionalGrantAction(tokenAddress?: Address) {
         (await readAllowance(allowanceRead, tokenAddress, userAddress)) <
           approveAmount
       ) {
+        // Two transactions: show which one the wallet is asking for
+        const labels = [
+          `Approve ${depositToken.symbol}`,
+          ACTION_LABELS[action] ?? "Confirm",
+        ];
+        loading({ current: 1, labels });
+
         const approveData = encodeFunctionData({
           abi: erc20Abi,
           functionName: "approve",
@@ -132,6 +150,7 @@ export function useConditionalGrantAction(tokenAddress?: Address) {
           approveAmount
         );
         queryClient.invalidateQueries({ queryKey: ["readContract"] });
+        loading({ current: 2, labels });
       }
 
       const receipt = await sendConditionalGrantsTx({ functionName, args });

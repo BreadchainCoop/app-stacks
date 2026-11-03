@@ -216,6 +216,8 @@ export type StackTxLoadingModalState = {
   stackType: NewStackType;
   action: StackTxAction;
   msg?: string;
+  /** Set when the action needs more than one transaction (approve, then act) */
+  steps?: { current: number; labels: string[] };
 };
 
 export type StackTxResultModalState = {

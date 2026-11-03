@@ -1,7 +1,8 @@
 "use client";
 
 import LocalButton from "@/components/button";
-import { Body, formatBalance, Heading2, Logo } from "@breadcoop/ui";
+import { Body, cn, formatBalance, Heading2, Logo } from "@breadcoop/ui";
+import { CheckIcon } from "@phosphor-icons/react";
 
 import { ModalContainer, ModalHeader, ModalStatus } from "../components";
 import {
@@ -255,7 +256,57 @@ export const StackTxStatusModal = ({
     <ModalContainer status={status}>
       {/* No closing while a transaction is in flight, or the action could be sent twice */}
       <ModalHeader title={title} showCloseIcon={status !== "loading"} />
+      {modalState.type === "STACK_TX_LOADING" && modalState.steps && (
+        <TxSteps {...modalState.steps} />
+      )}
       <ModalStatus status={status} msg={msg} />
     </ModalContainer>
   );
 };
+
+/** Numbered circles for a multi-transaction action, with the current step named underneath */
+function TxSteps({ current, labels }: { current: number; labels: string[] }) {
+  return (
+    <div className="flex flex-col items-center gap-3 mb-4">
+      <ol className="flex items-center gap-2">
+        {labels.map((label, index) => {
+          const step = index + 1;
+          return (
+            <li key={label} className="flex items-center gap-2">
+              {index > 0 && (
+                <span
+                  className={cn(
+                    "h-0.5 w-8",
+                    step <= current ? "bg-primary-blue" : "bg-paper-2"
+                  )}
+                />
+              )}
+              <span
+                aria-current={step === current ? "step" : undefined}
+                className={cn(
+                  "flex size-8 items-center justify-center rounded-full border-2 font-bold",
+                  step < current
+                    ? "border-system-green bg-system-green text-paper-0"
+                    : step === current
+                      ? "border-primary-blue bg-primary-blue text-paper-0"
+                      : "border-paper-2 text-surface-grey"
+                )}
+              >
+                {step < current ? <CheckIcon weight="bold" /> : step}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+      <Body bold className="text-center">
+        Step {current} of {labels.length}: {labels[current - 1]}
+      </Body>
+      {current < labels.length && (
+        <Body className="text-center text-xs text-surface-grey">
+          After this, confirm one more transaction to{" "}
+          {labels[labels.length - 1].toLowerCase()}.
+        </Body>
+      )}
+    </div>
+  );
+}
