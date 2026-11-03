@@ -51,6 +51,16 @@ const conditionalGrantSchema = z
       }
     }
 
+    // A fee must be smaller than the grant, so it can always come out of it
+    const grant = Number.isNaN(data.grant) ? 0 : data.grant;
+    if (data.fee > 0 && data.fee >= grant) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["fee"],
+        message: "The fee must be smaller than the grant",
+      });
+    }
+
     if (data.grantee && !isAddress(data.grantee)) {
       ctx.addIssue({
         code: "custom",
