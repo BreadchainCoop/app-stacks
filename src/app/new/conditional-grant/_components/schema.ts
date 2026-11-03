@@ -5,6 +5,8 @@ import { dateInputToMs } from "@/utils/time";
 const conditionalGrantSchema = z
   .object({
     grantee: z.string().optional(),
+    /** Display label from the person picker; not sent on-chain */
+    granteeLabel: z.string().optional(),
     advance: z
       .number({ error: "Enter the advance" })
       .positive("The advance must be greater than 0"),

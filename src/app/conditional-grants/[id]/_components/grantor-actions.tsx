@@ -1,6 +1,7 @@
 "use client";
 
 import Input from "@/components/input";
+import PersonPicker, { PickedPerson } from "@/components/person-picker";
 import LocalButton from "@/components/button";
 import { useModal } from "@/components/modal/context";
 import { useBlockTimestamp } from "@/hooks/use-block-timestamp";
@@ -19,7 +20,7 @@ import {
 } from "@/utils/time";
 import { Body, Heading3 } from "@breadcoop/ui";
 import { ReactNode, useState } from "react";
-import { Address, isAddress, zeroAddress } from "viem";
+import { zeroAddress } from "viem";
 
 const GrantorActions = ({
   grantId,
@@ -39,7 +40,7 @@ const GrantorActions = ({
   const now = useBlockTimestamp();
   const { setModal } = useModal();
   const { runConditionalGrantAction } = useConditionalGrantAction();
-  const [granteeInput, setGranteeInput] = useState("");
+  const [grantee, setGrantee] = useState<PickedPerson | null>(null);
   const [extendInput, setExtendInput] = useState("");
 
   const canSetGrantee =
@@ -74,11 +75,6 @@ const GrantorActions = ({
     !canCollect
   )
     return null;
-
-  const granteeValid =
-    isAddress(granteeInput) &&
-    granteeInput.toLowerCase() !== zeroAddress &&
-    granteeInput.toLowerCase() !== status.grantor.toLowerCase();
 
   // A date input yields YYYY-MM-DD; the new deadline is midnight at its start
   const extendMs = extendInput ? dateInputToMs(extendInput) : NaN;
@@ -149,24 +145,25 @@ const GrantorActions = ({
       )}
 
       {canSetGrantee && (
-        <Action note="Only this wallet will be able to accept the offer.">
-          <Input
-            value={granteeInput}
-            onChange={(e) => setGranteeInput(e.target.value)}
-            className="w-full"
-            placeholder="0x… grantee address"
+        <Action note="Choose who can accept the offer: search by username, or paste a wallet address or ENS name.">
+          <PersonPicker
+            id="set-grantee"
+            value={grantee}
+            onChange={setGrantee}
+            exclude={[status.grantor]}
+            excludeReason="That's you"
           />
           <LocalButton
             className="w-full font-bold"
-            disabled={!granteeValid}
+            disabled={!grantee || grantee.address === zeroAddress}
             onClick={() =>
               confirm("setGrantee", () =>
                 runConditionalGrantAction({
                   action: "setGrantee",
                   functionName: "setGrantee",
-                  args: [grantId, granteeInput as Address],
+                  args: [grantId, grantee!.address],
                   errors: CONDITIONAL_GRANT_GRANTOR_ERRORS,
-                  onSuccess: () => setGranteeInput(""),
+                  onSuccess: () => setGrantee(null),
                 })
               )
             }
