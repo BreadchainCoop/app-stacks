@@ -14,6 +14,7 @@ import { ConditionalGrantsGate } from "@/components/conditional-grants-gate";
 import { STACK_TYPE_DESCRIPTIONS, STACK_TYPE_LABELS } from "@/lib/stack-types";
 import BackPage from "@/components/back-page";
 import { useChainPath } from "@/components/providers/active-chain";
+import { StackTypeVideo } from "./stack-type-video";
 
 /** A stack type the picker can start creating. */
 type PickerCard = {
@@ -21,9 +22,11 @@ type PickerCard = {
   label: string;
   description: string;
   href: string;
+  /** Explainer video in public/videos, without extension. */
+  video: string;
 };
 
-const Card = ({ StackIcon, label, description, href }: PickerCard) => {
+const Card = ({ StackIcon, label, description, href, video }: PickerCard) => {
   const content = (
     <>
       <figure className="text-primary-blue">
@@ -38,14 +41,21 @@ const Card = ({ StackIcon, label, description, href }: PickerCard) => {
   );
 
   const className = cn(
-    "card-shadow-border card-shadow-bg flex items-start gap-4 p-6 text-left",
-    "transition-colors hover:border-primary-blue"
+    "card-shadow-border card-shadow-bg p-6 text-left",
+    "transition-colors has-[a:hover]:border-primary-blue"
   );
 
+  // The video button sits beside the link, not inside it: a button can't be
+  // nested in an anchor.
   return (
-    <Link href={href} className={className}>
-      {content}
-    </Link>
+    <div className={className}>
+      <Link href={href} className="flex items-start gap-4">
+        {content}
+      </Link>
+      <div className="mt-3 pl-13">
+        <StackTypeVideo label={label} video={video} />
+      </div>
+    </div>
   );
 };
 
@@ -75,12 +85,14 @@ const TypePicker = () => {
             label={STACK_TYPE_LABELS.rosca}
             description={STACK_TYPE_DESCRIPTIONS.rosca}
             href={chainHref(query ? `/new/rosca?${query}` : "/new/rosca")}
+            video="rosca"
           />
           <Card
             StackIcon={FlagBannerFoldIcon}
             label={STACK_TYPE_LABELS.goal}
             description={STACK_TYPE_DESCRIPTIONS.goal}
             href={chainHref("/new/goal")}
+            video="goal"
           />
           <ConditionalGrantsGate>
             <Card
@@ -88,6 +100,7 @@ const TypePicker = () => {
               label={STACK_TYPE_LABELS.conditionalGrant}
               description={STACK_TYPE_DESCRIPTIONS.conditionalGrant}
               href={chainHref("/new/conditional-grant")}
+              video="conditional-grant"
             />
           </ConditionalGrantsGate>
         </div>
