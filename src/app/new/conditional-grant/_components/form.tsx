@@ -7,7 +7,9 @@ import NumericInput from "@/components/numeric-input";
 import { Switch } from "@/components/switch";
 import { useDepositToken } from "@/components/providers/active-chain";
 import { earliestDeadlineDate } from "@/utils/time";
-import { Body, Heading3, Logo } from "@breadcoop/ui";
+import PersonPicker from "@/components/person-picker";
+import { Body, Heading3, Logo, useConnectedUser } from "@breadcoop/ui";
+import { Address } from "viem";
 import { MouseEventHandler, ReactNode } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { ConditionalGrantFormSchemaData } from "./schema";
@@ -16,6 +18,9 @@ const ConditionalGrantForm = ({ onContinue }: { onContinue: () => void }) => {
   const form = useFormContext<ConditionalGrantFormSchemaData>();
   const { errors } = form.formState;
   const noDeadline = form.watch("noDeadline");
+  const grantee = form.watch("grantee");
+  const { user } = useConnectedUser();
+  const self = user.status === "CONNECTED" ? user.address : undefined;
 
   const validate: MouseEventHandler<HTMLButtonElement> = async (e) => {
     e.preventDefault();
@@ -77,13 +82,26 @@ const ConditionalGrantForm = ({ onContinue }: { onContinue: () => void }) => {
             <ErrorMessage msg={errors.fee?.message} />
           </Field>
           <Field>
-            <Label htmlFor="grantee">Grantee address</Label>
-            <InputDescription desc="Only this wallet can accept. You can leave it empty and add it later." />
-            <Input
-              {...form.register("grantee")}
+            <Label htmlFor="grantee">Grantee (optional)</Label>
+            <InputDescription desc="Search by username, or paste a wallet address or ENS name. Only they can accept. You can leave it empty and add it later." />
+            <PersonPicker
               id="grantee"
-              className="w-full"
-              placeholder="0x… (optional)"
+              value={
+                grantee
+                  ? {
+                      address: grantee as Address,
+                      label: form.watch("granteeLabel") || grantee,
+                    }
+                  : null
+              }
+              onChange={(person) => {
+                form.setValue("grantee", person?.address ?? "", {
+                  shouldValidate: true,
+                });
+                form.setValue("granteeLabel", person?.label ?? "");
+              }}
+              exclude={self ? [self] : []}
+              excludeReason="That's you"
             />
             <ErrorMessage msg={errors.grantee?.message} />
           </Field>

@@ -153,7 +153,11 @@ const ConditionalGrantOverviewForm = ({ onBack }: { onBack: () => void }) => {
         <ReviewedRow
           RIcon={UserIcon}
           title="Grantee"
-          body={grantee ? formatAddress(grantee as Address) : "Add it later"}
+          body={
+            grantee
+              ? form.watch("granteeLabel") || formatAddress(grantee as Address)
+              : "Add it later"
+          }
         />
         <ReviewedRow
           RIcon={GiftIcon}

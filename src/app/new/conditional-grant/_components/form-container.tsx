@@ -17,6 +17,7 @@ const ConditionalGrantFormContainer = () => {
     resolver: zodResolver(conditionalGrantSchema),
     defaultValues: {
       grantee: "",
+      granteeLabel: "",
       noDeadline: false,
       acceptBy: "",
       agreement: "",
