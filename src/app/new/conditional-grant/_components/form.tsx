@@ -57,7 +57,7 @@ const ConditionalGrantForm = ({ onContinue }: { onContinue: () => void }) => {
           </Field>
           <Field>
             <Label htmlFor="grant">Grant on pay-back</Label>
-            <InputDescription desc="Released to the grantee once the advance is fully paid back. Leave empty for no grant." />
+            <InputDescription desc="Released to the grantee once the advance is fully paid back." />
             <TokenInput>
               <NumericInput
                 {...form.register("grant", { valueAsNumber: true })}
