@@ -103,7 +103,8 @@ export type NewUserOnboardingModalState = {
 
 export type SetAliasModalState = {
   type: "SET_ALIAS";
-  skippable?: boolean;
+  /** Signed-in users must have a username: no closing or skipping */
+  required?: boolean;
   onDone?: () => void;
 };
 

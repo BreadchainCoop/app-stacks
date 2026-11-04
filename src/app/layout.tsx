@@ -8,6 +8,7 @@ import { generateMetadata } from "@/utils/metadata";
 // exports don't each need one.
 export { viewport } from "@/utils/metadata";
 import ModalPresenter from "@/components/modal/presenter";
+import UsernameGate from "@/components/username-gate";
 import { Navbar } from "@/components/Navbar/Navbar";
 import Providers from "@/components/providers";
 import { isServerMobile } from "@/lib/server-mobile";
@@ -35,6 +36,7 @@ export default async function RootLayout({
         <div className="body-container">
           <Providers isMobile={isMobile} isMiniPay={isMiniPay}>
             <ModalPresenter />
+            <UsernameGate />
             <Navbar />
             <MigrateAndTransferBanner />
             <main className="page-layout py-8">{children}</main>
