@@ -233,7 +233,7 @@ const NimiqPayIdentityProvider = ({ children }: { children: ReactNode }) => {
     storeToken(address, body.token);
     setSession({ address: address.toLowerCase(), token: body.token });
     // Replaces the sign-in modal, mirroring MiniPay's first-visit alias prompt
-    setModal(body.isNewUser ? { type: "SET_ALIAS", skippable: true } : null);
+    setModal(body.isNewUser ? { type: "SET_ALIAS", required: true } : null);
   }, [address, signTypedDataAsync, setModal]);
 
   // A returning user's still-valid session, picked up on connect

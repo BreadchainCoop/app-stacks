@@ -55,7 +55,7 @@ const SetAliasModal = ({ modalState }: { modalState: SetAliasModalState }) => {
     <ModalContainer className="max-w-121!">
       <ModalHeader
         title={alias ? "Edit your alias" : "Set your alias"}
-        showCloseIcon={!modalState.skippable}
+        showCloseIcon={!modalState.required}
       />
       <form onSubmit={handleSubmit} className="flex flex-col gap-6 w-full">
         <div className="flex flex-col gap-2 w-full">
@@ -71,18 +71,15 @@ const SetAliasModal = ({ modalState }: { modalState: SetAliasModalState }) => {
             disabled={isLoading}
             maxLength={ALIAS_MAX_LENGTH}
           />
-          <InputDescription desc="This is how other members will see you in your Stacks. 3-20 characters: letters, numbers and underscores, starting with a letter." />
+          <InputDescription
+            desc={`${modalState.required ? "You need one to use Stacks. " : ""}This is how other members will see you in your Stacks. 3-20 characters: letters, numbers and underscores, starting with a letter.`}
+          />
           {error && <p className="text-red-500 text-sm">{error}</p>}
         </div>
         <div className="flex flex-col gap-3 w-full">
           <LocalButton disabled={isSaving || isLoading} type="submit">
             {isSaving ? "Saving..." : "Save alias"}
           </LocalButton>
-          {modalState.skippable && (
-            <LocalButton variant="secondary" onClick={close} type="button">
-              Skip for now
-            </LocalButton>
-          )}
         </div>
       </form>
     </ModalContainer>

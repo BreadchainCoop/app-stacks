@@ -131,6 +131,8 @@ const ModalPresenter = () => {
       onOpenChange={() => {
         // Escape can't dismiss a transaction that is still in flight
         if (modalState?.type === "STACK_TX_LOADING") return;
+        // Nor the username prompt for a signed-in user without one
+        if (modalState?.type === "SET_ALIAS" && modalState.required) return;
         setModal(null);
       }}
     >

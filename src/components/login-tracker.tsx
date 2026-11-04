@@ -16,7 +16,7 @@ const LoginTracker = () => {
         if (isNewUser) {
           setModal({
             type: "SET_ALIAS",
-            skippable: true,
+            required: true,
             onDone: () =>
               setModal({
                 type: "NEW_USER_ONBOARDING",

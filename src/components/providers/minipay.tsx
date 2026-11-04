@@ -138,7 +138,7 @@ const MiniPayIdentityProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (session?.isNewUser && !aliasModalShown.current) {
       aliasModalShown.current = true;
-      setModal({ type: "SET_ALIAS", skippable: true });
+      setModal({ type: "SET_ALIAS", required: true });
     }
   }, [session?.isNewUser, setModal]);
 

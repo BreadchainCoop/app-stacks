@@ -8,7 +8,7 @@ const profileQueryKey = (privyUserId: string | undefined) => [
 ];
 
 export const useMyProfile = (privyUserId: string | undefined) => {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: profileQueryKey(privyUserId),
     queryFn: async () => {
       const res = await fetch(
@@ -29,6 +29,7 @@ export const useMyProfile = (privyUserId: string | undefined) => {
   return {
     alias: data?.username ?? null,
     isLoading,
+    isError,
   };
 };
 
@@ -64,7 +65,12 @@ export const useSetAlias = (privyUserId: string | undefined) => {
         throw err;
       }
     },
-    onSuccess: () => {
+    onSuccess: (_data, alias) => {
+      // Set it right away: UsernameGate reopens the prompt while the cached
+      // profile still has no username, so it can't wait for the refetch.
+      queryClient.setQueryData(profileQueryKey(privyUserId), {
+        username: alias.trim(),
+      });
       queryClient.invalidateQueries({ queryKey: profileQueryKey(privyUserId) });
       // The public wallet -> alias lookup backs every other `DisplayName` on
       // screen, including the account header sitting right above the editor.
