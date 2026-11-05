@@ -1,22 +1,18 @@
 "use client";
 
+import DisplayName from "@/components/display-name";
 import Countdown from "@/components/countdown";
 import { FormattedDecimalNumber } from "@/components/bread-ui-kit/formatted-decimal-number";
 import { amountSizeStep } from "@/utils/amount-size";
 import { cn } from "@/lib/utils";
 import { GoalInfo, useGoalTotalDeposited } from "@/hooks/use-goal";
 import { GoalState, isGoalSettled } from "@/lib/goal-state";
-import { formatAddress } from "@/utils/address";
 import { formatShortDate } from "@/utils/time";
 import { Body, formatBalance, Heading3, Logo } from "@breadcoop/ui";
-import Link from "next/link";
 import { ReactNode } from "react";
 import { zeroAddress } from "viem";
 import { formatDepositAmount } from "@/lib/deposit-token";
-import {
-  useChainPath,
-  useDepositToken,
-} from "@/components/providers/active-chain";
+import { useDepositToken } from "@/components/providers/active-chain";
 
 const HERO_SIZES = {
   base: {
@@ -43,7 +39,6 @@ const GoalOverview = ({
   state: GoalState;
 }) => {
   const { data: totalDeposited } = useGoalTotalDeposited(goalId);
-  const chainHref = useChainPath();
 
   const percentage =
     totalDeposited !== undefined && goal.goalAmount > BigInt(0)
@@ -109,12 +104,7 @@ const GoalOverview = ({
             <>
               <p>Pot released to</p>
               <p className="text-h2 text-2xl leading-6 tracking-[-2%]">
-                <Link
-                  href={chainHref(`/account/${goal.beneficiary}`)}
-                  className="hover:text-primary-blue"
-                >
-                  {formatAddress(goal.beneficiary)}
-                </Link>
+                <DisplayName address={goal.beneficiary} />
               </p>
             </>
           ) : (
