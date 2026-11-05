@@ -19,15 +19,27 @@ import { useWalletHost } from "@/components/providers/is-minipay";
  * sign out or switch accounts anywhere in the app (no ConnectButton, and
  * `providers/privy.tsx` disables Privy's own wallet UIs).
  */
-const SignOutButton = ({ className }: { className?: string }) => {
+const SignOutButton = ({
+  className,
+  label = "Sign out",
+}: {
+  className?: string;
+  label?: string;
+}) => {
   const walletHost = useWalletHost();
 
   if (walletHost !== "privy") return null;
 
-  return <PrivySignOutButton className={className} />;
+  return <PrivySignOutButton className={className} label={label} />;
 };
 
-const PrivySignOutButton = ({ className }: { className?: string }) => {
+const PrivySignOutButton = ({
+  className,
+  label,
+}: {
+  className?: string;
+  label: string;
+}) => {
   const { logout } = usePrivy();
 
   return (
@@ -38,7 +50,7 @@ const PrivySignOutButton = ({ className }: { className?: string }) => {
         onClick={logout}
         width="full"
       >
-        Sign out
+        {label}
       </LiftedButton>
     </div>
   );

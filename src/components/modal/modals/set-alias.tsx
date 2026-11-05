@@ -9,6 +9,7 @@ import LocalButton from "@/components/button";
 import { useMyProfile, useSetAlias } from "@/hooks/use-my-profile";
 import { useModal, SetAliasModalState } from "../context";
 import { ALIAS_MAX_LENGTH, validateAlias } from "@/lib/alias";
+import SignOutButton from "@/components/bread-ui-kit/navbar/sign-out-button";
 
 const UNIQUE_VIOLATION = "23505";
 
@@ -80,6 +81,9 @@ const SetAliasModal = ({ modalState }: { modalState: SetAliasModalState }) => {
           <LocalButton disabled={isSaving || isLoading} type="submit">
             {isSaving ? "Saving..." : "Save alias"}
           </LocalButton>
+          {/* The required prompt covers the navbar, so switching accounts has
+              to happen here. Renders nothing in MiniPay and Nimiq Pay. */}
+          {modalState.required && <SignOutButton label="Change accounts" />}
         </div>
       </form>
     </ModalContainer>

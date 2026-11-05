@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useModal } from "../modal/context";
+import { useModal, VisitorOnboardingModalState } from "../modal/context";
 import {
+  SparkleIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
   ArrowsClockwiseIcon,
   HandCoinsIcon,
   IdentificationBadgeIcon,
-  UsersThreeIcon,
 } from "@phosphor-icons/react";
 import { ModalContainer } from "../modal/components";
 import { Body, Heading3, useConnectedUser } from "@breadcoop/ui";
@@ -19,11 +19,11 @@ import LoginButton from "../login-button";
 // has its own tutorial when someone starts creating one.
 const steps = [
   {
-    icon: UsersThreeIcon,
-    title: "Save and share money with people you trust",
-    boldText:
-      "Stacks helps groups save together, with no bank or credit check.",
-    regularText: "Everything runs on open, transparent rules everyone can see.",
+    icon: SparkleIcon,
+    title: "Welcome to Stacks",
+    boldText: "Stacks is a super app for collective forms of finance.",
+    regularText:
+      "Save and share money with people you trust, with no bank or credit check, on open rules everyone can see.",
   },
   {
     icon: ArrowsClockwiseIcon,
@@ -50,7 +50,11 @@ const steps = [
   },
 ];
 
-export default function VisitorOnboarding() {
+export default function VisitorOnboarding({
+  modalState,
+}: {
+  modalState: VisitorOnboardingModalState;
+}) {
   const [currentStep, setCurrentStep] = useState(0);
   const { setModal } = useModal();
   const { user } = useConnectedUser();
@@ -58,7 +62,8 @@ export default function VisitorOnboarding() {
   // In MiniPay the account already exists, so there's nothing to sign in to
   const signedIn = user.status === "CONNECTED";
 
-  const close = () => setModal(null);
+  // Back to whatever the intro opened over, e.g. a new account's username prompt
+  const close = () => setModal(modalState.resume ?? null);
 
   const step = steps[currentStep];
 
