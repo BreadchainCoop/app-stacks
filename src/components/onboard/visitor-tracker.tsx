@@ -5,48 +5,62 @@ import { useModal } from "@/components/modal/context";
 import { useUserIdentity } from "@/components/providers/user-identity";
 import { useMyProfile } from "@/hooks/use-my-profile";
 
-// Per-device, so the intro shows once per visitor rather than once per load
-const SEEN_KEY = "stacks:intro-seen";
+// Remembered per device for visitors and per account once signed in, so the
+// intro shows once to each visitor and once to each new account
+const seenKey = (who: string) => `stacks:intro-seen:${who}`;
 
-const hasSeenIntro = () => {
+const hasSeenIntro = (who: string) => {
   try {
-    return localStorage.getItem(SEEN_KEY) === "1";
+    return localStorage.getItem(seenKey(who)) === "1";
   } catch {
     return false;
   }
 };
 
-const markIntroSeen = () => {
+const markIntroSeen = (who: string) => {
   try {
-    localStorage.setItem(SEEN_KEY, "1");
+    localStorage.setItem(seenKey(who), "1");
   } catch {
     // Private mode or blocked storage: the intro may show again, which is fine
   }
 };
 
 /**
- * Shows the Stacks intro once per visitor, on arrival: to anyone signed out,
- * and to a signed-in user with no username yet (in MiniPay the account exists
- * from the first open). Returning users who already have a username skip it.
+ * Shows the Stacks intro on arrival: once per device to visitors who are
+ * signed out, and once to each new account (signed in with no username yet,
+ * including a MiniPay wallet on its first open). Never twice in one visit, so
+ * someone who watched it and then signed up goes straight to their username.
  */
 export const OnboardVisitorTracker = () => {
-  const shown = useRef(false);
-  const { setModal } = useModal();
+  const decidedFor = useRef<string | null>(null);
+  const shownThisVisit = useRef(false);
+  const { modalState, setModal } = useModal();
   const { userId, ready } = useUserIdentity();
   const { alias, isLoading } = useMyProfile(userId);
 
+  const who = userId ?? "visitor";
   // A brand-new account may not have its row yet, which reads as no username
-  const decided = ready && (!userId || !isLoading);
-  const wantsIntro = !userId || alias === null;
+  const settled = ready && (!userId || !isLoading);
 
   useEffect(() => {
-    if (shown.current || !decided) return;
-    shown.current = true;
+    if (!settled || decidedFor.current === who) return;
+    decidedFor.current = who;
 
-    if (!wantsIntro || hasSeenIntro()) return;
-    markIntroSeen();
-    setModal({ type: "VISITOR_ONBOARDING" });
-  }, [decided, wantsIntro, setModal]);
+    const isNewAccount = !userId || alias === null;
+    if (!isNewAccount || hasSeenIntro(who)) return;
+    markIntroSeen(who);
+    if (shownThisVisit.current) return;
+
+    // Only over nothing, or over a new account's username prompt, which it
+    // hands back to when closed (keeping that prompt's next step)
+    if (modalState && modalState.type !== "SET_ALIAS") return;
+
+    shownThisVisit.current = true;
+    setModal({
+      type: "VISITOR_ONBOARDING",
+      resume: modalState ?? undefined,
+    });
+  }, [settled, who, userId, alias, modalState, setModal]);
 
   return null;
 };
