@@ -232,8 +232,11 @@ const NimiqPayIdentityProvider = ({ children }: { children: ReactNode }) => {
 
     storeToken(address, body.token);
     setSession({ address: address.toLowerCase(), token: body.token });
-    // Replaces the sign-in modal, mirroring MiniPay's first-visit alias prompt
-    setModal(body.isNewUser ? { type: "SET_ALIAS", required: true } : null);
+    setModal(null);
+    // A new account's row was just created; refetch the profile so
+    // UsernameGate sees it has no username and asks for one
+    if (body.isNewUser)
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
   }, [address, signTypedDataAsync, setModal]);
 
   // A returning user's still-valid session, picked up on connect

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import BackPage from "@/components/back-page";
+import OnboardingTutorials from "@/app/new/_components/onboarding/tutorials";
+import { CONDITIONAL_GRANT_TUTORIALS } from "@/app/new/_components/onboarding/tutorial-content";
 import { useChainPath } from "@/components/providers/active-chain";
 import ConditionalGrantForm from "./form";
 import ConditionalGrantOverviewForm from "./overview";
@@ -24,8 +26,21 @@ const ConditionalGrantFormContainer = () => {
     },
   });
   const [showOverview, setShowOverview] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(true);
   // The back link carries the active chain, which only a client component can read
   const chainHref = useChainPath();
+
+  if (showTutorial) {
+    return (
+      <>
+        <BackPage href={chainHref("/new")} label="Back to stack types" />
+        <OnboardingTutorials
+          tutorials={CONDITIONAL_GRANT_TUTORIALS}
+          nextStage={() => setShowTutorial(false)}
+        />
+      </>
+    );
+  }
 
   return (
     <FormProvider {...form}>

@@ -1,6 +1,7 @@
 "use client";
 
 import OnboardingTutorials from "./tutorials";
+import { ROSCA_TUTORIALS } from "./tutorial-content";
 import { useState } from "react";
 import BackPage from "@/components/back-page";
 import { FeatureGate } from "@/components/feature-gate";
@@ -32,7 +33,10 @@ const OnboardingStacksCreation = () => {
         <BackPage href={chainHref("/new")} label="Back to stack types" />
       </FeatureGate>
       {stage === "tutorial" ? (
-        <OnboardingTutorials nextStage={nextStage} />
+        <OnboardingTutorials
+          tutorials={ROSCA_TUTORIALS}
+          nextStage={nextStage}
+        />
       ) : (
         <StackFormContainer />
       )}
