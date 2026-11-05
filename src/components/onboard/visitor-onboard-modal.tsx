@@ -176,7 +176,7 @@ export default function VisitorOnboarding({
         </div>
 
         {/* Tall enough for the last card's two buttons on every card */}
-        <div className="flex flex-col gap-3 w-full min-h-27">
+        <div className="flex flex-col gap-3 w-full min-h-33">
           {isLast ? (
             signedIn ? (
               <LocalButton className="font-bold w-full" onClick={close}>
