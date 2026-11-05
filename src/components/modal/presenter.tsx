@@ -209,7 +209,7 @@ const ModalPresenter = () => {
                 <AutomaticClaimsModal modalState={modalState} />
               )}
               {modalState.type === "VISITOR_ONBOARDING" && (
-                <VisitorOnboarding />
+                <VisitorOnboarding modalState={modalState} />
               )}
               {modalState.type === "AUTOMATIC_DEPOSITS" && (
                 <AutomaticDepositsModal modalState={modalState} />
