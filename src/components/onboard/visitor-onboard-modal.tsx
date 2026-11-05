@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useModal } from "../modal/context";
 import {
+  ArrowLeftIcon,
   ArrowRightIcon,
   ArrowsClockwiseIcon,
   HandCoinsIcon,
@@ -65,14 +66,32 @@ export default function VisitorOnboarding() {
     <ModalContainer className="max-w-155">
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-6 items-center justify-center">
-          <div className="flex flex-col gap-3 items-end w-full">
-            <button
-              type="button"
-              onClick={close}
-              className="text-body-bold text-primary-blue"
-            >
-              Skip
-            </button>
+          <div className="flex flex-col gap-3 w-full">
+            {/* Back on every card after the first; Skip until the last card,
+                which has its own "Look around first" */}
+            <div className="flex items-center justify-between min-h-6">
+              {currentStep > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(currentStep - 1)}
+                  className="flex items-center gap-1 text-body-bold text-primary-blue"
+                >
+                  <ArrowLeftIcon size={20} />
+                  Back
+                </button>
+              ) : (
+                <span />
+              )}
+              {!isLast && (
+                <button
+                  type="button"
+                  onClick={close}
+                  className="text-body-bold text-primary-blue"
+                >
+                  Skip
+                </button>
+              )}
+            </div>
             <div className="flex flex-col gap-3 items-center w-full">
               <step.icon size={48} className="text-primary-blue" />
               <Heading3 className="text-2xl leading-6 text-center text-surface-ink tracking-tight">
@@ -122,18 +141,9 @@ export default function VisitorOnboarding() {
             )}
           </div>
         ) : (
-          <div className="flex items-start justify-between w-full">
-            {currentStep > 0 && (
-              <LocalButton
-                variant="secondary"
-                className="font-bold"
-                onClick={() => setCurrentStep(currentStep - 1)}
-              >
-                Back
-              </LocalButton>
-            )}
+          <div className="flex justify-center w-full">
             <LocalButton
-              className={`font-bold ${currentStep === 0 ? "mx-auto" : ""}`}
+              className="font-bold"
               rightIcon={<ArrowRightIcon size={24} />}
               onClick={() => setCurrentStep(currentStep + 1)}
             >
