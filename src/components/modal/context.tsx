@@ -149,6 +149,8 @@ export type PeerOnRampInstallModalState = {
 
 export type VisitorOnboardingModalState = {
   type: "VISITOR_ONBOARDING";
+  /** Modal to return to when the intro closes (a new account's username prompt) */
+  resume?: ModalState;
 };
 
 export type RemoveMemberWarningModalState = {
