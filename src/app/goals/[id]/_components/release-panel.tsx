@@ -1,11 +1,11 @@
 "use client";
 
+import DisplayName from "@/components/display-name";
 import LocalButton from "@/components/button";
 import { useModal } from "@/components/modal/context";
 import { GoalInfo, useGoalTotalDeposited } from "@/hooks/use-goal";
 import { GOAL_RELEASE_ERRORS } from "@/lib/contract-errors";
 import { GoalState, isGoalReleasable } from "@/lib/goal-state";
-import { formatAddress } from "@/utils/address";
 import { Body, Heading3 } from "@breadcoop/ui";
 import { zeroAddress } from "viem";
 import { useGoalAction } from "./use-goal-action";
@@ -56,7 +56,7 @@ const ReleasePanel = ({
       <Body className="text-surface-grey">
         The goal has been reached. Anyone can now release the whole pot
         (including any overshoot) to the beneficiary{" "}
-        {formatAddress(goal.beneficiary)}.
+        <DisplayName address={goal.beneficiary} link={false} />.
       </Body>
       <LocalButton
         variant="positive"
