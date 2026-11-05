@@ -3,98 +3,61 @@
 import { useState } from "react";
 import { useModal } from "../modal/context";
 import {
-  IdentificationBadgeIcon,
-  CoinsIcon,
-  UsersThreeIcon,
-  ShareNetworkIcon,
-  RocketLaunchIcon,
-  HandCoinsIcon,
   ArrowRightIcon,
+  ArrowsClockwiseIcon,
+  HandCoinsIcon,
+  IdentificationBadgeIcon,
+  UsersThreeIcon,
 } from "@phosphor-icons/react";
 import { ModalContainer } from "../modal/components";
-import { Body, Heading3 } from "@breadcoop/ui";
+import { Body, Heading3, useConnectedUser } from "@breadcoop/ui";
 import LocalButton from "../button";
-import { DepositTokenConfig } from "@/interfaces/chain-config";
-import {
-  useActiveChainId,
-  useDepositToken,
-} from "@/components/providers/active-chain";
-import { isStablecoinChain } from "@/utils/chain";
+import LoginButton from "../login-button";
 
-// The xDAI/bake mechanic is Gnosis-only; on the stablecoin chains (Celo,
-// Polygon) funding is a plain deposit-token transfer.
-const getSteps = (isStablecoin: boolean, depositToken: DepositTokenConfig) => [
-  {
-    icon: IdentificationBadgeIcon,
-    title: "Create your account in Stacks",
-    boldText:
-      "Click on Sign-In and use your e-mail or wallet to create your account.",
-    regularText:
-      "This allows you to keep everything in one place once your try to Log-In back to Stacks.",
-  },
-  {
-    icon: CoinsIcon,
-    title: "Fund your wallet",
-    boldText: isStablecoin
-      ? `You can fund your wallet by sending ${depositToken.symbol} from another wallet.`
-      : "You can fund your wallet by sending BREAD or xDAI from your wallet.",
-    regularText: isStablecoin
-      ? "Just click on Fund your wallet button on the menu bar wallet section."
-      : "Or you can buy xDAI from other distributors. Just click on Fund your wallet button on the menu bar wallet section.",
-  },
+// What Stacks is, shown once per visitor before they sign up. Each stack type
+// has its own tutorial when someone starts creating one.
+const steps = [
   {
     icon: UsersThreeIcon,
-    title: "Create a Stack with your friends",
+    title: "Save and share money with people you trust",
     boldText:
-      "Set up a savings group by choosing the amount, frequency, and number of members.",
-    regularText:
-      "Stacks let you pool money together with people you trust — everyone contributes, everyone takes turns.",
+      "Stacks helps groups save together, with no bank or credit check.",
+    regularText: "Everything runs on open, transparent rules everyone can see.",
   },
   {
-    icon: ShareNetworkIcon,
-    title: "Invite friends to join your Stack",
+    icon: ArrowsClockwiseIcon,
+    title: "Take turns or work toward a goal",
     boldText:
-      "Share your invite link — once everyone joins, the Stack is ready to launch.",
-    regularText:
-      "All members need to join before the Stack can start. You can share the link via any messaging app.",
-  },
-  {
-    icon: RocketLaunchIcon,
-    title: "Launch and make deposits",
-    boldText:
-      "When all spots are filled, start the Stack and make your first deposit.",
-    regularText:
-      "Each member contributes their share at the start of every round. The cycle runs automatically.",
+      "In a rotating stack, everyone pays in and each member takes a turn receiving the whole pot. In a shared goal, the group saves toward one target.",
+    regularText: "If a goal isn't reached, everyone gets their money back.",
   },
   {
     icon: HandCoinsIcon,
-    title: "Claim your round",
+    title: "Back someone with a conditional grant",
     boldText:
-      "When it's your turn, claim the full pooled amount from the group.",
+      "Give someone an advance with no interest. When they pay it back, they also receive a grant.",
     regularText:
-      "Everyone gets their turn. The payout order is set when the Stack launches.",
+      "A fair way to support a person or project and reward follow-through.",
+  },
+  {
+    icon: IdentificationBadgeIcon,
+    title: "Pick a username and start",
+    boldText:
+      "Your username is how people find you, so they can invite you or send you a grant.",
+    regularText:
+      "You can look around first. You'll need an account to create or join a stack.",
   },
 ];
 
 export default function VisitorOnboarding() {
-  const chainId = useActiveChainId();
-  const steps = getSteps(isStablecoinChain(chainId), useDepositToken());
   const [currentStep, setCurrentStep] = useState(0);
   const { setModal } = useModal();
+  const { user } = useConnectedUser();
+  const isLast = currentStep === steps.length - 1;
+  // In MiniPay the account already exists, so there's nothing to sign in to
+  const signedIn = user.status === "CONNECTED";
 
-  const handleNext = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      setModal(null);
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
+  const close = () => setModal(null);
 
   const step = steps[currentStep];
 
@@ -105,10 +68,10 @@ export default function VisitorOnboarding() {
           <div className="flex flex-col gap-3 items-end w-full">
             <button
               type="button"
-              onClick={() => setModal(null)}
+              onClick={close}
               className="text-body-bold text-primary-blue"
             >
-              Skip onboarding
+              Skip
             </button>
             <div className="flex flex-col gap-3 items-center w-full">
               <step.icon size={48} className="text-primary-blue" />
@@ -139,24 +102,45 @@ export default function VisitorOnboarding() {
           </div>
         </div>
 
-        <div className="flex items-start justify-between w-full">
-          {currentStep > 0 && (
+        {isLast ? (
+          <div className="flex flex-col gap-3 w-full">
+            {signedIn ? (
+              <LocalButton className="font-bold w-full" onClick={close}>
+                Get started
+              </LocalButton>
+            ) : (
+              <>
+                <LoginButton app="stacks" status={user.status} />
+                <LocalButton
+                  variant="secondary"
+                  className="font-bold w-full"
+                  onClick={close}
+                >
+                  Look around first
+                </LocalButton>
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-start justify-between w-full">
+            {currentStep > 0 && (
+              <LocalButton
+                variant="secondary"
+                className="font-bold"
+                onClick={() => setCurrentStep(currentStep - 1)}
+              >
+                Back
+              </LocalButton>
+            )}
             <LocalButton
-              variant="secondary"
-              className="font-bold"
-              onClick={handleBack}
+              className={`font-bold ${currentStep === 0 ? "mx-auto" : ""}`}
+              rightIcon={<ArrowRightIcon size={24} />}
+              onClick={() => setCurrentStep(currentStep + 1)}
             >
-              Back
+              Next
             </LocalButton>
-          )}
-          <LocalButton
-            className={`font-bold ${currentStep === 0 ? "mx-auto" : ""}`}
-            rightIcon={<ArrowRightIcon size={24} />}
-            onClick={handleNext}
-          >
-            {currentStep === steps.length - 1 ? "Close" : "Next"}
-          </LocalButton>
-        </div>
+          </div>
+        )}
       </div>
     </ModalContainer>
   );

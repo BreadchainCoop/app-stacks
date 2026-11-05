@@ -9,6 +9,7 @@ import { generateMetadata } from "@/utils/metadata";
 export { viewport } from "@/utils/metadata";
 import ModalPresenter from "@/components/modal/presenter";
 import UsernameGate from "@/components/username-gate";
+import { OnboardVisitorTracker } from "@/components/onboard/visitor-tracker";
 import { Navbar } from "@/components/Navbar/Navbar";
 import Providers from "@/components/providers";
 import { isServerMobile } from "@/lib/server-mobile";
@@ -36,7 +37,10 @@ export default async function RootLayout({
         <div className="body-container">
           <Providers isMobile={isMobile} isMiniPay={isMiniPay}>
             <ModalPresenter />
+            {/* Order matters: when both fire at once, the intro opens last
+                and the username prompt waits for it to close */}
             <UsernameGate />
+            <OnboardVisitorTracker />
             <Navbar />
             <MigrateAndTransferBanner />
             <main className="page-layout py-8">{children}</main>

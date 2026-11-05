@@ -18,7 +18,6 @@ import { useActiveChainId, useDepositToken } from "./active-chain";
 import { PrivyTxSenderProvider } from "./tx-sender";
 import { PrivyUserIdentityProvider } from "./user-identity";
 import LoginTracker from "@/components/login-tracker";
-import { OnboardVisitorTracker } from "@/components/onboard/visitor-tracker";
 
 const tokenConfig = (
   address: Address
@@ -86,7 +85,6 @@ const PrivyProviders = ({
                 <ModalProvider>
                   <PrivyUserIdentityProvider>
                     <PrivyTxSenderProvider>
-                      <OnboardVisitorTracker />
                       <LoginTracker />
                       {children}
                     </PrivyTxSenderProvider>
