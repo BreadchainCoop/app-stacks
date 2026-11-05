@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
+import DisplayName from "@/components/display-name";
 import Loading from "@/app/loading";
 import LocalButton from "@/components/button";
 import {
@@ -23,7 +25,6 @@ import {
 } from "@/components/providers/active-chain";
 import { isGoalOpen } from "@/lib/goal-state";
 import { stackMetadataId, stackTypeDetailPath } from "@/lib/stack-types";
-import { formatAddress } from "@/utils/address";
 import { formatShortDate } from "@/utils/time";
 import { Body, formatBalance, Heading1, useConnectedUser } from "@breadcoop/ui";
 import LoginButton from "@/components/login-button";
@@ -131,9 +132,11 @@ function GoalInviteDetails({
               <RowDetail
                 label="Beneficiary"
                 body={
-                  goal.beneficiary !== zeroAddress
-                    ? formatAddress(goal.beneficiary)
-                    : "None — members reclaim their share"
+                  goal.beneficiary !== zeroAddress ? (
+                    <DisplayName address={goal.beneficiary} link={false} />
+                  ) : (
+                    "None — members reclaim their share"
+                  )
                 }
               />
             </div>
@@ -144,7 +147,7 @@ function GoalInviteDetails({
   );
 }
 
-function RowDetail({ label, body }: { label: string; body: string | number }) {
+function RowDetail({ label, body }: { label: string; body: ReactNode }) {
   return (
     <div className="flex items-center justify-between mb-2.5 last:mb-0">
       <Body className="text-surface-grey">{label}</Body>

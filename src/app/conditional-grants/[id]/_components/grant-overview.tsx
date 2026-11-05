@@ -1,18 +1,14 @@
 "use client";
 
+import DisplayName from "@/components/display-name";
 import AgreementText from "@/app/conditional-grants/_components/agreement-text";
 import Countdown from "@/components/countdown";
 import { GrantStatus, GrantTerms } from "@/hooks/use-conditional-grant";
-import {
-  useChainPath,
-  useDepositToken,
-} from "@/components/providers/active-chain";
+import { useDepositToken } from "@/components/providers/active-chain";
 import { formatDepositAmount } from "@/lib/deposit-token";
 import { GrantState, paidBackPercent } from "@/lib/conditional-grant-state";
-import { formatAddress } from "@/utils/address";
 import { formatShortDate } from "@/utils/time";
 import { Body, formatBalance, Heading3, Logo } from "@breadcoop/ui";
-import Link from "next/link";
 import { ReactNode } from "react";
 import { zeroAddress } from "viem";
 
@@ -145,15 +141,8 @@ function Amount({ label, amount }: { label: string; amount: bigint }) {
 }
 
 function AddressLink({ address }: { address: `0x${string}` }) {
-  const chainHref = useChainPath();
-  return (
-    <Link
-      href={chainHref(`/account/${address}`)}
-      className="hover:text-primary-blue"
-    >
-      {formatAddress(address)}
-    </Link>
-  );
+  // Username, then ENS name, then the shortened address; links to the account
+  return <DisplayName address={address} />;
 }
 
 function BreakdownRow({
