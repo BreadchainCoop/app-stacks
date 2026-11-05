@@ -15,15 +15,21 @@ const UsernameGate = () => {
   const { userId } = useUserIdentity();
   const { alias, isLoading, isError } = useMyProfile(userId);
 
-  // No account row yet (still onboarding) reads as an error; the sign-in flows
-  // open the prompt themselves once onboarding finishes.
+  // No account row yet (still onboarding) reads as an error. Web sign-up opens
+  // the prompt itself once onboarding finishes; MiniPay and Nimiq Pay refetch
+  // the profile once the account exists, which brings this back around.
   const missing = !!userId && !isLoading && !isError && alias === null;
 
   const requiredPromptOpen =
     modalState?.type === "SET_ALIAS" && !!modalState.required;
 
   useEffect(() => {
-    if (missing && modalState?.type !== "SET_ALIAS") {
+    // Let the intro finish first; its last card leads into this
+    if (
+      missing &&
+      modalState?.type !== "SET_ALIAS" &&
+      modalState?.type !== "VISITOR_ONBOARDING"
+    ) {
       setModal({ type: "SET_ALIAS", required: true });
     }
     // The prompt can't be closed, so drop it if they sign out instead

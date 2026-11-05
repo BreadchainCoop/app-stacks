@@ -8,6 +8,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import goalSchema, { GoalFormSchemaData } from "./schema";
 import { Heading2 } from "@breadcoop/ui";
 import BackPage from "@/components/back-page";
+import OnboardingTutorials from "@/app/new/_components/onboarding/tutorials";
+import { GOAL_TUTORIALS } from "@/app/new/_components/onboarding/tutorial-content";
 import { useChainPath } from "@/components/providers/active-chain";
 
 const GoalFormContainer = () => {
@@ -21,6 +23,7 @@ const GoalFormContainer = () => {
     },
   });
   const [showOverview, setShowOverview] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(true);
   // Rendered here rather than in page.tsx: the back link has to carry the
   // active chain, which only a client component can read.
   const chainHref = useChainPath();
@@ -32,6 +35,18 @@ const GoalFormContainer = () => {
   const handleBack = () => {
     setShowOverview(false);
   };
+
+  if (showTutorial) {
+    return (
+      <>
+        <BackPage href={chainHref("/new")} label="Back to stack types" />
+        <OnboardingTutorials
+          tutorials={GOAL_TUTORIALS}
+          nextStage={() => setShowTutorial(false)}
+        />
+      </>
+    );
+  }
 
   return (
     <FormProvider {...form}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useCallback, useEffect, useMemo, useRef } from "react";
+import { ReactNode, useCallback, useEffect, useMemo } from "react";
 import { Address, erc20Abi, Hex } from "viem";
 import { celo, celoSepolia } from "viem/chains";
 import {
@@ -21,7 +21,7 @@ import { hashFn } from "wagmi/query";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { BreadUIKitProvider, ConnectedUserProvider } from "@breadcoop/ui";
 import { SupabaseProvider } from "./supabase";
-import { ModalProvider, useModal } from "../modal/context";
+import { ModalProvider } from "../modal/context";
 import { TxSender, TxSenderProvider } from "./tx-sender";
 import { UserIdentityProvider } from "./user-identity";
 import { isMiniPayBrowser, minipayUserId } from "@/utils/minipay";
@@ -112,8 +112,6 @@ const MiniPayTxSenderProvider = ({ children }: { children: ReactNode }) => {
  */
 const MiniPayIdentityProvider = ({ children }: { children: ReactNode }) => {
   const { address, status } = useAccount();
-  const { setModal } = useModal();
-  const aliasModalShown = useRef(false);
 
   const sessionQuery = useQuery({
     queryKey: ["minipay-session", address?.toLowerCase()],
@@ -135,12 +133,13 @@ const MiniPayIdentityProvider = ({ children }: { children: ReactNode }) => {
 
   const { data: session, refetch } = sessionQuery;
 
+  // A new account's row exists only once the session is minted; refetch the
+  // profile so UsernameGate sees it has no username and asks for one
   useEffect(() => {
-    if (session?.isNewUser && !aliasModalShown.current) {
-      aliasModalShown.current = true;
-      setModal({ type: "SET_ALIAS", required: true });
+    if (session?.isNewUser) {
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
     }
-  }, [session?.isNewUser, setModal]);
+  }, [session?.isNewUser]);
 
   const getAuthToken = useCallback(async () => {
     // Tokens live 7 days; re-mint when missing or (nearly) expired so a
