@@ -4,58 +4,23 @@ import LocalButton from "@/components/button";
 import OutlinedButton from "@/components/outlined-button";
 import { Body, Heading3 } from "@breadcoop/ui";
 import {
-  ArrowClockwiseIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
-  CoinsIcon,
-  FlagBannerFoldIcon,
-  HandDepositIcon,
-  PaperPlaneTiltIcon,
   SparkleIcon,
 } from "@phosphor-icons/react/ssr";
 import { useState } from "react";
+import { Tutorial } from "./tutorial-content";
 
-const tutorials = [
-  {
-    Icon: CoinsIcon,
-    title: "Collective savings, no banks or credit",
-    body: "Everyone contributes, everyone takes turns to receive the full benefit.",
-    para: "Generations-tested savings circles, now digital & automatic.",
-  },
-  {
-    Icon: PaperPlaneTiltIcon,
-    title: "What are you saving for?",
-    body: "Use Bread Stacks to meet both individual & common goals.",
-    para: "Big expense or small, your group decides.",
-  },
-  {
-    Icon: FlagBannerFoldIcon,
-    title: "Invite your friends",
-    body: "Bread Stacks relies on your community to build savings, together.",
-    para: "Share your link with those closest to you.",
-  },
-  {
-    Icon: HandDepositIcon,
-    title: "Agree on your contributions",
-    body: "Choose how much and how often each member contributes.",
-    para: "Every payment moves your group closer to the goal.",
-    className: "rotate-180",
-  },
-  {
-    Icon: ArrowClockwiseIcon,
-    title: "Receive your payout",
-    body: "Take it in turns to receive the full amount.",
-    para: "If someone misses a payment, every member is refunded in full.",
-  },
-];
-
-const totalTutorials = tutorials.length;
-const lastTutorialIndex = totalTutorials - 1;
-
-const indicators = Array.from({ length: totalTutorials }, (_, i) => i);
-
-const OnboardingTutorials = ({ nextStage }: { nextStage: () => void }) => {
+const OnboardingTutorials = ({
+  tutorials,
+  nextStage,
+}: {
+  tutorials: Tutorial[];
+  nextStage: () => void;
+}) => {
   const [current, setCurrent] = useState(0);
+  const lastTutorialIndex = tutorials.length - 1;
+  const indicators = tutorials.map((_, i) => i);
 
   const tutorial = tutorials[current];
 
@@ -100,7 +65,9 @@ const OnboardingTutorials = ({ nextStage }: { nextStage: () => void }) => {
           {tutorial.title}
         </Heading3>
         <Body className="mb-3 text-surface-grey-2">{tutorial.body}</Body>
-        <Body className="text-surface-grey text-sm">{tutorial.para}</Body>
+        {tutorial.para && (
+          <Body className="text-surface-grey text-sm">{tutorial.para}</Body>
+        )}
         <div className="flex items-center justify-center gap-2 my-6">
           {indicators.map((id) => (
             <div
