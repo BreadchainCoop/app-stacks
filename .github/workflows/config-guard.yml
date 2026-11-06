@@ -1,0 +1,32 @@
+name: Config guard
+
+# Config files such as postcss.config.mjs and next.config.ts are executed by
+# every `pnpm dev` and `pnpm build`, locally and on Netlify. The payload that
+# b7b5c74 (PR #212) injected into postcss.config.mjs sat on a single ~21 KB line
+# and used createRequire, unicode-escaped `global[...]` keys and eval. Fail
+# loudly if anything like that shows up in a config file again.
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check config and module files
+        run: |
+          mapfile -d '' files < <(git ls-files -z -- '*.config.*' '*.mjs' '*.cjs')
+          [ ${#files[@]} -eq 0 ] && exit 0
+          status=0
+          awk 'length > 500 { printf "%s:%d: line is %d characters long\n", FILENAME, FNR, length; bad = 1 }
+               END { exit bad }' "${files[@]}" || status=1
+          if grep -noE '\beval\(|child_process|createRequire|global\[|\\u00[0-9a-fA-F]{2}' "${files[@]}"; then
+            status=1
+          fi
+          exit $status
