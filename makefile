@@ -159,9 +159,9 @@ reset-supabase:
 		exit 1; \
 	fi; \
 	SUPABASE_URL=$$(grep -E '^NEXT_PUBLIC_SUPABASE_URL=' .env.local | cut -d= -f2- | tr -d '"'\'' '); \
-	SERVICE_KEY=$$(grep -E '^SUPABASE_SERVICE_ROLE_KEY=' .env.local | cut -d= -f2- | tr -d '"'\'' '); \
+	SERVICE_KEY=$$(grep -E '^SUPABASE_SECRET_KEY=' .env.local | cut -d= -f2- | tr -d '"'\'' '); \
 	if [ -z "$$SUPABASE_URL" ] || [ -z "$$SERVICE_KEY" ]; then \
-		echo "Error: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in .env.local"; \
+		echo "Error: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SECRET_KEY must be set in .env.local"; \
 		exit 1; \
 	fi; \
 	echo "Clearing off-chain stack data (user_stacks, stacks_metadata)..."; \
@@ -169,8 +169,7 @@ reset-supabase:
 		table=$${entry%%:*}; col=$${entry##*:}; \
 		status=$$(curl -s -o /dev/null -w '%{http_code}' -X DELETE \
 			"$$SUPABASE_URL/rest/v1/$$table?$$col=not.is.null" \
-			-H "apikey: $$SERVICE_KEY" \
-			-H "Authorization: Bearer $$SERVICE_KEY"); \
+			-H "apikey: $$SERVICE_KEY"); \
 		if [ "$$status" != "200" ] && [ "$$status" != "204" ]; then \
 			echo "Error: failed to clear $$table (HTTP $$status)"; \
 			exit 1; \

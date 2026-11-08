@@ -8,10 +8,10 @@ import { createErrorResponse, verifyUserToken } from "../../utils";
 
 // Least privilege: aliases and wallet addresses are already readable by the
 // anon role (see the member_alias migration), so search never needs the
-// service-role key.
+// secret key.
 const supabase = createClient<Database>(
   serverEnv.NEXT_PUBLIC_SUPABASE_URL,
-  serverEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  serverEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 );
 
 const MAX_RESULTS = 8;

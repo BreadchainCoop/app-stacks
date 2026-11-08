@@ -6,7 +6,7 @@ import { createErrorResponse, verifyUserToken } from "../utils";
 
 const supabaseAdmin = createClient(
   serverEnv.NEXT_PUBLIC_SUPABASE_URL,
-  serverEnv.SUPABASE_SERVICE_ROLE_KEY
+  serverEnv.SUPABASE_SECRET_KEY
 );
 
 export async function POST(req: NextRequest) {

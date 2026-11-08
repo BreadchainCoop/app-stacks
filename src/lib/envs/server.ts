@@ -6,8 +6,20 @@ const envSchema = z.object({
   UPSTASH_REDIS_REST_URL: z.string(),
   UPSTASH_REDIS_REST_TOKEN: z.string(),
   NEXT_PUBLIC_SUPABASE_URL: z.string(),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string(),
-  SUPABASE_SERVICE_ROLE_KEY: z.string(),
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z
+    .string()
+    .startsWith(
+      "sb_publishable_",
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY must be a publishable key (sb_publishable_...)"
+    ),
+  // Bypasses RLS. Prefix-checked so a leftover legacy service_role JWT fails
+  // to boot instead of breaking once the legacy keys are disabled.
+  SUPABASE_SECRET_KEY: z
+    .string()
+    .startsWith(
+      "sb_secret_",
+      "SUPABASE_SECRET_KEY must be a secret key (sb_secret_...)"
+    ),
   SEPOLIA_RPC_URL: z.string().optional(),
   AUTOMATIC_FUNDING_PRIVATE_KEY: z.string(),
   // HMAC secret for MiniPay session JWTs; only required when serving MiniPay

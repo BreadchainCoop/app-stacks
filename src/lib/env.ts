@@ -41,7 +41,14 @@ const envSchema = z
     NEXT_PUBLIC_PRIVY_CLIENT_ID: z.string(),
     NEXT_PUBLIC_ALCHEMY_API_KEY_ETHEREUM_MAINNET: z.string(),
     NEXT_PUBLIC_SUPABASE_URL: z.string(),
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string(),
+    // Prefix-checked so a legacy anon JWT, or a secret key that would ship to
+    // the browser, fails the build instead.
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z
+      .string()
+      .startsWith(
+        "sb_publishable_",
+        "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY must be a publishable key (sb_publishable_...)"
+      ),
     NEXT_PUBLIC_DEPOSIT_INTERVALS: z
       .string()
       .transform((val, ctx) => {
@@ -96,7 +103,8 @@ const parsedSchema = envSchema.safeParse({
   NEXT_PUBLIC_ALCHEMY_API_KEY_ETHEREUM_MAINNET:
     process.env.NEXT_PUBLIC_ALCHEMY_API_KEY_ETHEREUM_MAINNET,
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
   NEXT_PUBLIC_DEPOSIT_INTERVALS: process.env.NEXT_PUBLIC_DEPOSIT_INTERVALS,
   NEXT_PUBLIC_FEATURES: process.env.NEXT_PUBLIC_FEATURES,
 });

@@ -8,7 +8,7 @@ import { parseStackMetadataId } from "@/lib/stack-types";
 
 const supabaseAdmin = createClient<Database>(
   serverEnv.NEXT_PUBLIC_SUPABASE_URL,
-  serverEnv.SUPABASE_SERVICE_ROLE_KEY
+  serverEnv.SUPABASE_SECRET_KEY
 );
 
 interface CreateStackRequestBody {

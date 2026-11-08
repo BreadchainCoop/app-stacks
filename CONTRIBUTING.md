@@ -60,7 +60,7 @@ In short:
 - Files are kebab-case; use the `@/*` import alias for `src/`.
 - Read env vars only through `clientEnv` (`src/lib/env.ts`) or `serverEnv`
   (`src/lib/envs/server.ts`); add new ones to the Zod schema **and** `.env.local.example`.
-- Never import server-only code or the Supabase service-role key into `"use client"` files.
+- Never import server-only code or the Supabase secret key into `"use client"` files.
   Service-role access lives only in `src/app/api/**`.
 - Prefer `@breadcoop/ui` components and Tailwind utilities over hand-rolled UI.
 - Keep on-chain amounts and timestamps as `bigint`; format only at the display edge.

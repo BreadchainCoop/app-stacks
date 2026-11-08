@@ -17,23 +17,24 @@ jobs:
         include:
           - name: development
             url_secret: SUPABASE_URL_DEVELOPMENT
-            key_secret: SUPABASE_ANON_KEY_DEVELOPMENT
+            key_secret: SUPABASE_PUBLISHABLE_KEY_DEVELOPMENT
     steps:
       - name: Query the ${{ matrix.name }} database
         env:
           SUPABASE_URL: ${{ secrets[matrix.url_secret] }}
-          SUPABASE_ANON_KEY: ${{ secrets[matrix.key_secret] }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets[matrix.key_secret] }}
         run: |
-          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_PUBLISHABLE_KEY" ]; then
             echo "Missing secrets for the ${{ matrix.name }} project"
             exit 1
           fi
           # Query a real table so PostgREST runs SQL against Postgres (this is
           # what counts as activity — hitting /rest/v1/ alone does not).
+          # The key goes only on apikey: a publishable key isn't a JWT, so as
+          # Authorization: Bearer it is rejected with "Invalid JWT".
           status=$(curl -s -o /dev/null -w '%{http_code}' \
             "$SUPABASE_URL/rest/v1/stacks_metadata?select=id&limit=1" \
-            -H "apikey: $SUPABASE_ANON_KEY" \
-            -H "Authorization: Bearer $SUPABASE_ANON_KEY")
+            -H "apikey: $SUPABASE_PUBLISHABLE_KEY")
           echo "HTTP $status"
           if [ "$status" -ge 200 ] && [ "$status" -lt 300 ]; then
             echo "✓ ${{ matrix.name }} reached, project kept alive"
