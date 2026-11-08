@@ -46,7 +46,7 @@ const MigrateAndTransferModal = ({
   const { embeddedAddress, externalAddress } = modalState;
   const { setModal } = useModal();
   const chainId = useActiveChainId();
-  const { user: privyUser } = usePrivy();
+  const { user: privyUser, getAccessToken } = usePrivy();
   const { simulateAndSponsorTx } = useSimulateAndSponsorTx();
   const { sendSponsoredTransaction } = useSponsoredTx();
   const { waitForTxReceipt } = useWaitForTxReceipt();
@@ -151,16 +151,28 @@ const MigrateAndTransferModal = ({
     // wallet_address at the linked wallet, so alias/dashboard lookups keep
     // resolving to the old address until a transfer actually succeeds.
     if (privyUser?.id && transferSucceeded) {
-      fetch("/api/user", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          privyUserId: privyUser.id,
-          walletAddress: externalAddress,
-          markTransferred: true,
-        }),
-      })
-        .then(() => invalidateHasTransferred(privyUser.id))
+      getAccessToken()
+        .then((token) => {
+          if (!token) throw new Error("Not signed in");
+
+          // The server takes the user from the token and only accepts a
+          // wallet linked to this account.
+          return fetch("/api/user", {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              walletAddress: externalAddress,
+              markTransferred: true,
+            }),
+          });
+        })
+        .then((res) => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return invalidateHasTransferred(privyUser.id);
+        })
         .catch((err) => console.error("Failed to update user record:", err));
     }
 

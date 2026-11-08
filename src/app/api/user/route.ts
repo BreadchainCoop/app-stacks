@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createErrorResponse } from "../utils";
+import { getAddress, isAddress } from "viem";
+import { createErrorResponse, verifyPrivyToken } from "../utils";
 import { createClient } from "@supabase/supabase-js";
 import { serverEnv } from "@/lib/envs/server";
 import type { Database } from "@/lib/supabase";
+import { privyUserOwnsWallet } from "@/lib/privy-server";
 
 const supabaseAdmin = createClient<Database>(
   serverEnv.NEXT_PUBLIC_SUPABASE_URL,
@@ -31,12 +33,22 @@ export async function GET(req: NextRequest) {
 }
 
 interface UpdateUserRequestBody {
-  privyUserId: string;
   markTransferred?: boolean;
   walletAddress?: string;
 }
 
+/**
+ * Records the embedded → linked wallet move (migrate-and-transfer).
+ *
+ * The row is the caller's own, taken from their Privy token, never the body.
+ * `wallet_address` is what callerOwnsWallet trusts as proof of ownership and
+ * what /api/users/search returns for a username, so it may only be set to a
+ * wallet Privy confirms the caller owns.
+ */
 export async function PATCH(req: NextRequest) {
+  const privyUserId = await verifyPrivyToken(req);
+  if (!privyUserId) return createErrorResponse("Unauthorized", 401);
+
   let body: unknown;
 
   try {
@@ -49,12 +61,7 @@ export async function PATCH(req: NextRequest) {
     return createErrorResponse("Invalid request body");
   }
 
-  const { privyUserId, markTransferred, walletAddress } =
-    body as UpdateUserRequestBody;
-
-  if (!privyUserId || typeof privyUserId !== "string") {
-    return createErrorResponse("privyUserId is required and must be a string");
-  }
+  const { markTransferred, walletAddress } = body as UpdateUserRequestBody;
 
   const updates: {
     transferred_to_wallet_at?: string;
@@ -63,8 +70,20 @@ export async function PATCH(req: NextRequest) {
 
   if (markTransferred)
     updates.transferred_to_wallet_at = new Date().toISOString();
-  if (walletAddress && typeof walletAddress === "string") {
-    updates.wallet_address = walletAddress;
+
+  if (walletAddress !== undefined) {
+    if (typeof walletAddress !== "string" || !isAddress(walletAddress)) {
+      return createErrorResponse("walletAddress must be a valid address");
+    }
+
+    if (!(await privyUserOwnsWallet(privyUserId, walletAddress))) {
+      return createErrorResponse(
+        "walletAddress must be a wallet linked to your account",
+        403
+      );
+    }
+
+    updates.wallet_address = getAddress(walletAddress);
   }
 
   if (Object.keys(updates).length === 0) {
