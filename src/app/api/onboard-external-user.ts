@@ -4,7 +4,7 @@ import { getAddress } from "viem";
 
 const supabaseAdmin = createClient(
   serverEnv.NEXT_PUBLIC_SUPABASE_URL,
-  serverEnv.SUPABASE_SERVICE_ROLE_KEY
+  serverEnv.SUPABASE_SECRET_KEY
 );
 
 /** An onboarding failure whose message is safe to return to the client. */

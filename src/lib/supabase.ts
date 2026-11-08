@@ -157,7 +157,7 @@ export type AppSupabaseClient = SupabaseClient<Database>;
 export const createSupabaseClient = () =>
   createClient<Database>(
     clientEnv.NEXT_PUBLIC_SUPABASE_URL,
-    clientEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    clientEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     {
       auth: {
         persistSession: true,

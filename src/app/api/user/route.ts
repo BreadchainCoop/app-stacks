@@ -6,7 +6,7 @@ import type { Database } from "@/lib/supabase";
 
 const supabaseAdmin = createClient<Database>(
   serverEnv.NEXT_PUBLIC_SUPABASE_URL,
-  serverEnv.SUPABASE_SERVICE_ROLE_KEY
+  serverEnv.SUPABASE_SECRET_KEY
 );
 
 export async function GET(req: NextRequest) {

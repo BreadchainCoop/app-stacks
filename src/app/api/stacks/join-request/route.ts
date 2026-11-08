@@ -10,7 +10,7 @@ import { type Address } from "viem";
 
 const supabaseAdmin = createClient<Database>(
   serverEnv.NEXT_PUBLIC_SUPABASE_URL,
-  serverEnv.SUPABASE_SERVICE_ROLE_KEY
+  serverEnv.SUPABASE_SECRET_KEY
 );
 
 const isVerifiedOwner = (req: NextRequest, ownerAddress: Address) =>

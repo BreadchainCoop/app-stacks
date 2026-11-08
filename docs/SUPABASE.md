@@ -19,22 +19,28 @@ not by the frontend. Treat RLS as a security boundary, not a convenience.
 
 There are two distinct clients, and the difference is a security boundary — never mix them:
 
-| Client                   | Key                             | Where it runs                         | RLS          |
-| ------------------------ | ------------------------------- | ------------------------------------- | ------------ |
-| **Anon (user)**          | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Browser (`"use client"`)              | **Enforced** |
-| **Service role (admin)** | `SUPABASE_SERVICE_ROLE_KEY`     | Server only — `src/app/api/**` routes | **Bypassed** |
+| Client                   | Key                                    | Where it runs                         | RLS          |
+| ------------------------ | -------------------------------------- | ------------------------------------- | ------------ |
+| **Anon (user)**          | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Browser (`"use client"`)              | **Enforced** |
+| **Service role (admin)** | `SUPABASE_SECRET_KEY`                  | Server only — `src/app/api/**` routes | **Bypassed** |
 
 - **Anon client** — `createSupabaseClient()` in `src/lib/supabase.ts`. Runs in the
   browser, authenticated as the logged-in user, and is subject to RLS. This is what most
   reads should go through, so the database itself enforces who can see what.
-- **Service-role client** — created with `SUPABASE_SERVICE_ROLE_KEY` inside API route
+- **Service-role client** — created with `SUPABASE_SECRET_KEY` inside API route
   handlers (e.g. `src/app/api/user/route.ts`, `api/onboard`). It **bypasses RLS**, so it
   may only run on the server and must apply its own authorization checks before reading or
   writing on a user's behalf.
 
+These are Supabase's publishable (`sb_publishable_...`) and secret (`sb_secret_...`) keys,
+which replaced the legacy `anon` and `service_role` JWTs; the env schemas reject anything
+without the right prefix. Neither is a JWT, so a script calling the REST API directly sends
+the key on the `apikey` header only — as `Authorization: Bearer` it is rejected with
+`Invalid JWT`.
+
 **Rules:**
 
-- The service-role key must **never** be imported into a `"use client"` file or exposed to
+- The secret key must **never** be imported into a `"use client"` file or exposed to
   the browser. It lives only in `serverEnv` (`src/lib/envs/server.ts`) and is used only in
   `src/app/api/**`.
 - Prefer the anon client + RLS for user-facing reads. Reach for the service role only when

@@ -127,7 +127,7 @@ so — but the three commands above are the baseline that must pass.
   when a component actually needs it — hooks, state/effects, event handlers, browser APIs,
   or wallet/Supabase/Privy context — and push that boundary to the leaves so as much of the
   tree as possible stays server-rendered. Files with `"use client"` run in the browser —
-  never import `serverEnv`, the Supabase service-role key, or Node-only modules into them.
+  never import `serverEnv`, the Supabase secret key, or Node-only modules into them.
   Service-role Supabase access happens only in `src/app/api/**` route handlers.
 - **Styling:** Tailwind utility classes; prefer components from `@breadcoop/ui` before
   building new ones. Use the `cn` helper from `@/lib/utils` for conditional/merged classes.
@@ -161,7 +161,7 @@ so — but the three commands above are the baseline that must pass.
 - **Do not** edit anything under `contracts/lib/**` — those are git submodules.
 - **Do not** weaken Supabase RLS or move service-role logic to the client. If a change
   seems to require it, stop and flag it.
-- **Do not** log or expose secrets that move funds — the service-role key or
+- **Do not** log or expose secrets that move funds — the Supabase secret key or
   `AUTOMATIC_FUNDING_PRIVATE_KEY` — and don't weaken the gas-sponsorship or Sepolia
   auto-funding logic.
 - **Do not** add dependencies without need; this repo pins pnpm settings

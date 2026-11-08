@@ -53,5 +53,9 @@ supabase/.temp
 !.claude/skills/webview-e2e/
 ~/.claude-*
 
+# agent skills: installed files, restored from skills-lock.json with
+# `npx skills experimental_install` (which also links them into .claude/skills)
+.agents/skills/
+
 # figma
 fig/
