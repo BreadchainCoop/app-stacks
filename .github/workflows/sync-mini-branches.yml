@@ -7,7 +7,7 @@ name: Sync mini branches
 # mirror of its web counterpart, existing only to give Netlify a branch to build
 # with that env.
 #
-#   development -> mini-development
+#   dev         -> mini-development
 #   main        -> mini, nimiq
 #
 # The development tier has no nimiq branch: Nimiq Pay is tested there against
@@ -20,10 +20,10 @@ name: Sync mini branches
 on:
   push:
     branches:
-      - development
+      - dev
       - main
   # Run it by hand from the Actions tab to seed a mini branch without waiting
-  # for the next push; dispatch it from development or main, since the target
+  # for the next push; dispatch it from dev or main, since the target
   # is chosen from the branch it runs on.
   workflow_dispatch:
 
@@ -46,7 +46,7 @@ jobs:
           SOURCE_BRANCH: ${{ github.ref_name }}
         run: |
           case "$SOURCE_BRANCH" in
-            development) targets="mini-development" ;;
+            dev) targets="mini-development" ;;
             main) targets="mini nimiq" ;;
             *)
               echo "No mini branch is mapped to $SOURCE_BRANCH"
